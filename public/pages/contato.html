@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/navbar.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/contato.css">
+    <link rel="stylesheet" href="../css/footer.css">
+    <script src="../scripts/contato.js" defer></script>
+    <title>Contato</title>
+</head>
+
+<body>
+    <header class="cabecalho">
+        <nav class="navbar" aria-label="Navegação principal">
+            <a class="navbar-logo" href="/" aria-label="CoreTrace — início">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+
+            <button class="navbar-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"
+                aria-label="Abrir menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <div class="navbar-menu" id="menu-principal">
+                <div class="navbar-menu-cabecalho">
+                    <a class="navbar-side-logo" href="/" aria-label="CoreTrace — início">
+                        <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+                    </a>
+                </div>
+
+                <ul class="navbar-links">
+                    <li>
+                        <a href="/">Página inicial</a>
+                    </li>
+                    <li>
+                        <a href="#sobre">Sobre nós</a>
+                    </li>
+                    <li>
+                        <a href="../pages/contato.html" aria-current="page">Contato</a>
+                    </li>
+                </ul>
+
+                <div class="navbar-acoes">
+                    <a class="navbar-login" href="/pages/login.html">Login</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <section class="container-principal">
+        <div class="container-entre-em-contato">
+            <div class="container-entre-em-contato-esquerda">
+                <p class="traço">_</p>
+                <p style="letter-spacing: 6px; font-size: 1.4vh; padding-top: 3%; color: #383036;">FALE CONOSCO</p>
+                <h1 style="font-size: 7.5vh; font-weight: bolder; word-wrap: break-word; max-width: 80%;">Entre em
+                    <span class="vermelho">contato</span>
+                </h1>
+                <p style="max-width: 65%; word-wrap: break-word; font-size: 1.8vh; color: #372F35;">Tem alguma dúvida,
+                    sugestão ou
+                    precisa de uma solução personalizada? Nossa equipe está pronta para ajudar.
+                    Entre em contato com a CoreTrace e fale com especialistas em infraestrutura e monitoramento.</p>
+                <button class="botao-contato"
+                    onclick="document.getElementById('estamos-prontos').scrollIntoView({ behavior: 'smooth' })">
+                    <span>Entrar em contato</span>
+                    <span class="seta">➜</span>
+                </button>
+            </div>
+            <div class="container-entre-em-contato-direita">
+                <img src="../assets/icons/servidor_entre_em_contato.png" alt="" class="imagem-servidor">
+            </div>
+        </div>
+        <div id="estamos-prontos" class="container-estamos-prontos-para-ouvir">
+            <div class="container-estamos-prontos-para-ouvir-centrado">
+                <div class="container-estamos-prontos-para-ouvir-superior">
+                    <div class="container-fale-conosco">
+                        <p class="traço">_</p>
+                        <p style="letter-spacing: 6px; font-size: 1.4vh; padding-top: 3%; color: #868686;">FALE CONOSCO
+                        </p>
+                        <h1
+                            style="font-size: 5.7vh; font-weight: bolder; word-wrap: break-word; max-width: 70%; color: #F7F7F2; padding-top: 3%;">
+                            Estamos prontos para
+                            <span class="vermelho">ouvir</span>
+                        </h1>
+                        <p
+                            style="max-width: 80%; word-wrap: break-word; font-size: 1.68vh; color: #868686; padding-top: 3%;">
+                            Tem alguma
+                            dúvida,
+                            sugestão ou precisa de uma solução personalizada? Nossa equipe está pronta para ajudar.
+                        </p>
+                    </div>
+                    <div class="container-enviar-email">
+                        <div class="container-email">
+                            <div class="divisao-email-1">
+                                <div class="campo-input">
+                                    <input class="caixa-input" type="nome" placeholder="Nome completo" id="id_nome">
+                                </div>
+                                <div class="campo-input">
+                                    <input class="caixa-input" type="email" placeholder="E-mail" id="id_email">
+                                </div>
+
+                            </div>
+                            <div class="divisao-email-2">
+                                <div class="campo-input-2">
+                                    <input class="caixa-input" type="assunto" placeholder="Assunto" id="id_assunto">
+                                </div>
+                            </div>
+                            <div class="divisao-email-3">
+                                <div class="campo-input-3">
+                                    <textarea class="caixa-input-3" placeholder="Conteúdo do e-mail"
+                                        id="id_conteudo"></textarea>
+                                </div>
+                            </div>
+                            <div class="divisao-email-4">
+                                <button class="botao-enviar" type="submit" onclick="enviar()">
+                                    Enviar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container-estamos-prontos-para-ouvir-inferior">
+                    <div class="contatos">
+                        <div class="imagem-contato"
+                            style="background-image: url('../assets/images/email-contato.png');">
+
+                        </div>
+                        <div class="descricao-contato">
+                            <h2>E-mail</h2>
+                            <p style="color: #868686;">contato@coretrace.com</p>
+                        </div>
+                    </div>
+                    <div class="contatos">
+                        <div class="imagem-contato"
+                            style="background-image: url('../assets/images/telefone-contato.png');">
+
+                        </div>
+                        <div class="descricao-contato">
+                            <h2>Telefone</h2>
+                            <p style="color: #868686;">(19) 98765-4321</p>
+                        </div>
+
+                    </div>
+                    <div class="contatos">
+                        <div class="imagem-contato"
+                            style="background-image: url('../assets/images/suporte-contato.png');">
+
+                        </div>
+                        <div class="descricao-contato">
+                            <h2>Suporte</h2>
+                            <p style="color: #868686;">suporte@coretrace.com</p>
+                        </div>
+
+                    </div>
+                    <div class="contatos">
+                        <div class="imagem-contato"
+                            style="background-image: url('../assets/images/social-contato.png');">
+
+                        </div>
+                        <div class="descricao-contato">
+                            <h2>Redes Sociais</h2>
+                            <div class="botoes-sociais">
+                                <a href="https://www.linkedin.com/" target="_blank" class="botao-rede">
+                                    <img src="../assets/images/linkedin.png" alt="LinkedIn">
+                                </a>
+                                <a href="https://www.instagram.com/" target="_blank" class="botao-rede">
+                                    <img src="../assets/images/instagram.png" alt="LinkedIn">
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-mais-que-tecnologia">
+            <div class="container-nosso-diferencial">
+                <div
+                    style="height: 0.8%; width: 3.8%; margin-bottom: 3%; background-color: #CC0301; border-radius: 2px;">
+                </div>
+                <p style="letter-spacing: 6px; font-size: 1.4vh; color: #868686; font-weight: bold;">NOSSO DIFERENCIAL
+                </p>
+                <h1
+                    style="font-size: 5.5vh; font-weight: bolder; word-wrap: break-word; text-align: center; max-width: 80%;">
+                    Mais que tecnologia,<br>
+                    <span class="vermelho">resultados reais.</span>
+                </h1>
+                <p
+                    style="max-width: 65%; word-wrap: break-word; font-size: 1.8vh; color: #555555; text-align: center; max-width: 40%;">
+                    Combinamos inovação,
+                    expertise e um atendimento próximo para entregar soluções que fazem a diferença na operação do seu
+                    negócio.
+                </p>
+            </div>
+            <div class="container-boxes-coretrace">
+                <div class="caixa-beneficios">
+                    <div class="texto-beneficios">
+                        <img src="../assets/images/alta-performance-contato.png" alt="" class="imagens-boxes">
+                        <h3 style="margin-bottom: 5%;">Alta performance</h3>
+                        <p style="color: #868686; max-width: 95%;">Soluções otimizadas para garantir máxima eficiência e
+                            disponibilidade do seu ambiente.</p>
+                    </div>
+                    <div
+                        style="display: flex; height: 20%; width: 20%; border-top-left-radius: 16px; border-end-end-radius: 16px; background-color: #CC0301;">
+
+                    </div>
+                </div>
+                <div class="caixa-beneficios">
+                    <div class="texto-beneficios">
+                        <img src="../assets/images/seguranca-contato.png" alt="" class="imagens-boxes">
+                        <h3 style="margin-bottom: 5%;">Segurança de ponta</h3>
+                        <p style="color: #868686; max-width: 95%;">Proteção em todas as camadas da infraestrutura, com
+                            monitoramento contínuo e análise inteligente.</p>
+                    </div>
+                    <div
+                        style="display: flex; height: 20%; width: 20%; border-top-left-radius: 16px; border-end-end-radius: 16px; background-color: #CC0301;">
+
+                    </div>
+                </div>
+                <div class="caixa-beneficios">
+                    <div class="texto-beneficios">
+                        <img src="../assets/images/suporte-especializado-contato.png" alt="" class="imagens-boxes">
+                        <h3 style="margin-bottom: 5%;">Suporte especializado</h3>
+                        <p style="color: #868686; max-width: 95%;">Uma equipe experiente e próxima, pronta para te
+                            acompanhar em todas as etapas.</p>
+                    </div>
+                    <div
+                        style="display: flex; height: 20%; width: 20%; border-top-left-radius: 16px; border-end-end-radius: 16px; background-color: #CC0301;">
+
+                    </div>
+                </div>
+                <div class="caixa-beneficios">
+                    <div class="texto-beneficios">
+                        <img src="../assets/images/escalabilidade-contato.png" alt="" class="imagens-boxes">
+                        <h3 style="margin-bottom: 5%;">Escalabilidade</h3>
+                        <p style="color: #868686; max-width: 95%;">Infraestrutura flexível para crescer com o seu
+                            negócio, sem complicação.</p>
+                    </div>
+                    <div
+                        style="display: flex; height: 20%; width: 20%; border-top-left-radius: 16px; border-end-end-radius: 16px; background-color: #CC0301;">
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="rodape" id="footer">
+        <div class="rodape-container">
+            <div class="rodape-links">
+                <div class="rodape-coluna">
+                    <h2>CoreTrace</h2>
+                    <a href="/">Página inicial</a>
+                    <a href="#sobre">Sobre nós</a>
+                    <a href="#footer">Termos de serviço</a>
+                    <a href="#contato">Cadastro</a>
+                </div>
+
+                <div class="rodape-coluna">
+                    <h2>Contato</h2>
+                    <a href="mailto:contato@coretrace.com">E-mail</a>
+                    <a href="tel:+550000000000">Telefone</a>
+                    <a href="mailto:suporte@coretrace.com">Suporte</a>
+                </div>
+
+                <div class="rodape-coluna">
+                    <h2>Redes sociais</h2>
+                    <a href="https://www.linkedin.com/">LinkedIn</a>
+                    <a href="https://www.instagram.com/">Instagram</a>
+                    <a href="https://github.com/">GitHub</a>
+                </div>
+            </div>
+
+            <div class="rodape-base">
+                <a class="rodape-marca" href="/" aria-label="CoreTrace — início">
+                    <img src="../assets/icons/core_trace_white.svg" alt="CoreTrace" width="131" height="31">
+                </a>
+                <p>© 2026 CoreTrace. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

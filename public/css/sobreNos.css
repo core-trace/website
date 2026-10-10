@@ -1,0 +1,578 @@
+.sobre-container {
+    width: 84vw;
+    margin: auto;
+}
+
+.historia {
+    padding: 8vh 0;
+    background-color: #f8f8f6;
+}
+
+.historia-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5vw;
+    align-items: center;
+}
+
+.historia-imagem {
+    position: relative;
+    isolation: isolate;
+}
+
+.historia-imagem::before {
+    content: "";
+    position: absolute;
+    width: 11vw;
+    height: 11vw;
+    border-radius: 50%;
+    background-color: #cc0301;
+    bottom: -3vh;
+    left: -3vw;
+    z-index: -1;
+}
+
+.historia-imagem img {
+    display: block;
+    width: 100%;
+    height: 48vh;
+    width: 58vw;
+    object-fit: cover;
+    border-radius: 0.8vw;
+}
+.historia-texto {
+    width: 35vw;
+}
+
+.traco {
+
+    width: 2.5vw;
+    height: 0.5vh;
+    background-color: #cc0301;
+    margin-bottom: 2vh;
+}
+
+.historia-texto h1 {
+    font-size: 3.5vw;
+    line-height: 1.5;
+    font-weight: 700;
+    margin-bottom: 2vh;
+}
+
+.historia-texto h1 span {
+    color: #cc0301;
+}
+
+.historia-texto p {
+    font-size: 1vw;
+    line-height: 1.5;
+    margin-bottom: 2.5vh;
+}
+
+.botao-contato {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.5vw;
+    background-color: #cc0301;
+    color: white;
+    padding: 1.5vh 2vw;
+    border-radius: 0.5vw;
+    text-decoration: none;
+    font-size: 1vw;
+    font-weight: 600;
+}
+
+.botao-contato:hover {
+    background-color: #a40000;
+}
+.beneficios {
+    background-color: #141215;
+    color: white;
+    padding: 7vh 0;
+}
+
+.beneficios-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 4vw;
+    align-items: center;
+}
+
+.dashboard-imagem img {
+    display: block;
+    width: 100%;
+    height: 45vh;
+    object-fit: cover;
+    border-radius: 0.5vw;
+}
+.beneficio {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5vw;
+    padding: 2vh 1.5vw;
+    background-color: #1e1e1e;
+    border-radius: 0.6vw;
+}
+
+.beneficio-icone {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    background-color: #cc0301;
+    width: 3vw;
+    height: 3vw;
+    border-radius: 50%;
+}
+
+.beneficio-icone img {
+    width: 1.6vw;
+    height: 1.6vw;
+    object-fit: contain;
+}
+
+.beneficio h2 {
+    font-size: 1.15vw;
+    font-weight: 700;
+    margin-bottom: 1vh;
+}
+
+.beneficio p {
+    font-size: 0.85vw;
+    color: #aaa5a8;
+    line-height: 1.6;
+}
+.beneficios{
+    gap: 1.5vh;
+}
+.beneficios-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 2vh;
+}
+
+.equipe {
+    background-color: #f8f8f6;
+    padding: 7vh 8vw;
+}
+
+.equipe-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5vw;
+    margin-bottom: 7vh;
+}
+
+.equipe-texto {
+    width: 30vw;
+}
+
+.equipe-texto h1 {
+    font-size: 3.5vw;
+    line-height: 1.4;
+    margin-bottom: 2vh;
+}
+
+.equipe-texto h1 span {
+    display: block;
+    color: #cc0301;
+}
+
+.equipe-texto p {
+    font-size: 1vw;
+    line-height: 1.6;
+}
+
+.equipe-imagem {
+    width: 45vw;
+    height: 35vh;
+    object-fit: cover;
+    border-radius: 0.8vw;
+}
+.membros {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2vw;
+    width: 70vw;
+    margin: auto;
+}
+
+.membro {
+    background-color: white;
+    border-radius: 0.8vw;
+    overflow: hidden;
+}
+
+.foto {
+    height: 25vh;
+    background-color: white;
+}
+
+.foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.informacoes {
+    background-color: #141215;
+    color: white;
+    padding: 1.5vh 1vw;
+}
+
+.informacoes h3 {
+    font-size: 1vw;
+    margin-bottom: 0.5vh;
+}
+
+.informacoes p {
+    font-size: 0.8vw;
+    color: #aaa5a8;
+}
+.redes {
+    display: flex;
+    align-items: center;
+    gap: 1vw;
+    margin-top: 1vh;
+}
+
+.diferencial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7vw;
+    background-color: #f8f8f6;
+    padding: 7vh 8vw;
+}
+
+.diferencial-texto {
+    width: 38vw;
+}
+
+.diferencial-texto h1 {
+    font-size: 3.5vw;
+    line-height: 1.4;
+    margin-bottom: 2vh;
+}
+
+.diferencial-texto h1 span {
+    display: block;
+    color: #cc0301;
+}
+
+.diferencial-texto > p {
+    font-size: 1vw;
+    margin-bottom: 2vh;
+    line-height: 1.6;
+}
+
+.vantagens {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5vh;
+}
+
+.vantagem {
+    background-color: #141215;
+    color: white;
+    padding: 2vh 1.5vw;
+    border-radius: 0.6vw;
+}
+
+.vantagem h3 {
+    font-size: 1.1vw;
+    border-left: 0.3vw solid #cc0301;
+    padding-left: 1vw;
+    margin-bottom: 1vh;
+}
+
+.vantagem p {
+    font-size: 0.85vw;
+    color: #aaa5a8;
+    line-height: 1.6;
+}
+
+.diferencial-imagem {
+    width: 32vw;
+    height: 60vh;
+    position: relative;
+}
+
+.diferencial-imagem img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.8vw;
+}
+
+.diferencial-imagem h2 {
+    position: absolute;
+    bottom: 3vh;
+    left: 2vw;
+    right: 2vw;
+    color: white;
+    font-size: 1.7vw;
+    line-height: 1.4;
+}
+
+.diferencial-imagem h2 span {
+    color: #ff3333;
+}
+
+
+@media (max-width: 600px) {
+
+
+    .sobre-container {
+        width: 90vw;
+    }
+
+    .historia {
+        padding: 5vh 0;
+    }
+
+    .historia-grid {
+        grid-template-columns: 1fr;
+        gap: 5vh;
+    }
+
+    .historia-imagem {
+        width: 90vw;
+    }
+
+    .historia-imagem img {
+        width: 90vw;
+        height: 25vh;
+        border-radius: 2vw;
+    }
+
+    .historia-imagem::before {
+        width: 25vw;
+        height: 25vw;
+        bottom: -2vh;
+        left: -3vw;
+    }
+
+    .historia-texto {
+        width: 90vw;
+    }
+
+    .traco {
+        display: block;
+        width: 8vw;
+        height: 0.5vh;
+        margin-bottom: 2vh;
+    }
+
+    .historia-texto h1 {
+        font-size: 9vw;
+        line-height: 1.3;
+        margin-bottom: 2vh;
+    }
+
+    .historia-texto p {
+        font-size: 3.5vw;
+        line-height: 1.6;
+        margin-bottom: 3vh;
+    }
+
+    .botao-contato {
+        font-size: 3.5vw;
+        padding: 1.5vh 5vw;
+        border-radius: 1.5vw;
+    }
+
+
+
+    .beneficios {
+        padding: 5vh 0;
+    }
+
+    .beneficios-grid {
+        grid-template-columns: 1fr;
+        gap: 4vh;
+    }
+
+    .dashboard-imagem img {
+        width: 90vw;
+        height: 30vh;
+        border-radius: 2vw;
+    }
+
+    .beneficios-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 2vh;
+    }
+
+    .beneficio {
+        gap: 3vw;
+        padding: 2vh 3vw;
+        border-radius: 2vw;
+    }
+
+    .beneficio-icone {
+        width: 10vw;
+        height: 10vw;
+    }
+
+    .beneficio-icone img {
+        width: 5vw;
+        height: 5vw;
+    }
+
+    .beneficio h2 {
+        font-size: 3.5vw;
+        margin-bottom: 1vh;
+    }
+
+    .beneficio p {
+        font-size: 2.8vw;
+        line-height: 1.6;
+    }
+
+
+  
+
+    .equipe {
+        padding: 5vh 5vw;
+    }
+
+    .equipe-topo {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3vh;
+        margin-bottom: 5vh;
+    }
+
+    .equipe-texto {
+        width: 90vw;
+    }
+
+    .equipe-texto h1 {
+        font-size: 9vw;
+        line-height: 1.3;
+    }
+
+    .equipe-texto p {
+        font-size: 3.5vw;
+        line-height: 1.6;
+    }
+
+    .equipe-imagem {
+        width: 90vw;
+        height: 28vh;
+        border-radius: 2vw;
+    }
+
+
+
+
+    .membros {
+        width: 90vw;
+        grid-template-columns: 1fr 1fr;
+        gap: 3vw;
+    }
+
+    .membro {
+        border-radius: 2vw;
+    }
+
+    .foto {
+        height: 18vh;
+    }
+
+    .informacoes {
+        padding: 1.5vh 2vw;
+    }
+
+    .informacoes h3 {
+        font-size: 3vw;
+        margin-bottom: 0.5vh;
+    }
+
+    .informacoes p {
+        font-size: 2.5vw;
+    }
+
+    .redes {
+        gap: 2vw;
+        margin-top: 1vh;
+    }
+
+    .redes a {
+        display: flex;
+        align-items: center;
+    }
+
+    .redes img {
+        width: 4vw;
+        height: 4vw;
+        object-fit: contain;
+    }
+
+
+
+    .diferencial {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4vh;
+        padding: 5vh 5vw;
+    }
+
+    .diferencial-texto {
+        width: 90vw;
+    }
+
+    .diferencial-texto h1 {
+        font-size: 9vw;
+        line-height: 1.3;
+    }
+
+    .diferencial-texto > p {
+        font-size: 3.5vw;
+        line-height: 1.6;
+        margin-bottom: 3vh;
+    }
+
+    .vantagens {
+        gap: 2vh;
+    }
+
+    .vantagem {
+        padding: 2vh 4vw;
+        border-radius: 2vw;
+    }
+
+    .vantagem h3 {
+        font-size: 3.5vw;
+        border-left: 1vw solid #cc0301;
+        padding-left: 3vw;
+        margin-bottom: 1vh;
+    }
+
+    .vantagem p {
+        font-size: 2.8vw;
+        line-height: 1.6;
+    }
+
+    .diferencial-imagem {
+        width: 90vw;
+        height: 40vh;
+    }
+
+    .diferencial-imagem img {
+        width: 100%;
+        height: 100%;
+        border-radius: 2vw;
+    }
+
+    .diferencial-imagem h2 {
+        font-size: 5vw;
+        bottom: 3vh;
+        left: 4vw;
+        right: 4vw;
+    }
+}
+
+

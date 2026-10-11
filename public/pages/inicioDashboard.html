@@ -4,237 +4,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreTrace - Dashboard</title>
-            <link rel="stylesheet" href="../css/global.css">
+    <title>CoreTrace - Visão geral</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/inicioDashboard.css">
-
-
+    <script src="../scripts/inicioDashboard.js" defer></script>
 </head>
 
-<body>
+<body class="dashboard-page">
+    <a class="dashboard-pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
 
-    <aside class="menu">
-
-        <div class="logo">
-            <img src="../assets/images/CoreTraceBlackLogo.png" class="logo-completo" alt="CoreTrace">
-    
+    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
+        <div class="dashboard-menu-cabecalho">
+            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu">
+                <span aria-hidden="true">×</span>
+            </button>
         </div>
 
-        <div class="grupo">
-
-            <p class="titulo-menu">MONITORAMENTO</p>
-
-            <a href="inicioDashboard.html" class="item-menu apertado">
-                <img src="../assets/icons/dashboard.png" alt="Dashboard">
-                <span>Dashboard</span>
-            </a>
-
-            <a href="#" class="item-menu">
-                <img src="../assets/icons/sino.png" alt="Alertas">
-                <span>Alertas</span>
-            </a>
-
-            <a href="#" class="item-menu">
-                <img src="../assets/icons/relatorio.png" alt="Relatórios">
-                <span>Relatórios</span>
-            </a>
-
-        </div>
-
-        <div class="grupo">
-
-            <p class="titulo-menu">GESTÃO</p>
-
-            <a href="#" class="item-menu">
-                <img src="../assets/icons/perfil.png" alt="Perfis de servidor">
-                <span>Perfis de servidor</span>
-            </a>
-
-            <a href="#" class="item-menu">
-                <img src="../assets/icons/pessoas.png" alt="Equipe e acessos">
-                <span>Equipe e acessos</span>
-            </a>
-
-        </div>
-
-        <div class="grupo">
-
-            <p class="titulo-menu">SISTEMA</p>
-
-            <a href="#" class="item-menu">
-                <img src="../assets/icons/engrenagem.png" alt="Configurações">
-                <span>Configurações</span>
-            </a>
-
-            <a href="#" class="item-menu">
-                <img src="../assets/icons/documentacao.png" alt="Documentação">
-                <span>Documentação</span>
-            </a>
-
-        </div>
-
-        <div class="status">
-
-            <div class="bolinha"></div>
-
-            <div class="texto-status">
-                <span>Sistema online</span>
-                <small>Última atualização: 10:30</small>
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard">
+            <div class="dashboard-menu-grupo">
+                <h2 class="dashboard-menu-titulo">Monitoramento</h2>
+                <a href="inicioDashboard.html" class="dashboard-menu-item" aria-current="page">
+                    <img src="../assets/icons/dashboard.png" alt="" width="20" height="20">
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/sino.png" alt="" width="20" height="20">
+                    <span>Alertas</span>
+                </a>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/relatorio.png" alt="" width="20" height="20">
+                    <span>Relatórios</span>
+                </a>
             </div>
 
-        </div>
+            <div class="dashboard-menu-grupo">
+                <h2 class="dashboard-menu-titulo">Gestão</h2>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/perfil.png" alt="" width="20" height="20">
+                    <span>Perfis de servidor</span>
+                </a>
+                <a href="general-employee.html" class="dashboard-menu-item">
+                    <img src="../assets/icons/pessoas.png" alt="" width="20" height="20">
+                    <span>Equipe e acessos</span>
+                </a>
+            </div>
+
+            <div class="dashboard-menu-grupo">
+                <h2 class="dashboard-menu-titulo">Sistema</h2>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/engrenagem.png" alt="" width="20" height="20">
+                    <span>Configurações</span>
+                </a>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/documentacao.png" alt="" width="20" height="20">
+                    <span>Documentação</span>
+                </a>
+            </div>
+        </nav>
 
     </aside>
 
-    <main class="conteudo">
-<button class="botao-menu">
-    ☰
-</button>
+    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
 
-        <header class="cabecalho">
+    <div class="dashboard-conteudo">
+        <header class="dashboard-navbar">
+            <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu"
+                aria-controls="menu-dashboard" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
 
-            <div class="pesquisa">
-                <span class="lupa">&#128269;</span>
+            <label class="dashboard-pesquisa">
+                <span class="dashboard-lupa" aria-hidden="true"></span>
+                <input type="search" name="busca" aria-label="Buscar por servidor, hostname ou perfil"
+                    placeholder="Buscar por servidor, hostname ou perfil...">
+            </label>
 
-                <input
-                    type="text"
-                    placeholder="Buscar por servidor, hostname ou perfil..."
-                >
-            </div>
+            <div class="dashboard-usuario">
+                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
+                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
+                </button>
 
-            <div class="usuario">
+                <!-- A foto da referência ainda não está no projeto. Substituir as iniciais por um img quando disponível. -->
+                <div class="dashboard-avatar" role="img" aria-label="Amanda Lopes">AL</div>
 
-                <img
-                    src="../assets/icons/sino.png"
-                    class="notificacao"
-                    alt="Notificações"
-                >
-
-                <div class="foto-usuario">
-                    <img src="../assets/images/usuario.png" alt="Usuário">
+                <div class="dashboard-usuario-dados">
+                    <span class="dashboard-usuario-nome">Amanda Lopes</span>
+                    <span class="dashboard-usuario-cargo">Engenheira de observabilidade</span>
                 </div>
-
-                <div class="dados-usuario">
-                    <span class="nome-usuario">Amanda Lopes</span>
-                    <span class="cargo-usuario">Engenheira de observabilidade</span>
+                <div class="dashboard-conta">
+                    <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
+                        aria-controls="menu-conta" aria-expanded="false">
+                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
+                    </button>
+                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <button class="dashboard-sair" type="button">Sair</button>
+                    </div>
                 </div>
-
-                <span class="seta-usuario">&#8964;</span>
-
             </div>
-
         </header>
 
-        <section class="principal">
-
-            <div class="sem-servidor">
-
-                <img
-                    src="../assets/icons/imagemespera.png"
-                    class="imagem-espera"
-                    alt="Nenhum servidor encontrado"
-                >
-
-                <span class="aviso">
-                    SEU MONITORAMENTO COMEÇA AQUI
-                </span>
-
-                <h1>Nenhum servidor encontrado</h1>
-
+        <main class="principal" id="conteudo-principal" tabindex="-1">
+            <section class="sem-servidor" aria-labelledby="titulo-sem-servidor">
+                <img src="../assets/icons/imagemespera.png" class="imagem-espera" alt="" width="170" height="162">
+                <p class="aviso">Seu monitoramento começa aqui</p>
+                <h1 id="titulo-sem-servidor">Nenhum servidor encontrado</h1>
                 <p class="descricao">
                     Crie seu primeiro perfil de servidor para começar a monitorar a
                     performance, disponibilidade e métricas críticas de infraestrutura.
                 </p>
-
-                <button class="botao-criar">
-                    <span>+</span>
+                <button class="botao-criar" type="button">
+                    <span aria-hidden="true">+</span>
                     Criar perfil de servidor
                 </button>
+            </section>
 
-            </div>
-
-            <div class="passos">
-
-                <p class="titulo-passos">PARA INICIAR</p>
-
-                <div class="lista-passos">
-
-                    <div class="card">
-
-                        <div class="imagem-card">
-                            <img
-                                src="../assets/icons/arquivos.png"
-                                alt="Cadastrar servidor"
-                            >
+            <section class="passos" aria-labelledby="titulo-passos">
+                <h2 class="titulo-passos" id="titulo-passos">Para iniciar</h2>
+                <ol class="lista-passos">
+                    <li class="card-passo">
+                        <div class="imagem-card" aria-hidden="true">
+                            <img src="../assets/icons/arquivos.png" alt="" width="40" height="40">
                         </div>
-
                         <div class="texto-card">
-                            <span class="numero">1</span>
-
-                            <h3>Cadastre o servidor</h3>
-
-                            <p>
-                                Crie um perfil de servidor, escolha
-                                métricas e defina limites de uso.
-                            </p>
+                            <span class="numero" aria-hidden="true">1</span>
+                            <h3>Crie um perfil de monitoramento</h3>
+                            <p>Crie um perfil de servidor, escolha métricas e defina limites de uso.</p>
                         </div>
-
-                    </div>
-
-                    <div class="card">
-
-                        <div class="imagem-card">
-                            <img
-                                src="../assets/icons/ZIP.png"
-                                alt="Baixar script"
-                            >
+                    </li>
+                    <li class="card-passo">
+                        <div class="imagem-card" aria-hidden="true">
+                            <img src="../assets/icons/ZIP.png" alt="" width="40" height="40">
                         </div>
-
                         <div class="texto-card">
-                            <span class="numero">2</span>
-
+                            <span class="numero" aria-hidden="true">2</span>
                             <h3>Baixe o script</h3>
-
-                            <p>
-                                Geramos um .zip pronto para sua máquina.
-                            </p>
+                            <p>Geramos um .zip pronto para sua máquina dentro desse perfil.</p>
                         </div>
-
-                    </div>
-
-                    <div class="card">
-
-                        <div class="imagem-card">
-                            <img
-                                src="../assets/icons/grafico.png"
-                                alt="Monitorar servidor"
-                            >
+                    </li>
+                    <li class="card-passo">
+                        <div class="imagem-card" aria-hidden="true">
+                            <img src="../assets/icons/grafico.png" alt="" width="40" height="40">
                         </div>
-
                         <div class="texto-card">
-                            <span class="numero">3</span>
-
+                            <span class="numero" aria-hidden="true">3</span>
                             <h3>Execute e monitore</h3>
-
-                            <p>
-                                Acompanhe os dados. Se algo sair
-                                do normal, você será notificado.
-                            </p>
+                            <p>Acompanhe os dados. Se algo sair do normal, você será notificado.</p>
                         </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-    </main>
-
-    <script src="../scripts/inicioDashboard.js"></script>
-
+                    </li>
+                </ol>
+            </section>
+        </main>
+    </div>
 </body>
-
 
 </html>

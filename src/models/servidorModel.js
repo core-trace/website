@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const database = require("../database/config");
 
 function buscarPerfil(tokenInstalacao, tokenPerfilServidor) {
@@ -62,4 +63,75 @@ function listarMetricas() {
     `);
 }
 
-module.exports = { buscarPerfil, buscarPorMac, cadastrar, ativar, listarPerfisPorEmpresa, listarMetricas };
+function buscarProprietario(idUsuario, idEmpresa) {
+    const instrucaoSql = `
+        SELECT id_usuario
+        FROM usuario
+        WHERE id_usuario = ? AND fk_empresa = ? AND status = 'ATIVO';
+    `;
+    return database.executar(instrucaoSql, [idUsuario, idEmpresa]);
+}
+
+function listarMembrosDisponiveis(idEmpresa, idProprietario, idPerfil) {
+    const instrucaoSql = `
+        SELECT u.id_usuario, u.nome, u.email, u.status, n.nome AS nivel_acesso
+        FROM usuario u
+        INNER JOIN nivel_acesso n ON n.id_nivel_acesso = u.fk_nivel_acesso
+        WHERE u.fk_empresa = ?
+          AND u.id_usuario <> ?
+          AND u.status = 'ATIVO'
+          AND (? = 0 OR EXISTS (
+              SELECT 1 FROM perfil_servidor p
+              WHERE p.id_perfil_servidor = ? AND p.fk_empresa = u.fk_empresa
+          ))
+          AND NOT EXISTS (
+              SELECT 1 FROM usuario_perfil_servidor up
+              WHERE up.fk_usuario = u.id_usuario AND up.fk_perfil_servidor = ?
+          )
+        ORDER BY u.nome, u.id_usuario;
+    `;
+    return database.executar(instrucaoSql, [idEmpresa, idProprietario, idPerfil, idPerfil, idPerfil]);
+}
+
+function criarPerfil(dados) {
+    const token = crypto.randomBytes(32).toString("hex");
+
+    // As três tabelas precisam ser gravadas juntas, na mesma transação.
+    return database.transacao(async function (executar) {
+        const sqlPerfil = `
+            INSERT INTO perfil_servidor
+                (nome, descricao, sistema_operacional, monitorar_docker, token_perfil_servidor, fk_empresa)
+            VALUES (?, ?, ?, ?, ?, ?);
+        `;
+        const resultado = await executar(sqlPerfil, [
+            dados.nome.trim(), dados.descricao.trim(), dados.sistemaOperacional,
+            dados.monitorarDocker, token, dados.empresa
+        ]);
+        const idPerfil = resultado.insertId;
+
+        const sqlMetrica = `
+            INSERT INTO componentes_perfil
+                (fk_componente, fk_perfil_servidor, operador, limite_atencao, limite_critico)
+            VALUES (?, ?, ?, ?, ?);
+        `;
+        for (const metrica of dados.metricas) {
+            await executar(sqlMetrica, [metrica.id, idPerfil, metrica.operador, metrica.atencao, metrica.critico]);
+        }
+
+        const sqlMembro = `
+            INSERT INTO usuario_perfil_servidor (fk_usuario, fk_perfil_servidor, papel)
+            VALUES (?, ?, ?);
+        `;
+        await executar(sqlMembro, [dados.proprietario, idPerfil, "proprietario"]);
+        for (const membro of dados.equipe) {
+            await executar(sqlMembro, [membro.id, idPerfil, membro.papel]);
+        }
+        return resultado;
+    });
+}
+
+module.exports = {
+    buscarPerfil, buscarPorMac, cadastrar, ativar,
+    listarPerfisPorEmpresa, listarMetricas, buscarProprietario,
+    listarMembrosDisponiveis, criarPerfil
+};

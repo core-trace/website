@@ -11,9 +11,12 @@ function cadastrar(nome, email, senha, cpf, telefone, empresa, nivelAcesso) {
 
 function autenticar(email, senha) {
     const instrucaoSql = `
-        SELECT id_usuario, nome, email, fk_empresa, fk_nivel_acesso, status
-        FROM usuario
-        WHERE email = ? AND senha = ? AND status = 'ATIVO';
+        SELECT u.id_usuario, u.nome, u.email, u.fk_empresa, u.fk_nivel_acesso, u.status,
+               n.nome AS nivel_acesso, e.razao_social AS nome_empresa
+        FROM usuario u
+        INNER JOIN nivel_acesso n ON n.id_nivel_acesso = u.fk_nivel_acesso
+        INNER JOIN empresa e ON e.id_empresa = u.fk_empresa
+        WHERE u.email = ? AND u.senha = ? AND u.status = 'ATIVO';
     `;
 
     return database.executar(instrucaoSql, [email, senha]);

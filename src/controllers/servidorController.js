@@ -96,4 +96,152 @@ function listarMetricas(req, res) {
         });
 }
 
-module.exports = { ativarAgente, listarPerfis, listarMetricas };
+// O wizard envia todas as etapas juntas para evitar perfis incompletos.
+function criarPerfil(req, res) {
+    const dados = req.body || {};
+    const mensagem = validarPerfil(dados);
+
+    if (mensagem) {
+        return res.status(400).json({ mensagem: mensagem });
+    }
+
+    return Promise.all([
+        servidorModel.buscarProprietario(dados.proprietario, dados.empresa),
+        servidorModel.listarMetricas(),
+        servidorModel.listarMembrosDisponiveis(dados.empresa, dados.proprietario, 0)
+    ])
+        .then(function (resultados) {
+            const proprietarios = resultados[0];
+            const metricas = resultados[1];
+            const membros = resultados[2];
+
+            if (proprietarios.length === 0) {
+                return res.status(403).json({ mensagem: "Proprietário ativo não encontrado nesta empresa." });
+            }
+            for (const metrica of dados.metricas) {
+                const componente = metricas.find(function (item) {
+                    return item.id_componente === metrica.id;
+                });
+                if (!componente) {
+                    return res.status(400).json({ mensagem: "Uma das métricas selecionadas não existe." });
+                }
+                if (componente.unidade === "%" && metrica.atencao !== null
+                    && (metrica.atencao < 0 || metrica.atencao > 100 || metrica.critico < 0 || metrica.critico > 100)) {
+                    return res.status(400).json({ mensagem: "Os limites percentuais devem estar entre 0 e 100." });
+                }
+            }
+            for (const membro of dados.equipe) {
+                const usuario = membros.find(function (item) {
+                    return item.id_usuario === membro.id;
+                });
+                if (!usuario) {
+                    return res.status(400).json({ mensagem: "Selecione apenas colaboradores disponíveis da sua empresa." });
+                }
+            }
+
+            return servidorModel.criarPerfil(dados)
+                .then(function (resultado) {
+                    return res.status(201).json({
+                        mensagem: "Perfil cadastrado com sucesso.",
+                        id_perfil_servidor: resultado.insertId
+                    });
+                });
+        })
+        .catch(function (erro) {
+            console.error("Erro ao cadastrar perfil:", erro.message);
+            return res.status(500).json({ mensagem: "Não foi possível salvar o perfil. Tente novamente." });
+        });
+}
+
+function validarPerfil(dados) {
+    if (!Number.isSafeInteger(dados.empresa) || dados.empresa <= 0
+        || !Number.isSafeInteger(dados.proprietario) || dados.proprietario <= 0) {
+        return "Informe a empresa e o proprietário do perfil.";
+    }
+    if (typeof dados.nome !== "string" || dados.nome.trim() === "" || dados.nome.trim().length > 100) {
+        return "Informe um nome com até 100 caracteres.";
+    }
+    if (typeof dados.descricao !== "string" || dados.descricao.length > 500) {
+        return "A descrição deve ter até 500 caracteres.";
+    }
+    if (dados.sistemaOperacional !== "linux" && dados.sistemaOperacional !== "windows") {
+        return "Selecione Linux ou Windows.";
+    }
+    if (typeof dados.monitorarDocker !== "boolean") {
+        return "Informe se deseja monitorar Docker.";
+    }
+    if (!Array.isArray(dados.metricas) || dados.metricas.length === 0 || dados.metricas.length > 500) {
+        return "Selecione ao menos uma métrica.";
+    }
+
+    const idsMetricas = [];
+    for (const metrica of dados.metricas) {
+        if (!metrica || !Number.isSafeInteger(metrica.id) || metrica.id <= 0 || idsMetricas.includes(metrica.id)) {
+            return "Selecione métricas válidas, sem repetições.";
+        }
+        idsMetricas.push(metrica.id);
+        if (![">", ">=", "<", "<="].includes(metrica.operador)) {
+            return "Selecione um operador válido para o alerta.";
+        }
+        if (metrica.atencao === null && metrica.critico === null) continue;
+        if (!Number.isFinite(metrica.atencao) || !Number.isFinite(metrica.critico)) {
+            return "Preencha os dois limites ou deixe ambos vazios.";
+        }
+        if ((metrica.operador === ">" || metrica.operador === ">=") && metrica.critico <= metrica.atencao) {
+            return "O limite crítico deve ser maior que o de atenção.";
+        }
+        if ((metrica.operador === "<" || metrica.operador === "<=") && metrica.critico >= metrica.atencao) {
+            return "O limite crítico deve ser menor que o de atenção.";
+        }
+    }
+
+    if (!Array.isArray(dados.equipe) || dados.equipe.length > 100) {
+        return "Selecione uma equipe válida.";
+    }
+    const idsEquipe = [dados.proprietario];
+    for (const membro of dados.equipe) {
+        if (!membro || !Number.isSafeInteger(membro.id) || membro.id <= 0 || idsEquipe.includes(membro.id)) {
+            return "Selecione colaboradores válidos, sem repetições.";
+        }
+        if (membro.papel !== "administrador" && membro.papel !== "visualizador") {
+            return "Selecione um nível de acesso válido.";
+        }
+        idsEquipe.push(membro.id);
+    }
+    return "";
+}
+
+function listarMembrosDisponiveis(req, res) {
+    const empresa = Number(req.query.empresa);
+    const proprietario = Number(req.query.proprietario);
+    const perfil = req.query.perfil === undefined ? 0 : Number(req.query.perfil);
+
+    if (!Number.isSafeInteger(empresa) || empresa <= 0
+        || !Number.isSafeInteger(proprietario) || proprietario <= 0
+        || !Number.isSafeInteger(perfil) || perfil < 0) {
+        return res.status(400).json({ mensagem: "Informe a empresa, o proprietário e um perfil válido." });
+    }
+
+    return servidorModel.buscarProprietario(proprietario, empresa)
+        .then(function (usuarios) {
+            if (usuarios.length === 0) {
+                return res.status(403).json({ mensagem: "Usuário não encontrado nesta empresa." });
+            }
+            return servidorModel.listarMembrosDisponiveis(empresa, proprietario, perfil)
+                .then(function (membros) {
+                    return res.json(membros);
+                });
+        })
+        .catch(function (erro) {
+            console.error("Erro ao buscar equipe:", erro.message);
+            return res.status(500).json({ mensagem: "Não foi possível carregar os colaboradores." });
+        });
+}
+
+module.exports = {
+    ativarAgente,
+    listarPerfis,
+    listarMetricas,
+    criarPerfil,
+    listarMembrosDisponiveis
+};

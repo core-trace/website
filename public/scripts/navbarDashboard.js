@@ -1,3 +1,28 @@
+function mostrarUsuarioLogado() {
+    if (!sessionStorage.ID_USUARIO || !sessionStorage.ID_EMPRESA) {
+        window.location.replace("login.html");
+        return;
+    }
+
+    const nome = sessionStorage.NOME_USUARIO || "Usuário";
+    const email = sessionStorage.EMAIL_USUARIO || "";
+    const niveis = { 1: "Administrador", 2: "Operador", 3: "Visualizador" };
+    const nivel = sessionStorage.NIVEL_ACESSO || niveis[sessionStorage.ID_NIVEL_ACESSO] || "";
+    const partes = nome.trim().split(/\s+/);
+    let iniciais = partes[0].charAt(0);
+    if (partes.length > 1) iniciais += partes[partes.length - 1].charAt(0);
+
+    document.querySelector(".dashboard-usuario-nome").textContent = nome;
+    document.querySelector(".dashboard-usuario-cargo").textContent = nivel;
+    document.querySelector(".dashboard-avatar").textContent = iniciais.toUpperCase();
+    document.querySelector(".dashboard-avatar").setAttribute("aria-label", nome);
+    document.querySelector(".dashboard-conta-email").textContent = email;
+    document.querySelector(".dashboard-conta-empresa").textContent = sessionStorage.NOME_EMPRESA || "";
+    document.querySelector(".dashboard-conta-status").textContent = sessionStorage.STATUS_USUARIO || "";
+}
+
+mostrarUsuarioLogado();
+
 const menu = document.querySelector(".dashboard-menu");
 const botaoAbrirMenu = document.querySelector(".dashboard-abrir-menu");
 const botaoFecharMenu = document.querySelector(".dashboard-fechar-menu");

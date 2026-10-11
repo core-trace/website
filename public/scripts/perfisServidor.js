@@ -81,3 +81,5 @@ async function carregarPerfis() {
 
 tentarPerfis.addEventListener("click", carregarPerfis);
 carregarPerfis();
+
+document.addEventListener("perfil-servidor-criado", carregarPerfis);

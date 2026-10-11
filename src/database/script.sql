@@ -88,7 +88,9 @@ CREATE TABLE usuario (
 CREATE TABLE perfil_servidor (
     id_perfil_servidor INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
-    descricao VARCHAR(255),
+    descricao VARCHAR(500),
+    sistema_operacional VARCHAR(10) NOT NULL DEFAULT 'linux',
+    monitorar_docker BOOLEAN NOT NULL DEFAULT FALSE,
     token_perfil_servidor VARCHAR(255) UNIQUE NOT NULL,
     fk_empresa INT NOT NULL,
 
@@ -97,6 +99,7 @@ CREATE TABLE perfil_servidor (
 );
 
 CREATE TABLE usuario_perfil_servidor (
+    papel VARCHAR(20) NOT NULL DEFAULT 'visualizador',
     fk_usuario INT NOT NULL,
     fk_perfil_servidor INT NOT NULL,
 
@@ -143,8 +146,9 @@ CREATE TABLE componentes (
 CREATE TABLE componentes_perfil (
     fk_componente INT NOT NULL,
     fk_perfil_servidor INT NOT NULL,
-    limite_atencao DECIMAL(10,2),
-    limite_critico DECIMAL(10,2),
+    operador VARCHAR(2) NOT NULL DEFAULT '>',
+    limite_atencao DOUBLE,
+    limite_critico DOUBLE,
 
     FOREIGN KEY (fk_componente)
         REFERENCES componentes(id_componente),

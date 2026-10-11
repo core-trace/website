@@ -22,15 +22,19 @@
         const statusDocker = dialogo.querySelector(".wizard-docker-status");
         const listaAlertas = dialogo.querySelector(".wizard-alertas-lista");
         const listaEquipe = dialogo.querySelector(".wizard-equipe-lista");
-        const emailEquipe = dialogo.querySelector("#perfil-equipe-email");
+        const selecionarUsuario = dialogo.querySelector("#perfil-equipe-usuario");
+        const incluirUsuario = dialogo.querySelector(".wizard-equipe-incluir");
+        let usuariosEmpresa = [];
         const feedbackEquipe = dialogo.querySelector("#perfil-equipe-feedback");
         const emailProprietario = (sessionStorage.EMAIL_USUARIO || "").trim().toLowerCase();
-        const membrosEquipe = new Map();
+        let membrosEquipe = [];
         const linhasAlertas = new Map();
         let categoriasMetricas = [];
         let etapa = 1;
         let catalogoCarregado = false;
         let buscandoMetricas = false;
+        let salvando = false;
+        const feedbackCadastro = dialogo.querySelector(".wizard-cadastro-feedback");
 
         const icones = {
             cpu: "cpu.svg", ram: "ram.svg", disco: "disco.svg", swap: "swap.svg",
@@ -38,77 +42,60 @@
         };
 
         function atualizarProximo() {
-            // A API de criação do perfil ainda não existe; manter as escolhas no formulário.
-            proximo.disabled = etapa === 5 || (etapa === 2
+            proximo.disabled = salvando || (etapa === 2
                 && (!catalogoCarregado || !lista.querySelector("input:checked")));
-            dialogo.querySelector(".wizard-proximo-texto").textContent = etapa === 5 ? "Concluir configuração" : "Próximo";
-            if (etapa === 5) proximo.title = "O salvamento do perfil ainda não está disponível.";
-            else proximo.removeAttribute("title");
+            dialogo.querySelector(".wizard-proximo-texto").textContent = salvando ? "Salvando..."
+                : etapa === 5 ? "Concluir configuração" : "Próximo";
         }
 
-        function criarMembroEquipe(membro, proprietario = false) {
+        function criarMembroEquipe(membro, proprietario) {
             const item = document.createElement("li");
             item.className = "wizard-equipe-membro";
-            item.classList.toggle("wizard-equipe-proprietario", proprietario);
-            const avatar = document.createElement("span");
-            avatar.className = "wizard-equipe-avatar";
-            avatar.setAttribute("aria-hidden", "true");
+            // O HTML é fixo; nome e email são preenchidos como texto.
+            item.innerHTML = `
+                <span class="wizard-equipe-avatar" aria-hidden="true"></span>
+                <div class="wizard-equipe-dados">
+                    <div class="wizard-equipe-identidade">
+                        <strong></strong>
+                        <span class="wizard-equipe-status"></span>
+                    </div>
+                    <p></p>
+                </div>`;
+            item.querySelector("strong").textContent = membro.nome;
+            item.querySelector("p").textContent = membro.email;
             const partesNome = membro.nome.trim().split(/\s+/);
-            avatar.textContent = (partesNome[0][0] + (partesNome.length > 1 ? partesNome.at(-1)[0] : "")).toUpperCase();
-            const dados = document.createElement("div");
-            dados.className = "wizard-equipe-dados";
-            const cabecalho = document.createElement("div");
-            cabecalho.className = "wizard-equipe-identidade";
-            const nomeMembro = document.createElement("strong");
-            nomeMembro.textContent = membro.nome;
-            cabecalho.append(nomeMembro);
+            let iniciais = partesNome[0].charAt(0);
+            if (partesNome.length > 1) iniciais += partesNome[partesNome.length - 1].charAt(0);
+            item.querySelector(".wizard-equipe-avatar").textContent = iniciais.toUpperCase();
+            const status = item.querySelector(".wizard-equipe-status");
+            status.textContent = membro.status === "ATIVO" ? "Ativo" : "Pendente";
+            status.classList.toggle("ativo", membro.status === "ATIVO");
+
             if (proprietario) {
-                const voce = document.createElement("span");
-                voce.className = "wizard-equipe-voce";
-                voce.textContent = "Você";
-                cabecalho.append(voce);
-            }
-            const status = document.createElement("span");
-            status.className = "wizard-equipe-status";
-            const ativo = proprietario && sessionStorage.STATUS_USUARIO === "ATIVO";
-            status.classList.toggle("ativo", ativo);
-            status.textContent = ativo ? "Ativo" : proprietario ? "Proprietário" : "A adicionar";
-            cabecalho.append(status);
-            const email = document.createElement("p");
-            email.textContent = membro.email;
-            dados.append(cabecalho, email);
-            item.append(avatar, dados);
-            if (proprietario) {
+                item.classList.add("wizard-equipe-proprietario");
                 const papel = document.createElement("span");
                 papel.className = "wizard-equipe-papel";
-                papel.textContent = "Proprietário";
-                item.append(papel);
+                papel.innerHTML = '<img src="../assets/icons/coroa.svg" alt="" width="15" height="13"> Proprietário';
+                item.appendChild(papel);
             } else {
                 const papel = document.createElement("select");
-                papel.name = `equipe[${membro.email}][papel]`;
-                papel.setAttribute("aria-label", `Nível de acesso de ${membro.email}`);
-                [["administrador", "Administrador"], ["visualizador", "Visualizador"]].forEach(([valor, texto]) => {
-                    const opcao = document.createElement("option");
-                    opcao.value = valor;
-                    opcao.textContent = texto;
-                    papel.append(opcao);
-                });
+                papel.setAttribute("aria-label", "Nível de acesso de " + membro.nome);
+                papel.innerHTML = '<option value="administrador">Administrador</option><option value="visualizador">Visualizador</option>';
                 papel.value = membro.papel;
-                papel.addEventListener("change", () => { membro.papel = papel.value; });
+                papel.addEventListener("change", function () {
+                    membro.papel = papel.value;
+                });
                 const remover = document.createElement("button");
                 remover.type = "button";
                 remover.className = "wizard-equipe-remover";
-                remover.setAttribute("aria-label", `Remover ${membro.email} da equipe`);
-                const icone = document.createElement("span");
-                icone.className = "wizard-equipe-lixeira";
-                icone.setAttribute("aria-hidden", "true");
-                remover.append(icone);
-                remover.addEventListener("click", () => {
-                    membrosEquipe.delete(membro.email);
+                remover.textContent = "Remover";
+                remover.setAttribute("aria-label", "Remover " + membro.nome);
+                remover.addEventListener("click", function () {
+                    membrosEquipe = membrosEquipe.filter(function (pessoa) {
+                        return pessoa.id !== membro.id;
+                    });
                     renderizarEquipe();
-                    feedbackEquipe.textContent = `${membro.email} removido da seleção.`;
-                    feedbackEquipe.hidden = false;
-                    emailEquipe.focus();
+                    atualizarSelecaoEquipe();
                 });
                 item.append(papel, remover);
             }
@@ -116,40 +103,83 @@
         }
 
         function renderizarEquipe() {
-            const proprietario = criarMembroEquipe({
-                nome: sessionStorage.NOME_USUARIO?.trim() || "Você",
+            listaEquipe.replaceChildren();
+            listaEquipe.appendChild(criarMembroEquipe({
+                nome: sessionStorage.NOME_USUARIO || "Você",
                 email: emailProprietario,
-            }, true);
-            listaEquipe.replaceChildren(proprietario, ...[...membrosEquipe.values()].map(membro => criarMembroEquipe(membro)));
-            const total = membrosEquipe.size + 1;
-            dialogo.querySelector(".wizard-equipe-contagem").textContent = `${total} ${total === 1 ? "pessoa" : "pessoas"}`;
+                status: sessionStorage.STATUS_USUARIO
+            }, true));
+            membrosEquipe.forEach(function (membro) {
+                listaEquipe.appendChild(criarMembroEquipe(membro, false));
+            });
+            const total = membrosEquipe.length + 1;
+            dialogo.querySelector(".wizard-equipe-contagem").textContent = total + (total === 1 ? " pessoa" : " pessoas");
         }
 
-        function adicionarMembro() {
-            const email = emailEquipe.value.trim().toLowerCase();
-            emailEquipe.value = email;
-            emailEquipe.setCustomValidity(email === "" ? "Informe o email do colaborador."
-                : email === emailProprietario || membrosEquipe.has(email) ? "Este email já está na equipe." : "");
-            if (!emailEquipe.reportValidity()) return;
-            membrosEquipe.set(email, { email, nome: email.split("@")[0], papel: "visualizador" });
-            renderizarEquipe();
-            emailEquipe.value = "";
-            feedbackEquipe.textContent = "Colaborador adicionado à seleção. Nenhum convite foi enviado.";
+        function atualizarSelecaoEquipe() {
+            selecionarUsuario.innerHTML = '<option value="">Selecione um colaborador</option>';
+            usuariosEmpresa.forEach(function (usuario) {
+                const selecionado = membrosEquipe.some(function (membro) {
+                    return membro.id === usuario.id_usuario;
+                });
+                if (selecionado) return;
+                const opcao = document.createElement("option");
+                opcao.value = usuario.id_usuario;
+                opcao.textContent = usuario.nome + " — " + usuario.email;
+                selecionarUsuario.appendChild(opcao);
+            });
+            selecionarUsuario.disabled = selecionarUsuario.options.length === 1;
+            incluirUsuario.disabled = true;
+            if (selecionarUsuario.disabled) {
+                selecionarUsuario.options[0].textContent = "Nenhum colaborador disponível";
+            }
+        }
+
+        function carregarEquipe() {
+            selecionarUsuario.disabled = true;
+            incluirUsuario.disabled = true;
+            feedbackEquipe.textContent = "Carregando colaboradores...";
             feedbackEquipe.hidden = false;
-            emailEquipe.focus();
+            const tentar = dialogo.querySelector(".wizard-equipe-tentar");
+            tentar.hidden = true;
+            const empresa = Number(sessionStorage.ID_EMPRESA);
+            const proprietario = Number(sessionStorage.ID_USUARIO);
+            // No cadastro o perfil ainda não existe. O filtro também aceita um perfil existente.
+            const perfil = Number(dialogo.dataset.perfilServidor || 0);
+
+            return fetch(`/servidor/membros-disponiveis?empresa=${empresa}&proprietario=${proprietario}&perfil=${perfil}`)
+                .then(function (resposta) {
+                    if (!resposta.ok) throw new Error("Não foi possível carregar os colaboradores.");
+                    return resposta.json();
+                })
+                .then(function (usuarios) {
+                    usuariosEmpresa = usuarios;
+                    atualizarSelecaoEquipe();
+                    feedbackEquipe.hidden = true;
+                })
+                .catch(function (erro) {
+                    feedbackEquipe.textContent = erro.message;
+                    tentar.hidden = false;
+                });
         }
 
-        dialogo.querySelector(".wizard-equipe-incluir").addEventListener("click", adicionarMembro);
-        emailEquipe.addEventListener("input", () => {
-            emailEquipe.setCustomValidity("");
+        selecionarUsuario.addEventListener("change", function () {
+            incluirUsuario.disabled = selecionarUsuario.value === "";
+        });
+        incluirUsuario.addEventListener("click", function () {
+            const usuario = usuariosEmpresa.find(function (pessoa) {
+                return pessoa.id_usuario === Number(selecionarUsuario.value);
+            });
+            if (!usuario) return;
+            membrosEquipe.push({
+                id: usuario.id_usuario, nome: usuario.nome, email: usuario.email,
+                status: usuario.status, papel: "visualizador"
+            });
+            renderizarEquipe();
+            atualizarSelecaoEquipe();
             feedbackEquipe.hidden = true;
         });
-        emailEquipe.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                adicionarMembro();
-            }
-        });
+        dialogo.querySelector(".wizard-equipe-tentar").addEventListener("click", carregarEquipe);
 
         function atualizarDocker() {
             const ativo = monitorarDocker.checked;
@@ -411,7 +441,7 @@
                 "Adicione as pessoas que vão acompanhar este perfil e defina o nível de acesso de cada uma."
             ];
             const nomeEtapa = nomesEtapas[numero - 1];
-            titulo.textContent = numero === 5 ? "Convide sua equipe" : numero === 4 ? "Configuração de alertas e limites"
+            titulo.textContent = numero === 5 ? "Adicione sua equipe" : numero === 4 ? "Configuração de alertas e limites"
                 : numero === 3 ? "Monitoramento de Contêineres Docker" : nomeEtapa;
             introducao.textContent = descricoesEtapas[numero - 1];
             dialogo.querySelector(".wizard-docker-introducao").hidden = numero !== 3;
@@ -424,11 +454,98 @@
             titulo.focus({ preventScroll: true });
             if (numero === 2) carregarMetricas();
             if (numero === 4) atualizarAlertas();
-            if (numero === 5) renderizarEquipe();
+            if (numero === 5) {
+                renderizarEquipe();
+                carregarEquipe();
+            }
         }
+
+        function obterMetricasSelecionadas() {
+            const metricasSelecionadas = [];
+            lista.querySelectorAll("input:checked").forEach(function (input) {
+                const linha = linhasAlertas.get(input.value);
+                const atencao = linha.querySelector('[data-limite="atencao"]');
+                const critico = linha.querySelector('[data-limite="critico"]');
+                metricasSelecionadas.push({
+                    id: Number(input.value),
+                    operador: linha.querySelector("select").value,
+                    atencao: atencao.value === "" ? null : atencao.valueAsNumber,
+                    critico: critico.value === "" ? null : critico.valueAsNumber
+                });
+            });
+            return metricasSelecionadas;
+        }
+
+        function salvarPerfil() {
+            if (salvando) return;
+            if (selecionarUsuario.value !== "") {
+                feedbackEquipe.textContent = "Clique em Adicionar para incluir o colaborador selecionado.";
+                feedbackEquipe.hidden = false;
+                return;
+            }
+            const dados = {
+                empresa: Number(sessionStorage.ID_EMPRESA),
+                proprietario: Number(sessionStorage.ID_USUARIO),
+                nome: nome.value.trim(),
+                descricao: descricao.value.trim(),
+                sistemaOperacional: formulario.elements.sistemaOperacional.value,
+                monitorarDocker: monitorarDocker.checked,
+                metricas: obterMetricasSelecionadas(),
+                equipe: membrosEquipe.map(function (membro) {
+                    return { id: membro.id, papel: membro.papel };
+                })
+            };
+            salvando = true;
+            formulario.inert = true;
+            formulario.setAttribute("aria-busy", "true");
+            dialogo.querySelector(".wizard-fechar").disabled = true;
+            feedbackCadastro.hidden = true;
+            atualizarProximo();
+
+            return fetch("/servidor/perfis", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dados)
+            })
+                .then(function (resposta) {
+                    return resposta.json().then(function (resultado) {
+                        if (!resposta.ok) throw new Error(resultado.mensagem);
+                        return resultado;
+                    });
+                })
+                .then(function () {
+                    formulario.reset();
+                    membrosEquipe = [];
+                    linhasAlertas.clear();
+                    contador.textContent = "0/500";
+                    feedbackEquipe.hidden = true;
+                    lista.querySelectorAll("input").forEach(function (input) {
+                        input.checked = input.dataset.recomendada === "true";
+                    });
+                    atualizarContadores();
+                    atualizarDocker();
+                    mostrarEtapa(1);
+                    dialogo.close();
+                    document.dispatchEvent(new Event("perfil-servidor-criado"));
+                })
+                .catch(function (erro) {
+                    feedbackCadastro.textContent = erro.message || "Não foi possível salvar o perfil. Tente novamente.";
+                    feedbackCadastro.hidden = false;
+                })
+                .finally(function () {
+                    salvando = false;
+                    formulario.inert = false;
+                    formulario.removeAttribute("aria-busy");
+                    dialogo.querySelector(".wizard-fechar").disabled = false;
+                    atualizarProximo();
+                });
+        }
+
+        dialogo.addEventListener("cancel", event => { if (salvando) event.preventDefault(); });
 
         formulario.addEventListener("submit", (event) => {
             event.preventDefault();
+            if (salvando) return;
             if (etapa === 1) {
                 nome.setCustomValidity(nome.value.trim() === "" ? "Informe o nome do perfil." : "");
                 if (nome.reportValidity()) mostrarEtapa(2);
@@ -441,6 +558,8 @@
                 const invalido = listaAlertas.querySelector(":invalid");
                 if (invalido) invalido.reportValidity();
                 else mostrarEtapa(5);
+            } else if (etapa === 5) {
+                salvarPerfil();
             }
         });
         dialogo.querySelector(".wizard-voltar").addEventListener("click", () => {
@@ -472,7 +591,7 @@
             cliqueNoFundo = event.target === dialogo && foraDoDialogo(event);
         });
         dialogo.addEventListener("click", (event) => {
-            if (cliqueNoFundo && event.target === dialogo && foraDoDialogo(event)) dialogo.close();
+            if (!salvando && cliqueNoFundo && event.target === dialogo && foraDoDialogo(event)) dialogo.close();
             cliqueNoFundo = false;
         });
         descricao.addEventListener("input", () => {

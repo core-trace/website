@@ -970,24 +970,24 @@ input:checked ~ .wizard-sistema-selecao::after {
 
 .wizard-equipe-adicionar {
     display: flex;
+    align-items: end;
     gap: 8px;
     margin-bottom: 8px;
 }
 
-.wizard-equipe-email {
+.wizard-equipe-selecao {
     position: relative;
     flex: 1;
     min-width: 0;
 }
 
-.wizard-equipe-email img {
-    position: absolute;
-    top: 15px;
-    left: 14px;
-    pointer-events: none;
+.wizard-equipe-selecao label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 11px;
 }
 
-.wizard-equipe-email input,
+.wizard-equipe-selecao select,
 .wizard-equipe-membro select,
 .wizard-equipe-papel,
 .wizard-equipe-incluir {
@@ -1000,10 +1000,10 @@ input:checked ~ .wizard-sistema-selecao::after {
     font-size: 11px;
 }
 
-.wizard-equipe-email input {
+.wizard-equipe-selecao select {
     width: 100%;
     height: 44px;
-    padding-left: 38px;
+    padding-left: 12px;
 }
 
 .wizard-equipe-incluir:hover,
@@ -1019,7 +1019,7 @@ input:checked ~ .wizard-sistema-selecao::after {
 
 .wizard-equipe-membro {
     display: grid;
-    grid-template-columns: 36px minmax(0, 1fr) 154px 32px;
+    grid-template-columns: 36px minmax(0, 1fr) 154px 60px;
     align-items: center;
     gap: 14px;
     min-height: 66px;
@@ -1076,50 +1076,21 @@ input:checked ~ .wizard-sistema-selecao::after {
 
 .wizard-equipe-papel {
     display: flex;
+    gap: 6px;
     align-items: center;
 }
 
 .wizard-equipe-remover {
     display: grid;
     place-items: center;
-    width: 32px;
+    width: 60px;
     height: 40px;
+    font-size: 11px;
     padding: 0;
     border: 0;
     border-radius: 6px;
     background-color: transparent;
     color: var(--cor-cinza);
-}
-
-.wizard-equipe-lixeira {
-    position: relative;
-    width: 11px;
-    height: 12px;
-    border: 1.5px solid currentColor;
-    border-radius: 0 0 2px 2px;
-    background: linear-gradient(currentColor, currentColor) center / 1px 6px no-repeat;
-}
-
-.wizard-equipe-lixeira::before,
-.wizard-equipe-lixeira::after {
-    position: absolute;
-    content: "";
-}
-
-.wizard-equipe-lixeira::before {
-    top: -3px;
-    left: -3px;
-    width: 14px;
-    border-top: 1.5px solid currentColor;
-}
-
-.wizard-equipe-lixeira::after {
-    top: -6px;
-    left: 2px;
-    width: 5px;
-    height: 4px;
-    border: 1.5px solid currentColor;
-    border-radius: 2px 2px 0 0;
 }
 
 .wizard-equipe-niveis {
@@ -1539,7 +1510,7 @@ input:checked ~ .wizard-sistema-selecao::after {
     }
 
     .wizard-equipe-membro {
-        grid-template-columns: 36px minmax(0, 1fr) 32px;
+        grid-template-columns: 36px minmax(0, 1fr) 60px;
         gap: 10px;
     }
 
@@ -1588,4 +1559,9 @@ input:checked ~ .wizard-sistema-selecao::after {
     .wizard-docker-interruptor {
         display: none;
     }
+}
+
+.wizard-cadastro-feedback {
+    margin: 12px 24px;
+    color: #b42318;
 }

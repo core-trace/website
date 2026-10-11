@@ -153,7 +153,48 @@ vinculados; uma lista vazia e um erro de conexão têm estados distintos na tela
 
 O botão “Adicionar perfil de servidor” abre o mesmo modal, definido em
 `public/components/wizardPerfilServidor.html`, com CSS e JavaScript próprios.
-Por enquanto, somente a etapa “Informações básicas” está implementada, com nome,
-Linux/Windows e descrição de até 500 caracteres. “Próximo” permanece desabilitado
-até a implementação da etapa seguinte; nenhum perfil incompleto é salvo no banco.
-O preenchimento é mantido ao fechar e reabrir o modal na mesma página.
+As cinco etapas são enviadas juntas em `POST /servidor/perfis`. O cadastro salva
+nome, descrição, sistema operacional, opção de Docker, métricas, limites de alerta
+e equipe em uma transação. O token do perfil é gerado no servidor.
+
+A estrutura necessária para o wizard está definida em `src/database/script.sql`.
+Não use o script de criação para atualizar um banco existente: ele apaga os dados.
+
+Exemplo do corpo do cadastro:
+
+```json
+{
+  "empresa": 1,
+  "proprietario": 1,
+  "nome": "Produção",
+  "descricao": "Servidores da aplicação",
+  "sistemaOperacional": "linux",
+  "monitorarDocker": false,
+  "metricas": [{ "id": 1, "operador": ">", "atencao": 70, "critico": 90 }],
+  "equipe": [{ "id": 2, "papel": "visualizador" }]
+}
+```
+
+O proprietário deve estar ativo e pertencer à empresa. Na etapa Equipe, selecione
+um colaborador pelo nome e email e clique em Adicionar. A busca usa
+`GET /servidor/membros-disponiveis?empresa=1&proprietario=1&perfil=0`.
+O perfil `0` representa um cadastro novo. Para um perfil existente, informe seu ID:
+a consulta exclui quem já está em `usuario_perfil_servidor`. Também exclui o
+proprietário, usuários inativos e usuários de outras empresas. Quem já foi
+selecionado no formulário sai das opções até ser removido da equipe.
+Os papéis são armazenados no vínculo com o perfil, sem alterar o nível global do
+usuário. Alertas aceitam `>`, `>=`, `<` e `<=`; ambos os limites podem ser `null`.
+A resposta `201` contém `mensagem` e `id_perfil_servidor`; erros de validação retornam `400`,
+proprietário inválido retorna `403` e falhas de persistência retornam `500`.
+
+Após salvar, o formulário é limpo e a lista de perfis é atualizada. Em caso de erro,
+o preenchimento é preservado para correção. A opção de Docker e os operadores são
+persistidos; sua execução pelo agente não faz parte desta rota.
+
+A aplicação atual usa IDs enviados pelo cliente, sem sessão autenticada no backend.
+A validação de vínculo desta rota segue esse padrão e não substitui autenticação.
+
+O login direciona para `/pages/inicioDashboard.html`. A navbar usa os dados do
+`sessionStorage` para mostrar nome, iniciais e nível de acesso. O menu da conta
+mostra email, empresa e status. O nome da empresa e o nível de acesso vêm dos
+joins com `empresa` e `nivel_acesso` na consulta de login.

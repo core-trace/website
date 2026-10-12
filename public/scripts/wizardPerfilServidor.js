@@ -542,6 +542,10 @@
             baixarAgente(idPerfilCriado, this, dialogo.querySelector(".wizard-download-feedback"));
         });
 
+        dialogo.querySelector(".wizard-ir-perfis").addEventListener("click", function () {
+            window.location.href = "perfisServidor.html";
+        });
+
         dialogo.addEventListener("editar-perfil", function (event) {
             limparCadastro();
             const perfil = event.detail;

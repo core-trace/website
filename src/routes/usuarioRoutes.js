@@ -4,5 +4,7 @@ const usuarioController = require("../controllers/usuarioController");
 
 router.post("/cadastrar", usuarioController.cadastrar);
 router.post("/autenticar", usuarioController.autenticar);
+router.get("/equipe", usuarioController.listarEquipe);
+router.patch("/:id/perfil", usuarioController.alterarPerfil);
 
 module.exports = router;

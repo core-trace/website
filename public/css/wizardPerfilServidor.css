@@ -1656,7 +1656,7 @@ input:checked ~ .wizard-sistema-selecao::after {
 }
 
 .wizard-baixar-agente,
-.wizard-ir-dashboard {
+.wizard-ir-perfis {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1746,7 +1746,7 @@ input:checked ~ .wizard-sistema-selecao::after {
     }
 
     .wizard-baixar-agente,
-    .wizard-ir-dashboard {
+    .wizard-ir-perfis {
         width: 100%;
     }
 

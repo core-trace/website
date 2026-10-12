@@ -1,340 +1,213 @@
 <!DOCTYPE html>
-
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>general-employee</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Jersey+25&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-        rel="stylesheet">
-
-    <link rel="stylesheet" href="../css/layout.css">
-    <link rel="stylesheet" href="../css/login.css">
-    <link rel="stylesheet" href="../css/cadastro-funcionario.css">
-    <link rel="stylesheet" href="../css/aside-dash.css">
-    <link rel="stylesheet" href="../css/general-employee.css">
-
+    <title>CoreTrace - Equipe e acessos</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/equipeAcessos.css">
+    <script src="../scripts/navbarDashboard.js" defer></script>
+    <script src="../scripts/equipeAcessos.js" defer></script>
 </head>
 
+<body class="dashboard-page">
+    <a class="dashboard-pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
 
+    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
+        <div class="dashboard-menu-cabecalho">
+            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
 
-<body class="employee-page">
-
-    <aside class="employee-sidebar">
-
-        <a class="employee-logo" href="/" aria-label="Ir para a página inicial">
-            <img src="../assets/images/CoreTraceLetteringDarkMode.avif" alt="CoreTrace"></a>
-            
-                      
-            <nav class="sidebar-navigation">
-                <a class="sidebar-link" id="CadastrarFuncionario" href="cadastro-funcionario.html">Cadastrar Funcionário </a>
-                <a class="sidebar-link active" id="VerFuncionarios" href="general-employee.html">Ver Funcionários</a>
-                
-                <div class="sidebar-submenu">
-                    <div class="sidebar-group">
-                        <div class="sidebar-group-title">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-
-                            Setores
-                        </div>
-                        <div id="menuServidores" class="sidebar-group-content"
-                        ></div>
-                    </div>
-                </div>
-            </nav>
-    </aside>
-    <div class="employee-shell">
-
-        <header class="navbar employee-navbar">
-
-            <div class="logged-user">
-
-                <strong id="loggedUserName">Username_example_admin</strong>
-
-                <span id="loggedUserEmail">useremail@admin.com</span>
-
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard">
+            <div class="dashboard-menu-grupo">
+                <h2 class="dashboard-menu-titulo">Monitoramento</h2>
+                <a href="inicioDashboard.html" class="dashboard-menu-item">
+                    <img src="../assets/icons/dashboard.png" alt="" width="20" height="20">
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/sino.png" alt="" width="20" height="20">
+                    <span>Alertas</span>
+                </a>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/relatorio.png" alt="" width="20" height="20">
+                    <span>Relatórios</span>
+                </a>
             </div>
 
-            <nav class="navbar-right" aria-label="Navegação da conta">
+            <div class="dashboard-menu-grupo">
+                <h2 class="dashboard-menu-titulo">Gestão</h2>
+                <a href="perfisServidor.html" class="dashboard-menu-item">
+                    <img src="../assets/icons/perfil.png" alt="" width="20" height="20">
+                    <span>Perfis de servidor</span>
+                </a>
+                <a href="general-employee.html" class="dashboard-menu-item" aria-current="page">
+                    <img src="../assets/icons/pessoas.png" alt="" width="20" height="20">
+                    <span>Equipe e acessos</span>
+                </a>
+            </div>
 
-                <a href="/pages/login.html" class="nav-link" id="logoutLink">Sair</a>
+            <div class="dashboard-menu-grupo">
+                <h2 class="dashboard-menu-titulo">Sistema</h2>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/engrenagem.png" alt="" width="20" height="20">
+                    <span>Configurações</span>
+                </a>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/documentacao.png" alt="" width="20" height="20">
+                    <span>Documentação</span>
+                </a>
+            </div>
+        </nav>
 
-            </nav>
+    </aside>
 
+    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
+
+    <div class="dashboard-conteudo">
+        <header class="dashboard-navbar">
+            <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu"
+                aria-controls="menu-dashboard" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <label class="dashboard-pesquisa">
+                <span class="dashboard-lupa" aria-hidden="true"></span>
+                <input type="search" name="busca" aria-label="Buscar por servidor, hostname ou perfil"
+                    placeholder="Buscar por servidor, hostname ou perfil...">
+            </label>
+
+            <div class="dashboard-usuario">
+                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
+                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
+                </button>
+
+                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
+
+                <div class="dashboard-usuario-dados">
+                    <span class="dashboard-usuario-nome"></span>
+                    <span class="dashboard-usuario-cargo"></span>
+                </div>
+                <div class="dashboard-conta">
+                    <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
+                        aria-controls="menu-conta" aria-expanded="false">
+                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
+                    </button>
+                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <p class="dashboard-conta-email"></p>
+                        <button class="dashboard-sair" type="button">Sair</button>
+                    </div>
+                </div>
+            </div>
         </header>
 
-        <main>
-
-            <div id="container">
-
-                <div class="vertical">
-
-                    <div id="search" class="searches">
-
-                        <input type="search" id="srchName" placeholder="Buscar Nome" onblur="loadEmployee()"
-                            class="genEmpSearch">
-
-                        <input type="search" id="srchEmail" placeholder="Buscar Email" onblur="loadEmployee()"
-                            class="genEmpSearch">
-
-                        <input type="search" id="srchPosition" placeholder="Buscar Cargo" onblur="loadEmployee()"
-                            class="genEmpSearch">
-
-                    </div>
-
+        <main class="equipe" id="conteudo-principal" tabindex="-1">
+            <header class="equipe-cabecalho">
+                <div>
+                    <p class="equipe-secao">Gestão</p>
+                    <h1>Equipe e acessos</h1>
+                    <p class="equipe-descricao">Cadastre colaboradores e defina o perfil de acesso de cada pessoa ao site.</p>
                 </div>
+                <button class="equipe-botao-primario" id="abrirCadastro" type="button"
+                    aria-expanded="false" aria-controls="cadastroFuncionario" disabled>
+                    <span aria-hidden="true">+</span> Cadastrar funcionário
+                </button>
+            </header>
 
-                <div id="sort" class="vertical">
-
-                    <div class="checkBoxesArea">
-
-                        <div class="checkboxCont">
-
-                            <input type="checkbox" id="chckEmployee" onchange="loadEmployee()">
-
-                            <div id="svg1"></div>
-
-                            <label for="chckEmployee">Funcionário</label>
-
-                        </div>
-
-                        <div class="checkboxCont">
-
-                            <input type="checkbox" id="chckEmail" onchange="loadEmployee()">
-
-                            <div id="svg2"></div>
-
-                            <label for="chckEmail">Email</label>
-
-                        </div>
-
-                        <div class="checkboxCont">
-
-                            <input type="checkbox" id="chckPosition" onchange="loadEmployee()">
-
-                            <div id="svg3"></div>
-
-                            <label for="chckPosition">Cargo</label>
-
-                        </div>
-                        <!--
-                            
-                        <div class="checkboxCont">
-                            <input type="checkbox" id="chckData" onchange="loadEmployee()">
-
-                            <div id="svg4"></div>
-
-                            <label for="chckData">Data de Admissão</label>
-                            
-                        </div>
-                        
-                        <div class="checkboxCont">
-
-                            <input type="checkbox" id="chckActivities" onchange="loadEmployee()">
-                            
-                            <div id="svg5"></div>
-                            
-                            <label for="chckActivities">Atividade</label>
-
-
-                        </div>
-                        -->
-
-                    </div>
-
+            <aside class="equipe-aviso">
+                <span class="equipe-aviso-icone"><img src="../assets/icons/escudo.svg" alt="" width="22" height="22"></span>
+                <div>
+                    <strong>Perfis de acesso ao site</strong>
+                    <p>O perfil define as permissões do colaborador na plataforma. Os acessos aos perfis de servidor são configurados separadamente.</p>
                 </div>
+            </aside>
 
-                <div class="list" id="list">
-
-                    <div class="employeeVerticalBox">
-
-                        <input type="checkbox" id="user">
-
-                        <div class="employeeBox">
-
-                            <div class="employeeFirstInfos">
-
-                                <span>Username_example_admin</span>
-
-                                <span>useremail@admin.com</span>
-
-                                <span>Gerente</span>
-                                <!--
-                                <span>dd/mm/yyyy HH:MM:SS</span>
-                                
-                                <span>Online</span>
-                                -->
-
-                            </div>
-
-                            <div class="employeePermissions">
-
-                                <div class="epSectors">
-
-                                    <span>Setores:</span>
-
-                                    <div class="epSectorsList">
-
-                                        <span>Vendas</span>
-
-                                        <span>Financeiro</span>
-
-                                        <span>Loja</span>
-
-                                    </div>
-
-                                </div>
-
-                                <div class="epServers">
-
-                                    <div class="epServersTitle">
-
-                                        <span>Máquinas</span>
-
-                                        <span>Servidores</span>
-
-                                    </div>
-
-                                    <div class="epServersList">
-
-                                        <div class="machineServer">
-
-                                            <span>
-
-                                                UMCumc#2026
-
-                                            </span>
-
-                                            <span>
-
-                                                Vendas
-
-                                            </span>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div>
-
-                                <input type="checkbox" id="chkInfoUser">
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="footer">
-                    <!--
-                    <button>
-                        
-                        Remover Funcionário
-                        
-                    </button>
-                    -->
-
-                    <button onclick="AlterarPermissoes()">
-
-                        Alterar Permissões
-
-                    </button>
-
-                </div>
+            <p id="equipeCarregando" class="equipe-feedback" role="status">Carregando equipe e perfis de acesso...</p>
+            <div id="equipeErro" class="equipe-erro" role="alert" hidden>
+                <p id="equipeMensagemErro"></p>
+                <button class="equipe-botao-secundario" id="tentarEquipe" type="button">Tentar novamente</button>
             </div>
+            <p id="conviteSucesso" class="equipe-sucesso" role="status" hidden></p>
+            <p id="perfilSucesso" class="equipe-sucesso" role="status" hidden></p>
 
+            <section class="equipe-card equipe-cadastro" id="cadastroFuncionario" aria-labelledby="cadastroTitulo" hidden>
+                <h2 id="cadastroTitulo">Novo funcionário</h2>
+                <p class="equipe-descricao">O colaborador receberá um email para definir a senha e ativar a conta.</p>
+                <form id="cadastroEquipeForm">
+                    <fieldset id="camposCadastro" class="equipe-campos">
+                        <div class="equipe-campo">
+                            <label for="funcionarioNome">Nome completo</label>
+                            <input id="funcionarioNome" name="nome" type="text" maxlength="45" autocomplete="name" required placeholder="Nome do colaborador">
+                        </div>
+                        <div class="equipe-campo">
+                            <label for="funcionarioEmail">Email</label>
+                            <input id="funcionarioEmail" name="email" type="email" maxlength="45" autocomplete="email" required placeholder="nome@empresa.com">
+                        </div>
+                        <div class="equipe-campo">
+                            <label for="funcionarioCpf">CPF <span>(opcional)</span></label>
+                            <input id="funcionarioCpf" name="cpf" type="text" inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="Somente os 11 números">
+                        </div>
+                        <div class="equipe-campo">
+                            <label for="funcionarioTelefone">Telefone <span>(opcional)</span></label>
+                            <input id="funcionarioTelefone" name="telefone" type="tel" maxlength="45" autocomplete="tel" placeholder="DDD e telefone">
+                        </div>
+                        <div class="equipe-campo">
+                            <label for="funcionarioEmpresa">Empresa</label>
+                            <input id="funcionarioEmpresa" type="text" readonly aria-describedby="empresaAjuda">
+                            <small id="empresaAjuda">O funcionário será cadastrado na sua empresa.</small>
+                        </div>
+                        <div class="equipe-campo">
+                            <label for="funcionarioPerfil">Perfil de acesso ao site</label>
+                            <select id="funcionarioPerfil" name="nivelAcesso" required aria-describedby="perfilDescricao">
+                                <option value="">Selecione um perfil</option>
+                            </select>
+                            <small id="perfilDescricao">Escolha as permissões do usuário na plataforma.</small>
+                        </div>
+                    </fieldset>
+                    <p id="cadastroErro" class="equipe-erro" role="alert" hidden></p>
+                    <div class="equipe-form-acoes">
+                        <button class="equipe-botao-secundario" id="cancelarCadastro" type="button">Cancelar</button>
+                        <button class="equipe-botao-primario" id="cadastrarFuncionario" type="submit">Cadastrar e enviar convite</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="equipe-membros" aria-labelledby="equipeTitulo" aria-busy="true">
+                <div class="equipe-lista-cabecalho">
+                    <h2 id="equipeTitulo">Membros da equipe</h2>
+                    <span id="equipeContagem" class="equipe-contagem" role="status"></span>
+                </div>
+                <div class="equipe-card">
+                    <div class="equipe-filtros">
+                        <div class="equipe-campo equipe-busca">
+                            <label for="buscarMembro">Buscar colaborador</label>
+                            <input id="buscarMembro" type="search" placeholder="Buscar por nome ou email">
+                        </div>
+                        <div class="equipe-campo">
+                            <label for="filtrarPerfil">Perfil no site</label>
+                            <select id="filtrarPerfil"><option value="">Todos os perfis</option></select>
+                        </div>
+                    </div>
+                    <p id="equipeVazio" class="equipe-vazio" hidden></p>
+                    <ul id="listaEquipe" class="equipe-lista" aria-label="Colaboradores da empresa"></ul>
+                </div>
+            </section>
+
+            <section class="equipe-perfis" aria-labelledby="perfisAcessoTitulo">
+                <h2 id="perfisAcessoTitulo">Perfis de acesso</h2>
+                <div id="listaPerfisAcesso" class="equipe-perfis-lista"></div>
+            </section>
         </main>
-
     </div>
-    <script src="../scripts/api.js"></script>
-    <script src="../scripts/dashboard.js"></script>
-    <script src="../scripts/employeesGeneral.js"></script>
-
-    <script>
-
-        loggedUserName.textContent = sessionStorage.NOME_USUARIO || 'Usuário';
-
-        loggedUserEmail.textContent = sessionStorage.EMAIL_USUARIO || '';
-
-        function openList(idUsuario) {
-
-            let chckBox = document.getElementById(`svgUI${idUsuario}`)
-
-            let chckMark = chckBox.checked;
-
-            console.log(chckMark)
-
-            let svgGraphic = document.getElementById(`svgGUI${idUsuario}`)
-
-            let InfoUser = document.getElementById(`employeePermissions${idUsuario}`)
-
-
-
-            if (chckMark) {
-
-                InfoUser.style.height = "fit-content"
-
-                InfoUser.style.padding = "10px"
-
-                InfoUser.style.gap = "20px"
-
-            }
-
-            else {
-
-                InfoUser.style.height = "0"
-
-                InfoUser.style.padding = "0"
-
-                InfoUser.style.gap = "0"
-
-            }
-            chckMark ?
-
-                svgGraphic.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-
-                <path d="M8.45739 19.5427L16.0001 12L23.5427 19.5427" stroke="#F6ECE6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-
-        </svg>`:
-
-                svgGraphic.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-
-            <path d="M23.5426 12.4573L15.9999 20L8.45728 12.4573" stroke="#F6ECE6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            
-            </svg>`
-            if (chckMark) {
-                chckBox.checked = false
-            }
-            else {
-                chckBox.checked = true
-            }
-
-        }
-        function AlterarPermissoes() {
-            window.location.href = "/pages/specifc-employee.html"
-        }
-
-    </script>
 </body>
-
 </html>

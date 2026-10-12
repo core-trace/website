@@ -90,7 +90,80 @@ function autenticar(req, res) {
         });
 }
 
+function listarEquipe(req, res) {
+    const empresa = Number(req.query.empresa);
+    if (typeof req.query.empresa !== "string" || !Number.isSafeInteger(empresa) || empresa <= 0) {
+        return res.status(400).json({ mensagem: "Informe uma empresa válida para consultar a equipe." });
+    }
+
+    return Promise.all([
+        usuarioModel.buscarEmpresa(empresa),
+        usuarioModel.listarEquipe(empresa),
+        usuarioModel.listarNiveisAcesso()
+    ])
+        .then(function (resultados) {
+            if (resultados[0].length === 0) {
+                return res.status(404).json({ mensagem: "Empresa não encontrada." });
+            }
+            return res.json({
+                empresa: resultados[0][0],
+                membros: resultados[1],
+                perfisAcesso: resultados[2]
+            });
+        })
+        .catch(function (erro) {
+            console.error("Erro ao carregar equipe e acessos:", erro.message);
+            return res.status(500).json({ mensagem: "Não foi possível carregar a equipe. Tente novamente." });
+        });
+}
+
+function alterarPerfil(req, res) {
+    const dados = req.body || {};
+    const idUsuario = Number(req.params.id);
+    const empresa = Number(dados.empresa);
+    const nivelAcesso = Number(dados.nivelAcesso);
+
+    if (!Number.isSafeInteger(idUsuario) || idUsuario <= 0) {
+        return res.status(400).json({ mensagem: "Informe um usuário válido." });
+    }
+    if (typeof dados.empresa !== "number" || !Number.isSafeInteger(empresa) || empresa <= 0) {
+        return res.status(400).json({ mensagem: "Informe uma empresa válida." });
+    }
+    if (typeof dados.nivelAcesso !== "number" || !Number.isSafeInteger(nivelAcesso) || nivelAcesso <= 0) {
+        return res.status(400).json({ mensagem: "Selecione um perfil de acesso válido." });
+    }
+
+    return usuarioModel.listarNiveisAcesso()
+        .then(function (perfis) {
+            const perfil = perfis.find(function (item) {
+                return item.id_nivel_acesso === nivelAcesso;
+            });
+            if (!perfil) {
+                return res.status(400).json({ mensagem: "O perfil de acesso selecionado não existe." });
+            }
+
+            return usuarioModel.alterarPerfil(idUsuario, empresa, nivelAcesso)
+                .then(function (resultado) {
+                    if (resultado.affectedRows === 0) {
+                        return res.status(404).json({ mensagem: "Usuário não encontrado nesta empresa." });
+                    }
+                    return res.json({
+                        mensagem: "Perfil de acesso atualizado com sucesso.",
+                        id_usuario: idUsuario,
+                        fk_nivel_acesso: perfil.id_nivel_acesso,
+                        nivel_acesso: perfil.nome
+                    });
+                });
+        })
+        .catch(function (erro) {
+            console.error("Erro ao alterar perfil do usuário:", erro.message);
+            return res.status(500).json({ mensagem: "Não foi possível alterar o perfil. Tente novamente." });
+        });
+}
+
 module.exports = {
     cadastrar,
-    autenticar
+    autenticar,
+    listarEquipe,
+    alterarPerfil
 };

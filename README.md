@@ -218,3 +218,26 @@ alterado nesta rota. O salvamento atualiza o perfil e seus limites em uma transa
 
 No cadastro, as métricas começam desmarcadas. **Aplicar perfil recomendado** marca
 as métricas indicadas pelo catálogo. Na edição, aparecem as métricas já salvas.
+
+### Equipe e acessos
+
+`/pages/general-employee.html` lista os colaboradores da empresa do usuário logado,
+com busca por nome/email e filtro pelo perfil de acesso ao site.
+**Cadastrar funcionário** abre um formulário na própria página com nome, email,
+CPF e telefone opcionais, empresa preenchida automaticamente e seleção do perfil
+pelo nome. O cadastro usa `POST /convites/criarConvite`, como a página de teste.
+Ao concluir, a lista é atualizada e o colaborador aparece com convite pendente
+até definir a senha pelo email de ativação.
+
+`GET /usuario/equipe?empresa=<ID_EMPRESA>` retorna `empresa`, `membros` e
+`perfisAcesso`. A consulta de membros usa `usuario.fk_empresa`. Os perfis vêm de
+`nivel_acesso` (Administrador, Operador, Visualizador ou outros níveis cadastrados).
+No `script.sql` atual, essa tabela é compartilhada entre as empresas; não existe
+um vínculo de níveis por empresa. A seleção é salva em `usuario.fk_nivel_acesso`
+e não altera `usuario_perfil_servidor.papel` nem vincula o funcionário a servidores.
+
+Para alterar um usuário já cadastrado, selecione o perfil na linha do colaborador
+e clique em **Salvar**. `PATCH /usuario/:id/perfil` recebe `empresa` e `nivelAcesso`
+como números, valida o nível escolhido e atualiza somente o usuário da empresa
+informada. A edição também está disponível para convites pendentes. Ao alterar o
+próprio usuário, o nível no `sessionStorage` e na navbar é atualizado após salvar.

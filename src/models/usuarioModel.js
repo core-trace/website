@@ -60,11 +60,54 @@ function removerConvite(idUsuario, token) {
     return database.executar(instrucao, [idUsuario, token])
 }
 
+function buscarEmpresa(idEmpresa) {
+    const instrucaoSql = `
+        SELECT id_empresa, razao_social
+        FROM empresa
+        WHERE id_empresa = ?;
+    `;
+    return database.executar(instrucaoSql, [idEmpresa]);
+}
+
+function listarEquipe(idEmpresa) {
+    const instrucaoSql = `
+        SELECT u.id_usuario, u.nome, u.email, u.status,
+               u.fk_nivel_acesso, n.nome AS nivel_acesso
+        FROM usuario u
+        INNER JOIN nivel_acesso n ON n.id_nivel_acesso = u.fk_nivel_acesso
+        WHERE u.fk_empresa = ?
+        ORDER BY u.nome, u.id_usuario;
+    `;
+    return database.executar(instrucaoSql, [idEmpresa]);
+}
+
+function listarNiveisAcesso() {
+    const instrucaoSql = `
+        SELECT id_nivel_acesso, nome, descricao
+        FROM nivel_acesso
+        ORDER BY id_nivel_acesso;
+    `;
+    return database.executar(instrucaoSql);
+}
+
+function alterarPerfil(idUsuario, idEmpresa, nivelAcesso) {
+    const instrucaoSql = `
+        UPDATE usuario
+        SET fk_nivel_acesso = ?
+        WHERE id_usuario = ? AND fk_empresa = ?;
+    `;
+    return database.executar(instrucaoSql, [nivelAcesso, idUsuario, idEmpresa]);
+}
+
 module.exports = {
     cadastrar,
     autenticar,
     criarUser,
     buscarUsuarioPorToken,
     ativarUsuario,
-    removerConvite
+    removerConvite,
+    buscarEmpresa,
+    listarEquipe,
+    listarNiveisAcesso,
+    alterarPerfil
 }

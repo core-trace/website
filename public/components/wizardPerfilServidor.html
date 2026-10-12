@@ -1,0 +1,244 @@
+<dialog class="wizard-perfil" aria-labelledby="wizard-titulo" aria-describedby="wizard-descricao">
+    <button class="wizard-fechar" type="button" aria-label="Fechar cadastro de perfil">
+        <span aria-hidden="true">×</span>
+    </button>
+
+    <div class="wizard-topo">
+        <ol class="wizard-etapas" aria-label="Etapas do cadastro">
+            <li aria-current="step" aria-label="Etapa 1: Informações básicas">
+                <span class="wizard-etapa-numero" aria-hidden="true">1</span>
+                <span class="wizard-etapa-nome">Informações básicas</span>
+            </li>
+            <li aria-label="Etapa 2: Métricas">
+                <span class="wizard-etapa-numero" aria-hidden="true">2</span>
+                <span class="wizard-etapa-nome">Métricas</span>
+            </li>
+            <li aria-label="Etapa 3: Contêineres">
+                <span class="wizard-etapa-numero" aria-hidden="true">3</span>
+                <span class="wizard-etapa-nome">Contêineres</span>
+            </li>
+            <li aria-label="Etapa 4: Alertas">
+                <span class="wizard-etapa-numero" aria-hidden="true">4</span>
+                <span class="wizard-etapa-nome">Alertas</span>
+            </li>
+            <li aria-label="Etapa 5: Equipe">
+                <span class="wizard-etapa-numero" aria-hidden="true">5</span>
+                <span class="wizard-etapa-nome">Equipe</span>
+            </li>
+        </ol>
+        <div class="wizard-resumo-etapa" aria-hidden="true">
+            <span class="wizard-etapa-contagem">Etapa 1 de 5</span>
+            <strong class="wizard-etapa-atual">Informações básicas</strong>
+        </div>
+    </div>
+
+    <form class="wizard-formulario" novalidate>
+        <div class="wizard-conteudo">
+            <header class="wizard-cabecalho">
+                <div>
+                    <h2 id="wizard-titulo" tabindex="-1">Informações básicas</h2>
+                    <p id="wizard-descricao">Comece dando um nome ao perfil do servidor e escolha o sistema operacional que será utilizado.</p>
+                    <p class="wizard-docker-introducao" hidden>Os contêineres serão identificados automaticamente pelo agente.</p>
+                </div>
+                <button class="wizard-recomendar" type="button" hidden disabled>
+                    <img src="../assets/icons/estrela.svg" alt="" width="16" height="16">
+                    Aplicar perfil recomendado
+                </button>
+            </header>
+
+            <section class="wizard-basicos" aria-label="Informações básicas" data-etapa="1">
+                <div class="wizard-campo">
+                    <label for="perfil-nome">Nome do perfil</label>
+                    <div class="wizard-campo-icone">
+                        <img src="../assets/icons/servidor-vermelho.svg" alt="" width="20" height="20">
+                        <input id="perfil-nome" name="nome" type="text" placeholder="Ex: Servidor de produção"
+                            maxlength="100" required>
+                    </div>
+                </div>
+
+                <fieldset class="wizard-sistemas">
+                    <legend>Sistema operacional</legend>
+                    <div class="wizard-sistemas-opcoes">
+                        <label class="wizard-sistema">
+                            <input type="radio" name="sistemaOperacional" value="linux" checked required>
+                            <span class="wizard-sistema-imagem">
+                                <img src="../assets/images/linux.svg" alt="" width="46" height="55">
+                            </span>
+                            <span class="wizard-sistema-texto">
+                                <strong>Linux</strong>
+                                <span>Ideal para servidores, alta estabilidade e flexibilidade.</span>
+                            </span>
+                            <span class="wizard-sistema-selecao" aria-hidden="true"></span>
+                        </label>
+
+                        <label class="wizard-sistema">
+                            <input type="radio" name="sistemaOperacional" value="windows" required>
+                            <span class="wizard-sistema-imagem">
+                                <img class="wizard-windows" src="../assets/images/w10.png" alt="" width="44" height="44">
+                            </span>
+                            <span class="wizard-sistema-texto">
+                                <strong>Windows</strong>
+                                <span>Compatibilidade com diversas aplicações e fácil gerenciamento.</span>
+                            </span>
+                            <span class="wizard-sistema-selecao" aria-hidden="true"></span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <div class="wizard-campo">
+                    <label for="perfil-descricao">Descrição (opcional)</label>
+                    <div class="wizard-campo-icone wizard-textarea">
+                        <img src="../assets/icons/documento.svg" alt="" width="16" height="20">
+                        <textarea id="perfil-descricao" name="descricao" rows="5" maxlength="500"
+                            aria-describedby="perfil-contador" placeholder="Adicione uma descrição para este perfil..."></textarea>
+                    </div>
+                    <span class="wizard-contador" id="perfil-contador">0/500</span>
+                </div>
+            </section>
+
+            <section class="wizard-metricas" aria-label="Métricas disponíveis" data-etapa="2" hidden>
+                <p class="wizard-metricas-carregando" role="status" hidden>Carregando métricas...</p>
+                <div class="wizard-metricas-erro" role="alert" hidden>
+                    <p>Não foi possível carregar as métricas. Tente novamente.</p>
+                    <button class="wizard-metricas-tentar" type="button">Tentar novamente</button>
+                </div>
+                <p class="wizard-metricas-vazio" role="status" hidden>Nenhuma métrica cadastrada no momento.</p>
+                <p class="wizard-metricas-resumo" role="status" aria-live="polite" hidden></p>
+                <div class="wizard-metricas-lista" hidden></div>
+            </section>
+
+            <section class="wizard-conteineres" aria-label="Monitoramento de contêineres Docker" data-etapa="3" hidden>
+                <label class="wizard-docker-opcao">
+                    <span class="wizard-docker-icone">
+                        <img src="../assets/icons/docker.svg" alt="" width="43" height="31">
+                    </span>
+                    <span class="wizard-docker-texto">
+                        <strong id="perfil-docker-titulo">Ativar monitoramento de Docker</strong>
+                        <span id="perfil-docker-descricao">Monitore os contêineres Docker em execução no servidor.</span>
+                    </span>
+                    <input id="perfil-docker" name="monitorarDocker" type="checkbox" role="switch"
+                        aria-labelledby="perfil-docker-titulo" aria-describedby="perfil-docker-descricao">
+                    <span class="wizard-docker-interruptor" aria-hidden="true"></span>
+                </label>
+
+                <div class="wizard-docker-status" role="status" aria-live="polite" aria-atomic="true">
+                    <img src="../assets/icons/info.svg" alt="" width="17" height="17">
+                    <div>
+                        <strong class="wizard-docker-status-titulo">Monitoramento desativado</strong>
+                        <p class="wizard-docker-status-descricao">Ative a opção acima para monitorar contêineres.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="wizard-alertas" aria-label="Configuração de alertas e limites" data-etapa="4" hidden>
+                <div class="wizard-alertas-abas" aria-label="Origem das métricas">
+                    <button class="wizard-alertas-aba" type="button" aria-pressed="true">
+                        <img src="../assets/icons/servidor.svg" alt="" width="18" height="18">
+                        Servidor
+                    </button>
+                    <button class="wizard-alertas-aba" type="button" aria-pressed="false" disabled
+                        title="A configuração de alertas de contêineres Docker ainda não está disponível.">
+                        <img src="../assets/icons/docker.svg" alt="" width="20" height="16">
+                        Contêineres Docker
+                    </button>
+                </div>
+                <div class="wizard-alertas-lista"></div>
+            </section>
+
+            <section class="wizard-equipe" aria-label="Membros da equipe e níveis de acesso" data-etapa="5" hidden>
+                <aside class="wizard-equipe-aviso">
+                    <span class="wizard-equipe-aviso-icone"><img src="../assets/icons/escudo.svg" alt="" width="22" height="22"></span>
+                    <div>
+                        <strong>Acessos podem ser alterados depois</strong>
+                        <p>Gerencie membros, funções e permissões em <a href="general-employee.html">Equipe e acessos</a>.</p>
+                    </div>
+                </aside>
+
+                <header class="wizard-equipe-cabecalho">
+                    <h3>Membros da equipe</h3>
+                    <span class="wizard-equipe-contagem" role="status" aria-live="polite">1 pessoa</span>
+                </header>
+                <div class="wizard-equipe-card">
+                    <div class="wizard-equipe-adicionar">
+                        <div class="wizard-equipe-selecao">
+                            <label for="perfil-equipe-usuario">Colaborador da empresa</label>
+                            <select id="perfil-equipe-usuario" aria-describedby="perfil-equipe-feedback" disabled>
+                                <option value="">Carregando colaboradores...</option>
+                            </select>
+                        </div>
+                        <button class="wizard-equipe-incluir" type="button" disabled>Adicionar</button>
+                    </div>
+                    <p id="perfil-equipe-feedback" class="wizard-equipe-feedback" role="status" aria-live="polite" hidden></p>
+                    <button class="wizard-equipe-tentar" type="button" hidden>Tentar novamente</button>
+                    <ul class="wizard-equipe-lista" aria-label="Pessoas que acompanharão este perfil"></ul>
+                </div>
+
+                <section class="wizard-equipe-niveis" aria-labelledby="perfil-equipe-niveis">
+                    <h3 id="perfil-equipe-niveis">Níveis de acesso</h3>
+                    <div class="wizard-equipe-niveis-lista">
+                        <div class="wizard-equipe-nivel wizard-equipe-nivel-proprietario">
+                            <img src="../assets/icons/coroa.svg" alt="" width="16" height="17">
+                            <div><strong>Proprietário</strong><p>Controle total da plataforma</p></div>
+                        </div>
+                        <div class="wizard-equipe-nivel">
+                            <img src="../assets/icons/ajuste.svg" alt="" width="16" height="16">
+                            <div><strong>Administrador</strong><p>Configura perfis, métricas e alertas</p></div>
+                        </div>
+                        <div class="wizard-equipe-nivel">
+                            <img src="../assets/icons/olho.svg" alt="" width="13" height="16">
+                            <div><strong>Visualizador</strong><p>Acompanha em modo leitura</p></div>
+                        </div>
+                    </div>
+                </section>
+                <p class="wizard-equipe-pendente" role="status">Selecione colaboradores ativos da sua empresa que ainda não fazem parte deste perfil.</p>
+            </section>
+        </div>
+
+        <p class="wizard-cadastro-feedback" role="alert" hidden></p>
+        <footer class="wizard-acoes">
+            <button class="wizard-voltar" type="button"><img src="../assets/icons/seta-preta.svg" alt="" width="12" height="12"> Voltar</button>
+            <button class="wizard-proximo" type="submit"><span class="wizard-proximo-texto">Próximo</span> <img src="../assets/icons/seta-branca.svg" alt="" width="12" height="12"></button>
+        </footer>
+    </form>
+    <section class="wizard-finalizado" aria-labelledby="wizard-finalizado-titulo" hidden>
+        <header class="wizard-finalizado-cabecalho">
+            <span class="wizard-finalizado-icone"><img src="../assets/icons/wizard-check.svg" alt="" width="28" height="28"></span>
+            <span class="wizard-finalizado-status">Configuração concluída</span>
+            <h2 id="wizard-finalizado-titulo" tabindex="-1">Perfil criado com sucesso</h2>
+            <p id="wizard-finalizado-descricao">Seu perfil de monitoramento de servidor está pronto para uso.<br>Faça download do pacote e siga as instruções abaixo.</p>
+        </header>
+
+        <div class="wizard-finalizado-perfil">
+            <span class="wizard-finalizado-servidor"><img src="../assets/icons/servidor-vermelho.svg" alt="" width="24" height="24"></span>
+            <div class="wizard-finalizado-dados">
+                <h3 class="wizard-finalizado-nome"></h3>
+                <p class="wizard-finalizado-resumo"></p>
+            </div>
+            <button class="wizard-baixar-agente" type="button">Download do pacote ZIP</button>
+        </div>
+        <p class="wizard-download-feedback" role="status" aria-live="polite" hidden></p>
+
+        <section class="wizard-instalacao" aria-labelledby="wizard-instalacao-titulo">
+            <h3 id="wizard-instalacao-titulo">Instale o agente no servidor</h3>
+            <p>Extraia o ZIP, abra o terminal na pasta <strong>agente</strong> e execute <strong>python captura.py</strong>.</p>
+            <div class="wizard-terminal">
+                <div class="wizard-terminal-cabecalho">
+                    <span><img src="../assets/icons/bash.svg" alt="" width="12" height="10"> Terminal</span>
+                </div>
+                <ol class="wizard-comandos">
+                    <li><code>unzip agente.zip</code></li>
+                    <li><code>cd agente</code></li>
+                    <li><code>python captura.py</code></li>
+                </ol>
+            </div>
+        </section>
+
+        <footer class="wizard-finalizado-rodape">
+            <div>
+                <strong>O monitoramento começa automaticamente</strong>
+                <p>Após executar o agente, ele será vinculado a este perfil.</p>
+            </div>
+            <a class="wizard-ir-dashboard" href="inicioDashboard.html">Ir para o dashboard <img src="../assets/icons/seta-branca.svg" alt="" width="12" height="12"></a>
+        </footer>
+    </section>
+</dialog>

@@ -471,3 +471,14 @@
         transition: none;
     }
 }
+
+.dashboard-menu-conta p {
+    margin: 6px 10px;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-menu-conta {
+    min-width: 220px;
+    max-width: calc(100vw - 40px);
+}

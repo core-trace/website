@@ -72,15 +72,19 @@ O login aceita usuários ativos e retorna `id_usuario`, `nome`, `email`,
 
 ### Download do agente
 
-Após o login, o botão **Baixar agente** no dashboard envia
-`sessionStorage.ID_EMPRESA` e o perfil de servidor `1` (fixo para teste) para
-`POST /agente/download`:
+Ao concluir o wizard, a tela de sucesso mostra o perfil criado e oferece o
+**Download do pacote ZIP**. O botão envia `sessionStorage.ID_EMPRESA` e o
+`id_perfil_servidor` retornado por `POST /servidor/perfis` para
+`POST /agente/download`. O ID não é fixo. Na dashboard antiga, o usuário escolhe
+um perfil da empresa na lista ao lado do botão de download. Na página de perfis,
+cada card também tem **Baixar agente ZIP**, que usa o ID daquele perfil.
 
-```json
-{
-  "id_empresa": 1,
-  "id_perfil_servidor": 1
-}
+Depois de baixar, extraia o ZIP e execute o agente dentro da pasta `agente`:
+
+```bash
+unzip agente.zip
+cd agente
+python captura.py
 ```
 
 A rota consulta `empresa.token_instalacao` e `perfil_servidor.token_perfil_servidor`,
@@ -142,3 +146,75 @@ ativação em outro dispositivo. Sem `APP_URL`, são usados `APP_HOST` e `APP_PO
 
 Se o Resend recusar o envio, o cadastro pendente é desfeito para permitir nova
 tentativa. A página só confirma o envio após o Resend aceitar a solicitação.
+
+### Perfis de servidor e wizard
+
+Na página `/pages/inicioDashboard.html`, “Criar perfil de servidor” abre o modal
+de cadastro. O link “Perfis de servidor” leva a `/pages/perfisServidor.html`,
+que lista os perfis com `GET /servidor/perfis?empresa=<ID_EMPRESA>` usando a empresa
+do `sessionStorage`. A consulta retorna nome, descrição e quantidade de servidores
+vinculados; uma lista vazia e um erro de conexão têm estados distintos na tela.
+
+O botão “Adicionar perfil de servidor” abre o mesmo modal, definido em
+`public/components/wizardPerfilServidor.html`, com CSS e JavaScript próprios.
+As cinco etapas são enviadas juntas em `POST /servidor/perfis`. O cadastro salva
+nome, descrição, sistema operacional, opção de Docker, métricas, limites de alerta
+e equipe em uma transação. O token do perfil é gerado no servidor.
+
+A estrutura necessária para o wizard está definida em `src/database/script.sql`.
+Não use o script de criação para atualizar um banco existente: ele apaga os dados.
+
+Exemplo do corpo do cadastro:
+
+```json
+{
+  "empresa": 1,
+  "proprietario": 1,
+  "nome": "Produção",
+  "descricao": "Servidores da aplicação",
+  "sistemaOperacional": "linux",
+  "monitorarDocker": false,
+  "metricas": [{ "id": 1, "operador": ">", "atencao": 70, "critico": 90 }],
+  "equipe": [{ "id": 2, "papel": "visualizador" }]
+}
+```
+
+O proprietário deve estar ativo e pertencer à empresa. Na etapa Equipe, selecione
+um colaborador pelo nome e email e clique em Adicionar. A busca usa
+`GET /servidor/membros-disponiveis?empresa=1&proprietario=1&perfil=0`.
+O perfil `0` representa um cadastro novo. Para um perfil existente, informe seu ID:
+a consulta exclui quem já está em `usuario_perfil_servidor`. Também exclui o
+proprietário, usuários inativos e usuários de outras empresas. Quem já foi
+selecionado no formulário sai das opções até ser removido da equipe.
+Os papéis são armazenados no vínculo com o perfil, sem alterar o nível global do
+usuário. Alertas aceitam `>`, `>=`, `<` e `<=`; ambos os limites podem ser `null`.
+A resposta `201` contém `mensagem` e `id_perfil_servidor`; erros de validação retornam `400`,
+proprietário inválido retorna `403` e falhas de persistência retornam `500`.
+
+Após salvar, o wizard mostra a conclusão com o download e atualiza a lista de
+perfis. Ao fechar a conclusão, o formulário é limpo para um novo cadastro. Em caso de erro,
+o preenchimento é preservado para correção. A opção de Docker e os operadores são
+persistidos; sua execução pelo agente não faz parte desta rota.
+
+A aplicação atual usa IDs enviados pelo cliente, sem sessão autenticada no backend.
+A validação de vínculo desta rota segue esse padrão e não substitui autenticação.
+
+O login direciona para `/pages/inicioDashboard.html`. A navbar usa os dados do
+`sessionStorage` para mostrar nome, iniciais e nível de acesso. O menu da conta
+mostra apenas o email do usuário e o botão Sair. O nome da empresa e o nível de acesso vêm dos
+joins com `empresa` e `nivel_acesso` na consulta de login.
+
+### Edição de perfis
+
+Na página de perfis, **Editar perfil** abre os dados atuais no wizard. A edição
+permite alterar nome, descrição, sistema operacional, Docker, métricas e limites
+de alerta, inclusive adicionar métricas a perfis que já têm servidores vinculados.
+A equipe e o token do perfil são preservados.
+
+`GET /servidor/perfis/:id?empresa=<ID_EMPRESA>` carrega o perfil e suas métricas.
+`PUT /servidor/perfis/:id` recebe os mesmos dados de monitoramento do cadastro,
+com `empresa` e `proprietario` (ID do usuário logado); o campo `equipe` não é
+alterado nesta rota. O salvamento atualiza o perfil e seus limites em uma transação.
+
+No cadastro, as métricas começam desmarcadas. **Aplicar perfil recomendado** marca
+as métricas indicadas pelo catálogo. Na edição, aparecem as métricas já salvas.

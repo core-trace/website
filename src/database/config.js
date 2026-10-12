@@ -15,6 +15,23 @@ async function executar(instrucaoSql, parametros = []) {
     return resultado;
 }
 
-module.exports = {
-    executar
-};
+async function transacao(operacao) {
+    const conexao = await pool.getConnection();
+    try {
+        await conexao.beginTransaction();
+        async function executar(sql, parametros = []) {
+            const [resultado] = await conexao.execute(sql, parametros);
+            return resultado;
+        }
+        const resultado = await operacao(executar);
+        await conexao.commit();
+        return resultado;
+    } catch (erro) {
+        await conexao.rollback();
+        throw erro;
+    } finally {
+        conexao.release();
+    }
+}
+
+module.exports = { executar, transacao };

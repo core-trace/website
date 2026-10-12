@@ -32,6 +32,7 @@
 }
 
 .botao-contato {
+    text-decoration: none;
     margin-top: 5%;
     width: 30vh;
     height: 7%;

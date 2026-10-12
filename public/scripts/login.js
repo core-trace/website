@@ -51,8 +51,10 @@ loginForm.addEventListener("submit", function (event) {
             sessionStorage.ID_EMPRESA = usuario.fk_empresa;
             sessionStorage.ID_NIVEL_ACESSO = usuario.fk_nivel_acesso;
             sessionStorage.STATUS_USUARIO = usuario.status;
+            sessionStorage.NIVEL_ACESSO = usuario.nivel_acesso;
+            sessionStorage.NOME_EMPRESA = usuario.nome_empresa;
 
-            window.location.href = "/pages/dashboard.html";
+            window.location.href = "/pages/inicioDashboard.html";
         })
         .catch(function (erro) {
             loginFeedback.textContent = erro instanceof TypeError

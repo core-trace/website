@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreTrace - Perfis de servidor</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/perfisServidor.css">
+    <link rel="stylesheet" href="../css/wizardPerfilServidor.css">
+    <script src="../scripts/navbarDashboard.js" defer></script>
+    <script src="../scripts/baixar-agente.js" defer></script>
+    <script src="../scripts/wizardPerfilServidor.js" defer></script>
+    <script src="../scripts/perfisServidor.js" defer></script>
+</head>
+
+<body class="dashboard-page">
+    <a class="dashboard-pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+
+    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
+        <div class="dashboard-menu-cabecalho">
+            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard">
+            <div class="dashboard-menu-grupo">
+                <h2 class="dashboard-menu-titulo">Monitoramento</h2>
+                <a href="inicioDashboard.html" class="dashboard-menu-item">
+                    <img src="../assets/icons/dashboard.png" alt="" width="20" height="20">
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/sino.png" alt="" width="20" height="20">
+                    <span>Alertas</span>
+                </a>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/relatorio.png" alt="" width="20" height="20">
+                    <span>Relatórios</span>
+                </a>
+            </div>
+
+            <div class="dashboard-menu-grupo">
+                <h2 class="dashboard-menu-titulo">Gestão</h2>
+                <a href="perfisServidor.html" class="dashboard-menu-item" aria-current="page">
+                    <img src="../assets/icons/perfil.png" alt="" width="20" height="20">
+                    <span>Perfis de servidor</span>
+                </a>
+                <a href="general-employee.html" class="dashboard-menu-item">
+                    <img src="../assets/icons/pessoas.png" alt="" width="20" height="20">
+                    <span>Equipe e acessos</span>
+                </a>
+            </div>
+
+            <div class="dashboard-menu-grupo">
+                <h2 class="dashboard-menu-titulo">Sistema</h2>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/engrenagem.png" alt="" width="20" height="20">
+                    <span>Configurações</span>
+                </a>
+                <a href="#" class="dashboard-menu-item">
+                    <img src="../assets/icons/documentacao.png" alt="" width="20" height="20">
+                    <span>Documentação</span>
+                </a>
+            </div>
+        </nav>
+
+    </aside>
+
+    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
+
+    <div class="dashboard-conteudo">
+        <header class="dashboard-navbar">
+            <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu"
+                aria-controls="menu-dashboard" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <label class="dashboard-pesquisa">
+                <span class="dashboard-lupa" aria-hidden="true"></span>
+                <input type="search" name="busca" aria-label="Buscar por servidor, hostname ou perfil"
+                    placeholder="Buscar por servidor, hostname ou perfil...">
+            </label>
+
+            <div class="dashboard-usuario">
+                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
+                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
+                </button>
+
+                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
+
+                <div class="dashboard-usuario-dados">
+                    <span class="dashboard-usuario-nome"></span>
+                    <span class="dashboard-usuario-cargo"></span>
+                </div>
+                <div class="dashboard-conta">
+                    <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
+                        aria-controls="menu-conta" aria-expanded="false">
+                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
+                    </button>
+                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <p class="dashboard-conta-email"></p>
+                        <button class="dashboard-sair" type="button">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="perfis" id="conteudo-principal" tabindex="-1">
+            <header class="perfis-cabecalho">
+                <div>
+                    <p class="perfis-secao">Gestão</p>
+                    <h1>Perfis de servidor</h1>
+                    <p class="perfis-descricao">Organize os perfis de monitoramento da sua infraestrutura.</p>
+                </div>
+                <button class="perfis-adicionar" type="button" data-abrir-wizard-perfil aria-haspopup="dialog">
+                    <span aria-hidden="true">+</span>
+                    Adicionar perfil de servidor
+                </button>
+            </header>
+
+            <section class="perfis-resultados" aria-label="Perfis cadastrados" aria-busy="true">
+                <p class="perfis-carregando" role="status">Carregando perfis de servidor...</p>
+                <div class="perfis-vazio" hidden>
+                    <img src="../assets/icons/imagemespera.png" alt="" width="170" height="162">
+                    <h2>Nenhum perfil de servidor cadastrado</h2>
+                    <p>Adicione seu primeiro perfil para começar a configurar o monitoramento.</p>
+                </div>
+                <div class="perfis-erro" role="alert" hidden>
+                    <h2>Não foi possível carregar os perfis</h2>
+                    <p id="perfis-mensagem-erro"></p>
+                    <button class="perfis-tentar" type="button">Tentar novamente</button>
+                    <a class="perfis-login" href="login.html" hidden>Ir para o login</a>
+                </div>
+                <p class="perfis-contagem" role="status" hidden></p>
+                <ul class="perfis-lista" role="list" hidden></ul>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

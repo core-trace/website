@@ -9,7 +9,10 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/inicioDashboard.css">
-    <script src="../scripts/inicioDashboard.js" defer></script>
+    <link rel="stylesheet" href="../css/wizardPerfilServidor.css">
+    <script src="../scripts/navbarDashboard.js" defer></script>
+    <script src="../scripts/baixar-agente.js" defer></script>
+    <script src="../scripts/wizardPerfilServidor.js" defer></script>
 </head>
 
 <body class="dashboard-page">
@@ -44,7 +47,7 @@
 
             <div class="dashboard-menu-grupo">
                 <h2 class="dashboard-menu-titulo">Gestão</h2>
-                <a href="#" class="dashboard-menu-item">
+                <a href="perfisServidor.html" class="dashboard-menu-item">
                     <img src="../assets/icons/perfil.png" alt="" width="20" height="20">
                     <span>Perfis de servidor</span>
                 </a>
@@ -91,12 +94,11 @@
                     <img src="../assets/icons/sino.png" alt="" width="24" height="24">
                 </button>
 
-                <!-- A foto da referência ainda não está no projeto. Substituir as iniciais por um img quando disponível. -->
-                <div class="dashboard-avatar" role="img" aria-label="Amanda Lopes">AL</div>
+                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
 
                 <div class="dashboard-usuario-dados">
-                    <span class="dashboard-usuario-nome">Amanda Lopes</span>
-                    <span class="dashboard-usuario-cargo">Engenheira de observabilidade</span>
+                    <span class="dashboard-usuario-nome"></span>
+                    <span class="dashboard-usuario-cargo"></span>
                 </div>
                 <div class="dashboard-conta">
                     <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
@@ -104,6 +106,7 @@
                         <span class="dashboard-usuario-seta" aria-hidden="true"></span>
                     </button>
                     <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <p class="dashboard-conta-email"></p>
                         <button class="dashboard-sair" type="button">Sair</button>
                     </div>
                 </div>
@@ -119,7 +122,7 @@
                     Crie seu primeiro perfil de servidor para começar a monitorar a
                     performance, disponibilidade e métricas críticas de infraestrutura.
                 </p>
-                <button class="botao-criar" type="button">
+                <button class="botao-criar" type="button" data-abrir-wizard-perfil aria-haspopup="dialog">
                     <span aria-hidden="true">+</span>
                     Criar perfil de servidor
                 </button>

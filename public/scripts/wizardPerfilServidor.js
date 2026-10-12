@@ -34,6 +34,10 @@
         let catalogoCarregado = false;
         let buscandoMetricas = false;
         let salvando = false;
+        let idPerfilCriado = null;
+        let idPerfilEdicao = null;
+        let metricasSalvas = [];
+        const conclusao = dialogo.querySelector(".wizard-finalizado");
         const feedbackCadastro = dialogo.querySelector(".wizard-cadastro-feedback");
 
         const icones = {
@@ -45,6 +49,7 @@
             proximo.disabled = salvando || (etapa === 2
                 && (!catalogoCarregado || !lista.querySelector("input:checked")));
             dialogo.querySelector(".wizard-proximo-texto").textContent = salvando ? "Salvando..."
+                : idPerfilEdicao && etapa === 4 ? "Salvar alterações"
                 : etapa === 5 ? "Concluir configuração" : "Próximo";
         }
 
@@ -237,7 +242,9 @@
                 checkbox.type = "checkbox";
                 checkbox.name = "metricas";
                 checkbox.value = metrica.id;
-                checkbox.checked = metrica.recomendada === true;
+                checkbox.checked = metricasSalvas.some(function (salva) {
+                    return salva.id === metrica.id;
+                });
                 checkbox.dataset.recomendada = String(metrica.recomendada === true);
                 const texto = document.createElement("span");
                 texto.textContent = metrica.nome;
@@ -337,6 +344,14 @@
                 }
                 linha.append(celula);
             });
+            const salva = metricasSalvas.find(function (item) {
+                return item.id === metrica.id;
+            });
+            if (salva) {
+                operador.value = salva.operador;
+                linha.querySelector('[data-limite="atencao"]').value = salva.atencao === null ? "" : salva.atencao;
+                linha.querySelector('[data-limite="critico"]').value = salva.critico === null ? "" : salva.critico;
+            }
             linha.addEventListener("input", () => validarLimites(linha));
             linha.addEventListener("change", () => validarLimites(linha));
             return linha;
@@ -435,7 +450,7 @@
             const nomesEtapas = ["Informações básicas", "Métricas", "Contêineres", "Alertas", "Equipe"];
             const descricoesEtapas = [
                 "Comece dando um nome ao perfil do servidor e escolha o sistema operacional que será utilizado.",
-                "Selecione ao menos uma métrica para os servidores deste perfil. Após vincular servidores, as métricas ficam bloqueadas.",
+                "Selecione as métricas que deseja monitorar. Você pode adicionar ou alterar métricas e alertas ao editar o perfil.",
                 "Habilite o monitoramento de contêineres Docker e acompanhe CPU, RAM, I/O Disco, Rede e Status dos contêineres.",
                 "Defina os limites de alerta para cada métrica. Você será notificado quando os valores excederem os limites configurados.",
                 "Adicione as pessoas que vão acompanhar este perfil e defina o nível de acesso de cada uma."
@@ -443,9 +458,10 @@
             const nomeEtapa = nomesEtapas[numero - 1];
             titulo.textContent = numero === 5 ? "Adicione sua equipe" : numero === 4 ? "Configuração de alertas e limites"
                 : numero === 3 ? "Monitoramento de Contêineres Docker" : nomeEtapa;
+            if (idPerfilEdicao && numero === 1) titulo.textContent = "Editar perfil de servidor";
             introducao.textContent = descricoesEtapas[numero - 1];
             dialogo.querySelector(".wizard-docker-introducao").hidden = numero !== 3;
-            dialogo.querySelector(".wizard-etapa-contagem").textContent = `Etapa ${numero} de 5`;
+            dialogo.querySelector(".wizard-etapa-contagem").textContent = `Etapa ${numero} de ${idPerfilEdicao ? 4 : 5}`;
             dialogo.querySelector(".wizard-etapa-atual").textContent = nomeEtapa;
             recomendar.hidden = numero !== 2;
 
@@ -476,9 +492,81 @@
             return metricasSelecionadas;
         }
 
+        function mostrarConclusao(dados) {
+            formulario.hidden = true;
+            dialogo.querySelector(".wizard-topo").hidden = true;
+            conclusao.hidden = false;
+            dialogo.dataset.etapa = "finalizado";
+            dialogo.setAttribute("aria-labelledby", "wizard-finalizado-titulo");
+            dialogo.setAttribute("aria-describedby", "wizard-finalizado-descricao");
+            dialogo.querySelector(".wizard-finalizado-nome").textContent = dados.nome;
+            const sistema = dados.sistemaOperacional === "linux" ? "Linux" : "Windows";
+            const total = dados.metricas.length;
+            dialogo.querySelector(".wizard-finalizado-resumo").textContent = "Servidor " + sistema + " • "
+                + total + (total === 1 ? " métrica monitorada" : " métricas monitoradas");
+            dialogo.querySelector(".wizard-download-feedback").hidden = true;
+            dialogo.querySelector("#wizard-finalizado-titulo").textContent = idPerfilEdicao
+                ? "Perfil atualizado com sucesso" : "Perfil criado com sucesso";
+            dialogo.querySelector(".wizard-finalizado-status").textContent = idPerfilEdicao
+                ? "Alterações salvas" : "Configuração concluída";
+            conclusao.scrollTop = 0;
+            dialogo.querySelector("#wizard-finalizado-titulo").focus();
+        }
+
+        function limparCadastro() {
+            idPerfilCriado = null;
+            idPerfilEdicao = null;
+            metricasSalvas = [];
+            dialogo.classList.remove("wizard-editando");
+            dialogo.querySelector(".wizard-etapas li:last-child").hidden = false;
+            feedbackCadastro.hidden = true;
+            formulario.reset();
+            membrosEquipe = [];
+            linhasAlertas.clear();
+            contador.textContent = "0/500";
+            feedbackEquipe.hidden = true;
+            lista.querySelectorAll("input").forEach(function (input) {
+                input.checked = false;
+            });
+            conclusao.hidden = true;
+            formulario.hidden = false;
+            dialogo.querySelector(".wizard-topo").hidden = false;
+            dialogo.setAttribute("aria-labelledby", "wizard-titulo");
+            dialogo.setAttribute("aria-describedby", "wizard-descricao");
+            atualizarContadores();
+            atualizarDocker();
+            mostrarEtapa(1);
+        }
+
+        dialogo.querySelector(".wizard-baixar-agente").addEventListener("click", function () {
+            baixarAgente(idPerfilCriado, this, dialogo.querySelector(".wizard-download-feedback"));
+        });
+
+        dialogo.addEventListener("editar-perfil", function (event) {
+            limparCadastro();
+            const perfil = event.detail;
+            idPerfilEdicao = perfil.id_perfil_servidor;
+            metricasSalvas = perfil.metricas;
+            dialogo.classList.add("wizard-editando");
+            dialogo.querySelector(".wizard-etapas li:last-child").hidden = true;
+            nome.value = perfil.nome;
+            descricao.value = perfil.descricao || "";
+            contador.textContent = descricao.value.length + "/500";
+            formulario.elements.sistemaOperacional.value = perfil.sistema_operacional;
+            monitorarDocker.checked = Boolean(Number(perfil.monitorar_docker));
+            lista.querySelectorAll("input").forEach(function (input) {
+                input.checked = metricasSalvas.some(function (metrica) {
+                    return metrica.id === Number(input.value);
+                });
+            });
+            atualizarContadores();
+            atualizarDocker();
+            mostrarEtapa(1);
+        });
+
         function salvarPerfil() {
-            if (salvando) return;
-            if (selecionarUsuario.value !== "") {
+            if (salvando || idPerfilCriado !== null) return;
+            if (!idPerfilEdicao && selecionarUsuario.value !== "") {
                 feedbackEquipe.textContent = "Clique em Adicionar para incluir o colaborador selecionado.";
                 feedbackEquipe.hidden = false;
                 return;
@@ -502,8 +590,9 @@
             feedbackCadastro.hidden = true;
             atualizarProximo();
 
-            return fetch("/servidor/perfis", {
-                method: "POST",
+            const url = idPerfilEdicao ? "/servidor/perfis/" + idPerfilEdicao : "/servidor/perfis";
+            return fetch(url, {
+                method: idPerfilEdicao ? "PUT" : "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(dados)
             })
@@ -513,20 +602,10 @@
                         return resultado;
                     });
                 })
-                .then(function () {
-                    formulario.reset();
-                    membrosEquipe = [];
-                    linhasAlertas.clear();
-                    contador.textContent = "0/500";
-                    feedbackEquipe.hidden = true;
-                    lista.querySelectorAll("input").forEach(function (input) {
-                        input.checked = input.dataset.recomendada === "true";
-                    });
-                    atualizarContadores();
-                    atualizarDocker();
-                    mostrarEtapa(1);
-                    dialogo.close();
-                    document.dispatchEvent(new Event("perfil-servidor-criado"));
+                .then(function (resultado) {
+                    idPerfilCriado = resultado.id_perfil_servidor;
+                    mostrarConclusao(dados);
+                    document.dispatchEvent(new Event(idPerfilEdicao ? "perfil-servidor-atualizado" : "perfil-servidor-criado"));
                 })
                 .catch(function (erro) {
                     feedbackCadastro.textContent = erro.message || "Não foi possível salvar o perfil. Tente novamente.";
@@ -545,7 +624,7 @@
 
         formulario.addEventListener("submit", (event) => {
             event.preventDefault();
-            if (salvando) return;
+            if (salvando || idPerfilCriado !== null) return;
             if (etapa === 1) {
                 nome.setCustomValidity(nome.value.trim() === "" ? "Informe o nome do perfil." : "");
                 if (nome.reportValidity()) mostrarEtapa(2);
@@ -557,6 +636,7 @@
                 listaAlertas.querySelectorAll("tbody tr").forEach(validarLimites);
                 const invalido = listaAlertas.querySelector(":invalid");
                 if (invalido) invalido.reportValidity();
+                else if (idPerfilEdicao) salvarPerfil();
                 else mostrarEtapa(5);
             } else if (etapa === 5) {
                 salvarPerfil();
@@ -577,6 +657,7 @@
         dialogo.querySelector(".wizard-metricas-tentar").addEventListener("click", carregarMetricas);
         dialogo.querySelector(".wizard-fechar").addEventListener("click", () => dialogo.close());
         dialogo.addEventListener("close", () => {
+            if (idPerfilCriado !== null || idPerfilEdicao !== null) limparCadastro();
             document.body.classList.remove("wizard-perfil-aberto");
             botaoOrigem?.focus();
         });
@@ -621,32 +702,42 @@
         return carregamentoWizard;
     }
 
-    document.querySelectorAll("[data-abrir-wizard-perfil]").forEach((botao) => {
-        botao.addEventListener("click", async () => {
-            botao.disabled = true;
-            botao.setAttribute("aria-busy", "true");
-            botao.parentElement.querySelector(".wizard-erro-abertura")?.remove();
-            try {
-                const dialogo = await carregarWizard();
-                if (dialogo.open) return;
-                botaoOrigem = botao;
-                document.body.classList.add("wizard-perfil-aberto");
-                dialogo.showModal();
-                dialogo.querySelector(".wizard-conteudo").scrollTop = 0;
-                const foco = window.matchMedia("(max-width: 700px)").matches
-                    ? dialogo.querySelector("#wizard-titulo")
-                    : dialogo.querySelector('[data-etapa="1"]:not([hidden]) input') || dialogo.querySelector("#wizard-titulo");
-                foco.focus({ preventScroll: true });
-            } catch (erro) {
-                const feedback = document.createElement("p");
-                feedback.className = "wizard-erro-abertura";
-                feedback.setAttribute("role", "alert");
-                feedback.textContent = "Não foi possível abrir o formulário. Tente novamente.";
-                botao.after(feedback);
-            } finally {
-                botao.disabled = false;
-                botao.removeAttribute("aria-busy");
+    let abrindoWizard = false;
+    document.addEventListener("click", async function (event) {
+        const botao = event.target.closest("[data-abrir-wizard-perfil], [data-editar-perfil]");
+        if (!botao || abrindoWizard) return;
+        abrindoWizard = true;
+        botao.disabled = true;
+        botao.setAttribute("aria-busy", "true");
+        botao.parentElement.querySelector(".wizard-erro-abertura")?.remove();
+        try {
+            const dialogo = await carregarWizard();
+            if (dialogo.open) return;
+            if (botao.dataset.editarPerfil) {
+                const empresa = Number(sessionStorage.ID_EMPRESA);
+                const resposta = await fetch(`/servidor/perfis/${botao.dataset.editarPerfil}?empresa=${empresa}`);
+                if (!resposta.ok) throw new Error("Não foi possível carregar o perfil para edição. Tente novamente.");
+                const perfil = await resposta.json();
+                dialogo.dispatchEvent(new CustomEvent("editar-perfil", { detail: perfil }));
             }
-        });
+            botaoOrigem = botao;
+            document.body.classList.add("wizard-perfil-aberto");
+            dialogo.showModal();
+            dialogo.querySelector(".wizard-conteudo").scrollTop = 0;
+            const foco = window.matchMedia("(max-width: 700px)").matches
+                ? dialogo.querySelector("#wizard-titulo")
+                : dialogo.querySelector('[data-etapa="1"]:not([hidden]) input') || dialogo.querySelector("#wizard-titulo");
+            foco.focus({ preventScroll: true });
+        } catch (erro) {
+            const feedback = document.createElement("p");
+            feedback.className = "wizard-erro-abertura";
+            feedback.setAttribute("role", "alert");
+            feedback.textContent = erro.message || "Não foi possível abrir o formulário. Tente novamente.";
+            botao.after(feedback);
+        } finally {
+            abrindoWizard = false;
+            botao.disabled = false;
+            botao.removeAttribute("aria-busy");
+        }
     });
 })();

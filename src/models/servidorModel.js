@@ -130,8 +130,57 @@ function criarPerfil(dados) {
     });
 }
 
+function obterPerfil(idPerfil, idEmpresa) {
+    const instrucaoSql = `
+        SELECT id_perfil_servidor, nome, descricao, sistema_operacional, monitorar_docker
+        FROM perfil_servidor
+        WHERE id_perfil_servidor = ? AND fk_empresa = ?;
+    `;
+    return database.executar(instrucaoSql, [idPerfil, idEmpresa])
+        .then(function (perfis) {
+            if (perfis.length === 0) return null;
+            const perfil = perfis[0];
+            return database.executar(`
+                SELECT fk_componente AS id, operador, limite_atencao AS atencao, limite_critico AS critico
+                FROM componentes_perfil
+                WHERE fk_perfil_servidor = ?;
+            `, [idPerfil]).then(function (metricas) {
+                perfil.metricas = metricas;
+                return perfil;
+            });
+        });
+}
+
+function atualizarPerfil(idPerfil, dados) {
+    return database.transacao(async function (executar) {
+        const perfis = await executar(`
+            SELECT id_perfil_servidor FROM perfil_servidor
+            WHERE id_perfil_servidor = ? AND fk_empresa = ? FOR UPDATE;
+        `, [idPerfil, dados.empresa]);
+        if (perfis.length === 0) return false;
+
+        await executar(`
+            UPDATE perfil_servidor
+            SET nome = ?, descricao = ?, sistema_operacional = ?, monitorar_docker = ?
+            WHERE id_perfil_servidor = ? AND fk_empresa = ?;
+        `, [dados.nome.trim(), dados.descricao.trim(), dados.sistemaOperacional,
+            dados.monitorarDocker, idPerfil, dados.empresa]);
+
+        // Substitui a seleção e seus limites dentro da mesma transação.
+        await executar("DELETE FROM componentes_perfil WHERE fk_perfil_servidor = ?", [idPerfil]);
+        for (const metrica of dados.metricas) {
+            await executar(`
+                INSERT INTO componentes_perfil
+                    (fk_componente, fk_perfil_servidor, operador, limite_atencao, limite_critico)
+                VALUES (?, ?, ?, ?, ?);
+            `, [metrica.id, idPerfil, metrica.operador, metrica.atencao, metrica.critico]);
+        }
+        return true;
+    });
+}
+
 module.exports = {
     buscarPerfil, buscarPorMac, cadastrar, ativar,
     listarPerfisPorEmpresa, listarMetricas, buscarProprietario,
-    listarMembrosDisponiveis, criarPerfil
+    listarMembrosDisponiveis, criarPerfil, obterPerfil, atualizarPerfil
 };

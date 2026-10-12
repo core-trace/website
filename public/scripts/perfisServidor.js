@@ -12,15 +12,6 @@ function criarCardPerfil(perfil) {
     const card = document.createElement("li");
     card.className = "perfil-card";
 
-    const icone = document.createElement("div");
-    icone.className = "perfil-card-icone";
-    const imagem = document.createElement("img");
-    imagem.src = "../assets/icons/servidor.svg";
-    imagem.alt = "";
-    imagem.width = 24;
-    imagem.height = 24;
-    icone.append(imagem);
-
     const nome = document.createElement("h2");
     nome.textContent = perfil.nome;
     const descricao = document.createElement("p");
@@ -31,7 +22,30 @@ function criarCardPerfil(perfil) {
     const total = Number(perfil.total_servidores) || 0;
     servidores.textContent = total === 1 ? "1 servidor vinculado" : `${total} servidores vinculados`;
 
-    card.append(icone, nome, descricao, servidores);
+    const editar = document.createElement("button");
+    editar.type = "button";
+    editar.className = "perfil-editar";
+    editar.dataset.editarPerfil = perfil.id_perfil_servidor;
+    editar.textContent = "Editar perfil";
+    editar.setAttribute("aria-label", "Editar perfil " + perfil.nome);
+    const baixar = document.createElement("button");
+    baixar.type = "button";
+    baixar.className = "perfil-baixar";
+    baixar.textContent = "Baixar agente ZIP";
+    baixar.setAttribute("aria-label", "Baixar agente do perfil " + perfil.nome);
+
+    const feedback = document.createElement("p");
+    feedback.className = "perfil-download-feedback";
+    feedback.setAttribute("role", "status");
+    feedback.hidden = true;
+    baixar.addEventListener("click", function () {
+        baixarAgente(Number(perfil.id_perfil_servidor), baixar, feedback);
+    });
+
+    const acoes = document.createElement("div");
+    acoes.className = "perfil-acoes";
+    acoes.append(editar, baixar);
+    card.append(nome, descricao, servidores, acoes, feedback);
     return card;
 }
 
@@ -83,3 +97,5 @@ tentarPerfis.addEventListener("click", carregarPerfis);
 carregarPerfis();
 
 document.addEventListener("perfil-servidor-criado", carregarPerfis);
+
+document.addEventListener("perfil-servidor-atualizado", carregarPerfis);

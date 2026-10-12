@@ -118,17 +118,9 @@ function criarPerfil(req, res) {
             if (proprietarios.length === 0) {
                 return res.status(403).json({ mensagem: "Proprietário ativo não encontrado nesta empresa." });
             }
-            for (const metrica of dados.metricas) {
-                const componente = metricas.find(function (item) {
-                    return item.id_componente === metrica.id;
-                });
-                if (!componente) {
-                    return res.status(400).json({ mensagem: "Uma das métricas selecionadas não existe." });
-                }
-                if (componente.unidade === "%" && metrica.atencao !== null
-                    && (metrica.atencao < 0 || metrica.atencao > 100 || metrica.critico < 0 || metrica.critico > 100)) {
-                    return res.status(400).json({ mensagem: "Os limites percentuais devem estar entre 0 e 100." });
-                }
+            const erroMetricas = validarMetricasDoCatalogo(dados.metricas, metricas);
+            if (erroMetricas) {
+                return res.status(400).json({ mensagem: erroMetricas });
             }
             for (const membro of dados.equipe) {
                 const usuario = membros.find(function (item) {
@@ -150,6 +142,70 @@ function criarPerfil(req, res) {
         .catch(function (erro) {
             console.error("Erro ao cadastrar perfil:", erro.message);
             return res.status(500).json({ mensagem: "Não foi possível salvar o perfil. Tente novamente." });
+        });
+}
+
+function validarMetricasDoCatalogo(selecionadas, catalogo) {
+    for (const metrica of selecionadas) {
+        const componente = catalogo.find(function (item) {
+            return item.id_componente === metrica.id;
+        });
+        if (!componente) return "Uma das métricas selecionadas não existe.";
+        if (componente.unidade === "%" && metrica.atencao !== null
+            && (metrica.atencao < 0 || metrica.atencao > 100 || metrica.critico < 0 || metrica.critico > 100)) {
+            return "Os limites percentuais devem estar entre 0 e 100.";
+        }
+    }
+    return "";
+}
+
+function obterPerfil(req, res) {
+    const idPerfil = Number(req.params.id);
+    const empresa = Number(req.query.empresa);
+    if (!Number.isSafeInteger(idPerfil) || idPerfil <= 0 || !Number.isSafeInteger(empresa) || empresa <= 0) {
+        return res.status(400).json({ mensagem: "Informe um perfil e uma empresa válidos." });
+    }
+    return servidorModel.obterPerfil(idPerfil, empresa)
+        .then(function (perfil) {
+            if (!perfil) return res.status(404).json({ mensagem: "Perfil não encontrado nesta empresa." });
+            return res.json(perfil);
+        })
+        .catch(function (erro) {
+            console.error("Erro ao consultar perfil:", erro.message);
+            return res.status(500).json({ mensagem: "Não foi possível carregar o perfil." });
+        });
+}
+
+function atualizarPerfil(req, res) {
+    const idPerfil = Number(req.params.id);
+    const dados = req.body || {};
+    // A edição altera os dados de monitoramento; a equipe permanece no vínculo existente.
+    dados.equipe = [];
+    const mensagem = validarPerfil(dados);
+    if (!Number.isSafeInteger(idPerfil) || idPerfil <= 0) {
+        return res.status(400).json({ mensagem: "Informe um perfil válido." });
+    }
+    if (mensagem) return res.status(400).json({ mensagem: mensagem });
+
+    return Promise.all([
+        servidorModel.buscarProprietario(dados.proprietario, dados.empresa),
+        servidorModel.listarMetricas()
+    ])
+        .then(function (resultados) {
+            if (resultados[0].length === 0) {
+                return res.status(403).json({ mensagem: "Usuário ativo não encontrado nesta empresa." });
+            }
+            const erroMetricas = validarMetricasDoCatalogo(dados.metricas, resultados[1]);
+            if (erroMetricas) return res.status(400).json({ mensagem: erroMetricas });
+            return servidorModel.atualizarPerfil(idPerfil, dados)
+                .then(function (atualizado) {
+                    if (!atualizado) return res.status(404).json({ mensagem: "Perfil não encontrado nesta empresa." });
+                    return res.json({ mensagem: "Perfil atualizado com sucesso.", id_perfil_servidor: idPerfil });
+                });
+        })
+        .catch(function (erro) {
+            console.error("Erro ao atualizar perfil:", erro.message);
+            return res.status(500).json({ mensagem: "Não foi possível salvar as alterações. Tente novamente." });
         });
 }
 
@@ -243,5 +299,7 @@ module.exports = {
     listarPerfis,
     listarMetricas,
     criarPerfil,
-    listarMembrosDisponiveis
+    listarMembrosDisponiveis,
+    obterPerfil,
+    atualizarPerfil
 };

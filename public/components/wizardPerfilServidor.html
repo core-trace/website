@@ -200,4 +200,45 @@
             <button class="wizard-proximo" type="submit"><span class="wizard-proximo-texto">Próximo</span> <img src="../assets/icons/seta-branca.svg" alt="" width="12" height="12"></button>
         </footer>
     </form>
+    <section class="wizard-finalizado" aria-labelledby="wizard-finalizado-titulo" hidden>
+        <header class="wizard-finalizado-cabecalho">
+            <span class="wizard-finalizado-icone"><img src="../assets/icons/wizard-check.svg" alt="" width="28" height="28"></span>
+            <span class="wizard-finalizado-status">Configuração concluída</span>
+            <h2 id="wizard-finalizado-titulo" tabindex="-1">Perfil criado com sucesso</h2>
+            <p id="wizard-finalizado-descricao">Seu perfil de monitoramento de servidor está pronto para uso.<br>Faça download do pacote e siga as instruções abaixo.</p>
+        </header>
+
+        <div class="wizard-finalizado-perfil">
+            <span class="wizard-finalizado-servidor"><img src="../assets/icons/servidor-vermelho.svg" alt="" width="24" height="24"></span>
+            <div class="wizard-finalizado-dados">
+                <h3 class="wizard-finalizado-nome"></h3>
+                <p class="wizard-finalizado-resumo"></p>
+            </div>
+            <button class="wizard-baixar-agente" type="button">Download do pacote ZIP</button>
+        </div>
+        <p class="wizard-download-feedback" role="status" aria-live="polite" hidden></p>
+
+        <section class="wizard-instalacao" aria-labelledby="wizard-instalacao-titulo">
+            <h3 id="wizard-instalacao-titulo">Instale o agente no servidor</h3>
+            <p>Extraia o ZIP, abra o terminal na pasta <strong>agente</strong> e execute <strong>python captura.py</strong>.</p>
+            <div class="wizard-terminal">
+                <div class="wizard-terminal-cabecalho">
+                    <span><img src="../assets/icons/bash.svg" alt="" width="12" height="10"> Terminal</span>
+                </div>
+                <ol class="wizard-comandos">
+                    <li><code>unzip agente.zip</code></li>
+                    <li><code>cd agente</code></li>
+                    <li><code>python captura.py</code></li>
+                </ol>
+            </div>
+        </section>
+
+        <footer class="wizard-finalizado-rodape">
+            <div>
+                <strong>O monitoramento começa automaticamente</strong>
+                <p>Após executar o agente, ele será vinculado a este perfil.</p>
+            </div>
+            <a class="wizard-ir-dashboard" href="inicioDashboard.html">Ir para o dashboard <img src="../assets/icons/seta-branca.svg" alt="" width="12" height="12"></a>
+        </footer>
+    </section>
 </dialog>

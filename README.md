@@ -72,15 +72,19 @@ O login aceita usuários ativos e retorna `id_usuario`, `nome`, `email`,
 
 ### Download do agente
 
-Após o login, o botão **Baixar agente** no dashboard envia
-`sessionStorage.ID_EMPRESA` e o perfil de servidor `1` (fixo para teste) para
-`POST /agente/download`:
+Ao concluir o wizard, a tela de sucesso mostra o perfil criado e oferece o
+**Download do pacote ZIP**. O botão envia `sessionStorage.ID_EMPRESA` e o
+`id_perfil_servidor` retornado por `POST /servidor/perfis` para
+`POST /agente/download`. O ID não é fixo. Na dashboard antiga, o usuário escolhe
+um perfil da empresa na lista ao lado do botão de download. Na página de perfis,
+cada card também tem **Baixar agente ZIP**, que usa o ID daquele perfil.
 
-```json
-{
-  "id_empresa": 1,
-  "id_perfil_servidor": 1
-}
+Depois de baixar, extraia o ZIP e execute o agente dentro da pasta `agente`:
+
+```bash
+unzip agente.zip
+cd agente
+python captura.py
 ```
 
 A rota consulta `empresa.token_instalacao` e `perfil_servidor.token_perfil_servidor`,
@@ -187,7 +191,8 @@ usuário. Alertas aceitam `>`, `>=`, `<` e `<=`; ambos os limites podem ser `nul
 A resposta `201` contém `mensagem` e `id_perfil_servidor`; erros de validação retornam `400`,
 proprietário inválido retorna `403` e falhas de persistência retornam `500`.
 
-Após salvar, o formulário é limpo e a lista de perfis é atualizada. Em caso de erro,
+Após salvar, o wizard mostra a conclusão com o download e atualiza a lista de
+perfis. Ao fechar a conclusão, o formulário é limpo para um novo cadastro. Em caso de erro,
 o preenchimento é preservado para correção. A opção de Docker e os operadores são
 persistidos; sua execução pelo agente não faz parte desta rota.
 
@@ -196,5 +201,20 @@ A validação de vínculo desta rota segue esse padrão e não substitui autenti
 
 O login direciona para `/pages/inicioDashboard.html`. A navbar usa os dados do
 `sessionStorage` para mostrar nome, iniciais e nível de acesso. O menu da conta
-mostra email, empresa e status. O nome da empresa e o nível de acesso vêm dos
+mostra email e empresa. O nome da empresa e o nível de acesso vêm dos
 joins com `empresa` e `nivel_acesso` na consulta de login.
+
+### Edição de perfis
+
+Na página de perfis, **Editar perfil** abre os dados atuais no wizard. A edição
+permite alterar nome, descrição, sistema operacional, Docker, métricas e limites
+de alerta, inclusive adicionar métricas a perfis que já têm servidores vinculados.
+A equipe e o token do perfil são preservados.
+
+`GET /servidor/perfis/:id?empresa=<ID_EMPRESA>` carrega o perfil e suas métricas.
+`PUT /servidor/perfis/:id` recebe os mesmos dados de monitoramento do cadastro,
+com `empresa` e `proprietario` (ID do usuário logado); o campo `equipe` não é
+alterado nesta rota. O salvamento atualiza o perfil e seus limites em uma transação.
+
+No cadastro, as métricas começam desmarcadas. **Aplicar perfil recomendado** marca
+as métricas indicadas pelo catálogo. Na edição, aparecem as métricas já salvas.

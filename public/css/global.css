@@ -87,3 +87,9 @@ a {
 .container-amplo {
     max-width: 1600px;
 }
+
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}

@@ -17,7 +17,6 @@ function mostrarUsuarioLogado() {
     document.querySelector(".dashboard-avatar").textContent = iniciais.toUpperCase();
     document.querySelector(".dashboard-avatar").setAttribute("aria-label", nome);
     document.querySelector(".dashboard-conta-email").textContent = email;
-    document.querySelector(".dashboard-conta-empresa").textContent = sessionStorage.NOME_EMPRESA || "";
 }
 
 mostrarUsuarioLogado();

@@ -201,7 +201,7 @@ A validação de vínculo desta rota segue esse padrão e não substitui autenti
 
 O login direciona para `/pages/inicioDashboard.html`. A navbar usa os dados do
 `sessionStorage` para mostrar nome, iniciais e nível de acesso. O menu da conta
-mostra email e empresa. O nome da empresa e o nível de acesso vêm dos
+mostra apenas o email do usuário e o botão Sair. O nome da empresa e o nível de acesso vêm dos
 joins com `empresa` e `nivel_acesso` na consulta de login.
 
 ### Edição de perfis

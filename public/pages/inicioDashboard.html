@@ -9,7 +9,10 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/inicioDashboard.css">
+    <link rel="stylesheet" href="../css/detalheServidor.css">
+    <script src="../scripts/vendor/chart.umd.js" defer></script>
     <script src="../scripts/navbarDashboard.js" defer></script>
+    <script src="../scripts/detalheServidor.js" defer></script>
     <script src="../scripts/inicioDashboard.js" defer></script>
 </head>
 
@@ -172,7 +175,7 @@
                         <option value="reportando">Reportando</option>
                     </select></span>
                 </div>
-                <p class="visao-legenda">Busque um servidor ou selecione Detalhes para consultar seus recursos e containers.</p>
+                <p class="visao-legenda">Selecione Detalhes para abrir os gráficos e containers. Exemplos disponíveis nos três primeiros servidores.</p>
                 <div class="visao-tabela-scroll" role="region" aria-label="Lista de servidores" tabindex="0">
                     <table class="visao-tabela">
                         <thead>
@@ -200,14 +203,18 @@
             <footer class="visao-rodape">DADOS ILUSTRATIVOS · perfis permitidos · métricas completas no detalhe do servidor</footer>
         </main>
 
-        <dialog class="visao-detalhes" id="detalhes-servidor" aria-labelledby="detalhes-titulo">
-            <div class="visao-detalhes-cabecalho">
-                <div><p class="visao-legenda">Detalhes do servidor</p><h2 id="detalhes-titulo"></h2></div>
-                <form method="dialog"><button class="visao-fechar" aria-label="Fechar detalhes" autofocus>Fechar</button></form>
-            </div>
-            <p class="visao-legenda" id="detalhes-perfil"></p>
-            <dl class="visao-detalhes-grid" id="detalhes-metricas"></dl>
-            <p class="visao-legenda">Dados ilustrativos · última atualização às 14:32.</p>
+        <dialog class="servidor-painel" id="detalhes-servidor" aria-labelledby="detalhes-titulo" aria-describedby="detalhes-perfil">
+            <header class="servidor-cabecalho">
+                <div class="servidor-titulo-linha">
+                    <h2 id="detalhes-titulo"></h2>
+                    <span class="servidor-status" id="detalhes-status"></span>
+                    <form method="dialog"><button class="servidor-fechar" aria-label="Fechar detalhes do servidor" autofocus>Fechar <span aria-hidden="true">×</span></button></form>
+                </div>
+                <p id="detalhes-perfil"></p>
+                <p id="detalhes-coleta"></p>
+            </header>
+            <div class="servidor-corpo" id="detalhes-conteudo"></div>
+            <footer class="servidor-rodape">DADOS ILUSTRATIVOS · somente métricas selecionadas no perfil</footer>
         </dialog>
     </div>
 </body>

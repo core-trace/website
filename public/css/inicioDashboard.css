@@ -5,15 +5,13 @@
 
 .visao-cabecalho,
 .visao-filtros,
-.visao-tabela-cabecalho,
-.visao-detalhes-cabecalho {
+.visao-tabela-cabecalho {
     display: flex;
     align-items: center;
     gap: 20px;
 }
 
-.visao-cabecalho,
-.visao-detalhes-cabecalho {
+.visao-cabecalho {
     justify-content: space-between;
 }
 
@@ -170,7 +168,9 @@
     font-size: inherit;
 }
 
-.visao-detalhes-botao:hover { text-decoration: underline; }
+.visao-detalhes-botao:hover:not(:disabled) { text-decoration: underline; }
+.visao-detalhes-botao:disabled { color: #777278; cursor: default; opacity: 0.55; }
+.visao-detalhes-botao:disabled img { filter: grayscale(1); }
 .visao-detalhes-botao img { width: 11px; height: 11px; }
 .visao-tabela-rodape p { margin-top: 12px; }
 .visao-vazio { padding: 28px 12px; color: var(--visao-texto-suave); text-align: center; font-size: 13px; }
@@ -202,24 +202,6 @@
     white-space: nowrap;
 }
 
-.visao-detalhes {
-    width: min(560px, calc(100% - 32px));
-    max-height: calc(100dvh - 32px);
-    padding: 28px;
-    border: 1px solid var(--dashboard-borda);
-    border-radius: 14px;
-    color: var(--cor-texto);
-    background: #fff;
-}
-
-.visao-detalhes::backdrop { background: rgb(20 17 21 / 40%); }
-.visao-detalhes h2 { margin-top: 4px; font-size: 22px; overflow-wrap: anywhere; }
-.visao-detalhes > .visao-legenda { margin-top: 14px; }
-.visao-fechar { padding: 8px 12px; border: 1px solid var(--dashboard-borda); border-radius: 6px; background: var(--cor-fundo); font-size: 12px; }
-.visao-detalhes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-block: 24px; }
-.visao-detalhes-grid dt { color: #777278; font-size: 12px; }
-.visao-detalhes-grid dd { margin: 4px 0 0; font-size: 15px; }
-
 @media (max-width: 1400px) {
     .visao-cabecalho { align-items: flex-start; flex-wrap: wrap; }
     .visao-indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -242,11 +224,9 @@
     .visao-select-situacao { min-width: 0; width: 100%; }
     .visao-recursos-grid { gap: 20px 12px; }
     .visao-recurso-valor { font-size: 15px; }
-    .visao-detalhes { padding: 20px; }
 }
 
 @media (max-width: 360px) {
     .visao-indicadores,
-    .visao-recursos-grid,
-    .visao-detalhes-grid { grid-template-columns: 1fr; }
+    .visao-recursos-grid { grid-template-columns: 1fr; }
 }

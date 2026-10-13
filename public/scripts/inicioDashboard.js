@@ -21,7 +21,7 @@
     const filtroSituacao = document.getElementById("filtro-situacao");
     const busca = document.querySelector('.dashboard-pesquisa input');
     const lista = document.getElementById("lista-servidores");
-    const dialogo = document.getElementById("detalhes-servidor");
+    const servidoresComDetalhes = new Set(["cart-api-12", "cart-api-07", "pay-db-02"]);
     const texto = (id, valor) => { document.getElementById(id).textContent = valor; };
     const normalizar = (valor) => valor.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     const percentual = (parte, total) => (parte / total * 100).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -69,7 +69,7 @@
             <td class="visao-${servidor.situacao}">${situacoes[servidor.situacao]}</td>
             <td>${servidor.cpu}</td><td>${servidor.ram}</td><td>${servidor.disco}</td>
             <td>${servidor.docker}</td><td>${servidor.uptime}</td>
-            <td><button class="visao-detalhes-botao" type="button" data-servidor="${servidor.nome}" aria-label="Detalhes de ${servidor.nome}" aria-haspopup="dialog">Detalhes <img src="../assets/icons/seta_vermelha.svg" alt="" width="11" height="11"></button></td>
+            <td><button class="visao-detalhes-botao" type="button" data-servidor="${servidor.nome}" aria-label="Detalhes de ${servidor.nome}" aria-haspopup="dialog" ${servidoresComDetalhes.has(servidor.nome) ? "" : 'disabled title="Detalhes disponíveis nos três primeiros servidores de exemplo"'}>Detalhes <img src="../assets/icons/seta_vermelha.svg" alt="" width="11" height="11"></button></td>
         </tr>`).join("");
 
         document.getElementById("servidores-vazio").hidden = filtrados.length > 0;
@@ -87,13 +87,8 @@
         const botao = evento.target.closest("[data-servidor]");
         if (!botao) return;
         const servidor = servidores.find((item) => item.nome === botao.dataset.servidor);
-        texto("detalhes-titulo", servidor.nome);
-        texto("detalhes-perfil", `${servidor.perfil} · ${situacoes[servidor.situacao]}`);
-        document.getElementById("detalhes-metricas").innerHTML = [
-            ["CPU", servidor.cpu], ["RAM", servidor.ram], ["Disco", servidor.disco],
-            ["Docker", servidor.docker], ["Uptime", servidor.uptime]
-        ].map(([rotulo, valor]) => `<div><dt>${rotulo}</dt><dd>${valor}</dd></div>`).join("");
-        dialogo.showModal();
+        if (!servidoresComDetalhes.has(servidor.nome)) return;
+        document.dispatchEvent(new CustomEvent("abrir-detalhes-servidor", { detail: servidor }));
     });
 
     atualizarIndicadores();

@@ -9,10 +9,8 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/inicioDashboard.css">
-    <link rel="stylesheet" href="../css/wizardPerfilServidor.css">
     <script src="../scripts/navbarDashboard.js" defer></script>
-    <script src="../scripts/baixar-agente.js" defer></script>
-    <script src="../scripts/wizardPerfilServidor.js" defer></script>
+    <script src="../scripts/inicioDashboard.js" defer></script>
 </head>
 
 <body class="dashboard-page">
@@ -69,7 +67,10 @@
                 </a>
             </div>
         </nav>
-
+        <div class="visao-sistema">
+            <span class="visao-sistema-ponto" aria-hidden="true"></span>
+            <div><p>Sistema online</p><small>Última atualização: 14:32</small></div>
+        </div>
     </aside>
 
     <div class="dashboard-menu-fundo" aria-hidden="true"></div>
@@ -103,7 +104,7 @@
                 <div class="dashboard-conta">
                     <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
                         aria-controls="menu-conta" aria-expanded="false">
-                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
+                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12" height="12">
                     </button>
                     <div class="dashboard-menu-conta" id="menu-conta" hidden>
                         <p class="dashboard-conta-email"></p>
@@ -114,56 +115,100 @@
         </header>
 
         <main class="principal" id="conteudo-principal" tabindex="-1">
-            <section class="sem-servidor" aria-labelledby="titulo-sem-servidor">
-                <img src="../assets/icons/imagemespera.png" class="imagem-espera" alt="" width="170" height="162">
-                <p class="aviso">Seu monitoramento começa aqui</p>
-                <h1 id="titulo-sem-servidor">Nenhum servidor encontrado</h1>
-                <p class="descricao">
-                    Crie seu primeiro perfil de servidor para começar a monitorar a
-                    performance, disponibilidade e métricas críticas de infraestrutura.
-                </p>
-                <button class="botao-criar" type="button" data-abrir-wizard-perfil aria-haspopup="dialog">
-                    <span aria-hidden="true">+</span>
-                    Criar perfil de servidor
-                </button>
+            <section class="visao-cabecalho" aria-labelledby="titulo-visao">
+                <div>
+                    <h1 id="titulo-visao">Visão geral dos servidores</h1>
+                    <p id="visao-resumo">120 servidores em 3 perfis · acompanhe recursos, alertas e containers.</p>
+                </div>
+                <div class="visao-filtros">
+                    <span class="visao-select-campo"><select class="visao-select" id="filtro-perfil" aria-label="Filtrar por perfil">
+                        <option value="">Todos os perfis</option>
+                        <option value="Carrinho">Carrinho</option>
+                        <option value="Financeiro">Financeiro</option>
+                        <option value="Catálogo">Catálogo</option>
+                    </select></span>
+                    <span class="visao-periodo">Últimas 24 horas</span>
+                </div>
+            </section>
+            <p class="visao-atualizacao">Atualizado às 14:32 · indicadores atuais · últimas 24 horas</p>
+
+            <section class="visao-indicadores" aria-label="Indicadores dos servidores">
+                <article class="visao-card visao-indicador">
+                    <h2>Servidores reportando</h2>
+                    <p class="visao-valor visao-positivo" id="indicador-reportando">116 / 120</p>
+                    <p class="visao-legenda" id="legenda-reportando">96,7% · 4 sem comunicação recente</p>
+                </article>
+                <article class="visao-card visao-indicador">
+                    <h2>Servidores com críticos</h2>
+                    <p class="visao-valor visao-critico" id="indicador-criticos">8</p>
+                    <p class="visao-legenda" id="legenda-criticos">Servidores únicos · 6,7% dos cadastrados</p>
+                </article>
+                <article class="visao-card visao-indicador">
+                    <h2>Alertas ativos</h2>
+                    <p class="visao-valor visao-atencao" id="indicador-alertas">19</p>
+                    <p class="visao-legenda" id="legenda-alertas">11 críticos + 8 de atenção</p>
+                </article>
+                <article class="visao-card visao-indicador">
+                    <h2>Menor previsão de espaço</h2>
+                    <p class="visao-valor" id="indicador-previsao">14 dias</p>
+                    <p class="visao-legenda" id="legenda-previsao">pay-db-02 · /dados · estimativa</p>
+                </article>
             </section>
 
-            <section class="passos" aria-labelledby="titulo-passos">
-                <h2 class="titulo-passos" id="titulo-passos">Para iniciar</h2>
-                <ol class="lista-passos">
-                    <li class="card-passo">
-                        <div class="imagem-card" aria-hidden="true">
-                            <img src="../assets/icons/arquivos.png" alt="" width="40" height="40">
-                        </div>
-                        <div class="texto-card">
-                            <span class="numero" aria-hidden="true">1</span>
-                            <h3>Crie um perfil de monitoramento</h3>
-                            <p>Crie um perfil de servidor, escolha métricas e defina limites de uso.</p>
-                        </div>
-                    </li>
-                    <li class="card-passo">
-                        <div class="imagem-card" aria-hidden="true">
-                            <img src="../assets/icons/ZIP.png" alt="" width="40" height="40">
-                        </div>
-                        <div class="texto-card">
-                            <span class="numero" aria-hidden="true">2</span>
-                            <h3>Baixe o script</h3>
-                            <p>Geramos um .zip pronto para sua máquina dentro desse perfil.</p>
-                        </div>
-                    </li>
-                    <li class="card-passo">
-                        <div class="imagem-card" aria-hidden="true">
-                            <img src="../assets/icons/grafico.png" alt="" width="40" height="40">
-                        </div>
-                        <div class="texto-card">
-                            <span class="numero" aria-hidden="true">3</span>
-                            <h3>Execute e monitore</h3>
-                            <p>Acompanhe os dados. Se algo sair do normal, você será notificado.</p>
-                        </div>
-                    </li>
-                </ol>
+            <section class="visao-card visao-recursos" aria-labelledby="titulo-recursos">
+                <h2 id="titulo-recursos">Servidores com alertas por recurso</h2>
+                <p class="visao-legenda">Servidores únicos com regra de recurso ativa · contagens podem se sobrepor</p>
+                <div class="visao-recursos-grid" id="recursos-resumo"></div>
             </section>
+
+            <section class="visao-card visao-servidores" aria-labelledby="titulo-servidores">
+                <div class="visao-tabela-cabecalho">
+                    <h2 id="titulo-servidores">Servidores (120)</h2>
+                    <span class="visao-select-campo"><select class="visao-select visao-select-situacao" id="filtro-situacao" aria-label="Filtrar por situação">
+                        <option value="">Todas as situações</option>
+                        <option value="sem-comunicacao">Sem comunicação</option>
+                        <option value="critico">Crítico</option>
+                        <option value="atencao">Atenção</option>
+                        <option value="reportando">Reportando</option>
+                    </select></span>
+                </div>
+                <p class="visao-legenda">Busque um servidor ou selecione Detalhes para consultar seus recursos e containers.</p>
+                <div class="visao-tabela-scroll" role="region" aria-label="Lista de servidores" tabindex="0">
+                    <table class="visao-tabela">
+                        <thead>
+                            <tr>
+                                <th scope="col">Servidor</th><th scope="col">Perfil</th><th scope="col">Situação</th>
+                                <th scope="col">CPU</th><th scope="col">RAM</th><th scope="col">Disco¹</th>
+                                <th scope="col">Docker²</th><th scope="col">Uptime</th><th scope="col"><span class="visao-sr-only">Ações</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-servidores"></tbody>
+                    </table>
+                </div>
+                <p class="visao-vazio" id="servidores-vazio" role="status" hidden>Nenhum servidor encontrado. Tente outro termo ou altere os filtros.</p>
+                <div class="visao-tabela-rodape">
+                    <p class="visao-legenda"><span id="servidores-contagem" role="status" aria-live="polite"></span> · ¹ Maior ocupação entre volumes monitorados.</p>
+                    <p class="visao-legenda">² Estado dos containers não confirma saúde da aplicação. Descoberta automática nos perfis com Docker ativo.</p>
+                </div>
+            </section>
+
+            <section class="visao-card visao-previsao" aria-labelledby="titulo-previsao">
+                <h2 id="titulo-previsao">Previsão de armazenamento</h2>
+                <p class="visao-legenda">Espaço livre ÷ crescimento líquido diário estimado, por volume. Sem histórico suficiente, exibimos “histórico insuficiente”.</p>
+                <p class="visao-legenda" id="previsao-descricao">14 dias para espaço em /dados · inodes: previsão independente · nunca somar previsões de volumes diferentes.</p>
+            </section>
+            <footer class="visao-rodape">DADOS ILUSTRATIVOS · perfis permitidos · métricas completas no detalhe do servidor</footer>
         </main>
+
+        <dialog class="visao-detalhes" id="detalhes-servidor" aria-labelledby="detalhes-titulo">
+            <div class="visao-detalhes-cabecalho">
+                <div><p class="visao-legenda">Detalhes do servidor</p><h2 id="detalhes-titulo"></h2></div>
+                <form method="dialog"><button class="visao-fechar" aria-label="Fechar detalhes" autofocus>Fechar</button></form>
+            </div>
+            <p class="visao-legenda" id="detalhes-perfil"></p>
+            <dl class="visao-detalhes-grid" id="detalhes-metricas"></dl>
+            <p class="visao-legenda">Dados ilustrativos · última atualização às 14:32.</p>
+        </dialog>
     </div>
 </body>
 

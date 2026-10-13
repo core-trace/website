@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="../css/detalheServidor.css">
     <script src="../scripts/vendor/chart.umd.js" defer></script>
     <script src="../scripts/navbarDashboard.js" defer></script>
+    <script src="../scripts/monitoramentoMock.js" defer></script>
     <script src="../scripts/detalheServidor.js" defer></script>
     <script src="../scripts/inicioDashboard.js" defer></script>
 </head>
@@ -121,52 +122,49 @@
             <section class="visao-cabecalho" aria-labelledby="titulo-visao">
                 <div>
                     <h1 id="titulo-visao">Visão geral dos servidores</h1>
-                    <p id="visao-resumo">120 servidores em 3 perfis · acompanhe recursos, alertas e containers.</p>
+                    <p id="visao-resumo">Carregando os servidores da sua empresa...</p>
                 </div>
                 <div class="visao-filtros">
                     <span class="visao-select-campo"><select class="visao-select" id="filtro-perfil" aria-label="Filtrar por perfil">
                         <option value="">Todos os perfis</option>
-                        <option value="Carrinho">Carrinho</option>
-                        <option value="Financeiro">Financeiro</option>
-                        <option value="Catálogo">Catálogo</option>
                     </select></span>
                     <span class="visao-periodo">Últimas 24 horas</span>
                 </div>
             </section>
-            <p class="visao-atualizacao">Atualizado às 14:32 · indicadores atuais · últimas 24 horas</p>
+            <p class="visao-atualizacao">Servidores cadastrados · métricas, alertas e gráficos ilustrativos</p>
 
             <section class="visao-indicadores" aria-label="Indicadores dos servidores">
                 <article class="visao-card visao-indicador">
                     <h2>Servidores reportando</h2>
-                    <p class="visao-valor visao-positivo" id="indicador-reportando">116 / 120</p>
-                    <p class="visao-legenda" id="legenda-reportando">96,7% · 4 sem comunicação recente</p>
+                    <p class="visao-valor visao-positivo" id="indicador-reportando">—</p>
+                    <p class="visao-legenda" id="legenda-reportando">Aguardando a lista de servidores</p>
                 </article>
                 <article class="visao-card visao-indicador">
                     <h2>Servidores com críticos</h2>
-                    <p class="visao-valor visao-critico" id="indicador-criticos">8</p>
-                    <p class="visao-legenda" id="legenda-criticos">Servidores únicos · 6,7% dos cadastrados</p>
+                    <p class="visao-valor visao-critico" id="indicador-criticos">—</p>
+                    <p class="visao-legenda" id="legenda-criticos">Servidores com alertas simulados</p>
                 </article>
                 <article class="visao-card visao-indicador">
                     <h2>Alertas ativos</h2>
-                    <p class="visao-valor visao-atencao" id="indicador-alertas">19</p>
-                    <p class="visao-legenda" id="legenda-alertas">11 críticos + 8 de atenção</p>
+                    <p class="visao-valor visao-atencao" id="indicador-alertas">—</p>
+                    <p class="visao-legenda" id="legenda-alertas">Dados ilustrativos</p>
                 </article>
                 <article class="visao-card visao-indicador">
                     <h2>Menor previsão de espaço</h2>
-                    <p class="visao-valor" id="indicador-previsao">14 dias</p>
-                    <p class="visao-legenda" id="legenda-previsao">pay-db-02 · /dados · estimativa</p>
+                    <p class="visao-valor" id="indicador-previsao">Sem previsão</p>
+                    <p class="visao-legenda" id="legenda-previsao">Nenhum servidor selecionado</p>
                 </article>
             </section>
 
             <section class="visao-card visao-recursos" aria-labelledby="titulo-recursos">
                 <h2 id="titulo-recursos">Servidores com alertas por recurso</h2>
-                <p class="visao-legenda">Servidores únicos com regra de recurso ativa · contagens podem se sobrepor</p>
+                <p class="visao-legenda">Alertas ilustrativos por recurso · contagens podem se sobrepor</p>
                 <div class="visao-recursos-grid" id="recursos-resumo"></div>
             </section>
 
             <section class="visao-card visao-servidores" aria-labelledby="titulo-servidores">
                 <div class="visao-tabela-cabecalho">
-                    <h2 id="titulo-servidores">Servidores (120)</h2>
+                    <h2 id="titulo-servidores">Servidores</h2>
                     <span class="visao-select-campo"><select class="visao-select visao-select-situacao" id="filtro-situacao" aria-label="Filtrar por situação">
                         <option value="">Todas as situações</option>
                         <option value="sem-comunicacao">Sem comunicação</option>
@@ -175,7 +173,7 @@
                         <option value="reportando">Reportando</option>
                     </select></span>
                 </div>
-                <p class="visao-legenda">Selecione Detalhes para abrir os gráficos e containers. Exemplos disponíveis nos três primeiros servidores.</p>
+                <p class="visao-legenda">Nomes e perfis cadastrados na sua empresa. Selecione Detalhes para explorar gráficos e containers ilustrativos.</p>
                 <div class="visao-tabela-scroll" role="region" aria-label="Lista de servidores" tabindex="0">
                     <table class="visao-tabela">
                         <thead>
@@ -188,6 +186,11 @@
                         <tbody id="lista-servidores"></tbody>
                     </table>
                 </div>
+                <p class="visao-vazio" id="servidores-carregando" role="status">Carregando servidores...</p>
+                <div class="visao-erro" id="servidores-erro" hidden>
+                    <p id="servidores-mensagem-erro" role="alert"></p>
+                    <button type="button" id="servidores-tentar">Tentar novamente</button>
+                </div>
                 <p class="visao-vazio" id="servidores-vazio" role="status" hidden>Nenhum servidor encontrado. Tente outro termo ou altere os filtros.</p>
                 <div class="visao-tabela-rodape">
                     <p class="visao-legenda"><span id="servidores-contagem" role="status" aria-live="polite"></span> · ¹ Maior ocupação entre volumes monitorados.</p>
@@ -198,9 +201,9 @@
             <section class="visao-card visao-previsao" aria-labelledby="titulo-previsao">
                 <h2 id="titulo-previsao">Previsão de armazenamento</h2>
                 <p class="visao-legenda">Espaço livre ÷ crescimento líquido diário estimado, por volume. Sem histórico suficiente, exibimos “histórico insuficiente”.</p>
-                <p class="visao-legenda" id="previsao-descricao">14 dias para espaço em /dados · inodes: previsão independente · nunca somar previsões de volumes diferentes.</p>
+                <p class="visao-legenda" id="previsao-descricao">Selecione um perfil com servidores para visualizar uma estimativa ilustrativa.</p>
             </section>
-            <footer class="visao-rodape">DADOS ILUSTRATIVOS · perfis permitidos · métricas completas no detalhe do servidor</footer>
+            <footer class="visao-rodape">SERVIDORES CADASTRADOS · métricas, situações e alertas ilustrativos</footer>
         </main>
 
         <dialog class="servidor-painel" id="detalhes-servidor" aria-labelledby="detalhes-titulo" aria-describedby="detalhes-perfil">
@@ -214,7 +217,7 @@
                 <p id="detalhes-coleta"></p>
             </header>
             <div class="servidor-corpo" id="detalhes-conteudo"></div>
-            <footer class="servidor-rodape">DADOS ILUSTRATIVOS · somente métricas selecionadas no perfil</footer>
+            <footer class="servidor-rodape">DADOS ILUSTRATIVOS · modelo de monitoramento para demonstração</footer>
         </dialog>
     </div>
 </body>

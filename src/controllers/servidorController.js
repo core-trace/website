@@ -68,6 +68,21 @@ function ativarAgente(req, res) {
         });
 }
 
+function listarServidores(req, res) {
+    const idEmpresa = Number(req.query.empresa);
+    if (typeof req.query.empresa !== "string" || !Number.isSafeInteger(idEmpresa) || idEmpresa <= 0) {
+        return res.status(400).json({ mensagem: "Informe uma empresa válida para consultar os servidores." });
+    }
+    return servidorModel.listarServidoresPorEmpresa(idEmpresa)
+        .then(function (servidores) {
+            return res.json(servidores);
+        })
+        .catch(function (erro) {
+            console.error("Erro ao listar servidores:", erro.message);
+            return res.status(500).json({ mensagem: "Não foi possível carregar os servidores. Tente novamente." });
+        });
+}
+
 function listarPerfis(req, res) {
     const idEmpresa = Number(req.query.empresa);
 
@@ -296,6 +311,7 @@ function listarMembrosDisponiveis(req, res) {
 
 module.exports = {
     ativarAgente,
+    listarServidores,
     listarPerfis,
     listarMetricas,
     criarPerfil,

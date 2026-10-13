@@ -149,8 +149,19 @@ tentativa. A página só confirma o envio após o Resend aceitar a solicitação
 
 ### Perfis de servidor e wizard
 
-Na página `/pages/inicioDashboard.html`, “Criar perfil de servidor” abre o modal
-de cadastro. O link “Perfis de servidor” leva a `/pages/perfisServidor.html`,
+A página `/pages/inicioDashboard.html` lista os servidores cadastrados com
+`GET /servidor/lista?empresa=<ID_EMPRESA>`, seguindo o contexto de empresa do
+`sessionStorage` usado nas demais listagens. A consulta relaciona `servidores`
+e `perfil_servidor` e filtra pela empresa; retorna ID e nome do servidor,
+ID e nome do perfil e sistema operacional. Não retorna tokens de instalação.
+A tela distingue carregamento, lista vazia e falha de consulta com nova tentativa.
+
+Os nomes, perfis e totais vêm dessa lista. Situações, métricas, alertas e gráficos
+continuam ilustrativos: dois cenários (CPU e RAM) são distribuídos pelo ID do
+servidor em `public/scripts/monitoramentoMock.js`. Todos os servidores abrem o
+painel de detalhes; filtrar ou recarregar não altera o cenário de um mesmo ID.
+
+O link “Perfis de servidor” leva a `/pages/perfisServidor.html`,
 que lista os perfis com `GET /servidor/perfis?empresa=<ID_EMPRESA>` usando a empresa
 do `sessionStorage`. A consulta retorna nome, descrição e quantidade de servidores
 vinculados; uma lista vazia e um erro de conexão têm estados distintos na tela.

@@ -230,3 +230,7 @@
     .visao-indicadores,
     .visao-recursos-grid { grid-template-columns: 1fr; }
 }
+
+.visao-erro { padding: 24px 16px; color: var(--cor-vermelho); font-size: 13px; text-align: center; }
+.visao-erro button { margin-top: 12px; padding: 8px 14px; border: 1px solid var(--dashboard-borda); border-radius: 6px; background: var(--cor-fundo); color: var(--cor-texto); font-size: 12px; }
+.visao-indicador .visao-legenda { overflow-wrap: anywhere; }

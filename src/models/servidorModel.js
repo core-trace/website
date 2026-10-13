@@ -41,6 +41,17 @@ function ativar(idServidor, idPerfilServidor) {
     return database.executar(instrucaoSql, [idServidor, idPerfilServidor]);
 }
 
+function listarServidoresPorEmpresa(idEmpresa) {
+    return database.executar(`
+        SELECT s.id_servidor, s.nome, p.id_perfil_servidor,
+               p.nome AS nome_perfil, p.sistema_operacional
+        FROM servidores s
+        INNER JOIN perfil_servidor p ON p.id_perfil_servidor = s.fk_perfil_servidor
+        WHERE p.fk_empresa = ?
+        ORDER BY s.id_servidor ASC;
+    `, [idEmpresa]);
+}
+
 function listarPerfisPorEmpresa(idEmpresa) {
     const instrucaoSql = `
         SELECT p.id_perfil_servidor, p.nome, p.descricao,
@@ -181,6 +192,6 @@ function atualizarPerfil(idPerfil, dados) {
 
 module.exports = {
     buscarPerfil, buscarPorMac, cadastrar, ativar,
-    listarPerfisPorEmpresa, listarMetricas, buscarProprietario,
+    listarServidoresPorEmpresa, listarPerfisPorEmpresa, listarMetricas, buscarProprietario,
     listarMembrosDisponiveis, criarPerfil, obterPerfil, atualizarPerfil
 };

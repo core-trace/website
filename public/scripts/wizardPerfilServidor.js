@@ -242,10 +242,17 @@
                 checkbox.type = "checkbox";
                 checkbox.name = "metricas";
                 checkbox.value = metrica.id;
-                checkbox.checked = metricasSalvas.some(function (salva) {
+                checkbox.checked = metrica.essencial === true || metricasSalvas.some(function (salva) {
                     return salva.id === metrica.id;
                 });
                 checkbox.dataset.recomendada = String(metrica.recomendada === true);
+                checkbox.dataset.essencial = String(metrica.essencial === true);
+                checkbox.disabled = metrica.essencial === true;
+                if (metrica.essencial) {
+                    label.title = "Métricas essenciais ficam sempre selecionadas.";
+                    label.tabIndex = 0;
+                    label.setAttribute("aria-label", metrica.nome + ". Métrica essencial, sempre selecionada.");
+                }
                 const texto = document.createElement("span");
                 texto.textContent = metrica.nome;
                 label.append(checkbox, texto);
@@ -526,7 +533,7 @@
             contador.textContent = "0/500";
             feedbackEquipe.hidden = true;
             lista.querySelectorAll("input").forEach(function (input) {
-                input.checked = false;
+                input.checked = input.dataset.essencial === "true";
             });
             conclusao.hidden = true;
             formulario.hidden = false;
@@ -559,7 +566,7 @@
             formulario.elements.sistemaOperacional.value = perfil.sistema_operacional;
             monitorarDocker.checked = Boolean(Number(perfil.monitorar_docker));
             lista.querySelectorAll("input").forEach(function (input) {
-                input.checked = metricasSalvas.some(function (metrica) {
+                input.checked = input.dataset.essencial === "true" || metricasSalvas.some(function (metrica) {
                     return metrica.id === Number(input.value);
                 });
             });
@@ -654,7 +661,7 @@
         lista.addEventListener("change", atualizarContadores);
         recomendar.addEventListener("click", () => {
             lista.querySelectorAll("input").forEach((checkbox) => {
-                checkbox.checked = checkbox.dataset.recomendada === "true";
+                checkbox.checked = checkbox.dataset.essencial === "true" || checkbox.dataset.recomendada === "true";
             });
             atualizarContadores();
         });

@@ -68,7 +68,8 @@ function listarPerfisPorEmpresa(idEmpresa) {
 
 function listarMetricas() {
     return database.executar(`
-        SELECT id_componente, nome, nome_coluna, funcao_psutil, unidade
+        SELECT id_componente, nome, nome_coluna, funcao_psutil, unidade,
+               categoria, essencial, recomendada, plataforma, exibir_no_card, ordem_card
         FROM componentes
         ORDER BY id_componente ASC;
     `);

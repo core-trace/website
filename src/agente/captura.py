@@ -5,6 +5,84 @@ import os
 import json
 import requests
 from datetime import datetime
+from pathlib import Path
+
+from utils.coleta import (
+    numero_valido, salvar_leitura, nova_linha_metricas, diferenca_contador,
+)
+from cpu.coleta import (
+    METRICAS_SELECIONAVEIS,
+    INVENTARIO_CPU,
+    IDS_CPU,
+    MODOS_CPU,
+    TAXAS_CPU,
+    preparar_coleta_cpu,
+    colunas_cpu,
+    coletar_cpu,
+    coletar_percentuais,
+    coletar_modos,
+    coletar_taxas,
+    coletar_frequencias,
+    coletar_inventario_fisico,
+)
+from ram.coleta import (
+    IDS_RAM,
+    ATRIBUTOS_RAM,
+    ler_oom_linux,
+    preparar_coleta_ram,
+    colunas_ram,
+    coletar_ram,
+    coletar_oom,
+)
+from disco.coleta import (
+    METRICAS_VOLUME,
+    METRICAS_IO,
+    IDS_DISCO,
+    CAMPOS_INODES,
+    ler_fila_linux,
+    preparar_coleta_disco,
+    campos_volumes,
+    colunas_volumes,
+    campos_io,
+    colunas_io,
+    descobrir_alvos_disco,
+    coluna_disco,
+    colunas_disco,
+    coletar_disco_geral,
+    marcar_campos_disco,
+    coletar_inodes,
+    coletar_volumes,
+    salvar_taxa_disco,
+    salvar_tempo_disco,
+    coletar_io_disco,
+)
+from swap.coleta import (
+    IDS_SWAP,
+    preparar_coleta_swap,
+    colunas_swap,
+    coletar_swap,
+    coletar_atividade_swap,
+)
+from carga.coleta import (
+    IDS_CARGA,
+    preparar_coleta_carga,
+    colunas_carga,
+    coletar_carga,
+)
+from rede.coleta import (
+    GRUPOS_REDE,
+    ATRIBUTOS_REDE,
+    IDS_REDE,
+    descobrir_interfaces_rede,
+    preparar_coleta_rede,
+    campos_rede,
+    colunas_interface_rede,
+    coluna_rede,
+    colunas_rede,
+    coletar_rede_geral,
+    salvar_taxa_rede,
+    coletar_rede,
+)
 
 
 # Configurar as variáveis de ambiente pra API pra cahamar commais facilidade posteriormente
@@ -13,7 +91,7 @@ API_FILTRO_URL = "http://localhost:3334"
 
 
 # Token de instalação e token do perfil do servidor ficam salvos no arquivo de configuração
-ARQUIVO_CONFIG = "config.json"
+ARQUIVO_CONFIG = Path(__file__).with_name("config.json")
 
 
 def obter_endereco_mac():
@@ -307,14 +385,21 @@ def capturar_metrica(
         return None
 
 
+# COLETA CPU: estas funções são chamadas pelo loop principal abaixo.
+
 def capturar_dados(
     metricas,
-    endereco_mac
+    endereco_mac,
+    estado_cpu,
+    estado_ram,
+    estado_swap=None,
+    estado_carga=None
 ):
     # Criar um cache para armazenar os resultados a cada rodada e evitar chamadas repetidas
     cache = {}
 
-    dados = {
+    # A linha mistura horário/MAC (texto), medições (números) e campos vazios.
+    dados: dict[str, str | int | float | None] = {
         "TIMESTAMP": datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"
         ),
@@ -324,153 +409,147 @@ def capturar_dados(
 
     for metrica in metricas:
         coluna = metrica["nome_coluna"]
+        if coluna in IDS_CPU or coluna in IDS_RAM or coluna in IDS_DISCO or coluna in IDS_SWAP or coluna in IDS_CARGA or coluna in IDS_REDE:
+            continue
 
         dados[coluna] = capturar_metrica(
             metrica,
             cache
         )
 
+    dados.update(coletar_cpu(estado_cpu))
+    dados.update(coletar_ram(estado_ram))
+    if estado_swap is not None:
+        dados.update(coletar_swap(estado_swap))
+    if estado_carga is not None:
+        dados.update(coletar_carga(estado_carga))
     return dados
 
 
-config = carregar_config()
+def main():
+    config = carregar_config()
 
 
-token_instalacao = config.get(
-    "token_instalacao"
-)
-
-token_perfil_servidor = config.get(
-    "token_perfil_servidor"
-)
-
-
-if token_instalacao is None:
-    print(
-        "Token de instalação não encontrado "
-        "no arquivo de configuração."
+    token_instalacao = config.get(
+        "token_instalacao"
     )
 
-    exit()
-
-
-if token_perfil_servidor is None:
-    print(
-        "Token do perfil do servidor não encontrado "
-        "no arquivo de configuração."
+    token_perfil_servidor = config.get(
+        "token_perfil_servidor"
     )
 
-    exit()
 
-
-endereco_mac = obter_endereco_mac()
-
-if endereco_mac is None:
-    print(
-        "Não foi possível identificar "
-        "o endereço MAC da máquina."
-    )
-
-    exit()
-
-
-agente_ativado = ativar_agente(
-    token_instalacao,
-    token_perfil_servidor,
-    endereco_mac
-)
-
-if not agente_ativado:
-    print("Não foi possível ativar o agente.")
-    exit()
-
-
-metricas = buscar_metricas_cliente(
-    token_instalacao,
-    token_perfil_servidor
-)
-
-if not metricas:
-    print(
-        "Nenhuma métrica configurada "
-        "para este perfil."
-    )
-
-    exit()
-
-
-# Colunas padrão
-colunas = [
-    "TIMESTAMP",
-    "ENDERECO_MAC"
-]
-
-
-# Colunas das métricas do banco
-colunas.extend(
-    metrica["nome_coluna"]
-    for metrica in metricas
-)
-
-
-mac_arquivo = endereco_mac.replace(
-    ":",
-    "-"
-)
-
-caminho_arquivo = (
-    f"./coretrace_coleta_{mac_arquivo}.csv"
-)
-
-
-arquivo_existe = os.path.exists(
-    caminho_arquivo
-)
-
-arquivo = open(
-    caminho_arquivo,
-    "a",
-    newline="",
-    encoding="utf-8"
-)
-
-
-escritor = csv.DictWriter(
-    arquivo,
-    fieldnames=colunas
-)
-
-
-if not arquivo_existe:
-    escritor.writeheader()
-
-
-try:
-    while True:
-        dados = capturar_dados(
-            metricas,
-            endereco_mac
-        )
-
-        escritor.writerow(
-            dados
-        )
-
-        arquivo.flush()
-
+    if token_instalacao is None:
         print(
-            f"{dados['TIMESTAMP']} - "
-            f"Captura salva para o MAC "
-            f"{endereco_mac}: "
-            f"{dados}"
+            "Token de instalação não encontrado "
+            "no arquivo de configuração."
         )
 
-        time.sleep(1)
+        exit()
 
 
-except KeyboardInterrupt:
-    print("\nMonitoramento encerrado.")
+    if token_perfil_servidor is None:
+        print(
+            "Token do perfil do servidor não encontrado "
+            "no arquivo de configuração."
+        )
+
+        exit()
 
 
-finally:
-    arquivo.close()
+    endereco_mac = obter_endereco_mac()
+
+    if endereco_mac is None:
+        print(
+            "Não foi possível identificar "
+            "o endereço MAC da máquina."
+        )
+
+        exit()
+
+
+    agente_ativado = ativar_agente(
+        token_instalacao,
+        token_perfil_servidor,
+        endereco_mac
+    )
+
+    if not agente_ativado:
+        print("Não foi possível ativar o agente.")
+        exit()
+
+
+    metricas = buscar_metricas_cliente(
+        token_instalacao,
+        token_perfil_servidor
+    )
+
+    if not metricas:
+        print(
+            "Nenhuma métrica configurada "
+            "para este perfil."
+        )
+
+        exit()
+
+
+    # Colunas padrão
+    escolhas_metricas = []
+    for metrica in metricas:
+        escolhas_metricas.append(metrica["nome_coluna"])
+    estado_cpu = preparar_coleta_cpu(escolhas_metricas)
+
+    estado_ram = preparar_coleta_ram(escolhas_metricas)
+    estado_disco = preparar_coleta_disco(escolhas_metricas)
+    estado_swap = preparar_coleta_swap(escolhas_metricas)
+    estado_carga = preparar_coleta_carga(escolhas_metricas)
+    estado_rede = preparar_coleta_rede(escolhas_metricas)
+
+    colunas = [
+        "TIMESTAMP",
+        "ENDERECO_MAC"
+    ]
+
+
+    # Colunas das métricas do banco
+    colunas.extend(
+        metrica["nome_coluna"]
+        for metrica in metricas
+        if metrica["nome_coluna"] not in IDS_CPU
+        and metrica["nome_coluna"] not in IDS_RAM
+        and metrica["nome_coluna"] not in IDS_DISCO
+        and metrica["nome_coluna"] not in IDS_SWAP
+        and metrica["nome_coluna"] not in IDS_CARGA
+        and metrica["nome_coluna"] not in IDS_REDE
+    )
+    colunas.extend(colunas_cpu(estado_cpu))
+    colunas.extend(colunas_ram(estado_ram))
+    colunas.extend(colunas_swap(estado_swap))
+    colunas.extend(colunas_carga(estado_carga))
+    colunas.extend(colunas_rede(estado_rede))
+    colunas.extend(colunas_disco(estado_disco))
+
+
+    mac_arquivo = endereco_mac.replace(":", "-").upper()
+    horario_arquivo = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
+    pasta = Path(__file__).parent
+    caminho_coleta = pasta / f"coretrace_coleta_{mac_arquivo}_{horario_arquivo}.csv"
+    with open(caminho_coleta, "w", newline="", encoding="utf-8") as arquivo:
+        escritor = csv.DictWriter(arquivo, fieldnames=colunas)
+        escritor.writeheader()
+
+        try:
+            while True:
+                dados = capturar_dados(metricas, endereco_mac, estado_cpu, estado_ram, estado_swap, estado_carga)
+                dados.update(coletar_rede_geral(estado_rede))
+                dados.update(coletar_disco_geral(estado_disco))
+                escritor.writerow(dados)
+                arquivo.flush()
+                print(f"{dados['TIMESTAMP']} - Captura salva para o MAC {endereco_mac}")
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("\nMonitoramento encerrado.")
+
+
+if __name__ == "__main__":
+    main()

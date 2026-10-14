@@ -12,30 +12,34 @@
     const tentar = document.getElementById("servidores-tentar");
     const texto = (id, valor) => { document.getElementById(id).textContent = valor; };
     const normalizar = (valor) => valor.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    const percentual = (parte, total) => total ? (parte / total * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) : "0";
     const servidoresDoPerfil = () => servidores.filter((servidor) => !filtroPerfil.value || servidor.perfilId === filtroPerfil.value);
 
     function atualizarIndicadores() {
         const selecionados = servidoresDoPerfil();
         const total = selecionados.length;
+        const semComunicacao = selecionados.filter((servidor) => servidor.situacao === "sem-comunicacao").length;
+        const criticos = selecionados.filter((servidor) => monitoramentoMock.cenario(servidor.modelo).alertas.some((alerta) => alerta.nivel === "critico")).length;
+        const previsao = monitoramentoMock.menorPrevisao(selecionados);
         const perfis = new Set(selecionados.map((servidor) => servidor.perfilId)).size;
         const cpu = selecionados.filter((servidor) => servidor.modelo === "cpu").length;
         const ram = total - cpu;
-        const previsao = selecionados.reduce((menor, servidor) => !menor || servidor.dias < menor.dias ? servidor : menor, null);
+        const alertasSelecionados = selecionados.flatMap((servidor) => monitoramentoMock.cenario(servidor.modelo).alertas);
+        const alertasCriticos = alertasSelecionados.filter((alerta) => alerta.nivel === "critico").length;
         const indisponivel = carregando || !carregou;
 
         texto("visao-resumo", indisponivel ? (carregando ? "Carregando os servidores da sua empresa..." : "Não foi possível carregar os servidores.")
             : `${total} ${total === 1 ? "servidor" : "servidores"} em ${perfis} ${perfis === 1 ? "perfil" : "perfis"} · acompanhe recursos, alertas e containers.`);
         texto("titulo-servidores", indisponivel ? "Servidores" : `Servidores (${total})`);
-        texto("indicador-reportando", indisponivel ? "—" : `${total} / ${total}`);
-        texto("legenda-reportando", indisponivel ? "Aguardando a lista de servidores" : `${percentual(total, total)}% · simulação de comunicação`);
-        texto("indicador-criticos", indisponivel ? "—" : total);
-        texto("legenda-criticos", "Servidores com alertas simulados");
-        texto("indicador-alertas", indisponivel ? "—" : cpu + ram * 2);
-        texto("legenda-alertas", indisponivel ? "Dados ilustrativos" : `${total} críticos + ${ram} de atenção · simulação`);
-        texto("indicador-previsao", previsao ? `${previsao.dias} dias` : "Sem previsão");
-        texto("legenda-previsao", previsao ? `${previsao.nome} · /dados · simulação` : "Nenhum servidor selecionado");
-        texto("previsao-descricao", previsao ? `${previsao.dias} dias para espaço em /dados · estimativa ilustrativa · nunca somar previsões de volumes diferentes.` : "Selecione um perfil com servidores para visualizar uma estimativa ilustrativa.");
+        texto("indicador-reportando", indisponivel ? "—" : `${total - semComunicacao}/${total}`);
+        texto("legenda-reportando", indisponivel ? "Aguardando a lista de servidores" : `${semComunicacao} sem comunicação`);
+        texto("indicador-criticos", indisponivel ? "—" : criticos);
+        texto("legenda-criticos", "Prioridade de investigação");
+        texto("indicador-alertas", indisponivel ? "—" : alertasSelecionados.length);
+        texto("legenda-alertas", indisponivel ? "Dados ilustrativos" : `${alertasCriticos} críticos · ${alertasSelecionados.length - alertasCriticos} atenção`);
+        texto("indicador-previsao", indisponivel ? "—" : previsao ? `${previsao.dias} ${previsao.dias === 1 ? "dia" : "dias"}` : "Sem previsão");
+        texto("legenda-previsao", indisponivel ? "Aguardando a lista de servidores" : previsao
+            ? `${previsao.servidor.nome} · ${previsao.volume}${previsao.recurso === "inodes" ? " · inodes" : ""}`
+            : total ? "Sem estimativa disponível para os volumes" : "Nenhum servidor selecionado");
         document.getElementById("recursos-resumo").innerHTML = ["CPU", "RAM", "Disco", "Rede"].map((recurso, indice) => {
             const alertas = [cpu, ram, ram, 0][indice];
             return `<div class="visao-recurso"><h3>${recurso}</h3><p class="visao-recurso-valor">${indisponivel ? "—" : alertas} ${alertas === 1 ? "servidor" : "servidores"}</p><p class="visao-legenda">Simulação entre ${total} servidores</p></div>`;

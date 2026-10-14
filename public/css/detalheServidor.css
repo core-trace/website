@@ -1,7 +1,7 @@
 .servidor-painel {
     position: fixed;
     inset: 0 0 0 auto;
-    width: min(880px, 52vw);
+    width: min(960px, 72vw);
     max-width: 100%;
     height: 100dvh;
     max-height: 100dvh;
@@ -31,20 +31,25 @@ body:has(.servidor-painel[open]) { overflow: hidden; }
 .servidor-alerta p { font-size: 11px; }
 .servidor-card { min-width: 0; margin-top: 14px; padding: 16px; border: 1px solid var(--dashboard-borda); border-radius: 12px; }
 .servidor-card h3 { font-size: 16px; font-weight: 600; line-height: 1.5; }
+.servidor-card h4 { margin-top: 18px; font-size: 11px; font-weight: 500; line-height: 1.6; }
+.servidor-subcabecalho { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.servidor-subcabecalho .servidor-legenda { margin-top: 0; }
 .servidor-card-cabecalho { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 12px; }
 .servidor-cpu-valor { color: var(--cor-vermelho); font-weight: 600; font-size: 17px; }
 .servidor-periodo { position: relative; display: inline-flex; margin-left: auto; }
 .servidor-periodo select { appearance: none; max-width: 100%; min-height: 34px; padding: 6px 26px 6px 8px; border: 1px solid var(--dashboard-borda); border-radius: 6px; background: #fff; color: #777278; font-size: 11px; cursor: pointer; }
 .servidor-periodo::after { position: absolute; right: 9px; top: calc(50% - 5px); width: 10px; height: 10px; background: url('../assets/icons/seta-preta.svg') center / contain no-repeat; transform: rotate(-90deg); pointer-events: none; content: ""; }
+.servidor-seletor { margin-left: 0; max-width: 100%; }
+.servidor-seletor select:focus-visible { outline: 2px solid var(--cor-vermelho); outline-offset: 3px; }
 .servidor-grafico { position: relative; height: 130px; width: 100%; margin-block: 14px; }
 .servidor-grafico canvas { display: block; }
-.servidor-nucleos { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; }
+.servidor-nucleos { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
 .servidor-nucleo { min-width: 0; font-size: 10px; }
 .servidor-nucleo label { display: block; color: #777278; }
 .servidor-nucleo meter { display: block; width: 100%; height: 7px; margin-block: 4px; border: 0; border-radius: 0; background: #f2f2ef; }
 .servidor-nucleo meter::-webkit-meter-bar { height: 5px; border: 0; border-radius: 0; background: #f2f2ef; }
-.servidor-nucleo meter::-webkit-meter-optimum-value { background: var(--cor-vermelho); }
-.servidor-nucleo meter::-moz-meter-bar { background: var(--cor-vermelho); }
+.servidor-nucleo meter::-webkit-meter-optimum-value { background: #477da7; }
+.servidor-nucleo meter::-moz-meter-bar { background: #477da7; }
 .servidor-notas { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 10px; font-size: 11px; }
 .servidor-legenda { margin-top: 8px; color: #777278; font-size: 11px; line-height: 1.7; }
 .servidor-leitura { color: #477da7; }
@@ -56,16 +61,11 @@ body:has(.servidor-painel[open]) { overflow: hidden; }
 .servidor-tabela td { padding: 9px 10px; border-bottom: 1px solid var(--dashboard-borda); }
 .servidor-tabela th:first-child,
 .servidor-tabela td:first-child { padding-left: 0; }
-.servidor-container-botao { min-height: 28px; padding: 0; border: 0; background: transparent; color: var(--cor-vermelho); font-size: inherit; }
-.servidor-container-botao:hover { text-decoration: underline; }
-.servidor-container-metricas td { padding: 12px; background: #fafaf8; white-space: normal; }
-.servidor-container-metricas dl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; }
-.servidor-container-metricas dt { color: #777278; }
-.servidor-container-metricas dd { margin: 4px 0 0; }
+.servidor-container-id { color: #777278; }
 .servidor-rodape { margin-top: 18px; color: #777278; font-size: 10px; }
 
 @media (max-width: 1300px) {
-    .servidor-painel { width: min(820px, 72vw); }
+    .servidor-painel { width: min(960px, 88vw); }
 }
 
 @media (max-width: 800px) {
@@ -81,5 +81,4 @@ body:has(.servidor-painel[open]) { overflow: hidden; }
     .servidor-card h3 { font-size: 14px; }
     .servidor-nucleos { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .servidor-periodo { margin-left: 0; }
-    .servidor-container-metricas dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

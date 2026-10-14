@@ -120,8 +120,7 @@
 }
 
 .visao-recursos,
-.visao-servidores,
-.visao-previsao {
+.visao-servidores {
     margin-top: 20px;
 }
 
@@ -174,8 +173,6 @@
 .visao-detalhes-botao img { width: 11px; height: 11px; }
 .visao-tabela-rodape p { margin-top: 12px; }
 .visao-vazio { padding: 28px 12px; color: var(--visao-texto-suave); text-align: center; font-size: 13px; }
-.visao-previsao h2 { margin-bottom: 10px; font-size: 14px; }
-.visao-previsao p + p { margin-top: 6px; }
 .visao-rodape { margin-top: 20px; color: var(--visao-texto-suave); font-size: 10px; }
 
 .visao-sistema {
@@ -216,7 +213,7 @@
     .visao-filtros { width: 100%; flex-wrap: wrap; gap: 10px; }
     .visao-filtros > * { flex: 1; }
     .visao-select-campo select { width: 100%; }
-    .visao-indicadores { gap: 12px; }
+    .visao-indicadores { grid-template-columns: 1fr; gap: 12px; }
     .visao-card { padding: 16px; }
     .visao-indicador h2 { font-size: 11px; }
     .visao-valor { font-size: 25px; }

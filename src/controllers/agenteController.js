@@ -67,7 +67,7 @@ function baixar(req, res) {
                     arquivo.glob("**/*", {
                         cwd: pastaAgente,
                         dot: true,
-                        ignore: ["config.json", "**/__pycache__/**", "**/*.pyc", "**/node_modules/**"]
+                        ignore: ["config.json", "**/__pycache__/**", "**/*.pyc", "**/node_modules/**", "**/.venv/**", "**/*.csv"]
                     }, { prefix: "agente" });
 
                     // Cada download recebe seu próprio config.json dentro do ZIP.

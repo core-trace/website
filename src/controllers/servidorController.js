@@ -1,5 +1,5 @@
 const servidorModel = require("../models/servidorModel");
-const { agruparMetricas } = require("../services/metricasService");
+const { agruparMetricas, validarEssenciaisCPU, validarEssenciaisRAM, validarEssenciaisDisco, validarEssenciaisSwap, validarEssenciaisCarga, validarEssenciaisRede } = require("../services/metricasService");
 
 function ativarAgente(req, res) {
     const dados = req.body || {};
@@ -146,6 +146,18 @@ function criarPerfil(req, res) {
 }
 
 function validarMetricasDoCatalogo(selecionadas, catalogo) {
+    const erroEssenciais = validarEssenciaisCPU(selecionadas, catalogo);
+    if (erroEssenciais) return erroEssenciais;
+    const erroRAM = validarEssenciaisRAM(selecionadas, catalogo);
+    if (erroRAM) return erroRAM;
+    const erroDisco = validarEssenciaisDisco(selecionadas, catalogo);
+    if (erroDisco) return erroDisco;
+    const erroSwap = validarEssenciaisSwap(selecionadas, catalogo);
+    if (erroSwap) return erroSwap;
+    const erroCarga = validarEssenciaisCarga(selecionadas, catalogo);
+    if (erroCarga) return erroCarga;
+    const erroRede = validarEssenciaisRede(selecionadas, catalogo);
+    if (erroRede) return erroRede;
     for (const metrica of selecionadas) {
         const componente = catalogo.find(function (item) {
             return item.id_componente === metrica.id;

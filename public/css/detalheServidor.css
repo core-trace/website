@@ -29,6 +29,9 @@ body:has(.servidor-painel[open]) { overflow: hidden; }
 .servidor-alerta { margin-top: 16px; padding: 12px; border-radius: 7px; background: #fcece7; color: var(--cor-vermelho); }
 .servidor-alerta strong { display: block; margin-bottom: 4px; font-size: 13px; }
 .servidor-alerta p { font-size: 11px; }
+.servidor-alerta-normal { background: #f2f7f4; color: #15865c; }
+.servidor-alerta-atencao { background: #fff6e5; color: #a76800; }
+.servidor-alerta-sem-dados { background: #f4f4f2; color: #777278; }
 .servidor-card { min-width: 0; margin-top: 14px; padding: 16px; border: 1px solid var(--dashboard-borda); border-radius: 12px; }
 .servidor-card h3 { font-size: 16px; font-weight: 600; line-height: 1.5; }
 .servidor-card h4 { margin-top: 18px; font-size: 11px; font-weight: 500; line-height: 1.6; }

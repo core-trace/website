@@ -70,10 +70,12 @@ function ativarAgente(req, res) {
 
 function listarServidores(req, res) {
     const idEmpresa = Number(req.query.empresa);
-    if (typeof req.query.empresa !== "string" || !Number.isSafeInteger(idEmpresa) || idEmpresa <= 0) {
-        return res.status(400).json({ mensagem: "Informe uma empresa válida para consultar os servidores." });
+    const idUsuario = Number(req.query.usuario);
+    if (typeof req.query.empresa !== "string" || !Number.isSafeInteger(idEmpresa) || idEmpresa <= 0
+        || typeof req.query.usuario !== "string" || !Number.isSafeInteger(idUsuario) || idUsuario <= 0) {
+        return res.status(400).json({ mensagem: "Informe uma empresa e um usuário válidos para consultar os servidores." });
     }
-    return servidorModel.listarServidoresPorEmpresa(idEmpresa)
+    return servidorModel.listarServidoresPorEmpresa(idEmpresa, idUsuario)
         .then(function (servidores) {
             return res.json(servidores);
         })

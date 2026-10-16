@@ -2,6 +2,9 @@
     let servidores = [];
     let carregando = false;
     let carregou = false;
+    let referencia = monitoramentoMock.referencia();
+    let resumo = dashboardDados.agregar([], [], referencia);
+    const situacoes = { critico: "Crítico", atencao: "Atenção", normal: "Sem alertas ativos", "sem-dados": "Dados insuficientes" };
     const filtroPerfil = document.getElementById("filtro-perfil");
     const filtroSituacao = document.getElementById("filtro-situacao");
     const busca = document.querySelector('.dashboard-pesquisa input');
@@ -16,39 +19,32 @@
 
     function atualizarIndicadores() {
         const selecionados = servidoresDoPerfil();
+        resumo = dashboardDados.agregar(selecionados, [], referencia);
         const total = selecionados.length;
-        const semComunicacao = selecionados.filter((servidor) => servidor.situacao === "sem-comunicacao").length;
-        const criticos = selecionados.filter((servidor) => monitoramentoMock.cenario(servidor.modelo).alertas.some((alerta) => alerta.nivel === "critico")).length;
-        const previsao = monitoramentoMock.menorPrevisao(selecionados);
-        const perfis = new Set(selecionados.map((servidor) => servidor.perfilId)).size;
-        const cpu = selecionados.filter((servidor) => servidor.modelo === "cpu").length;
-        const ram = total - cpu;
-        const alertasSelecionados = selecionados.flatMap((servidor) => monitoramentoMock.cenario(servidor.modelo).alertas);
-        const alertasCriticos = alertasSelecionados.filter((alerta) => alerta.nivel === "critico").length;
+        const perfis = new Set(selecionados.map(servidor => servidor.perfilId)).size;
         const indisponivel = carregando || !carregou;
-
-        texto("visao-resumo", indisponivel ? (carregando ? "Carregando os servidores da sua empresa..." : "Não foi possível carregar os servidores.")
-            : `${total} ${total === 1 ? "servidor" : "servidores"} em ${perfis} ${perfis === 1 ? "perfil" : "perfis"} · acompanhe recursos, alertas e containers.`);
+        const previsao = resumo.previsao;
+        texto("visao-resumo", indisponivel ? (carregando ? "Preparando a demonstração local..." : "Não foi possível preparar a demonstração.")
+            : `${total} ${total === 1 ? "servidor" : "servidores"} em ${perfis} ${perfis === 1 ? "perfil" : "perfis"} · acompanhe a criticidade da infraestrutura.`);
         texto("titulo-servidores", indisponivel ? "Servidores" : `Servidores (${total})`);
-        texto("indicador-reportando", indisponivel ? "—" : `${total - semComunicacao}/${total}`);
-        texto("legenda-reportando", indisponivel ? "Aguardando a lista de servidores" : `${semComunicacao} sem comunicação`);
-        texto("indicador-criticos", indisponivel ? "—" : criticos);
-        texto("legenda-criticos", "Prioridade de investigação");
-        texto("indicador-alertas", indisponivel ? "—" : alertasSelecionados.length);
-        texto("legenda-alertas", indisponivel ? "Dados ilustrativos" : `${alertasCriticos} críticos · ${alertasSelecionados.length - alertasCriticos} atenção`);
-        texto("indicador-previsao", indisponivel ? "—" : previsao ? `${previsao.dias} ${previsao.dias === 1 ? "dia" : "dias"}` : "Sem previsão");
-        texto("legenda-previsao", indisponivel ? "Aguardando a lista de servidores" : previsao
-            ? `${previsao.servidor.nome} · ${previsao.volume}${previsao.recurso === "inodes" ? " · inodes" : ""}`
-            : total ? "Sem estimativa disponível para os volumes" : "Nenhum servidor selecionado");
-        document.getElementById("recursos-resumo").innerHTML = ["CPU", "RAM", "Disco", "Rede"].map((recurso, indice) => {
-            const alertas = [cpu, ram, ram, 0][indice];
-            return `<div class="visao-recurso"><h3>${recurso}</h3><p class="visao-recurso-valor">${indisponivel ? "—" : alertas} ${alertas === 1 ? "servidor" : "servidores"}</p><p class="visao-legenda">Simulação entre ${total} servidores</p></div>`;
-        }).join("");
+        texto("indicador-atencao", indisponivel ? "—" : resumo.atencao);
+        texto("indicador-criticos", indisponivel ? "—" : resumo.criticos);
+        texto("indicador-alertas", indisponivel ? "—" : resumo.alertas.atencao + resumo.alertas.critico);
+        texto("alertas-criticos", `${indisponivel ? "—" : resumo.alertas.critico} críticos`);
+        texto("alertas-atencao", `${indisponivel ? "—" : resumo.alertas.atencao} atenção`);
+        texto("indicador-previsao", indisponivel ? "—" : previsao ? `${previsao.dias} ${previsao.dias === 1 ? "dia" : "dias"}` : "Dados insuficientes");
+        document.getElementById("indicador-previsao").classList.toggle("visao-sem-previsao", !indisponivel && !previsao);
+        texto("legenda-previsao", indisponivel ? "Aguardando os dados" : previsao
+            ? `${previsao.servidor.nome} · ${previsao.volume} · limite ${previsao.limite}%`
+            : total ? "Sem histórico suficiente de crescimento" : "Nenhum servidor no escopo");
+        texto("visao-atualizacao", `Métricas simuladas · KPIs e tabela: estado em ${monitoramentoMock.dataHora(referencia)}`);
+        texto("demo-referencia", monitoramentoMock.dataHora(referencia));
+
     }
 
     function atualizarTabela() {
         const termo = normalizar(busca.value.trim());
-        const selecionados = servidoresDoPerfil();
+        const selecionados = resumo.servidores;
         const filtrados = selecionados.filter((servidor) =>
             (!filtroSituacao.value || servidor.situacao === filtroSituacao.value) &&
             normalizar(`${servidor.nome} ${servidor.perfil}`).includes(termo)
@@ -56,12 +52,26 @@
         // Nomes e perfis do banco são texto, nunca HTML; a seleção usa o ID, não o nome.
         const linhas = filtrados.map((servidor) => {
             const linha = document.createElement("tr");
-            [servidor.nome, servidor.perfil, "Crítico", servidor.cpu, servidor.ram, servidor.disco, servidor.docker, servidor.uptime].forEach((valor, indice) => {
+            [servidor.nome, servidor.perfil, situacoes[servidor.situacao], servidor.cpu, servidor.ram, servidor.disco, servidor.docker, servidor.uptime].forEach((valor, indice) => {
                 const celula = document.createElement("td");
                 celula.textContent = valor;
-                if (indice === 2) celula.className = "visao-critico";
+                if (indice === 2) celula.className = `visao-${servidor.situacao}`;
                 linha.append(celula);
             });
+            const coleta = document.createElement("td");
+            if (servidor.ultimaColeta) {
+                const horario = document.createElement("time");
+                horario.dateTime = new Date(servidor.ultimaColeta.instante).toISOString();
+                horario.textContent = monitoramentoMock.dataHora(servidor.ultimaColeta.instante);
+                coleta.append(horario);
+                if (servidor.desatualizado) {
+                    const aviso = document.createElement("span");
+                    aviso.className = "visao-coleta-aviso";
+                    aviso.textContent = "Possivelmente desatualizada";
+                    coleta.append(aviso);
+                }
+            } else coleta.textContent = "Sem coleta válida";
+            linha.append(coleta);
             const acao = document.createElement("td");
             const botao = document.createElement("button");
             botao.type = "button";
@@ -83,7 +93,7 @@
         lista.replaceChildren(...linhas);
         vazio.hidden = !carregou || carregando || filtrados.length > 0;
         vazio.textContent = servidores.length === 0
-            ? "Nenhum servidor cadastrado na sua empresa. Os servidores aparecerão aqui após a ativação do agente."
+            ? "Nenhum servidor cadastrado disponível para seu usuário e suas permissões."
             : "Nenhum servidor encontrado. Tente outro termo ou altere os filtros.";
         texto("servidores-contagem", carregou ? `Mostrando ${filtrados.length} de ${servidores.length} servidores cadastrados` : "");
     }
@@ -99,6 +109,7 @@
     }
 
     async function carregarServidores() {
+        if (!sessionStorage.ID_EMPRESA || !sessionStorage.ID_USUARIO) return;
         if (carregando) return;
         carregando = true;
         carregou = false;
@@ -112,25 +123,17 @@
         atualizarIndicadores();
         atualizarTabela();
         try {
-            const empresa = Number(sessionStorage.ID_EMPRESA);
-            if (!Number.isSafeInteger(empresa) || empresa <= 0) throw new Error("Faça login para visualizar os servidores da sua empresa.");
-            const resposta = await fetch(`/servidor/lista?empresa=${empresa}`, { signal: AbortSignal.timeout(15000) });
-            if (!resposta.ok) throw new Error("Não foi possível consultar os servidores. Tente novamente em instantes.");
-            const dados = await resposta.json();
-            if (!Array.isArray(dados) || dados.some((servidor) => !servidor
-                || !Number.isSafeInteger(servidor.id_servidor) || servidor.id_servidor <= 0
-                || !Number.isSafeInteger(servidor.id_perfil_servidor) || servidor.id_perfil_servidor <= 0
-                || (servidor.nome !== null && typeof servidor.nome !== "string")
-                || typeof servidor.nome_perfil !== "string")
-                || new Set(dados.map((servidor) => servidor.id_servidor)).size !== dados.length) {
-                throw new Error("Não foi possível carregar a lista de servidores.");
-            }
-            servidores = dados.map(monitoramentoMock.aplicar);
+            const parametros = new URLSearchParams({empresa:sessionStorage.ID_EMPRESA,usuario:sessionStorage.ID_USUARIO});
+            const resposta=await fetch('/servidor/lista?'+parametros);
+            if(!resposta.ok) throw new Error('Cadastro indisponível');
+            const cadastros=await resposta.json();
+            if(!Array.isArray(cadastros))throw new Error('Resposta cadastral inválida');
+            const simulacao = dashboardSimulacao.criar(cadastros);
+            referencia = simulacao.referencia;
+            servidores = simulacao.servidores;
             carregou = true;
         } catch (falha) {
-            texto("servidores-mensagem-erro", falha.name === "TimeoutError"
-                ? "A consulta demorou mais que o esperado. Tente novamente."
-                : falha instanceof TypeError ? "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente." : falha.message);
+            texto("servidores-mensagem-erro", "Não foi possível carregar o cadastro de servidores. Verifique a sessão e a disponibilidade da rota /servidor/lista e do banco. Nenhum cadastro fictício será utilizado.");
             erro.hidden = false;
         } finally {
             carregando = false;
@@ -152,8 +155,8 @@
     lista.addEventListener("click", (evento) => {
         const botao = evento.target.closest("[data-servidor]");
         if (!botao) return;
-        const servidor = servidores.find((item) => item.id === Number(botao.dataset.servidor));
+        const servidor = resumo.servidores.find((item) => item.id === Number(botao.dataset.servidor));
         if (servidor) document.dispatchEvent(new CustomEvent("abrir-detalhes-servidor", { detail: servidor }));
     });
-    carregarServidores();
+    setTimeout(carregarServidores, 0);
 })();

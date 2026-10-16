@@ -149,32 +149,9 @@ tentativa. A página só confirma o envio após o Resend aceitar a solicitação
 
 ### Perfis de servidor e wizard
 
-A página `/pages/inicioDashboard.html` lista os servidores cadastrados com
-`GET /servidor/lista?empresa=<ID_EMPRESA>`, seguindo o contexto de empresa do
-`sessionStorage` usado nas demais listagens. A consulta relaciona `servidores`
-e `perfil_servidor` e filtra pela empresa; retorna ID e nome do servidor,
-ID e nome do perfil e sistema operacional. Não retorna tokens de instalação.
-A tela distingue carregamento, lista vazia e falha de consulta com nova tentativa.
+A página `/pages/inicioDashboard.html` usa os cadastros, componentes, limites e containers da rota existente `/servidor/lista`, com o contexto de usuário e empresa do login. Apenas as métricas e seus históricos permanecem simulados, associados pelo MAC. Não há fallback de servidores fictícios.
 
-Os nomes, perfis e totais vêm dessa lista. Situações, métricas, alertas e gráficos
-continuam ilustrativos: dois cenários (CPU e RAM) são distribuídos pelo ID do
-servidor em `public/scripts/monitoramentoMock.js`. Todos os servidores abrem o
-painel de detalhes; filtrar ou recarregar não altera o cenário de um mesmo ID.
-
-O painel apresenta CPU total e por CPU lógica, RAM e swap, eventos OOM,
-atividade e latência de disco, fila de I/O, tráfego, erros e descartes de rede,
-processos e containers (incluindo parados). Os seletores de CPU lógica, disco e
-interface atualizam os gráficos correspondentes. O período de 15 ou 30 minutos
-recorta as mesmas amostras simuladas e atualiza as médias de CPU e a contagem de
-OOM. Os horários são fixos para demonstração; não representam coleta em tempo real.
-Os detalhes também mostram a previsão de esgotamento de espaço e inodes por
-volume. O KPI “Risco de armazenamento” destaca o menor prazo válido entre os
-servidores do perfil selecionado, com nome do servidor e volume; estimativas
-ausentes não são tratadas como zero. Os demais KPIs mostram servidores reportando
-e sem comunicação, servidores críticos e alertas separados por severidade.
-
-Para verificar a consistência dos cenários e o recorte por período, execute
-`node --test tests/monitoramentoMock.test.js` (Node.js 18 ou superior).
+Execute `npm start` (ou `npm run demo`) com o banco configurado e faça login. Consulte o [guia da demonstração](DEMONSTRACAO.md) para dependências, organização dos cenários, filtros, limitações de autenticação e roteiro das personas.
 
 O link “Perfis de servidor” leva a `/pages/perfisServidor.html`,
 que lista os perfis com `GET /servidor/perfis?empresa=<ID_EMPRESA>` usando a empresa

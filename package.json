@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon --exec node app.js"
+    "dev": "nodemon --exec node app.js",
+    "demo": "node app.js"
   },
   "dependencies": {
     "archiver": "^7.0.1",

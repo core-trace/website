@@ -6,6 +6,7 @@ const empresaProgresso = document.getElementById("empresaProgresso");
 const empresaSucesso = document.getElementById("empresaSucesso");
 const empresaResumo = document.getElementById("empresaResumo");
 const cnpjEmpresa = document.getElementById("cnpj");
+const telefoneAdministrador = document.getElementById("administradorTelefone");
 let enviandoEmpresa = false;
 
 function valorEmpresa(id) {
@@ -13,7 +14,19 @@ function valorEmpresa(id) {
 }
 
 cnpjEmpresa.addEventListener("input", function () {
+    cnpjEmpresa.value = cnpjEmpresa.value.replace(/\D/g, "").slice(0, 14)
+        .replace(/^(\d{2})(\d)/, "$1.$2")
+        .replace(/^(\d{2}\.\d{3})(\d)/, "$1.$2")
+        .replace(/^(\d{2}\.\d{3}\.\d{3})(\d)/, "$1/$2")
+        .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
     cnpjEmpresa.setCustomValidity("");
+});
+
+telefoneAdministrador.addEventListener("input", function () {
+    const numeros = telefoneAdministrador.value.replace(/\D/g, "").slice(0, 11);
+    telefoneAdministrador.value = numeros
+        .replace(/^(\d{2})(\d)/, "($1) $2")
+        .replace(numeros.length > 10 ? /(\d{5})(\d{1,4})$/ : /(\d{4})(\d{1,4})$/, "$1-$2");
 });
 
 formularioEmpresa.addEventListener("submit", async function (event) {

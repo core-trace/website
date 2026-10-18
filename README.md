@@ -72,7 +72,7 @@ O login aceita usuários ativos e retorna `id_usuario`, `nome`, `email`,
 
 ### Cadastro de empresas e primeiro administrador
 
-Na dashboard, **Gestão → Empresas** abre o cadastro da empresa junto com seu
+Na dashboard, **Administrador CoreTrace → Empresas** abre o cadastro da empresa junto com seu
 primeiro administrador. Razão social, CNPJ, nome e email do responsável são
 obrigatórios; endereço, CPF e telefone são opcionais. O servidor define a data
 de registro e gera o token de instalação automaticamente.

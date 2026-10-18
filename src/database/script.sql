@@ -258,45 +258,49 @@ INSERT INTO empresa (razao_social, cnpj, dt_registro, token_instalacao)
 VALUES ('CoreTrace Empresa Teste', '12345678000199', CURDATE(), '123');
 
 
-
 INSERT INTO endereco (numero, cidade, estado, logradouro, fk_empresa)
 
 VALUES ('100', 'São Paulo', 'SP', 'Avenida Paulista', 1);
 
-
-
 INSERT INTO nivel_acesso (nome, descricao) VALUES
-
-('Administrador', 'Acesso completo ao sistema'),
-
-('Operador', 'Acesso ao monitoramento dos servidores'),
-
-('Visualizador', 'Acesso somente para visualização');
-
+('Administrador CoreTrace', 'Acesso completo a plataforma'),
+('Administrador', 'Acesso ao monitoramento e gestao'),
+('Operador', 'Acesso ao monitoramento e perfis de servidor'),
+('Visualizador', 'Acesso somente ao monitoramento');
 
 
 INSERT INTO permissoes (nome, descricao) VALUES
-
-('GERENCIAR_USUARIOS', 'Gerenciar usuários'),
-
-('GERENCIAR_PERFIS', 'Gerenciar perfis'),
-
-('GERENCIAR_SERVIDORES', 'Gerenciar servidores'),
-
-('VISUALIZAR_MONITORAMENTO', 'Visualizar monitoramento'),
-
-('VISUALIZAR_ALERTAS', 'Visualizar alertas');
+('VISUALIZAR_DASHBOARD', 'Acessar dashboard'),
+('VISUALIZAR_ALERTAS', 'Acessar alertas'),
+('ACESSAR_PERFIS_SERVIDOR', 'Acessar perfis de servidor'),
+('ACESSAR_EQUIPE', 'Gerenciar equipe e acessos'),
+('ACESSAR_EMPRESAS', 'Gerenciar empresas');
 
 
+INSERT INTO nivel_acesso_permissoes
+(fk_nivel_acesso, fk_permissao) VALUES
 
-INSERT INTO nivel_acesso_permissoes (fk_nivel_acesso, fk_permissao) VALUES
+-- Administrador CoreTrace: acesso completo
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5),
 
-(1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
+-- Administrador: tudo menos empresas
+(2, 1),
+(2, 2),
+(2, 3),
+(2, 4),
 
-(2, 3), (2, 4), (2, 5),
+-- Operador: monitoramento e perfis
+(3, 1),
+(3, 2),
+(3, 3),
 
-(3, 4), (3, 5);
-
+-- Visualizador: somente monitoramento
+(4, 1),
+(4, 2);
 
 
 -- PERFIS FUNCIONAIS PARA DEMONSTRACAO

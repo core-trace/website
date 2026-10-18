@@ -46,13 +46,17 @@
                     <img src="../assets/icons/perfil.png" alt="" width="20" height="20">
                     <span>Perfis de servidor</span>
                 </a>
-                <a href="empresas.html" class="dashboard-menu-item" aria-current="page">
-                    <img src="../assets/icons/empresa.svg" alt="" width="20" height="20">
-                    <span>Empresas</span>
-                </a>
                 <a href="general-employee.html" class="dashboard-menu-item">
                     <img src="../assets/icons/pessoas.png" alt="" width="20" height="20">
                     <span>Equipe e acessos</span>
+                </a>
+            </div>
+
+            <div class="dashboard-menu-grupo">
+                <h2 class="dashboard-menu-titulo">Administrador CoreTrace</h2>
+                <a href="empresas.html" class="dashboard-menu-item" aria-current="page">
+                    <img src="../assets/icons/empresa.svg" alt="" width="20" height="20">
+                    <span>Empresas</span>
                 </a>
             </div>
         </nav>
@@ -103,7 +107,7 @@
         <main class="equipe empresas" id="conteudo-principal" tabindex="-1">
             <header class="equipe-cabecalho">
                 <div>
-                    <p class="equipe-secao">Gestão</p>
+                    <p class="equipe-secao">Administrador CoreTrace</p>
                     <h1>Empresas</h1>
                     <p class="equipe-descricao">Cadastre uma empresa e o primeiro administrador responsável pelo acesso à plataforma.</p>
                 </div>
@@ -138,13 +142,13 @@
                             <div class="equipe-campo">
                                 <label for="cnpj">CNPJ</label>
                                 <input id="cnpj" name="cnpj" type="text" inputmode="numeric" maxlength="18" required aria-describedby="cnpjAjuda" placeholder="00.000.000/0000-00">
-                                <small id="cnpjAjuda">Informe os 14 números, com ou sem pontuação.</small>
+                                <small id="cnpjAjuda">Digite os 14 números do CNPJ.</small>
                             </div>
                         </div>
                     </section>
 
                     <section class="equipe-card equipe-cadastro" aria-labelledby="enderecoTitulo">
-                        <h2 id="enderecoTitulo">Endereço <span class="empresa-opcional">(opcional)</span></h2>
+                        <h2 id="enderecoTitulo">Endereço</h2>
                         <div class="equipe-campos">
                             <div class="equipe-campo">
                                 <label for="logradouro">Logradouro</label>
@@ -179,12 +183,12 @@
                                 <small id="emailAjuda">O convite para ativar a conta será enviado para este endereço.</small>
                             </div>
                             <div class="equipe-campo">
-                                <label for="administradorCpf">CPF <span>(opcional)</span></label>
+                                <label for="administradorCpf">CPF</label>
                                 <input id="administradorCpf" name="administradorCpf" type="text" maxlength="11" inputmode="numeric" pattern="[0-9]{11}" placeholder="Somente os 11 números">
                             </div>
                             <div class="equipe-campo">
-                                <label for="administradorTelefone">Telefone <span>(opcional)</span></label>
-                                <input id="administradorTelefone" name="administradorTelefone" type="tel" maxlength="45" autocomplete="tel" placeholder="DDD e telefone">
+                                <label for="administradorTelefone">Telefone</label>
+                                <input id="administradorTelefone" name="administradorTelefone" type="tel" maxlength="15" autocomplete="tel" placeholder="(11) 99999-9999">
                             </div>
                         </div>
                     </section>

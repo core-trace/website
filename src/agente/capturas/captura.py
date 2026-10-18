@@ -4,9 +4,13 @@ import time
 import os
 import json
 import requests
+import io
 from datetime import datetime
 from pathlib import Path
+from processos.processos import coletar_processos, COLUNAS_PROCESSOS
 
+
+# A coleta de cada categoria tá no arquivo próprio
 from utils.coleta import (
     numero_valido, salvar_leitura, nova_linha_metricas, diferenca_contador,
 )
@@ -84,23 +88,43 @@ from rede.coleta import (
     coletar_rede,
 )
 
-
-# Configurar as variáveis de ambiente pra API pra cahamar commais facilidade posteriormente
 API_BASE_URL = "http://localhost:3333"
 API_FILTRO_URL = "http://localhost:3334"
 
+ARQUIVO_CONFIG = Path(__file__).resolve().parent.parent / "config.json"
 
-# Token de instalação e token do perfil do servidor ficam salvos no arquivo de configuração
-ARQUIVO_CONFIG = Path(__file__).with_name("config.json")
+BUCKET = "bucket-coretrace"
+PASTA_S3 = "raw"
 
+s3 = None
+
+def enviar_s3(conteudo, nome_arquivo):
+    global s3
+    if s3 is None:
+        import boto3
+        s3 = boto3.client("s3")
+    chave_s3 = f"{PASTA_S3}/{nome_arquivo}"
+
+    try:
+        s3.put_object(
+            Bucket=BUCKET,
+            Key=chave_s3,
+            Body=conteudo.encode("utf-8"),
+            ContentType="text/csv; charset=utf-8"
+        )
+
+        print(f"Arquivo enviado para s3://{BUCKET}/{chave_s3}")
+        return True
+
+    except Exception as erro:
+        print(f"Erro ao enviar {nome_arquivo}: {erro}")
+        return False
 
 def obter_endereco_mac():
     interfaces = p.net_if_addrs()
 
     for nome_interface, enderecos in interfaces.items():
         for endereco in enderecos:
-
-            # family é o tipo de endereço, p.AF_LINK é o tipo de endereço MAC
             if endereco.family == p.AF_LINK:
                 if endereco.address and endereco.address != "00:00:00:00:00:00":
                     return endereco.address.upper()
@@ -108,7 +132,6 @@ def obter_endereco_mac():
     return None
 
 
-# Função para carregar o arquivo de configuração
 def carregar_config():
     if not os.path.exists(ARQUIVO_CONFIG):
         print(f"Arquivo de configuração '{ARQUIVO_CONFIG}' não encontrado.")
@@ -123,7 +146,6 @@ def carregar_config():
         exit()
 
 
-# Função para verificar se o node já está registrado
 def ativar_agente(
     token_instalacao,
     token_perfil_servidor,
@@ -159,7 +181,6 @@ def buscar_metricas_cliente(
     token_instalacao,
     token_perfil_servidor
 ):
-    # Usa a nossa API pra pegar os "comando_parametro" que foram cadastrados pro perfil do servidor
     try:
         resposta = requests.get(
             f"{API_FILTRO_URL}/empresa/metricas",
@@ -172,7 +193,6 @@ def buscar_metricas_cliente(
         if resposta.status_code == 200:
             metricas = resposta.json()
 
-            # Seleciona as métricas que vieram do model da empresa
             print(f"{len(metricas)} métricas carregadas.\n")
 
             return metricas
@@ -191,18 +211,13 @@ def buscar_metricas_cliente(
         return []
 
 
-# Converte os valores da coluna "argumento_valor" do banco para o que o psutil necessita
 def converter_valor(valor):
-
-    # Se não veio argumento, não converte
     if valor is None:
         return None
 
-    # Verifica o tipo
     if not isinstance(valor, str):
         return valor
 
-    # Remove espaços do início e do fim
     valor = valor.strip()
 
     if valor.lower() == "true":
@@ -214,33 +229,21 @@ def converter_valor(valor):
     if valor.lower() == "none":
         return None
 
-    # Tenta converter para inteiro
     try:
         return int(valor)
 
     except ValueError:
         pass
 
-    # Tenta convereter para float
     try:
         return float(valor)
 
     except ValueError:
         pass
 
-    # Caso nenhuma conversão funcione, retorna como texto
     return valor
 
 
-# {
-#    "funcao_psutil": "cpu_count",
-#    "argumento_nome": "logical",
-#    "argumento_valor": "true"
-# }
-# Precisa virar -> p.cpu_count(logical=True)
-#
-
-# Monta os parâmetros que são enviados para a função do psutil
 def montar_argumentos(metrica):
     nome = metrica.get("argumento_nome")
 
@@ -248,7 +251,6 @@ def montar_argumentos(metrica):
         metrica.get("argumento_valor")
     )
 
-    # Retorna um dicionário montado com o nome e o valor do argumento
     if nome is None:
         return {}
 
@@ -257,37 +259,22 @@ def montar_argumentos(metrica):
     }
 
 
-# Executa a função do psutil de forma dinâmica a partir da montagem dos argumentos
 def executar_funcao(metrica, cache):
     nome_funcao = metrica["funcao_psutil"]
 
     argumentos = montar_argumentos(metrica)
 
-    # Monta uma tupla que armazena a funcao e os argumentos para poder diferenciar a mesma função com argumentos diferentes
-    # Exemplo: p.cpu_count(logical=True) e p.cpu_count(logical=False) são chamadas diferentes da mesma função
     chave_cache = (
         nome_funcao,
-
-        # Ordena de forma crescente os valores da lista de argumentos e coloca em uma tupla para poder ser usada como chave do dicionário
         tuple(sorted(argumentos.items()))
     )
 
-    # Caso a função ainda não tenha sido chamada, ele executa
     if chave_cache not in cache:
-
-        # Executa a função de forma conceitual, onde o getattr acesso o atributo de um objeto usando o nome dele em forma de texto
-        # nome_funcao = "cpu_percent"
-        # funcao = p.cpu_percent
         funcao = getattr(
             p,
             nome_funcao
         )
 
-        # **argumentos é equivalente a
-        # argumentos = {
-        #     "logical": True
-        # }
-        # assim funcao(**argumentos) é equivalente a funcao(logical=True)
         cache[chave_cache] = funcao(
             **argumentos
         )
@@ -295,34 +282,6 @@ def executar_funcao(metrica, cache):
     return cache[chave_cache]
 
 
-# O retorno seria parecido com isso
-# cache = {
-#     ("virtual_memory", ()):
-#         svmem(
-#             total=16777216000,
-#             available=8245000000,
-#             percent=50.8,
-#             used=7450000000,
-#             free=2100000000
-#         ),
-#
-#     (
-#         "cpu_count",
-#         (
-#             ("logical", True),
-#         )
-#     ): 16,
-#
-#     (
-#         "cpu_count",
-#         (
-#             ("logical", False),
-#         )
-#     ): 8
-# }
-
-
-# Verifica qual campo deve ser retornado da função do psutil
 def extrair_retorno(
     resultado,
     metrica
@@ -335,14 +294,12 @@ def extrair_retorno(
         "indice_retorno"
     )
 
-    # Equivalente a resultado = resultado.atributo, porque algumas funções do psutil retornam objetos com atributos
     if atributo is not None:
         resultado = getattr(
             resultado,
             atributo
         )
 
-    # Equivalente a resultado = resultado[indice], porque algumas funções do psutil retornam listas ou tuplas
     if indice is not None:
         resultado = resultado[indice]
 
@@ -354,14 +311,11 @@ def capturar_metrica(
     cache
 ):
     try:
-
-        # Executa a função do psutil
         resultado = executar_funcao(
             metrica,
             cache
         )
 
-        # Pega o valor específico desejado
         resultado = extrair_retorno(
             resultado,
             metrica
@@ -385,8 +339,6 @@ def capturar_metrica(
         return None
 
 
-# COLETA CPU: estas funções são chamadas pelo loop principal abaixo.
-
 def capturar_dados(
     metricas,
     endereco_mac,
@@ -395,10 +347,8 @@ def capturar_dados(
     estado_swap=None,
     estado_carga=None
 ):
-    # Criar um cache para armazenar os resultados a cada rodada e evitar chamadas repetidas
     cache = {}
 
-    # A linha mistura horário/MAC (texto), medições (números) e campos vazios.
     dados: dict[str, str | int | float | None] = {
         "TIMESTAMP": datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"
@@ -493,12 +443,11 @@ def main():
         exit()
 
 
-    # Colunas padrão
+    # Preparamos a memória de CPU e RAM uma vez só
     escolhas_metricas = []
     for metrica in metricas:
         escolhas_metricas.append(metrica["nome_coluna"])
     estado_cpu = preparar_coleta_cpu(escolhas_metricas)
-
     estado_ram = preparar_coleta_ram(escolhas_metricas)
     estado_disco = preparar_coleta_disco(escolhas_metricas)
     estado_swap = preparar_coleta_swap(escolhas_metricas)
@@ -510,8 +459,6 @@ def main():
         "ENDERECO_MAC"
     ]
 
-
-    # Colunas das métricas do banco
     colunas.extend(
         metrica["nome_coluna"]
         for metrica in metricas
@@ -529,26 +476,98 @@ def main():
     colunas.extend(colunas_rede(estado_rede))
     colunas.extend(colunas_disco(estado_disco))
 
-
     mac_arquivo = endereco_mac.replace(":", "-").upper()
-    horario_arquivo = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
-    pasta = Path(__file__).parent
-    caminho_coleta = pasta / f"coretrace_coleta_{mac_arquivo}_{horario_arquivo}.csv"
-    with open(caminho_coleta, "w", newline="", encoding="utf-8") as arquivo:
-        escritor = csv.DictWriter(arquivo, fieldnames=colunas)
-        escritor.writeheader()
+    timestamp_arquivo = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
 
-        try:
-            while True:
-                dados = capturar_dados(metricas, endereco_mac, estado_cpu, estado_ram, estado_swap, estado_carga)
-                dados.update(coletar_rede_geral(estado_rede))
-                dados.update(coletar_disco_geral(estado_disco))
-                escritor.writerow(dados)
-                arquivo.flush()
-                print(f"{dados['TIMESTAMP']} - Captura salva para o MAC {endereco_mac}")
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("\nMonitoramento encerrado.")
+    nome_arquivo = f"coretrace_coleta_{mac_arquivo}_{timestamp_arquivo}.csv"
+    nome_processos = f"processos_{mac_arquivo}_{timestamp_arquivo}.csv"
+
+    # CSVs mantidos apenas na memória
+    buffer = io.StringIO()
+    escritor = csv.DictWriter(buffer, fieldnames=colunas)
+    escritor.writeheader()
+
+    buffer_processos = io.StringIO()
+    escritor_processos = csv.DictWriter(
+        buffer_processos,
+        fieldnames=COLUNAS_PROCESSOS
+    )
+    escritor_processos.writeheader()
+
+    ultimo_envio = time.monotonic()
+
+    try:
+        while True:
+            dados = capturar_dados(metricas, endereco_mac, estado_cpu, estado_ram, estado_swap, estado_carga)
+
+            dados.update(coletar_rede_geral(estado_rede))
+            dados.update(coletar_disco_geral(estado_disco))
+            escritor.writerow(dados)
+
+            escritor_processos.writerows(
+                coletar_processos(
+                    dados["TIMESTAMP"],
+                    endereco_mac
+                )
+            )
+
+            print(
+                f"{dados['TIMESTAMP']} - "
+                f"Captura realizada para o MAC {endereco_mac}"
+            )
+
+            if time.monotonic() - ultimo_envio >= 60:
+                envio_coleta = enviar_s3(
+                    buffer.getvalue(),
+                    nome_arquivo
+                )
+
+                envio_processos = enviar_s3(
+                    buffer_processos.getvalue(),
+                    nome_processos
+                )
+
+                if envio_coleta and envio_processos:
+                    # Limpa os buffers e prepara novos CSVs
+                    buffer.seek(0)
+                    buffer.truncate(0)
+                    escritor.writeheader()
+
+                    buffer_processos.seek(0)
+                    buffer_processos.truncate(0)
+                    escritor_processos.writeheader()
+
+                    # Gera novos nomes para o próximo intervalo
+                    timestamp_arquivo = datetime.now().strftime(
+                        "%Y-%m-%d_%H-%M-%S-%f"
+                    )
+
+                    nome_arquivo = (
+                        f"coretrace_coleta_{mac_arquivo}_{timestamp_arquivo}.csv"
+                    )
+
+                    nome_processos = (
+                        f"processos_{mac_arquivo}_{timestamp_arquivo}.csv"
+                    )
+
+                    ultimo_envio = time.monotonic()
+
+                else:
+                    print("Envio incompleto. Os dados foram mantidos na memória.")
+                    ultimo_envio = time.monotonic()
+
+            time.sleep(1)
+
+    except KeyboardInterrupt:
+        print("\nMonitoramento encerrado.")
+
+    finally:
+        # Envia os dados restantes ao encerrar o programa
+        if buffer.tell() > 0:
+            enviar_s3(buffer.getvalue(), nome_arquivo)
+
+        if buffer_processos.tell() > 0:
+            enviar_s3(buffer_processos.getvalue(), nome_processos)
 
 
 if __name__ == "__main__":

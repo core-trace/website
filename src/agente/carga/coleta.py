@@ -1,3 +1,4 @@
+# Coleta de carga
 import psutil as p
 import time
 import sys
@@ -42,6 +43,7 @@ def coletar_carga(estado):
             agora = estado["relogio"]()
             if estado["inicio_windows"] is None:
                 estado["inicio_windows"] = agora
+            # No Windows o psutil precisa iniciar em segundo plano
             aquecendo = agora - estado["inicio_windows"] <= 5
         for indice, nome in enumerate(IDS_CARGA):
             if nome not in estado["selecionadas"]:
@@ -52,6 +54,7 @@ def coletar_carga(estado):
             elif valor is None or not numero_valido(valor) or valor < 0:
                 salvar_leitura(dados, nome, None, "indisponivel")
             else:
+                # Zero é válido
                 salvar_leitura(dados, nome, valor)
     except NotImplementedError:
         for nome in estado["selecionadas"]:

@@ -19,13 +19,13 @@ def ler_valor_disco(registro, campo):
 
 
 def extrair_registros_disco(lista, identificador):
-    
+    # Converte as colunas gerais em registros internos por volume ou dispositivo
     registros = []
     grupo = "disco_volume_" if identificador == "MONTAGEM" else "disco_io_"
     final = "_montagem" if identificador == "MONTAGEM" else "_dispositivo"
     for linha in lista:
         if identificador in linha:
-           
+            # As funções de apresentação também passam registros internos entre si
             registros.append(linha)
             continue
         for coluna in linha:
@@ -47,7 +47,7 @@ def extrair_registros_disco(lista, identificador):
 
 
 def agrupar_disco(lista, identificador):
-    
+    # Nunca juntar dois servidores, volumes ou dispositivos na mesma média
     grupos = {}
     for registro in extrair_registros_disco(lista, identificador):
         alvo = registro.get(identificador)
@@ -65,7 +65,7 @@ def agrupar_disco(lista, identificador):
 def media_disco(lista, campo, identificador="MONTAGEM"):
     grupos = agrupar_disco(lista, identificador)
     if len(grupos) != 1:
-       
+        # Receber vários alvos tem q separaar antes de calcular a média
         return None
     soma = 0
     quantidade = 0
@@ -93,7 +93,7 @@ def media_disco_usado(lista: list):
 
 
 def crescimento_espaco_disco(lista: list):
-    
+    # variação percentual do espaço usado não previsão de dias
     grupos = agrupar_disco(lista, "MONTAGEM")
     if len(grupos) != 1:
         return None

@@ -3,6 +3,7 @@ import math
 
 
 def ler_valor_ram(registro, campo):
+    # Os valores do CSV chegam como texto. Leitura vazia ou inválida não entra na média.
     valor = registro.get(campo)
     if valor is None or valor == "":
         return None
@@ -56,6 +57,7 @@ def media_ram_cache(lista: list):
 
 
 def total_encerramentos_oom(lista: list):
+    # Cada linha traz novos registros desde a coleta anterior. Somamos, não fazemos média.
     total = 0
     quantidade = 0
     for registro in lista:

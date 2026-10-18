@@ -1,3 +1,4 @@
+# Coleta de swap: preparação, cabeçalho e leitura das métricas.
 import psutil as p
 import time
 import sys
@@ -24,6 +25,7 @@ def preparar_coleta_swap(selecionadas, fonte=p, relogio=time.monotonic, platafor
 def colunas_swap(estado):
     colunas = []
     for nome in IDS_SWAP:
+        # Capacidade é automática mesmo sem checkbox na tela de cardápio
         if nome in estado["selecionadas"] or nome == "swap_total":
             colunas.extend([nome, nome + "_status"])
     colunas.append("swap_interval_seconds")
@@ -35,6 +37,7 @@ def coletar_swap(estado):
     for coluna in colunas_swap(estado):
         dados[coluna] = None
     try:
+        # Uma consulta fornece espaço e os dois contadores acumulados
         memoria = estado["fonte"].swap_memory()
         agora = estado["relogio"]()
         total = memoria.total
@@ -65,11 +68,13 @@ def coletar_swap(estado):
         for nome in IDS_SWAP:
             if nome in estado["selecionadas"] or nome == "swap_total":
                 salvar_leitura(dados, nome, None, "erro_fonte")
+        # Depois de uma falha não calcular uma taxa sobre um período desconhecido
         estado["anterior"] = None
     return dados
 
 
 def coletar_atividade_swap(estado, dados, memoria, agora):
+    # No Windows, o psutil devolve zero para esses contadores sem medi-los
     if not estado["plataforma"].startswith("linux"):
         for nome in ["swap_sin", "swap_sout"]:
             salvar_leitura(dados, nome, None, "nao_aplicavel")
@@ -97,7 +102,10 @@ def coletar_atividade_swap(estado, dados, memoria, agora):
         elif valor < antes:
             salvar_leitura(dados, nome, None, "contador_reiniciado")
         else:
+            # Exemplo: 1.000 novos bytes em 2 segundos = 500 bytes/s
             novos_bytes = valor - antes
             salvar_leitura(dados, nome, novos_bytes / intervalo)
     estado["anterior"] = {"memoria": memoria, "horario": agora}
 
+
+# CARGA MÉDIA

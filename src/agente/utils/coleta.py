@@ -1,7 +1,9 @@
+# Funções pequenas usadas por mais de uma categoria de coleta.
 import math
 
 
 def numero_valido(valor):
+    # bool é considerado inteiro mas não é uma leitura CPU
     if isinstance(valor, bool):
         return False
     if not isinstance(valor, (int, float)):
@@ -11,6 +13,8 @@ def numero_valido(valor):
 
 
 def salvar_leitura(dados, coluna, valor, status="ok"):
+    # Campo vazio significa leitura inválida
+    # zero continua sendo um valor válido
     if status == "ok" and (not numero_valido(valor) or valor < 0):
         valor = None
         status = "indisponivel"
@@ -34,6 +38,7 @@ def nova_linha_metricas(colunas, horario, mac):
 
 
 def diferenca_contador(atual, antes):
+    # Contador que diminuiu não vira taxa negativa
     if atual is None or not numero_valido(atual) or atual < 0:
         return None, "indisponivel"
     if antes is None or not numero_valido(antes):

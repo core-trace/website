@@ -1,3 +1,4 @@
+# Coleta de disco
 import psutil as p
 import time
 import sys
@@ -52,6 +53,7 @@ def preparar_coleta_disco(selecionadas, fonte=p, statvfs=None, ler_fila=ler_fila
 
 
 def campos_volumes(estado):
+    # Capacidade e contagens de inodes acompanham o histórico para a futura previsão
     campos = ["disk_total"]
     for nome in METRICAS_VOLUME:
         if nome in estado["selecionadas"] and nome != "disk_inodes_percent":
@@ -74,6 +76,7 @@ def campos_io(estado):
         if nome not in estado["selecionadas"]:
             continue
         if nome == "disk_io_time":
+            # Uma opção na tela, duas opcoes leitura e escrita
             campos.extend(["disk_read_time_ms", "disk_write_time_ms"])
         else:
             campos.append(nome)
@@ -89,6 +92,7 @@ def colunas_io(estado):
 
 
 def descobrir_alvos_disco(fonte):
+    # Esses alvos definem o cabeçalho fixo do CSV
     montagens = []
     dispositivos = []
     try:
@@ -105,6 +109,7 @@ def descobrir_alvos_disco(fonte):
 
 
 def coluna_disco(grupo, indice, campo):
+    # Exemplos: disco_volume_0_free e disco_io_0_read_bytes
     return "disco_" + grupo + "_" + str(indice) + "_" + campo.removeprefix("disk_")
 
 
@@ -131,6 +136,7 @@ def coletar_disco_geral(estado):
     dados: dict[str, str | int | float | None] = {}
     for coluna in colunas_disco(estado):
         dados[coluna] = None
+    # As funções internas continuam calculando por volume e por dispositivo
     volumes = coletar_volumes(estado, "", "")
     operacoes = coletar_io_disco(estado, "", "")
     for grupo, alvos, registros, identificador, campos in [
@@ -150,6 +156,7 @@ def coletar_disco_geral(estado):
         for indice, alvo in enumerate(alvos):
             prefixo = "disco_" + grupo + "_" + str(indice) + "_"
             registro = next((item for item in registros if item[identificador] == alvo), None)
+
             dados[prefixo + ("montagem" if grupo == "volume" else "dispositivo")] = alvo
             if registro is None:
                 status = "indisponivel" if status_geral == "ok" else status_geral
@@ -189,6 +196,7 @@ def coletar_inodes(estado, dados, montagem):
         livres = info.f_ffree
         disponiveis = info.f_favail
         if total == 0:
+            # Alguns sistemas de arquivos não têm uma capacidade fixa de inodes
             marcar_campos_disco(dados, CAMPOS_INODES, "nao_aplicavel")
             return
         if total < 0 or livres < 0 or livres > total or disponiveis < 0 or disponiveis > livres:
@@ -217,7 +225,8 @@ def coletar_volumes(estado, horario, mac):
     montagens_vistas = []
     for particao in particoes:
         montagem = particao.mountpoint
-        if montagem in montagens_vistas:
+
+        if montagem in montagens_vistas: 
             continue
         montagens_vistas.append(montagem)
         dados = nova_linha_metricas(colunas_volumes(estado), horario, mac)
@@ -273,6 +282,7 @@ def salvar_tempo_disco(dados, campo, tempo, tempo_antes, operacoes, operacoes_an
     elif intervalo is None or intervalo <= 0:
         salvar_leitura(dados, campo, None, "intervalo_invalido")
     elif novas_operacoes is None or novas_operacoes == 0:
+        # Sem operações, não existe tempo médio para calcular
         salvar_leitura(dados, campo, None, "sem_operacoes")
     elif diferenca_tempo is not None:
         salvar_leitura(dados, campo, diferenca_tempo / novas_operacoes)
@@ -280,6 +290,7 @@ def salvar_tempo_disco(dados, campo, tempo, tempo_antes, operacoes, operacoes_an
 
 def coletar_io_disco(estado, horario, mac):
     try:
+        # nowrap=False deixa reconhecer reinício dos contadores em vez de ocultar
         dispositivos = estado["fonte"].disk_io_counters(perdisk=True, nowrap=False)
     except (OSError, ValueError, AttributeError, NotImplementedError):
         linhas = []
@@ -324,6 +335,7 @@ def coletar_io_disco(estado, horario, mac):
         if intervalo is not None and intervalo > 0:
             dados["disk_interval_seconds"] = intervalo
 
+        # Os nomes dos quatro contadores coincidem com os atributos do psutil
         atributos = {
             "disk_read_bytes": "read_bytes", "disk_write_bytes": "write_bytes",
             "disk_read_count": "read_count", "disk_write_count": "write_count",
@@ -335,6 +347,7 @@ def coletar_io_disco(estado, horario, mac):
                 antes = getattr(contadores_antes, atributo, None)
                 salvar_taxa_disco(dados, campo, valor, antes, intervalo)
 
+        # Calculamos leitura e escrita de forma separada embora sejam uma opção na tela agrupada
         if "disk_io_time" in estado["selecionadas"]:
             salvar_tempo_disco(dados, "disk_read_time_ms",
                 getattr(atual, "read_time", None), getattr(contadores_antes, "read_time", None),
@@ -346,6 +359,7 @@ def coletar_io_disco(estado, horario, mac):
         if status_fila != "ok":
             salvar_leitura(dados, "disk_queue", None, status_fila)
         else:
+            # Tempo ponderado em ms / intervalo em ms = média de operações em andamento
             intervalo_ms = None
             if intervalo is not None:
                 intervalo_ms = intervalo * 1000
@@ -354,6 +368,7 @@ def coletar_io_disco(estado, horario, mac):
         anteriores_novos[nome] = {"contadores": atual, "fila": fila.get(nome), "horario": agora}
         linhas.append(dados)
 
+    # Um dispositivo que desapareceu perde sua referência qnd voltar aquece novamente
     estado["io_anterior"] = anteriores_novos
     if len(linhas) == 0:
         dados = nova_linha_metricas(colunas_io(estado), horario, mac)
@@ -361,3 +376,6 @@ def coletar_io_disco(estado, horario, mac):
         marcar_campos_disco(dados, campos_io(estado), "indisponivel")
         linhas.append(dados)
     return linhas
+
+
+# COLETA SWAP

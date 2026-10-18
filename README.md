@@ -78,12 +78,13 @@ Ao concluir o wizard, a tela de sucesso mostra o perfil criado e oferece o
 `POST /agente/download`. O ID não é fixo. Na página de perfis,
 cada card também tem **Baixar agente ZIP**, que usa o ID daquele perfil.
 
-Depois de baixar, extraia o ZIP e execute o agente dentro da pasta `agente`:
+Depois de baixar, extraia o ZIP e, dentro da pasta `agente`, execute `instalar.sh` e depois `iniciar.sh`:
 
 ```bash
 unzip agente.zip
 cd agente
-python captura.py
+bash instalar.sh
+bash iniciar.sh
 ```
 
 A rota consulta `empresa.token_instalacao` e `perfil_servidor.token_perfil_servidor`,

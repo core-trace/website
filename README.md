@@ -70,6 +70,43 @@ nas tabelas `empresa` e `nivel_acesso`. O cadastro cria o usuário com status `A
 O login aceita usuários ativos e retorna `id_usuario`, `nome`, `email`,
 `fk_empresa`, `fk_nivel_acesso` e `status`.
 
+### Cadastro de empresas e primeiro administrador
+
+Na dashboard, **Gestão → Empresas** abre o cadastro da empresa junto com seu
+primeiro administrador. Razão social, CNPJ, nome e email do responsável são
+obrigatórios; endereço, CPF e telefone são opcionais. O servidor define a data
+de registro e gera o token de instalação automaticamente.
+
+`POST /empresa/cadastrar` recebe:
+
+```json
+{
+  "razaoSocial": "Empresa Exemplo",
+  "cnpj": "12345678000199",
+  "endereco": {
+    "logradouro": "Rua Exemplo",
+    "numero": "100",
+    "cidade": "São Paulo",
+    "estado": "SP"
+  },
+  "administrador": {
+    "nome": "Ana Silva",
+    "email": "ana@empresa.com"
+  }
+}
+```
+
+O perfil **Administrador** deve existir em `nivel_acesso`. Empresa, endereço
+e usuário são gravados na mesma transação. O usuário recebe status `PENDENTE`
+e o convite do fluxo existente do Resend para definir a senha e ativar a conta.
+Se o envio do convite falhar, a transação é desfeita.
+
+Configure `RESEND_API_KEY`, `RESEND_FROM` (remetente autorizado no Resend) e
+`APP_URL` (endereço público do site) no ambiente do servidor. O cadastro retorna
+os IDs da empresa e do usuário, sem expor os tokens. Ao entrar, o administrador
+terá `fk_empresa` da nova empresa salvo em `sessionStorage.ID_EMPRESA`, usado
+pelo download do agente para buscar o token de instalação no banco.
+
 ### Download do agente
 
 Ao concluir o wizard, a tela de sucesso mostra o perfil criado e oferece o

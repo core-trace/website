@@ -75,8 +75,7 @@ O login aceita usuários ativos e retorna `id_usuario`, `nome`, `email`,
 Ao concluir o wizard, a tela de sucesso mostra o perfil criado e oferece o
 **Download do pacote ZIP**. O botão envia `sessionStorage.ID_EMPRESA` e o
 `id_perfil_servidor` retornado por `POST /servidor/perfis` para
-`POST /agente/download`. O ID não é fixo. Na dashboard antiga, o usuário escolhe
-um perfil da empresa na lista ao lado do botão de download. Na página de perfis,
+`POST /agente/download`. O ID não é fixo. Na página de perfis,
 cada card também tem **Baixar agente ZIP**, que usa o ID daquele perfil.
 
 Depois de baixar, extraia o ZIP e execute o agente dentro da pasta `agente`:

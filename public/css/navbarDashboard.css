@@ -56,6 +56,13 @@
     padding: 24px;
 }
 
+.dashboard-acesso-feedback {
+    padding: 24px;
+    color: var(--cor-cinza);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
 .dashboard-menu-grupo + .dashboard-menu-grupo {
     border-top: 1px solid var(--dashboard-borda);
 }

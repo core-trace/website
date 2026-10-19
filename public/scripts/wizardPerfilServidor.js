@@ -83,13 +83,6 @@
                 papel.innerHTML = '<img src="../assets/icons/coroa.svg" alt="" width="15" height="13"> Proprietário';
                 item.appendChild(papel);
             } else {
-                const papel = document.createElement("select");
-                papel.setAttribute("aria-label", "Nível de acesso de " + membro.nome);
-                papel.innerHTML = '<option value="administrador">Administrador</option><option value="visualizador">Visualizador</option>';
-                papel.value = membro.papel;
-                papel.addEventListener("change", function () {
-                    membro.papel = papel.value;
-                });
                 const remover = document.createElement("button");
                 remover.type = "button";
                 remover.className = "wizard-equipe-remover";
@@ -102,7 +95,7 @@
                     renderizarEquipe();
                     atualizarSelecaoEquipe();
                 });
-                item.append(papel, remover);
+                item.appendChild(remover);
             }
             return item;
         }
@@ -178,7 +171,7 @@
             if (!usuario) return;
             membrosEquipe.push({
                 id: usuario.id_usuario, nome: usuario.nome, email: usuario.email,
-                status: usuario.status, papel: "visualizador"
+                status: usuario.status
             });
             renderizarEquipe();
             atualizarSelecaoEquipe();
@@ -591,7 +584,7 @@
                 monitorarDocker: monitorarDocker.checked,
                 metricas: obterMetricasSelecionadas(),
                 equipe: membrosEquipe.map(function (membro) {
-                    return { id: membro.id, papel: membro.papel };
+                    return { id: membro.id };
                 })
             };
             salvando = true;

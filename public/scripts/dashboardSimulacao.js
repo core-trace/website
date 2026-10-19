@@ -135,7 +135,7 @@ const dashboardSimulacao = (() => {
             const servidor = { ...config, id:Number(item.id_servidor), nome:item.nome, perfilId:String(item.id_perfil_servidor),
                 perfil:item.nome_perfil, sistemaOperacional:item.sistema_operacional, referencia,
                 monitorarDocker:item.monitorar_docker===true || Number(item.monitorar_docker)===1,
-                containers:Array.isArray(item.containers)?item.containers:[], cadastroContainersDisponivel:Array.isArray(item.containers),
+                containers:Array.isArray(item.containers)?item.containers:[], dadosContainersDisponiveis:Array.isArray(item.containers),
                 componentes:(item.componentes||[]).map(c=>({...c, atencao:numero(c.atencao),critico:numero(c.critico)})) };
             if(!config) return {...servidor,coletas:[],incidentes:[],volumes:[],ultimaColeta:null,situacao:'sem-dados',cpu:'—',ram:'—',disco:'—',uptime:'—',docker:'Sem métricas',motivoSemDados:'Não há cenário de métricas associado ao MAC deste servidor.'};
             servidor.coletas = Array.from({ length: 10081 }, (_, indice) => coleta(servidor, inicio + indice * minuto));
@@ -154,7 +154,7 @@ const dashboardSimulacao = (() => {
             servidor.cpu = `${valores.cpu_percent}%`;
             servidor.ram = `${valores.ram_percent}%`;
             servidor.disco = `${valores.disk_percent}%`;
-            servidor.docker = servidor.monitorarDocker ? (!servidor.cadastroContainersDisponivel ? 'Cadastro indisponível' : servidor.containers.length ? `${containers(servidor, servidor.ultimaColeta).filter(item => item.estado === 'Executando').length} em execução` : 'Sem containers') : 'Não monitorado';
+            servidor.docker = servidor.monitorarDocker ? (!servidor.dadosContainersDisponiveis ? 'Aguardando coleta' : servidor.containers.length ? `${containers(servidor, servidor.ultimaColeta).filter(item => item.estado === 'Executando').length} em execução` : 'Sem containers') : 'Não monitorado';
             servidor.situacao = dashboardDados.classificar(servidor.componentes, servidor.ultimaColeta).severidade;
             return servidor;
         });

@@ -288,9 +288,6 @@ function validarPerfil(dados) {
         if (!membro || !Number.isSafeInteger(membro.id) || membro.id <= 0 || idsEquipe.includes(membro.id)) {
             return "Selecione colaboradores válidos, sem repetições.";
         }
-        if (membro.papel !== "administrador" && membro.papel !== "visualizador") {
-            return "Selecione um nível de acesso válido.";
-        }
         idsEquipe.push(membro.id);
     }
     return "";

@@ -152,7 +152,7 @@
                     }).join("")}</tbody></table>
                 </div>
                 <p class="servidor-legenda">¹ CPU na convenção Docker: 100% equivale a uma CPU lógica; pode ultrapassar 100%. Estado do container não confirma saúde da aplicação.</p>
-            </section>` : `<section class="servidor-card" aria-labelledby="titulo-containers"><h3 id="titulo-containers">Containers Docker</h3><p class="servidor-legenda">${!servidor.monitorarDocker ? "Monitoramento Docker não habilitado neste perfil." : servidor.cadastroContainersDisponivel ? "Nenhum container associado a este servidor no cadastro." : "Cadastro de containers indisponível: a rota /servidor/lista precisa fornecer as associações."}</p></section>`}`;
+            </section>` : `<section class="servidor-card" aria-labelledby="titulo-containers"><h3 id="titulo-containers">Containers Docker</h3><p class="servidor-legenda">${!servidor.monitorarDocker ? "Monitoramento Docker não habilitado neste perfil." : servidor.dadosContainersDisponiveis ? "Nenhum container encontrado na coleta deste servidor." : "Dados de containers ainda não recebidos do agente."}</p></section>`}`;
     }
 
     function atualizarMetricas(historico) {

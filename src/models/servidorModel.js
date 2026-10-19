@@ -51,7 +51,12 @@ async function listarServidoresPorEmpresa(idEmpresa, idUsuario) {
             SELECT 1 FROM usuario u
             INNER JOIN nivel_acesso n ON n.id_nivel_acesso = u.fk_nivel_acesso
             WHERE u.id_usuario = ? AND u.fk_empresa = p.fk_empresa AND u.status = 'ATIVO'
-              AND (n.nome = 'Administrador' OR EXISTS (
+              AND (EXISTS (
+                  SELECT 1 FROM nivel_acesso_permissoes np
+                  INNER JOIN permissoes perm ON perm.id_permissao = np.fk_permissao
+                  WHERE np.fk_nivel_acesso = n.id_nivel_acesso
+                    AND perm.nome IN ('ACESSAR_EQUIPE', 'ACESSAR_EMPRESAS')
+              ) OR EXISTS (
                   SELECT 1 FROM usuario_perfil_servidor up
                   WHERE up.fk_usuario = u.id_usuario AND up.fk_perfil_servidor = p.id_perfil_servidor
               ))
@@ -73,15 +78,7 @@ async function listarServidoresPorEmpresa(idEmpresa, idUsuario) {
         WHERE cp.fk_perfil_servidor IN (${perfis.map(() => '?').join(', ')})
         ORDER BY cp.fk_perfil_servidor, c.id_componente;
     `, perfis);
-    // Somente associações dos servidores já autorizados pela consulta acima.
-    const ids = servidores.map(servidor => servidor.id_servidor);
-    const containers = await database.executar(`
-        SELECT id_container, nome, status, fk_servidor
-        FROM container WHERE fk_servidor IN (${ids.map(() => '?').join(', ')})
-        ORDER BY id_container;
-    `, ids);
     return servidores.map(servidor => ({ ...servidor,
-        containers: containers.filter(container => container.fk_servidor === servidor.id_servidor),
         componentes: componentes.filter(componente => componente.perfilId === servidor.id_perfil_servidor)
     }));
 }
@@ -165,12 +162,12 @@ function criarPerfil(dados) {
         }
 
         const sqlMembro = `
-            INSERT INTO usuario_perfil_servidor (fk_usuario, fk_perfil_servidor, papel)
-            VALUES (?, ?, ?);
+            INSERT INTO usuario_perfil_servidor (fk_usuario, fk_perfil_servidor)
+            VALUES (?, ?);
         `;
-        await executar(sqlMembro, [dados.proprietario, idPerfil, "proprietario"]);
+        await executar(sqlMembro, [dados.proprietario, idPerfil]);
         for (const membro of dados.equipe) {
-            await executar(sqlMembro, [membro.id, idPerfil, membro.papel]);
+            await executar(sqlMembro, [membro.id, idPerfil]);
         }
         return resultado;
     });

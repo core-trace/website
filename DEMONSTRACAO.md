@@ -4,23 +4,23 @@
 
 Use o fluxo normal da aplicação: configure o banco e as variáveis de ambiente conforme o README, execute `npm start` (ou `npm run demo`) e faça login. Acesse `/pages/inicioDashboard.html` pelo endereço e porta configurados. Não há mais catálogo JavaScript nem acesso anônimo à dashboard.
 
-A dashboard consulta **GET /servidor/lista?empresa=…&usuario=…** uma vez por carregamento. A rota existente retorna somente os servidores autorizados para o contexto informado, com MAC, perfil, sistema operacional, Docker, componentes/limites e containers associados. Falhas de cadastro exibem erro com nova tentativa; uma lista vazia permanece vazia. Não há fallback fictício. Nenhum endpoint foi criado.
+A dashboard consulta **GET /servidor/lista?empresa=…&usuario=…** uma vez por carregamento. A rota existente retorna somente os servidores autorizados para o contexto informado, com MAC, perfil, sistema operacional, configuração Docker e componentes/limites. O usuário e a empresa são informados pelo contexto do login. Falhas de cadastro exibem erro com nova tentativa; uma lista vazia permanece vazia. Não há fallback fictício. A navegação e as permissões são obtidas em `GET /usuario/navegacao?usuario=…`.
 
-O banco precisa conter os cadastros e associações preparados em `src/database/script.sql`: `servidores.endereco_mac`, `componentes_perfil`, `usuario_perfil_servidor` e `container.fk_servidor`. Não execute o script de criação em um banco existente para atualizar dados: ele é destrutivo. Os inserts do usuário foram preservados.
+O banco precisa conter os cadastros e associações preparados em `src/database/script.sql`: `servidores.endereco_mac`, `componentes_perfil`, `usuario_perfil_servidor`. Não execute o script de criação em um banco existente para atualizar dados: ele é destrutivo. Os inserts do usuário foram preservados.
 
-**Limitação preexistente de autenticação:** a aplicação usa os IDs do cliente em `sessionStorage` e parâmetros da rota, sem sessão autenticada no backend. A listagem verifica usuário ativo, empresa e vínculo de perfil, mas não prova a identidade do solicitante. Esta alteração reaproveita esse contrato; não implementa uma nova arquitetura de autenticação.
+**Sidebar:** a navegação é filtrada pelas permissões do banco usando o usuário informado pelo `sessionStorage`. Esse controle é apenas visual, sem bloqueio de acesso direto às páginas. CoreTrace e iFood são empresas separadas no SQL atual: a primeira não possui servidores vinculados.
 
 ## O que é real e o que é simulado
 
-Empresas, servidores, perfis, nomes, IDs, MACs, componentes, operadores, limites, permissões e containers vêm do cadastro. As receitas em `monitoramentoMock.js` contêm somente parâmetros de métricas vinculados aos MACs dos inserts. Trocar o ID ou renomear o servidor não altera o cenário. Um MAC sem receita aparece com **Dados insuficientes**, traços nas métricas e detalhes sem valores inventados.
+Empresas, servidores, perfis, nomes, IDs, MACs, componentes, operadores, limites e permissões vêm do cadastro. As receitas em `monitoramentoMock.js` contêm somente parâmetros de métricas vinculados aos MACs dos inserts. Trocar o ID ou renomear o servidor não altera o cenário. Um MAC sem receita aparece com **Dados insuficientes**, traços nas métricas e detalhes sem valores inventados.
 
-Histórico, recursos técnicos, processos, métricas dos containers, incidentes e previsão permanecem simulados. Containers só aparecem quando o perfil permite Docker e existe associação cadastral. A identidade e o status cadastral são recebidos da rota; o consumo é simulado e dividido entre os containers ativos, sem exceder o host. Status cadastral ATIVO é apresentado como execução simulada, não prova de funcionamento real.
+Histórico, recursos técnicos, processos, incidentes e previsão permanecem simulados. O esquema atual não cadastra containers. A listagem não consulta uma tabela de containers; os detalhes informam que os dados Docker aguardam coleta quando não foram recebidos.
 
 - `monitoramentoMock.js`: receitas por MAC, relógio central e recortes para os detalhes.
 - `dashboardSimulacao.js`: uma geração determinística de 10.081 coletas por servidor reconhecido, incidentes e métricas derivadas. Cache da entrada cadastral e referência temporal.
 - `dashboardDados.js`: severidade, KPIs, barras atuais/históricas, previsão e redução de pontos.
 - `dashboardGraficos.js`, `inicioDashboard.js`, `detalheServidor.js`: apresentação dos mesmos dados.
-- `src/models/servidorModel.js`: MAC e containers adicionados à resposta da rota existente, limitados aos servidores já autorizados.
+- `src/models/servidorModel.js`: MAC e componentes/limites na resposta da rota existente, limitados aos servidores já autorizados.
 
 A referência está em `DATA_REFERENCIA_DEMO`. Pode ser deslocada com `?dataDemo=2026-11-20`, mantendo a coleta final às 14h30 de Brasília e a mesma história relativa. Filtros não geram dados novos.
 
@@ -58,9 +58,9 @@ O detalhe mantém os gráficos técnicos e acrescenta ocupação de `/dados` e e
 ## Roteiro das personas
 
 1. **Infraestrutura:** visualize os alertas atuais, compare Carrinho e Financeiro, use a tabela para priorizar servidores. Troque as barras para Histórico e o período para 7 dias: os quatro recursos passam a mostrar os incidentes ocorridos.
-2. **Operador:** abra cart-api-07 em 6 horas para investigar CPU, carga e processos; abra pay-db-02 para correlacionar RAM disponível e swap. Confira containers efetivamente cadastrados.
+2. **Operador:** abra cart-api-07 em 6 horas para investigar CPU, carga e processos; abra pay-db-02 para correlacionar RAM disponível e swap. A seção Docker aguarda dados de coleta, sem exigir cadastro de containers.
 3. **Observabilidade:** investigue pay-api-06 em 7 dias e catalog-api-05 em 24 horas para comparar ocupação, espaço livre e I/O. Em catalog-api-03, examine erros, descartes e tráfego em 24 horas. Compare cart-api-02 recuperado com cart-api-07 ainda crítico e consulte os horários na tabela de incidentes.
 
 ## Testes
 
-Execute `npm test`. Fixtures cadastrais existem somente em `tests/fixtures`, nunca no frontend de produção. Os testes cobrem MAC estável, dados ausentes, limites reais, containers associados, incidentes nos quatro recursos, barras históricas sem dupla contagem, lacunas e consistência física/temporal. A validação de navegador usa respostas cadastrais controladas para testar perfis, períodos, estados, recuperação, desconhecidos, falhas e responsividade; não substitui a validação dos inserts no banco da apresentação.
+Execute `node --test --test-isolation=none`. Os testes verificam os itens da sidebar para os quatro níveis, o cadastro de empresas e a compatibilidade das consultas com o esquema atual. Usam dados simulados e não executam o script SQL.

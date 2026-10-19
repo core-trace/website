@@ -78,6 +78,73 @@ const dashboardCenario = (() => {
                 resultado.diasEspaco = dashboardDados.preverVolume(resultado)?.dias ?? null;
                 return resultado;
             });
+
+            if (nome === 'pay-db-02') {
+                ultimaColeta.valores.cpu_percent = 92;
+                ultimaColeta.valores.ram_percent = 62;
+                ultimaColeta.valores.disk_percent = 72;
+                valores.cpu_percent = 92; valores.ram_percent = 62; valores.disk_percent = 72;
+                volumes[0].uso = 72; volumes[0].livre = 200 * (1 - 72 / 100);
+                volumes[0].historico = [...volumes[0].historico.slice(-6), { instante: referencia, uso: 72 }];
+                volumes[0].diasEspaco = 15;
+            }
+
+            if (nome === 'pay-api-04') {
+                ultimaColeta.valores.cpu_percent = 68;
+                ultimaColeta.valores.ram_percent = 92;
+                ultimaColeta.valores.disk_percent = 70;
+                valores.cpu_percent = 68; valores.ram_percent = 92; valores.disk_percent = 70;
+                volumes[0].uso = 70; volumes[0].livre = 200 * (1 - 70 / 100);
+                volumes[0].historico = [
+                    { instante: referencia - 12 * 24 * 60 * 60 * 1000, uso: 50 },
+                    { instante: referencia - 6 * 24 * 60 * 60 * 1000, uso: 60 },
+                    { instante: referencia, uso: 70 }
+                ];
+                volumes[0].diasEspaco = 12;
+            }
+
+            if (nome === 'cart-api-07') {
+                ultimaColeta.valores.cpu_percent = 79;
+                ultimaColeta.valores.ram_percent = 61;
+                valores.cpu_percent = 79; valores.ram_percent = 61;
+            }
+
+            if (nome === 'cart-api-12') {
+                ultimaColeta.valores.ram_percent = 81;
+                ultimaColeta.valores.cpu_percent = 62;
+                valores.ram_percent = 81; valores.cpu_percent = 62;
+            }
+
+            if (nome === 'cart-api-02') {
+                ultimaColeta.valores.ram_percent = 78;
+                ultimaColeta.valores.cpu_percent = 64;
+                valores.ram_percent = 78; valores.cpu_percent = 64;
+            }
+
+            if (nome === 'cart-api-09') {
+                ultimaColeta.valores.cpu_percent = 80;
+                ultimaColeta.valores.ram_percent = 63;
+                valores.cpu_percent = 80; valores.ram_percent = 63;
+            }
+
+            if (nome === 'pay-api-06') {
+                ultimaColeta.valores.cpu_percent = 83;
+                ultimaColeta.valores.ram_percent = 64;
+                valores.cpu_percent = 83; valores.ram_percent = 64;
+            }
+
+            if (nome === 'catalog-api-03') {
+                ultimaColeta.valores.disk_percent = 82;
+                ultimaColeta.valores.ram_percent = 66;
+                valores.disk_percent = 82; valores.ram_percent = 66;
+            }
+
+            if (nome === 'catalog-api-05') {
+                ultimaColeta.valores.ram_percent = 70;
+                ultimaColeta.valores.disk_percent = 72;
+                valores.ram_percent = 70; valores.disk_percent = 72;
+            }
+
             return {
                 id: indice + 1, nome, perfilId: dados.perfil,
                 perfil: dashboardAlertasMock.perfis.find(perfil => perfil.id === dados.perfil).nome,

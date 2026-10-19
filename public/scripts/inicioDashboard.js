@@ -14,26 +14,49 @@
     const normalizar = (valor) => valor.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     const servidoresDoPerfil = () => servidores.filter((servidor) => !filtroPerfil.value || servidor.perfilId === filtroPerfil.value);
 
+    function periodoAtual() {
+        return { inicio: referencia - Number(filtroPeriodo.value) * 60_000, fim: referencia };
+    }
+
     function atualizarGraficos() {
+        const { inicio, fim } = periodoAtual();
         dashboardGraficos.renderizar(dashboardAlertasMock.agregar(historicoAlertas, {
-            inicio: referencia - Number(filtroPeriodo.value) * 60_000,
-            fim: referencia,
+            inicio,
+            fim,
             perfil: filtroPerfil.value
         }));
     }
 
     function atualizarIndicadores() {
         const selecionados = servidoresDoPerfil();
+        const { inicio, fim } = periodoAtual();
+        const severidades = { critico: 0, atencao: 0 };
+
+        for (const servidor of selecionados) {
+            let maiorNivel = "normal";
+            for (const coleta of servidor.coletas) {
+                if (coleta.instante < inicio || coleta.instante > fim) continue;
+                const estado = dashboardDados.classificar(servidor.componentes, coleta);
+                if (estado.severidade === "critico") {
+                    maiorNivel = "critico";
+                    break;
+                }
+                if (estado.severidade === "atencao") maiorNivel = "atencao";
+            }
+            if (maiorNivel === "critico") severidades.critico++;
+            else if (maiorNivel === "atencao") severidades.atencao++;
+        }
+
         resumo = dashboardDados.agregar(selecionados, [], referencia);
         const total = selecionados.length;
         const previsao = resumo.previsao;
         texto("visao-resumo", `iFood · ${total} servidores · ${monitoramentoMock.dataHora(referencia)}`);
         texto("titulo-servidores", `Servidores (${total})`);
-        texto("indicador-atencao", resumo.atencao);
-        texto("indicador-criticos", resumo.criticos);
-        texto("indicador-alertas", resumo.alertas.atencao + resumo.alertas.critico);
-        texto("alertas-criticos", `${resumo.alertas.critico} críticos`);
-        texto("alertas-atencao", `${resumo.alertas.atencao} atenção`);
+        texto("indicador-atencao", severidades.atencao);
+        texto("indicador-criticos", severidades.critico);
+        texto("indicador-alertas", severidades.atencao + severidades.critico);
+        texto("alertas-criticos", `${severidades.critico} críticos`);
+        texto("alertas-atencao", `${severidades.atencao} atenção`);
         texto("indicador-previsao", previsao ? `${previsao.dias} ${previsao.dias === 1 ? "dia" : "dias"}` : "Sem tendência");
         document.getElementById("indicador-previsao").classList.toggle("visao-sem-previsao", !previsao);
         texto("legenda-previsao", previsao ? `${previsao.servidor.nome} · ${previsao.volume}` : "Armazenamento estável");
@@ -93,7 +116,7 @@
     }
 
     filtroPerfil.addEventListener("change", () => { atualizarIndicadores(); atualizarTabela(); atualizarGraficos(); });
-    filtroPeriodo.addEventListener("change", atualizarGraficos);
+    filtroPeriodo.addEventListener("change", () => { atualizarIndicadores(); atualizarTabela(); atualizarGraficos(); });
     filtroSituacao.addEventListener("change", atualizarTabela);
     busca.addEventListener("input", atualizarTabela);
     lista.addEventListener("click", (evento) => {

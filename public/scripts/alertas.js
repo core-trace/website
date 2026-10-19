@@ -1,6 +1,5 @@
 (() => {
     const cenario = dashboardCenario.criar();
-    const resumo = dashboardDados.agregar(cenario.servidores, [], cenario.referencia);
     const filtroPerfil = document.getElementById('alerta-filtro-perfil');
     const filtroNivel = document.getElementById('alerta-filtro-nivel');
     const busca = document.querySelector('.dashboard-pesquisa input');
@@ -14,6 +13,11 @@
         dashboardAlertasMock.perfis.forEach(perfil => {
             filtroPerfil.add(new Option(perfil.nome, perfil.id));
         });
+    }
+
+    function servidoresFiltrados() {
+        const perfil = filtroPerfil.value;
+        return cenario.servidores.filter((servidor) => !perfil || String(servidor.perfilId) === String(perfil));
     }
 
     function eventosAtivos() {
@@ -46,13 +50,20 @@
     }
 
     function atualizarResumo() {
+        const perfil = filtroPerfil.value;
+        const selecionados = servidoresFiltrados();
+        const resumo = dashboardDados.agregar(selecionados, [], cenario.referencia);
+        const eventos = eventosAtivos().filter((alerta) => !perfil || alerta.perfilId === perfil);
+        const criticos = eventos.filter((alerta) => alerta.nivel === 'critico').length;
+        const atencao = eventos.filter((alerta) => alerta.nivel === 'atencao').length;
+
         document.getElementById('demo-referencia').textContent = monitoramentoMock.dataHora(cenario.referencia);
         document.getElementById('alertas-resumo').textContent = `Última atualização ${monitoramentoMock.dataHora(cenario.referencia)} · ${resumo.alertas.critico} crítico(s) e ${resumo.alertas.atencao} alerta(s) em atenção.`;
-        document.getElementById('alerta-total').textContent = resumo.alertas.critico + resumo.alertas.atencao;
-        document.getElementById('alerta-criticos').textContent = resumo.alertas.critico;
-        document.getElementById('alerta-atencao').textContent = resumo.alertas.atencao;
-        document.getElementById('alerta-foco').textContent = filtroPerfil.value ? dashboardAlertasMock.perfis.find((perfil) => perfil.id === filtroPerfil.value)?.nome || 'Todos' : 'Todos';
-        document.getElementById('alerta-foco-legenda').textContent = filtroPerfil.value ? 'Perfil com foco atual em alertas' : 'Cenário principal em operação';
+        document.getElementById('alerta-total').textContent = eventos.length;
+        document.getElementById('alerta-criticos').textContent = criticos;
+        document.getElementById('alerta-atencao').textContent = atencao;
+        document.getElementById('alerta-foco').textContent = perfil ? dashboardAlertasMock.perfis.find((item) => item.id === perfil)?.nome || 'Todos' : 'Todos';
+        document.getElementById('alerta-foco-legenda').textContent = perfil ? 'Perfil com foco atual em alertas' : 'Cenário principal em operação';
     }
 
     function atualizarLista() {
@@ -103,14 +114,7 @@
             horario.textContent = `${monitoramentoMock.dataHora(alerta.inicio)} · ${alerta.monitorarDocker ? alerta.docker : 'Docker não monitorado'}`;
             estado.append(badge, horario);
 
-            const acao = document.createElement('div');
-            acao.className = 'alerta-acao';
-            const link = document.createElement('a');
-            link.href = `inicioDashboard.html?servidor=${encodeURIComponent(alerta.servidor)}`;
-            link.textContent = 'Abrir servidor';
-            acao.append(link);
-
-            card.append(principal, metrica, estado, acao);
+            card.append(principal, metrica, estado);
             lista.append(card);
         });
     }
@@ -123,6 +127,9 @@
         atualizarResumo();
         atualizarLista();
     });
-    filtroNivel.addEventListener('change', atualizarLista);
+    filtroNivel.addEventListener('change', () => {
+        atualizarResumo();
+        atualizarLista();
+    });
     busca.addEventListener('input', atualizarLista);
 })();

@@ -20,6 +20,41 @@ const dashboardAlertasMock = (() => {
         return Math.max(0, Math.min((hora - inicio) / (pico - inicio), (fim - hora) / (fim - pico)));
     }
 
+    function aplicarAjusteServidor(registros) {
+        const aplicar = (servidor, recurso, valor) => {
+            registros.filter(item => item.servidor === servidor && item.recurso === recurso)
+                .slice(-24)
+                .forEach(item => {
+                    item.valor = Number(Math.max(0, Math.min(100, valor)).toFixed(2));
+                    item.severidade = item.valor >= metricas[recurso].critico ? 'critico' : item.valor >= metricas[recurso].atencao ? 'atencao' : 'normal';
+                });
+        };
+
+        aplicar('pay-db-02', 'CPU', 92);
+        aplicar('pay-db-02', 'RAM', 62);
+        aplicar('pay-db-02', 'Disco', 72);
+        aplicar('pay-api-04', 'CPU', 68);
+        aplicar('pay-api-04', 'RAM', 92);
+        aplicar('pay-api-04', 'Disco', 70);
+
+        aplicar('cart-api-07', 'CPU', 79);
+        aplicar('cart-api-07', 'RAM', 61);
+        aplicar('cart-api-12', 'RAM', 81);
+        aplicar('cart-api-12', 'CPU', 62);
+        aplicar('cart-api-02', 'RAM', 78);
+        aplicar('cart-api-02', 'CPU', 64);
+        aplicar('cart-api-09', 'CPU', 80);
+        aplicar('cart-api-09', 'RAM', 63);
+        aplicar('pay-api-06', 'CPU', 83);
+        aplicar('pay-api-06', 'RAM', 64);
+        aplicar('catalog-api-03', 'Disco', 82);
+        aplicar('catalog-api-03', 'RAM', 66);
+        aplicar('catalog-api-05', 'RAM', 70);
+        aplicar('catalog-api-05', 'Disco', 72);
+
+        return registros;
+    }
+
     function criarBase(referencia) {
         const registros = [];
         for (let timestamp = referencia - 10080 * minuto; timestamp <= referencia; timestamp += 5 * minuto) {
@@ -52,7 +87,7 @@ const dashboardAlertasMock = (() => {
             });
         }
         // Estados normais também são registrados para representar a recuperação.
-        return Object.freeze(registros);
+        return Object.freeze(aplicarAjusteServidor(registros));
     }
 
     function reduzir(pontos, inicio, granularidade) {

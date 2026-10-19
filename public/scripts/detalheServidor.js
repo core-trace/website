@@ -22,8 +22,8 @@
 
     function renderizarPainel(servidor, cenario) {
         texto("detalhes-titulo", servidor.nome);
-        const situacao = { critico: "Crítico", atencao: "Atenção", normal: "Sem alertas ativos", "sem-dados": "Dados insuficientes" }[servidor.situacao] || "Crítico";
-        texto("detalhes-status", `${situacao} · simulação`);
+        const situacao = { critico: "Crítico", atencao: "Atenção", normal: "Normal", "sem-dados": "Dados insuficientes" }[servidor.situacao] || "Crítico";
+        texto("detalhes-status", situacao);
         document.getElementById("detalhes-status").style.color = servidor.situacao === "atencao" ? "#a76800" : servidor.situacao === "critico" ? "#cc0301" : "#777278";
         texto("detalhes-perfil", `${servidor.perfil} · ${servidor.sistemaOperacional} · 8 CPUs lógicas · uptime ${servidor.uptime}`);
         texto("detalhes-coleta", servidor.coletas ? (servidor.ultimaColeta
@@ -43,10 +43,9 @@
         // Somente os cenários fixos da demonstração são interpolados em HTML.
         // Nome e perfil provenientes do cadastro são atribuídos acima via textContent.
         conteudo.innerHTML = `
-            <div class="servidor-alerta servidor-alerta-${servidor.situacao}"><strong>${cenario.alerta}</strong><p>${cenario.regra}</p></div>
+            <div class="servidor-alerta servidor-alerta-${servidor.situacao}"><strong>${cenario.alerta}</strong></div>
             <section class="servidor-card" aria-labelledby="titulo-incidentes">
                 <h3 id="titulo-incidentes">Histórico de incidentes</h3>
-                <p class="servidor-legenda">Transições de severidade que ocorreram no período, inclusive iniciadas antes dele. Os cards técnicos mostram a coleta final.</p>
                 <div id="detalhes-incidentes" role="region" aria-label="Histórico de incidentes" tabindex="0" class="servidor-tabela-scroll"></div>
             </section>
             <section class="servidor-card" aria-labelledby="titulo-cpu">
@@ -71,7 +70,7 @@
                 <h3 id="titulo-ram">Memória disponível · ${memoria(cenario.disponivel)} de ${numero(cenario.capacidade)} GB (${numero(cenario.disponivel / cenario.capacidade * 100)}%)</h3>
                 <p class="servidor-legenda">Histórico de ocupação da RAM (%)</p>
                 ${canvas("ram", "Histórico de ocupação da memória RAM em porcentagem")}
-                <p class="servidor-notas">Ocupação da RAM: ${servidor.ram} · última leitura simulada</p>
+                <p class="servidor-notas">Ocupação da RAM: ${servidor.ram}</p>
                 <p class="servidor-notas"><span>Swap: ${cenario.swap}% ocupado</span><span>Entrada: ${numero(cenario.swapEntrada)} bytes/s · saída: ${numero(cenario.swapSaida)} bytes/s</span></p>
             </section>
             <section class="servidor-card" aria-labelledby="titulo-swap">
@@ -94,7 +93,6 @@
                     <table class="servidor-tabela"><thead><tr><th scope="col">Volume</th><th scope="col">Espaço livre</th><th scope="col">Espaço: dias restantes</th><th scope="col">Inodes usados</th><th scope="col">Inodes: dias restantes</th></tr></thead>
                     <tbody>${cenario.volumes.map((volume) => `<tr><td>${volume.nome}</td><td>${numero(volume.livre)} GB</td><td>${prazo(volume.diasEspaco)}</td><td>${numero(volume.inodesUsados)}%</td><td>${prazo(volume.diasInodes)}</td></tr>`).join("")}</tbody></table>
                 </div>
-                <p class="servidor-legenda">Estimativas ilustrativas por volume até o limite configurado, baseadas no crescimento diário. Inodes representam a capacidade de registrar arquivos e diretórios. Sem histórico suficiente ou crescimento positivo, não há previsão disponível.</p>
             </section>
             <section class="servidor-card" aria-labelledby="titulo-disco">
                 <div class="servidor-card-cabecalho">
@@ -133,7 +131,7 @@
             </section>
             <section class="servidor-card" aria-labelledby="titulo-processos">
                 <h3 id="titulo-processos">Processos monitorados</h3>
-                <p class="servidor-legenda">Identidade, estado, CPU e RAM · dados ilustrativos</p>
+                <p class="servidor-legenda">Identidade, estado, CPU e RAM</p>
                 <div class="servidor-tabela-scroll" role="region" aria-label="Processos monitorados do servidor" tabindex="0">
                     <table class="servidor-tabela"><thead><tr><th scope="col">PID</th><th scope="col">Nome</th><th scope="col">Estado</th><th scope="col">CPU¹</th><th scope="col">RAM</th></tr></thead>
                     <tbody>${cenario.processos.map((processo) => `<tr><td>${processo.pid}</td><td>${escapar(processo.nome)}</td><td>${processo.estado}</td><td>${numero(processo.cpu)}%</td><td>${memoria(processo.memoria)}</td></tr>`).join("")}</tbody></table>
@@ -142,7 +140,6 @@
             </section>
             ${servidor.monitorarDocker && cenario.containers.length ? `<section class="servidor-card" aria-labelledby="titulo-containers">
                 <h3 id="titulo-containers">Containers Docker · ${cenario.containers.length} encontrados</h3>
-                <p class="servidor-legenda">Monitoramento Docker habilitado · coleta simulada: ${monitoramentoMock.dataHora(servidor.referencia)}</p>
                 <p class="servidor-notas">${executando} em execução · ${parados} ${parados === 1 ? "parado" : "parados"}</p>
                 <div class="servidor-tabela-scroll" role="region" aria-label="Containers do servidor" tabindex="0">
                     <table class="servidor-tabela"><thead><tr><th scope="col">Container / ID</th><th scope="col">Estado</th><th scope="col">CPU¹</th><th scope="col">RAM</th><th scope="col">Leitura</th><th scope="col">Escrita</th></tr></thead>

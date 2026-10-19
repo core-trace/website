@@ -9,15 +9,10 @@ const dashboardGraficos = (() => {
         const semServidores = resumo.totalServidores === 0;
         const semBiblioteca = typeof Chart === 'undefined';
         const recursos = dashboardAlertasMock.recursos;
-        document.getElementById('graficos-periodo').textContent = `Cenário simulado iFood · ${dataHora(resumo.inicio)} até ${dataHora(resumo.fim)} · horário de Brasília · ${resumo.totalServidores} servidores no histórico. O período selecionado se aplica aos dois gráficos.`;
-        document.getElementById('evolucao-granularidade').textContent = resumo.granularidade === 5
-            ? 'Coletas a cada 5 minutos.'
-            : `Coletas de 5 minutos; picos e vales preservados em janelas de ${resumo.granularidade < 60 ? `${resumo.granularidade} min` : `${resumo.granularidade / 60} h`}.`;
-        document.getElementById('recursos-resumo').textContent = recursos.map(recurso => {
-            const item = resumo.recursos[recurso];
-            return `${recurso}: ${item.atencao} em atenção, ${item.critico} críticos no período.`;
-        }).join(' ');
-        document.getElementById('evolucao-resumo').textContent = resumo.evolucao.map(item => `${dataHora(item.instante)}: ${item.atencao} em atenção, ${item.critico} críticos.`).join(' ');
+        document.getElementById('graficos-periodo').textContent = '';
+        document.getElementById('evolucao-granularidade').textContent = '';
+        document.getElementById('recursos-resumo').textContent = '';
+        document.getElementById('evolucao-resumo').textContent = '';
         for (const tipo of ['recursos', 'evolucao']) {
             const aviso = semServidores ? 'Nenhum histórico simulado para este perfil no período.' : semBiblioteca ? 'Não foi possível carregar os gráficos. Recarregue a página.' : '';
             const status = document.getElementById(`${tipo}-status`);

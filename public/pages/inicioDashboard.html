@@ -16,6 +16,7 @@
     <script src="../scripts/dashboardDados.js" defer></script>
     <script src="../scripts/dashboardSimulacao.js" defer></script>
     <script src="../scripts/dashboardAlertasMock.js" defer></script>
+    <script src="../scripts/dashboardCenario.js" defer></script>
     <script src="../scripts/dashboardGraficos.js" defer></script>
     <script src="../scripts/detalheServidor.js" defer></script>
     <script src="../scripts/inicioDashboard.js" defer></script>
@@ -39,7 +40,7 @@
         </nav>
         <div class="visao-sistema">
             <span class="visao-sistema-ponto" aria-hidden="true"></span>
-            <div><p>Métricas simuladas</p><small id="demo-referencia">Preparando cenário...</small></div>
+            <div><p>Demonstração iFood</p><small id="demo-referencia">Preparando cenário...</small></div>
         </div>
     </aside>
 
@@ -88,7 +89,7 @@
             <section class="visao-cabecalho" aria-labelledby="titulo-visao">
                 <div>
                     <h1 id="titulo-visao">Visão geral dos servidores</h1>
-                    <p id="visao-resumo">Carregando os servidores da sua empresa...</p>
+                    <p id="visao-resumo">iFood</p>
                 </div>
                 <div class="visao-filtros">
                     <span class="visao-select-campo"><select class="visao-select" id="filtro-perfil" aria-label="Filtrar por perfil">
@@ -103,21 +104,20 @@
                     </select></span>
                 </div>
             </section>
-            <p class="visao-atualizacao" id="visao-atualizacao">Servidores cadastrados · coletas e histórico ilustrativos · limites dos perfis</p>
 
             <section class="visao-indicadores" aria-label="Indicadores dos servidores">
                 <article class="visao-card visao-indicador">
                     <h2>Servidores em atenção</h2>
                     <p class="visao-valor visao-atencao" id="indicador-atencao">—</p>
-                    <p class="visao-legenda">Sem componentes críticos</p>
+                    
                 </article>
                 <article class="visao-card visao-indicador">
                     <h2>Servidores críticos</h2>
                     <p class="visao-valor visao-critico" id="indicador-criticos">—</p>
-                    <p class="visao-legenda" id="legenda-criticos">Prioridade de investigação</p>
+                    
                 </article>
                 <article class="visao-card visao-indicador">
-                    <h2>Alertas ativos</h2>
+                    <h2><a class="visao-link-alertas" href="alertas.html">Alertas ativos ↗</a></h2>
                     <p class="visao-valor" id="indicador-alertas">—</p>
                     <p class="visao-legenda visao-alertas-legenda" id="legenda-alertas"><span class="visao-critico" id="alertas-criticos">— críticos</span><span aria-hidden="true">·</span><span class="visao-atencao" id="alertas-atencao">— atenção</span></p>
                 </article>
@@ -128,12 +128,12 @@
                 </article>
             </section>
 
-            <p class="visao-atualizacao" id="graficos-periodo" role="status" aria-live="polite"></p>
+            <p class="visao-sr-only" id="graficos-periodo" role="status" aria-live="polite"></p>
             <section class="visao-graficos" aria-label="Histórico simulado de alertas da infraestrutura iFood">
                 <article class="visao-card visao-grafico-card">
                     <h2 id="titulo-evolucao">Evolução dos servidores em alerta</h2>
-                    <p class="visao-legenda">Maior severidade de cada servidor no instante da coleta.</p>
-                    <p class="visao-legenda" id="evolucao-granularidade"></p>
+                    
+                    <p class="visao-sr-only" id="evolucao-granularidade"></p>
                     <div class="visao-grafico-area">
                         <canvas id="grafico-evolucao" role="img" aria-labelledby="titulo-evolucao" aria-describedby="evolucao-resumo"></canvas>
                         <p class="visao-grafico-status" id="evolucao-status" role="status" hidden></p>
@@ -142,8 +142,8 @@
                 </article>
                 <article class="visao-card visao-grafico-card">
                     <h2 id="titulo-recursos">Servidores com alertas por recurso</h2>
-                    <p class="visao-legenda">Servidores distintos em todo o período, pela maior severidade em cada recurso.</p>
-                    <p class="visao-legenda">Um servidor pode aparecer em mais de um recurso.</p>
+                    <p class="visao-legenda">Maior severidade no período</p>
+                    
                     <div class="visao-grafico-area">
                         <canvas id="grafico-recursos" role="img" aria-labelledby="titulo-recursos" aria-describedby="recursos-resumo"></canvas>
                         <p class="visao-grafico-status" id="recursos-status" role="status" hidden></p>
@@ -159,35 +159,25 @@
                         <option value="">Todas as situações</option>
                         <option value="critico">Crítico</option>
                         <option value="atencao">Atenção</option>
-                        <option value="normal">Sem alertas ativos</option>
+                        <option value="normal">Normal</option>
                     </select></span>
                 </div>
-                <p class="visao-legenda">Prioridade: críticos, atenção e sem alertas ativos. Última coleta válida por servidor.</p>
                 <div class="visao-tabela-scroll" role="region" aria-label="Lista de servidores" tabindex="0">
                     <table class="visao-tabela">
                         <thead>
                             <tr>
                                 <th scope="col">Servidor</th><th scope="col">Perfil</th><th scope="col">Situação</th>
-                                <th scope="col">CPU</th><th scope="col">RAM</th><th scope="col">Disco¹</th>
-                                <th scope="col">Docker²</th><th scope="col">Uptime</th><th scope="col">Última coleta</th><th scope="col"><span class="visao-sr-only">Ações</span></th>
+                                <th scope="col">CPU</th><th scope="col">RAM</th><th scope="col">Disco</th>
+                                <th scope="col">Docker</th><th scope="col">Uptime</th><th scope="col">Última coleta</th><th scope="col"><span class="visao-sr-only">Ações</span></th>
                             </tr>
                         </thead>
                         <tbody id="lista-servidores"></tbody>
                     </table>
                 </div>
-                <p class="visao-vazio" id="servidores-carregando" role="status">Carregando servidores...</p>
-                <div class="visao-erro" id="servidores-erro" hidden>
-                    <p id="servidores-mensagem-erro" role="alert"></p>
-                    <button type="button" id="servidores-tentar">Tentar novamente</button>
-                </div>
                 <p class="visao-vazio" id="servidores-vazio" role="status" hidden>Nenhum servidor encontrado. Tente outro termo ou altere os filtros.</p>
-                <div class="visao-tabela-rodape">
-                    <p class="visao-legenda"><span id="servidores-contagem" role="status" aria-live="polite"></span> · ¹ Maior ocupação entre volumes monitorados.</p>
-                    <p class="visao-legenda">² Containers associados no cadastro, com execução e consumo simulados nos perfis com Docker ativo.</p>
-                </div>
             </section>
 
-            <footer class="visao-rodape">SERVIDORES CADASTRADOS · métricas, situações e alertas ilustrativos</footer>
+
         </main>
 
         <dialog class="servidor-painel" id="detalhes-servidor" aria-labelledby="detalhes-titulo" aria-describedby="detalhes-perfil">
@@ -201,7 +191,7 @@
                 <p id="detalhes-coleta"></p>
             </header>
             <div class="servidor-corpo" id="detalhes-conteudo"></div>
-            <footer class="servidor-rodape">DADOS ILUSTRATIVOS · modelo de monitoramento para demonstração</footer>
+
         </dialog>
     </div>
 </body>

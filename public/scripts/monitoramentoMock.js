@@ -1,5 +1,5 @@
 // Altere esta referência ou use ?dataDemo=AAAA-MM-DD. Horários da apresentação: Brasília.
-const DATA_REFERENCIA_DEMO = '2026-10-15T14:30:00-03:00';
+const DATA_REFERENCIA_DEMO = '2026-10-15T13:00:00-03:00';
 const monitoramentoMock = (() => {
     const periodos = [15, 30, 60, 360, 1440, 10080];
     const rotulosPeriodo = { 15: 'Últimos 15 minutos', 30: 'Últimos 30 minutos', 60: 'Última hora', 360: 'Últimas 6 horas', 1440: 'Últimas 24 horas', 10080: 'Últimos 7 dias' };
@@ -33,7 +33,7 @@ const monitoramentoMock = (() => {
         let configurada = valor ?? DATA_REFERENCIA_DEMO;
         if (valor === undefined && typeof location !== 'undefined') {
             const data = new URLSearchParams(location.search).get('dataDemo');
-            if (data && /^\d{4}-\d{2}-\d{2}$/.test(data)) configurada = `${data}T14:30:00-03:00`;
+            if (data && /^\d{4}-\d{2}-\d{2}$/.test(data)) configurada = `${data}T13:00:00-03:00`;
         }
         const instante = typeof configurada === 'number' ? configurada : Date.parse(configurada);
         if (!Number.isFinite(instante)) throw new RangeError('Data de referência inválida.');
@@ -46,7 +46,8 @@ const monitoramentoMock = (() => {
 
     function recortar(servidor, minutos) {
         validarPeriodo(minutos);
-        return servidor.coletas.slice(-minutos - 1);
+        const inicio = servidor.referencia - minutos * 60000;
+        return servidor.coletas.filter(coleta => coleta.instante >= inicio && coleta.instante <= servidor.referencia);
     }
 
     function historico(servidor, minutos = 30) {
@@ -98,7 +99,7 @@ const monitoramentoMock = (() => {
             containers: dashboardSimulacao.containers(servidor, coleta, processos),
             discos: tecnica.discos, redes: tecnica.redes, alertas: estado.alertas,
             alerta: estado.alertas.length ? `${estado.alertas.length} ${estado.alertas.length === 1 ? 'alerta ativo' : 'alertas ativos'} · ${[...new Set(estado.alertas.map(item => item.recurso))].join(', ')}` : 'Sem alertas ativos na última coleta',
-            regra: 'Estado atual da demonstração · limites configurados no perfil'
+            regra: ''
         };
     }
     return { configurar, periodos, rotulosPeriodo, referencia, horario, dataHora, validarPeriodo, recortar, historico, incidentes, cenario };

@@ -2,6 +2,12 @@ const dashboardAlertasMock = (() => {
     const minuto = 60_000;
     const recursos = ['CPU', 'RAM', 'Disco', 'Rede'];
     const pesos = { normal: 0, atencao: 1, critico: 2 };
+    const metricas = {
+        CPU: { coluna: 'cpu_percent', nome: 'Uso de CPU', unidade: '%', atencao: 75, critico: 90 },
+        RAM: { coluna: 'ram_percent', nome: 'Uso de RAM', unidade: '%', atencao: 75, critico: 90 },
+        Disco: { coluna: 'disk_percent', nome: 'Ocupação do disco', unidade: '%', atencao: 75, critico: 90 },
+        Rede: { coluna: 'net_errors', nome: 'Erros de rede', unidade: 'eventos/s', atencao: 7.5, critico: 9 }
+    };
     const perfis = [{ id: '1', nome: 'Carrinho' }, { id: '2', nome: 'Financeiro' }, { id: '3', nome: 'Catálogo' }];
     const servidores = [
         ['cart-api-07', '1'], ['cart-api-12', '1'], ['cart-api-02', '1'], ['cart-api-09', '1'],
@@ -35,10 +41,14 @@ const dashboardAlertasMock = (() => {
                     // O catálogo concentra o tráfego; os demais têm margem de rede.
                     Rede: 25 + (perfil === '3' ? 55 * sensibilidade : 24) * demanda(0)
                 };
-                recursos.forEach(recurso => registros.push(Object.freeze({
-                    servidor, perfil, recurso, timestamp,
-                    severidade: valores[recurso] >= 90 ? 'critico' : valores[recurso] >= 75 ? 'atencao' : 'normal'
-                })));
+                recursos.forEach(recurso => {
+                    const metrica = metricas[recurso];
+                    const valor = Number((Math.min(100, Math.max(0, valores[recurso])) / (recurso === 'Rede' ? 10 : 1)).toFixed(2));
+                    registros.push(Object.freeze({
+                        servidor, perfil, recurso, timestamp, valor,
+                        severidade: valor >= metrica.critico ? 'critico' : valor >= metrica.atencao ? 'atencao' : 'normal'
+                    }));
+                });
             });
         }
         // Estados normais também são registrados para representar a recuperação.
@@ -96,5 +106,5 @@ const dashboardAlertasMock = (() => {
         };
     }
 
-    return { criarBase, agregar, recursos, perfis };
+    return { criarBase, agregar, recursos, perfis, metricas };
 })();

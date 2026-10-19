@@ -2,7 +2,7 @@
 const grupos = [
     { titulo: "Monitoramento", itens: [
         { rotulo: "Dashboard", href: "/pages/inicioDashboard.html", icone: "/assets/icons/dashboard.png", permissao: "VISUALIZAR_DASHBOARD" },
-        { rotulo: "Alertas", href: "#", icone: "/assets/icons/sino.png", permissao: "VISUALIZAR_ALERTAS" }
+        { rotulo: "Alertas", href: "/pages/alertas.html", icone: "/assets/icons/sino.png", permissao: "VISUALIZAR_ALERTAS" }
     ] },
     { titulo: "Gestão", itens: [
         { rotulo: "Perfis de servidor", href: "/pages/perfisServidor.html", icone: "/assets/icons/perfil.png", permissao: "ACESSAR_PERFIS_SERVIDOR" },

@@ -2,7 +2,7 @@
     const cenario = dashboardCenario.criar();
     const filtroPerfil = document.getElementById('alerta-filtro-perfil');
     const filtroNivel = document.getElementById('alerta-filtro-nivel');
-    const busca = document.querySelector('.dashboard-pesquisa input');
+    const busca = document.getElementById('busca-alertas');
     const lista = document.getElementById('lista-alertas');
     const vazio = document.getElementById('alertas-vazio');
 

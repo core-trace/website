@@ -78,11 +78,6 @@
                 <span aria-hidden="true"></span>
             </button>
 
-            <label class="dashboard-pesquisa">
-                <span class="dashboard-lupa" aria-hidden="true"></span>
-                <input type="search" name="busca" aria-label="Buscar alertas por servidor, perfil ou recurso" placeholder="Buscar por servidor, perfil ou recurso...">
-            </label>
-
             <div class="dashboard-usuario">
                 <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
                     <img src="../assets/icons/sino.png" alt="" width="24" height="24">
@@ -149,6 +144,11 @@
             <section class="visao-card visao-servidores" aria-labelledby="titulo-alertas-lista">
                 <div class="visao-tabela-cabecalho">
                     <h2 id="titulo-alertas-lista">Eventos em curso</h2>
+                    <label class="visao-busca-servidores">
+                        <span class="dashboard-lupa" aria-hidden="true"></span>
+                        <input type="search" id="busca-alertas" aria-label="Buscar alertas por servidor, perfil ou recurso"
+                            placeholder="Buscar servidor, perfil ou recurso..." aria-controls="lista-alertas">
+                    </label>
                     <span class="alerta-resumo" id="alerta-quantidade">0 eventos</span>
                 </div>
                 <div id="alertas-vazio" class="visao-vazio" hidden>Nenhum alerta encontrado para o filtro aplicado.</div>

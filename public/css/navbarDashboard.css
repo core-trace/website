@@ -180,6 +180,7 @@
 
 .dashboard-usuario {
     display: flex;
+    margin-left: auto;
     align-items: center;
     flex-shrink: 0;
     gap: 12px;

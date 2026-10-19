@@ -15,22 +15,22 @@
 .perfis-secao {
     margin-bottom: 8px;
     color: var(--cor-primaria);
-    font-size: 12px;
+    font-size: 16px;
     letter-spacing: 1px;
     text-transform: uppercase;
 }
 
 .perfis h1 {
     margin-bottom: 12px;
-    font-size: 30px;
+    font-size: 32px;
     letter-spacing: -0.8px;
 }
 
 .perfis-descricao,
 .perfis-carregando,
 .perfis-contagem {
-    color: #777278;
-    font-size: 14px;
+    color: #4b4350;
+    font-size: 16px;
 }
 
 .perfis-adicionar {
@@ -45,7 +45,7 @@
     border-radius: 8px;
     background-color: var(--cor-preto);
     color: #ffffff;
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -54,7 +54,7 @@
 }
 
 .perfis-adicionar span {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 400;
     line-height: 1;
 }
@@ -73,15 +73,15 @@
 .perfis-vazio h2,
 .perfis-erro h2 {
     margin-bottom: 12px;
-    font-size: 22px;
+    font-size: 24px;
 }
 
 .perfis-vazio p,
 .perfis-erro p {
     max-width: 460px;
     margin-inline: auto;
-    color: #777278;
-    font-size: 14px;
+    color: #4b4350;
+    font-size: 16px;
 }
 
 .perfis-tentar,
@@ -92,7 +92,7 @@
     border-radius: 8px;
     background-color: transparent;
     color: var(--cor-cinza);
-    font-size: 13px;
+    font-size: 16px;
     text-decoration: none;
 }
 
@@ -126,14 +126,14 @@
 
 .perfil-card h2 {
     margin-bottom: 10px;
-    font-size: 18px;
+    font-size: 20px;
     overflow-wrap: anywhere;
 }
 
 .perfil-card-descricao {
     margin-bottom: 24px;
-    color: #777278;
-    font-size: 13px;
+    color: #4b4350;
+    font-size: 16px;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
 }
@@ -142,7 +142,7 @@
     padding-top: 16px;
     border-top: 1px solid var(--dashboard-borda);
     color: var(--cor-cinza);
-    font-size: 12px;
+    font-size: 16px;
 }
 
 @media (max-width: 1100px) {
@@ -158,7 +158,7 @@
     }
 
     .perfis h1 {
-        font-size: 26px;
+        font-size: 28px;
     }
 
     .perfis-adicionar {
@@ -185,7 +185,7 @@
     border-radius: 8px;
     background-color: transparent;
     color: var(--cor-primaria);
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -211,5 +211,5 @@
 .perfil-download-feedback {
     margin-top: 12px;
     color: var(--cor-cinza);
-    font-size: 12px;
+    font-size: 16px;
 }

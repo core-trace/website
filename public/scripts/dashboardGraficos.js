@@ -35,8 +35,8 @@ const dashboardGraficos = (() => {
                     responsive: true, maintainAspectRatio: false, animation: false, locale: 'pt-BR',
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 12, boxHeight: 12, padding: 18, color: '#4b4350', font: { family: 'Poppins', size: 14 } } },
-                        tooltip: { titleFont: { size: 15 }, bodyFont: { size: 14 }, footerFont: { size: 14 }, padding: 12, callbacks: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 12, boxHeight: 12, padding: 18, color: '#4b4350', font: { family: 'Poppins', size: 16 } } },
+                        tooltip: { titleFont: { size: 17 }, bodyFont: { size: 16 }, footerFont: { size: 16 }, padding: 12, callbacks: {
                             title: itens => evolucao ? dataHora(resumo.evolucao[itens[0].dataIndex].instante) : itens[0].label,
                             label: item => `${item.dataset.label}: ${item.parsed.y} ${item.parsed.y === 1 ? 'servidor' : 'servidores'}`,
                             footer: () => evolucao
@@ -55,16 +55,16 @@ const dashboardGraficos = (() => {
                                     }));
                                 }
                             } : {}),
-                            title: { display: true, text: evolucao ? 'Tempo · horário de Brasília' : 'Recurso', color: '#4b4350', font: { family: 'Poppins', size: 14 } },
+                            title: { display: true, text: evolucao ? 'Tempo · horário de Brasília' : 'Recurso', color: '#4b4350', font: { family: 'Poppins', size: 16 } },
                             grid: { display: false }, border: { display: false },
                             ticks: {
                                 ...(evolucao ? { callback: valor => resumo.periodo >= 10080 ? dataHora(valor).split(',')[0]
                                     : resumo.periodo >= 1440 ? dataHora(valor).split(',').map(parte => parte.trim()) : horario(valor) } : {}),
                                 maxRotation: 0, maxTicksLimit: evolucao ? (resumo.periodo >= 10080 ? 8 : 5) : 4,
-                                color: '#4b4350', font: { family: 'Poppins', size: 14 }
+                                color: '#4b4350', font: { family: 'Poppins', size: 16 }
                             }
                         },
-                        y: { beginAtZero: true, max: resumo.totalServidores, border: { display: false }, title: { display: true, text: evolucao ? 'Servidores' : 'Servidores distintos', color: '#4b4350', font: { family: 'Poppins', size: 14 } }, ticks: { precision: 0, maxTicksLimit: 5, color: '#4b4350', font: { family: 'Poppins', size: 14 } }, grid: { color: '#d6dbe3' } }
+                        y: { beginAtZero: true, max: resumo.totalServidores, border: { display: false }, title: { display: true, text: evolucao ? 'Servidores' : 'Servidores distintos', color: '#4b4350', font: { family: 'Poppins', size: 16 } }, ticks: { precision: 0, maxTicksLimit: 5, color: '#4b4350', font: { family: 'Poppins', size: 16 } }, grid: { color: '#d6dbe3' } }
                     }
                 }
             }));

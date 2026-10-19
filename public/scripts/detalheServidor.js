@@ -229,13 +229,13 @@
                     responsive: true, maintainAspectRatio: false, animation: false,
                     locale: "pt-BR", interaction: { mode: "index", intersect: false },
                     plugins: {
-                        legend: { display: datasets.length > 1, position: "bottom", labels: { boxWidth: 18, boxHeight: 3, color: "#4b4350", font: { family: "Poppins", size: 14 } } },
-                        tooltip: { titleFont: { size: 15 }, bodyFont: { size: 14 }, footerFont: { size: 14 }, padding: 12, callbacks: { title: itens => monitoramentoMock.dataHora(itens[0].parsed.x), label: (contexto) => `${contexto.dataset.label}: ${numero(contexto.parsed.y)}${unidade}` } }
+                        legend: { display: datasets.length > 1, position: "bottom", labels: { boxWidth: 18, boxHeight: 3, color: "#4b4350", font: { family: "Poppins", size: 16 } } },
+                        tooltip: { titleFont: { size: 17 }, bodyFont: { size: 16 }, footerFont: { size: 16 }, padding: 12, callbacks: { title: itens => monitoramentoMock.dataHora(itens[0].parsed.x), label: (contexto) => `${contexto.dataset.label}: ${numero(contexto.parsed.y)}${unidade}` } }
                     },
                     scales: {
                         x: { type: "linear", min: historico.instantes[0], max: historico.instantes.at(-1), grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 4, maxRotation: 0,
-                            callback: valor => selecao.minutos >= 1440 ? monitoramentoMock.dataHora(valor) : monitoramentoMock.horario(valor), color: "#4b4350", font: { family: "Poppins", size: 14 } } },
-                        y: { min: 0, ...(unidade === "%" ? { max: maximo } : { suggestedMax: maximo }), border: { display: false }, grid: { color: "#d6dbe3" }, ticks: { maxTicksLimit: 3, color: "#4b4350", font: { family: "Poppins", size: 14 }, callback: (valor) => `${numero(valor)}${unidade}` } }
+                            callback: valor => selecao.minutos >= 1440 ? monitoramentoMock.dataHora(valor) : monitoramentoMock.horario(valor), color: "#4b4350", font: { family: "Poppins", size: 16 } } },
+                        y: { min: 0, ...(unidade === "%" ? { max: maximo } : { suggestedMax: maximo }), border: { display: false }, grid: { color: "#d6dbe3" }, ticks: { maxTicksLimit: 3, color: "#4b4350", font: { family: "Poppins", size: 16 }, callback: (valor) => `${numero(valor)}${unidade}` } }
                     }
                 }
             }));

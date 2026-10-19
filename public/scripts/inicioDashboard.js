@@ -7,7 +7,7 @@
     const filtroPeriodo = document.getElementById("filtro-periodo");
     dashboardCenario.configurarFiltros(filtroPerfil, filtroPeriodo);
     const filtroSituacao = document.getElementById("filtro-situacao");
-    const busca = document.querySelector('.dashboard-pesquisa input');
+    const busca = document.getElementById('busca-servidores');
     const lista = document.getElementById("lista-servidores");
     const vazio = document.getElementById("servidores-vazio");
     const texto = (id, valor) => { document.getElementById(id).textContent = valor; };
@@ -60,7 +60,6 @@
         texto("indicador-previsao", previsao ? `${previsao.dias} ${previsao.dias === 1 ? "dia" : "dias"}` : "Sem tendência");
         document.getElementById("indicador-previsao").classList.toggle("visao-sem-previsao", !previsao);
         texto("legenda-previsao", previsao ? `${previsao.servidor.nome} · ${previsao.volume}` : "Armazenamento estável");
-        texto("demo-referencia", monitoramentoMock.dataHora(referencia));
     }
 
     function atualizarTabela() {

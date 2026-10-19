@@ -125,6 +125,30 @@
     margin-top: 20px;
 }
 
+.visao-navbar .dashboard-usuario { margin-left: auto; }
+.visao-servidores .visao-tabela-cabecalho { flex-wrap: wrap; }
+.visao-busca-servidores {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 240px;
+    min-width: 0;
+    min-height: 40px;
+    padding: 10px 14px;
+    border: 1px solid var(--dashboard-borda);
+    border-radius: 7px;
+}
+.visao-busca-servidores:focus-within { border-color: var(--cor-cinza); }
+.visao-busca-servidores input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--cor-texto);
+    font-size: 12px;
+}
+
 .visao-servidores > .visao-legenda {
     margin-top: 12px;
 }
@@ -227,6 +251,7 @@
     .visao-indicador h2 { font-size: 11px; }
     .visao-valor { font-size: 25px; }
     .visao-tabela-cabecalho { align-items: stretch; flex-direction: column; gap: 12px; }
+    .visao-busca-servidores { flex: 0 0 auto; }
     .visao-select-situacao { min-width: 0; width: 100%; }
     .visao-grafico-area { height: 250px; }
 }

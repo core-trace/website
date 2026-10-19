@@ -38,28 +38,18 @@
         <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
             <p class="dashboard-acesso-feedback" role="status">Carregando acessos...</p>
         </nav>
-        <div class="visao-sistema">
-            <span class="visao-sistema-ponto" aria-hidden="true"></span>
-            <div><p>Demonstração iFood</p><small id="demo-referencia">Preparando cenário...</small></div>
-        </div>
     </aside>
 
     <div class="dashboard-menu-fundo" aria-hidden="true"></div>
 
     <div class="dashboard-conteudo">
-        <header class="dashboard-navbar">
+        <header class="dashboard-navbar visao-navbar">
             <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu"
                 aria-controls="menu-dashboard" aria-expanded="false">
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
             </button>
-
-            <label class="dashboard-pesquisa">
-                <span class="dashboard-lupa" aria-hidden="true"></span>
-                <input type="search" name="busca" aria-label="Buscar por servidor, hostname ou perfil"
-                    placeholder="Buscar por servidor, hostname ou perfil...">
-            </label>
 
             <div class="dashboard-usuario">
                 <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
@@ -155,6 +145,11 @@
             <section class="visao-card visao-servidores" aria-labelledby="titulo-servidores">
                 <div class="visao-tabela-cabecalho">
                     <h2 id="titulo-servidores">Servidores</h2>
+                    <label class="visao-busca-servidores">
+                        <span class="dashboard-lupa" aria-hidden="true"></span>
+                        <input type="search" id="busca-servidores" aria-label="Buscar servidor ou perfil"
+                            placeholder="Buscar servidor ou perfil..." aria-controls="lista-servidores">
+                    </label>
                     <span class="visao-select-campo"><select class="visao-select visao-select-situacao" id="filtro-situacao" aria-label="Filtrar por situação">
                         <option value="">Todas as situações</option>
                         <option value="critico">Crítico</option>

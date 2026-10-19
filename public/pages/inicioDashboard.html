@@ -15,6 +15,8 @@
     <script src="../scripts/monitoramentoMock.js" defer></script>
     <script src="../scripts/dashboardDados.js" defer></script>
     <script src="../scripts/dashboardSimulacao.js" defer></script>
+    <script src="../scripts/dashboardAlertasMock.js" defer></script>
+    <script src="../scripts/dashboardGraficos.js" defer></script>
     <script src="../scripts/detalheServidor.js" defer></script>
     <script src="../scripts/inicioDashboard.js" defer></script>
 </head>
@@ -92,6 +94,13 @@
                     <span class="visao-select-campo"><select class="visao-select" id="filtro-perfil" aria-label="Filtrar por perfil">
                         <option value="">Todos os perfis</option>
                     </select></span>
+                    <span class="visao-select-campo"><select class="visao-select" id="filtro-periodo" aria-label="Período dos gráficos">
+                        <option value="60">Última hora</option>
+                        <option value="360">Últimas 6 horas</option>
+                        <option value="720">Últimas 12 horas</option>
+                        <option value="1440" selected>Últimas 24 horas</option>
+                        <option value="10080">Últimos 7 dias</option>
+                    </select></span>
                 </div>
             </section>
             <p class="visao-atualizacao" id="visao-atualizacao">Servidores cadastrados · coletas e histórico ilustrativos · limites dos perfis</p>
@@ -116,6 +125,30 @@
                     <h2>Previsão de armazenamento</h2>
                     <p class="visao-valor visao-atencao" id="indicador-previsao">—</p>
                     <p class="visao-legenda" id="legenda-previsao">Aguardando a lista de servidores</p>
+                </article>
+            </section>
+
+            <p class="visao-atualizacao" id="graficos-periodo" role="status" aria-live="polite"></p>
+            <section class="visao-graficos" aria-label="Histórico simulado de alertas da infraestrutura iFood">
+                <article class="visao-card visao-grafico-card">
+                    <h2 id="titulo-evolucao">Evolução dos servidores em alerta</h2>
+                    <p class="visao-legenda">Maior severidade de cada servidor no instante da coleta.</p>
+                    <p class="visao-legenda" id="evolucao-granularidade"></p>
+                    <div class="visao-grafico-area">
+                        <canvas id="grafico-evolucao" role="img" aria-labelledby="titulo-evolucao" aria-describedby="evolucao-resumo"></canvas>
+                        <p class="visao-grafico-status" id="evolucao-status" role="status" hidden></p>
+                    </div>
+                    <p class="visao-sr-only" id="evolucao-resumo"></p>
+                </article>
+                <article class="visao-card visao-grafico-card">
+                    <h2 id="titulo-recursos">Servidores com alertas por recurso</h2>
+                    <p class="visao-legenda">Servidores distintos em todo o período, pela maior severidade em cada recurso.</p>
+                    <p class="visao-legenda">Um servidor pode aparecer em mais de um recurso.</p>
+                    <div class="visao-grafico-area">
+                        <canvas id="grafico-recursos" role="img" aria-labelledby="titulo-recursos" aria-describedby="recursos-resumo"></canvas>
+                        <p class="visao-grafico-status" id="recursos-status" role="status" hidden></p>
+                    </div>
+                    <p class="visao-sr-only" id="recursos-resumo"></p>
                 </article>
             </section>
 

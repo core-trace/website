@@ -132,6 +132,7 @@
 .visao-grafico-card > .visao-legenda { margin-top: 8px; }
 .visao-grafico-area { position: relative; height: 275px; min-width: 0; margin-top: auto; padding-top: 20px; }
 .visao-grafico-area canvas { display: block; max-width: 100%; }
+.visao-grafico-area canvas[hidden] { display: none; }
 .visao-grafico-status { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: #777278; font-size: 12px; }
 .visao-grafico-status[hidden] { display: none; }
 .visao-alertas-legenda { display: flex; flex-wrap: wrap; gap: 4px 8px; }

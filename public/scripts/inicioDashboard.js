@@ -6,6 +6,10 @@
     let resumo = dashboardDados.agregar([], [], referencia);
     const situacoes = { critico: "Crítico", atencao: "Atenção", normal: "Sem alertas ativos", "sem-dados": "Dados insuficientes" };
     const filtroPerfil = document.getElementById("filtro-perfil");
+    const filtroPeriodo = document.getElementById("filtro-periodo");
+    // Histórico dos gráficos inteiramente local, criado uma única vez por página.
+    const referenciaGraficos = referencia;
+    const historicoAlertas = dashboardAlertasMock.criarBase(referenciaGraficos);
     const filtroSituacao = document.getElementById("filtro-situacao");
     const busca = document.querySelector('.dashboard-pesquisa input');
     const lista = document.getElementById("lista-servidores");
@@ -16,6 +20,14 @@
     const texto = (id, valor) => { document.getElementById(id).textContent = valor; };
     const normalizar = (valor) => valor.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     const servidoresDoPerfil = () => servidores.filter((servidor) => !filtroPerfil.value || servidor.perfilId === filtroPerfil.value);
+
+    function atualizarGraficos() {
+        dashboardGraficos.renderizar(dashboardAlertasMock.agregar(historicoAlertas, {
+            inicio: referenciaGraficos - Number(filtroPeriodo.value) * 60_000,
+            fim: referenciaGraficos,
+            perfil: filtroPerfil.value ? filtroPerfil.selectedOptions[0].dataset.perfilMock || 'sem-historico' : ''
+        }));
+    }
 
     function atualizarIndicadores() {
         const selecionados = servidoresDoPerfil();
@@ -100,12 +112,24 @@
 
     function atualizarPerfis() {
         const selecionado = filtroPerfil.value;
-        const perfis = new Map(servidores.map((servidor) => [servidor.perfilId, servidor.perfil]));
+        const mockSelecionado = filtroPerfil.selectedOptions[0]?.dataset.perfilMock;
+        const perfis = new Map(servidores.map(servidor => [servidor.perfilId, servidor.perfil]));
+        // IDs cadastrais podem mudar. A correspondência com o cenário é pelo nome
+        // do perfil; opções exclusivamente simuladas têm um namespace próprio.
+        dashboardAlertasMock.perfis.forEach(perfil => {
+            if (![...perfis.values()].some(nome => normalizar(nome) === normalizar(perfil.nome))) {
+                perfis.set(`cenario:${perfil.id}`, perfil.nome);
+            }
+        });
         filtroPerfil.replaceChildren(new Option("Todos os perfis", ""));
         [...perfis.entries()].sort((a, b) => a[1].localeCompare(b[1], "pt-BR")).forEach(([id, nome]) => {
-            filtroPerfil.add(new Option(nome, id));
+            const mock = dashboardAlertasMock.perfis.find(perfil => normalizar(perfil.nome) === normalizar(nome));
+            const opcao = new Option(id.startsWith('cenario:') ? `${nome} · cenário iFood` : nome, id);
+            if (mock) opcao.dataset.perfilMock = mock.id;
+            filtroPerfil.add(opcao);
         });
-        filtroPerfil.value = perfis.has(selecionado) ? selecionado : "";
+        filtroPerfil.value = perfis.has(selecionado) ? selecionado
+            : [...filtroPerfil.options].find(opcao => mockSelecionado && opcao.dataset.perfilMock === mockSelecionado)?.value || "";
     }
 
     async function carregarServidores() {
@@ -118,7 +142,6 @@
         document.getElementById("servidores-carregando").hidden = false;
         erro.hidden = true;
         tentar.disabled = true;
-        filtroPerfil.disabled = true;
         filtroSituacao.disabled = true;
         atualizarIndicadores();
         atualizarTabela();
@@ -140,15 +163,16 @@
             document.getElementById("servidores-carregando").hidden = true;
             secao.setAttribute("aria-busy", "false");
             tentar.disabled = false;
-            filtroPerfil.disabled = !carregou;
             filtroSituacao.disabled = !carregou;
             atualizarPerfis();
+            atualizarGraficos();
             atualizarIndicadores();
             atualizarTabela();
         }
     }
 
-    filtroPerfil.addEventListener("change", () => { atualizarIndicadores(); atualizarTabela(); });
+    filtroPerfil.addEventListener("change", () => { atualizarIndicadores(); atualizarTabela(); atualizarGraficos(); });
+    filtroPeriodo.addEventListener("change", atualizarGraficos);
     filtroSituacao.addEventListener("change", atualizarTabela);
     busca.addEventListener("input", atualizarTabela);
     tentar.addEventListener("click", carregarServidores);
@@ -158,5 +182,7 @@
         const servidor = resumo.servidores.find((item) => item.id === Number(botao.dataset.servidor));
         if (servidor) document.dispatchEvent(new CustomEvent("abrir-detalhes-servidor", { detail: servidor }));
     });
+    atualizarPerfis();
+    atualizarGraficos();
     setTimeout(carregarServidores, 0);
 })();

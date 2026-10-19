@@ -8,88 +8,101 @@ CREATE DATABASE coretrace;
 USE coretrace;
 
 CREATE TABLE empresa (
-    id_empresa INT AUTO_INCREMENT PRIMARY KEY,
+    id_empresa INT AUTO_INCREMENT,
     razao_social VARCHAR(45) NOT NULL,
-    cnpj VARCHAR(45) NOT NULL UNIQUE,
+    cnpj VARCHAR(45) NOT NULL,
     dt_registro DATE,
-    token_instalacao VARCHAR(255) UNIQUE
+    token_instalacao VARCHAR(255),
+    CONSTRAINT pk_empresa PRIMARY KEY (id_empresa),
+    CONSTRAINT uq_empresa_cnpj UNIQUE (cnpj),
+    CONSTRAINT uq_empresa_token_instalacao UNIQUE (token_instalacao)
 );
 
 CREATE TABLE endereco (
-    id_endereco INT AUTO_INCREMENT PRIMARY KEY,
+    id_endereco INT AUTO_INCREMENT,
     numero VARCHAR(10),
     cidade VARCHAR(45),
     estado VARCHAR(45),
     logradouro VARCHAR(100),
     fk_empresa INT NOT NULL,
-    FOREIGN KEY (fk_empresa) REFERENCES empresa(id_empresa)
+    CONSTRAINT fk_endereco_fk_empresa FOREIGN KEY (fk_empresa) REFERENCES empresa(id_empresa),
+    CONSTRAINT pk_endereco PRIMARY KEY (id_endereco)
 );
 
 CREATE TABLE nivel_acesso (
-    id_nivel_acesso INT AUTO_INCREMENT PRIMARY KEY,
+    id_nivel_acesso INT AUTO_INCREMENT,
     nome VARCHAR(45) NOT NULL,
-    descricao VARCHAR(255)
+    descricao VARCHAR(255),
+    CONSTRAINT pk_nivel_acesso PRIMARY KEY (id_nivel_acesso)
 );
 
 CREATE TABLE permissoes (
-    id_permissao INT AUTO_INCREMENT PRIMARY KEY,
+    id_permissao INT AUTO_INCREMENT,
     nome VARCHAR(45) NOT NULL,
-    descricao VARCHAR(45)
+    descricao VARCHAR(45),
+    CONSTRAINT pk_permissoes PRIMARY KEY (id_permissao)
 );
 
 CREATE TABLE nivel_acesso_permissoes (
     fk_nivel_acesso INT NOT NULL,
     fk_permissao INT NOT NULL,
-    FOREIGN KEY (fk_nivel_acesso) REFERENCES nivel_acesso(id_nivel_acesso),
-    FOREIGN KEY (fk_permissao) REFERENCES permissoes(id_permissao)
+    CONSTRAINT fk_nivel_acesso_permissoes_fk_nivel_acesso FOREIGN KEY (fk_nivel_acesso) REFERENCES nivel_acesso(id_nivel_acesso),
+    CONSTRAINT fk_nivel_acesso_permissoes_fk_permissao FOREIGN KEY (fk_permissao) REFERENCES permissoes(id_permissao)
 );
 
 CREATE TABLE usuario (
-    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT AUTO_INCREMENT,
     nome VARCHAR(45) NOT NULL,
-    email VARCHAR(45) NOT NULL UNIQUE,
+    email VARCHAR(45) NOT NULL,
     senha VARCHAR(45),
-    cpf CHAR(11) UNIQUE,
+    cpf CHAR(11),
     token_acesso VARCHAR(255),
     telefone VARCHAR(45),
     fk_empresa INT NOT NULL,
     fk_nivel_acesso INT NOT NULL,
     status VARCHAR(45),
-    FOREIGN KEY (fk_empresa) REFERENCES empresa(id_empresa),
-    FOREIGN KEY (fk_nivel_acesso) REFERENCES nivel_acesso(id_nivel_acesso)
+    CONSTRAINT fk_usuario_fk_empresa FOREIGN KEY (fk_empresa) REFERENCES empresa(id_empresa),
+    CONSTRAINT fk_usuario_fk_nivel_acesso FOREIGN KEY (fk_nivel_acesso) REFERENCES nivel_acesso(id_nivel_acesso),
+    CONSTRAINT pk_usuario PRIMARY KEY (id_usuario),
+    CONSTRAINT uq_usuario_email UNIQUE (email),
+    CONSTRAINT uq_usuario_cpf UNIQUE (cpf)
 );
 
 CREATE TABLE perfil_servidor (
-    id_perfil_servidor INT AUTO_INCREMENT PRIMARY KEY,
+    id_perfil_servidor INT AUTO_INCREMENT,
     nome VARCHAR(100) NOT NULL,
     descricao VARCHAR(500),
-    token_perfil_servidor VARCHAR(255) UNIQUE NOT NULL,
+    token_perfil_servidor VARCHAR(255) NOT NULL,
     sistema_operacional VARCHAR(10) NOT NULL DEFAULT 'linux',
     monitorar_docker BOOLEAN NOT NULL DEFAULT FALSE,
     fk_empresa INT NOT NULL,
-    FOREIGN KEY (fk_empresa) REFERENCES empresa(id_empresa)
+    CONSTRAINT fk_perfil_servidor_fk_empresa FOREIGN KEY (fk_empresa) REFERENCES empresa(id_empresa),
+    CONSTRAINT pk_perfil_servidor PRIMARY KEY (id_perfil_servidor),
+    CONSTRAINT uq_perfil_servidor_token_perfil_servidor UNIQUE (token_perfil_servidor)
 );
 
 CREATE TABLE usuario_perfil_servidor (
     fk_usuario INT NOT NULL,
     fk_perfil_servidor INT NOT NULL,
-    FOREIGN KEY (fk_usuario) REFERENCES usuario(id_usuario),
-    FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)
+    CONSTRAINT fk_usuario_perfil_servidor_fk_usuario FOREIGN KEY (fk_usuario) REFERENCES usuario(id_usuario),
+    CONSTRAINT fk_usuario_perfil_servidor_fk_perfil_servidor FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)
 );
 
 CREATE TABLE servidores (
-    id_servidor INT AUTO_INCREMENT PRIMARY KEY,
+    id_servidor INT AUTO_INCREMENT,
     nome VARCHAR(45) NOT NULL,
     status VARCHAR(45),
-    endereco_mac VARCHAR(17) UNIQUE NOT NULL,
+    endereco_mac VARCHAR(17) NOT NULL,
     fk_perfil_servidor INT NOT NULL,
-    FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)
+    CONSTRAINT fk_servidores_fk_perfil_servidor FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor),
+    CONSTRAINT pk_servidores PRIMARY KEY (id_servidor),
+    CONSTRAINT uq_servidores_endereco_mac UNIQUE (endereco_mac)
 );
 
 CREATE TABLE componentes (
-    id_componente INT AUTO_INCREMENT PRIMARY KEY,
+    id_componente INT AUTO_INCREMENT,
     nome VARCHAR(100) NOT NULL,
-    nome_coluna VARCHAR(100) NOT NULL UNIQUE,
+    nome_coluna VARCHAR(100) NOT NULL,
     funcao_psutil VARCHAR(100) NOT NULL,
     argumento_nome VARCHAR(100),
     argumento_valor VARCHAR(100),
@@ -101,7 +114,9 @@ CREATE TABLE componentes (
     recomendada BOOLEAN,
     plataforma VARCHAR(10),
     exibir_no_card BOOLEAN NOT NULL DEFAULT TRUE,
-    ordem_card INT NOT NULL DEFAULT 0
+    ordem_card INT NOT NULL DEFAULT 0,
+    CONSTRAINT pk_componentes PRIMARY KEY (id_componente),
+    CONSTRAINT uq_componentes_nome_coluna UNIQUE (nome_coluna)
 );
 
 CREATE TABLE componentes_perfil (
@@ -110,8 +125,8 @@ CREATE TABLE componentes_perfil (
     limite_atencao DOUBLE,
     limite_critico DOUBLE,
     operador VARCHAR(2) NOT NULL DEFAULT '>',
-    FOREIGN KEY (fk_componente) REFERENCES componentes(id_componente),
-    FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)
+    CONSTRAINT fk_componentes_perfil_fk_componente FOREIGN KEY (fk_componente) REFERENCES componentes(id_componente),
+    CONSTRAINT fk_componentes_perfil_fk_perfil_servidor FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)
 );
 
 -- EMPRESAS PARA DEMONSTRACAO

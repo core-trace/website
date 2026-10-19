@@ -59,6 +59,16 @@ function criarMembro(membro) {
         opcao.textContent = perfil.nome;
         selecionarPerfil.appendChild(opcao);
     });
+    if (membro.podeAlterarPerfil === false) {
+        const perfilAtual = document.createElement("input");
+        perfilAtual.type = "text";
+        perfilAtual.id = selecionarPerfil.id;
+        perfilAtual.value = membro.nivel_acesso;
+        perfilAtual.readOnly = true;
+        selecionarPerfil.replaceWith(perfilAtual);
+        selecionarPerfil.disabled = true;
+        salvar.remove();
+    }
     selecionarPerfil.value = membro.fk_nivel_acesso;
     selecionarPerfil.addEventListener("change", function () {
         salvar.disabled = Number(selecionarPerfil.value) === membro.fk_nivel_acesso;
@@ -93,6 +103,7 @@ function bloquearEdicaoPerfis(bloquear) {
 }
 
 function salvarPerfilMembro(membro, formulario) {
+    if (membro.podeAlterarPerfil === false) return;
     const selecionarPerfil = formulario.elements.nivelAcesso;
     const nivelAcesso = Number(selecionarPerfil.value);
     if (salvandoPerfil || enviandoConvite || nivelAcesso === membro.fk_nivel_acesso) return;
@@ -127,6 +138,7 @@ function salvarPerfilMembro(membro, formulario) {
                 sessionStorage.ID_NIVEL_ACESSO = dados.fk_nivel_acesso;
                 sessionStorage.NIVEL_ACESSO = dados.nivel_acesso;
                 mostrarUsuarioLogado();
+                carregarNavegacao();
             }
             perfilSucesso.textContent = "Perfil de " + membro.nome + " atualizado para " + dados.nivel_acesso + ".";
             perfilSucesso.hidden = false;

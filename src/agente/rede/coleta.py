@@ -1,3 +1,4 @@
+# Coleta de rede: preparação, cabeçalho e leitura das métricas.
 import psutil as p
 import time
 import sys
@@ -22,6 +23,7 @@ IDS_REDE = list(GRUPOS_REDE) + list(ATRIBUTOS_REDE)
 
 
 def descobrir_interfaces_rede(fonte):
+    # O cabeçalho do CSV fica fixo
     nomes = []
     try:
         nomes.extend(fonte.net_if_stats())
@@ -68,6 +70,7 @@ def colunas_interface_rede(estado):
 
 
 def coluna_rede(interface, campo):
+    # Ex: net_bytes_recv da eth0 vira rede_eth0_bytes_recv
     return "rede_" + interface + "_" + campo.removeprefix("net_")
 
 
@@ -82,6 +85,7 @@ def colunas_rede(estado):
 
 
 def coletar_rede_geral(estado):
+    # Organiza as interfaces na mesma linha que CPU, RAM, Swap e Carga
     dados: dict[str, str | int | float | None] = {}
     for coluna in colunas_rede(estado):
         dados[coluna] = None
@@ -107,6 +111,7 @@ def salvar_taxa_rede(dados, campo, atual, antes, intervalo):
     elif intervalo is None or intervalo <= 0:
         salvar_leitura(dados, campo, None, "intervalo_invalido")
     else:
+        # Exemplo: 1.000 novos bytes em 2 segundos = 500 bytes/s.
         salvar_leitura(dados, campo, diferenca / intervalo)
 
 
@@ -164,12 +169,11 @@ def coletar_rede(estado, horario, mac):
                 elif not isinstance(valor, bool):
                     salvar_leitura(dados, campo, None, "indisponivel")
                 else:
-                  
+                    # 1 significa ativa 0 significa inativa
                     salvar_leitura(dados, campo, int(valor))
             elif status_io != "ok":
                 salvar_leitura(dados, campo, None, status_io)
             elif campo == "net_dropout" and (estado["plataforma"] == "darwin" or "bsd" in estado["plataforma"]):
-               
                 salvar_leitura(dados, campo, None, "nao_aplicavel")
             else:
                 atributo = ATRIBUTOS_REDE[campo]
@@ -180,7 +184,6 @@ def coletar_rede(estado, horario, mac):
         if atual is not None:
             novos_anteriores[nome] = {"contadores": atual, "horario": agora}
         linhas.append(dados)
-
 
     estado["anteriores"] = novos_anteriores
     if len(linhas) == 0:
@@ -195,3 +198,6 @@ def coletar_rede(estado, horario, mac):
             salvar_leitura(dados, campo, None, status)
         linhas.append(dados)
     return linhas
+
+
+# JUNÇÃO DOS DADOS

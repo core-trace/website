@@ -20,4 +20,4 @@ if [ ! -f config.json ]; then
 fi
 
 echo "Iniciando o CoreTrace. Para encerrar, pressione Ctrl+C."
-exec .venv/bin/python captura.py
+exec .venv/bin/python main.py

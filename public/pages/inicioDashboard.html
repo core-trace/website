@@ -9,10 +9,17 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/inicioDashboard.css">
-    <link rel="stylesheet" href="../css/wizardPerfilServidor.css">
+    <link rel="stylesheet" href="../css/detalheServidor.css">
+    <script src="../scripts/vendor/chart.umd.js" defer></script>
     <script src="../scripts/navbarDashboard.js" defer></script>
-    <script src="../scripts/baixar-agente.js" defer></script>
-    <script src="../scripts/wizardPerfilServidor.js" defer></script>
+    <script src="../scripts/monitoramentoMock.js" defer></script>
+    <script src="../scripts/dashboardDados.js" defer></script>
+    <script src="../scripts/dashboardSimulacao.js" defer></script>
+    <script src="../scripts/dashboardAlertasMock.js" defer></script>
+    <script src="../scripts/dashboardCenario.js" defer></script>
+    <script src="../scripts/dashboardGraficos.js" defer></script>
+    <script src="../scripts/detalheServidor.js" defer></script>
+    <script src="../scripts/inicioDashboard.js" defer></script>
 </head>
 
 <body class="dashboard-page">
@@ -28,48 +35,13 @@
             </button>
         </div>
 
-        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard">
-            <div class="dashboard-menu-grupo">
-                <h2 class="dashboard-menu-titulo">Monitoramento</h2>
-                <a href="inicioDashboard.html" class="dashboard-menu-item" aria-current="page">
-                    <img src="../assets/icons/dashboard.png" alt="" width="20" height="20">
-                    <span>Dashboard</span>
-                </a>
-                <a href="#" class="dashboard-menu-item">
-                    <img src="../assets/icons/sino.png" alt="" width="20" height="20">
-                    <span>Alertas</span>
-                </a>
-                <a href="#" class="dashboard-menu-item">
-                    <img src="../assets/icons/relatorio.png" alt="" width="20" height="20">
-                    <span>Relatórios</span>
-                </a>
-            </div>
-
-            <div class="dashboard-menu-grupo">
-                <h2 class="dashboard-menu-titulo">Gestão</h2>
-                <a href="perfisServidor.html" class="dashboard-menu-item">
-                    <img src="../assets/icons/perfil.png" alt="" width="20" height="20">
-                    <span>Perfis de servidor</span>
-                </a>
-                <a href="general-employee.html" class="dashboard-menu-item">
-                    <img src="../assets/icons/pessoas.png" alt="" width="20" height="20">
-                    <span>Equipe e acessos</span>
-                </a>
-            </div>
-
-            <div class="dashboard-menu-grupo">
-                <h2 class="dashboard-menu-titulo">Sistema</h2>
-                <a href="#" class="dashboard-menu-item">
-                    <img src="../assets/icons/engrenagem.png" alt="" width="20" height="20">
-                    <span>Configurações</span>
-                </a>
-                <a href="#" class="dashboard-menu-item">
-                    <img src="../assets/icons/documentacao.png" alt="" width="20" height="20">
-                    <span>Documentação</span>
-                </a>
-            </div>
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
+            <p class="dashboard-acesso-feedback" role="status">Carregando acessos...</p>
         </nav>
-
+        <div class="visao-sistema">
+            <span class="visao-sistema-ponto" aria-hidden="true"></span>
+            <div><p>Demonstração iFood</p><small id="demo-referencia">Preparando cenário...</small></div>
+        </div>
     </aside>
 
     <div class="dashboard-menu-fundo" aria-hidden="true"></div>
@@ -103,7 +75,7 @@
                 <div class="dashboard-conta">
                     <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
                         aria-controls="menu-conta" aria-expanded="false">
-                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
+                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12" height="12">
                     </button>
                     <div class="dashboard-menu-conta" id="menu-conta" hidden>
                         <p class="dashboard-conta-email"></p>
@@ -114,56 +86,113 @@
         </header>
 
         <main class="principal" id="conteudo-principal" tabindex="-1">
-            <section class="sem-servidor" aria-labelledby="titulo-sem-servidor">
-                <img src="../assets/icons/imagemespera.png" class="imagem-espera" alt="" width="170" height="162">
-                <p class="aviso">Seu monitoramento começa aqui</p>
-                <h1 id="titulo-sem-servidor">Nenhum servidor encontrado</h1>
-                <p class="descricao">
-                    Crie seu primeiro perfil de servidor para começar a monitorar a
-                    performance, disponibilidade e métricas críticas de infraestrutura.
-                </p>
-                <button class="botao-criar" type="button" data-abrir-wizard-perfil aria-haspopup="dialog">
-                    <span aria-hidden="true">+</span>
-                    Criar perfil de servidor
-                </button>
+            <section class="visao-cabecalho" aria-labelledby="titulo-visao">
+                <div>
+                    <h1 id="titulo-visao">Visão geral dos servidores</h1>
+                    <p id="visao-resumo">iFood</p>
+                </div>
+                <div class="visao-filtros">
+                    <span class="visao-select-campo"><select class="visao-select" id="filtro-perfil" aria-label="Filtrar por perfil">
+                        <option value="">Todos os perfis</option>
+                    </select></span>
+                    <span class="visao-select-campo"><select class="visao-select" id="filtro-periodo" aria-label="Período dos gráficos">
+                        <option value="60">Última hora</option>
+                        <option value="360">Últimas 6 horas</option>
+                        <option value="720">Últimas 12 horas</option>
+                        <option value="1440" selected>Últimas 24 horas</option>
+                        <option value="10080">Últimos 7 dias</option>
+                    </select></span>
+                </div>
             </section>
 
-            <section class="passos" aria-labelledby="titulo-passos">
-                <h2 class="titulo-passos" id="titulo-passos">Para iniciar</h2>
-                <ol class="lista-passos">
-                    <li class="card-passo">
-                        <div class="imagem-card" aria-hidden="true">
-                            <img src="../assets/icons/arquivos.png" alt="" width="40" height="40">
-                        </div>
-                        <div class="texto-card">
-                            <span class="numero" aria-hidden="true">1</span>
-                            <h3>Crie um perfil de monitoramento</h3>
-                            <p>Crie um perfil de servidor, escolha métricas e defina limites de uso.</p>
-                        </div>
-                    </li>
-                    <li class="card-passo">
-                        <div class="imagem-card" aria-hidden="true">
-                            <img src="../assets/icons/ZIP.png" alt="" width="40" height="40">
-                        </div>
-                        <div class="texto-card">
-                            <span class="numero" aria-hidden="true">2</span>
-                            <h3>Baixe o script</h3>
-                            <p>Geramos um .zip pronto para sua máquina dentro desse perfil.</p>
-                        </div>
-                    </li>
-                    <li class="card-passo">
-                        <div class="imagem-card" aria-hidden="true">
-                            <img src="../assets/icons/grafico.png" alt="" width="40" height="40">
-                        </div>
-                        <div class="texto-card">
-                            <span class="numero" aria-hidden="true">3</span>
-                            <h3>Execute e monitore</h3>
-                            <p>Acompanhe os dados. Se algo sair do normal, você será notificado.</p>
-                        </div>
-                    </li>
-                </ol>
+            <section class="visao-indicadores" aria-label="Indicadores dos servidores">
+                <article class="visao-card visao-indicador">
+                    <h2>Servidores em atenção</h2>
+                    <p class="visao-valor visao-atencao" id="indicador-atencao">—</p>
+                    
+                </article>
+                <article class="visao-card visao-indicador">
+                    <h2>Servidores críticos</h2>
+                    <p class="visao-valor visao-critico" id="indicador-criticos">—</p>
+                    
+                </article>
+                <article class="visao-card visao-indicador">
+                    <h2><a class="visao-link-alertas" href="alertas.html">Alertas ativos ↗</a></h2>
+                    <p class="visao-valor" id="indicador-alertas">—</p>
+                    <p class="visao-legenda visao-alertas-legenda" id="legenda-alertas"><span class="visao-critico" id="alertas-criticos">— críticos</span><span aria-hidden="true">·</span><span class="visao-atencao" id="alertas-atencao">— atenção</span></p>
+                </article>
+                <article class="visao-card visao-indicador">
+                    <h2>Previsão de armazenamento</h2>
+                    <p class="visao-valor visao-atencao" id="indicador-previsao">—</p>
+                    <p class="visao-legenda" id="legenda-previsao">Aguardando a lista de servidores</p>
+                </article>
             </section>
+
+            <p class="visao-sr-only" id="graficos-periodo" role="status" aria-live="polite"></p>
+            <section class="visao-graficos" aria-label="Histórico simulado de alertas da infraestrutura iFood">
+                <article class="visao-card visao-grafico-card">
+                    <h2 id="titulo-evolucao">Evolução dos servidores em alerta</h2>
+                    
+                    <p class="visao-sr-only" id="evolucao-granularidade"></p>
+                    <div class="visao-grafico-area">
+                        <canvas id="grafico-evolucao" role="img" aria-labelledby="titulo-evolucao" aria-describedby="evolucao-resumo"></canvas>
+                        <p class="visao-grafico-status" id="evolucao-status" role="status" hidden></p>
+                    </div>
+                    <p class="visao-sr-only" id="evolucao-resumo"></p>
+                </article>
+                <article class="visao-card visao-grafico-card">
+                    <h2 id="titulo-recursos">Servidores com alertas por recurso</h2>
+                    <p class="visao-legenda">Maior severidade no período</p>
+                    
+                    <div class="visao-grafico-area">
+                        <canvas id="grafico-recursos" role="img" aria-labelledby="titulo-recursos" aria-describedby="recursos-resumo"></canvas>
+                        <p class="visao-grafico-status" id="recursos-status" role="status" hidden></p>
+                    </div>
+                    <p class="visao-sr-only" id="recursos-resumo"></p>
+                </article>
+            </section>
+
+            <section class="visao-card visao-servidores" aria-labelledby="titulo-servidores">
+                <div class="visao-tabela-cabecalho">
+                    <h2 id="titulo-servidores">Servidores</h2>
+                    <span class="visao-select-campo"><select class="visao-select visao-select-situacao" id="filtro-situacao" aria-label="Filtrar por situação">
+                        <option value="">Todas as situações</option>
+                        <option value="critico">Crítico</option>
+                        <option value="atencao">Atenção</option>
+                        <option value="normal">Normal</option>
+                    </select></span>
+                </div>
+                <div class="visao-tabela-scroll" role="region" aria-label="Lista de servidores" tabindex="0">
+                    <table class="visao-tabela">
+                        <thead>
+                            <tr>
+                                <th scope="col">Servidor</th><th scope="col">Perfil</th><th scope="col">Situação</th>
+                                <th scope="col">CPU</th><th scope="col">RAM</th><th scope="col">Disco</th>
+                                <th scope="col">Docker</th><th scope="col">Uptime</th><th scope="col">Última coleta</th><th scope="col"><span class="visao-sr-only">Ações</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-servidores"></tbody>
+                    </table>
+                </div>
+                <p class="visao-vazio" id="servidores-vazio" role="status" hidden>Nenhum servidor encontrado. Tente outro termo ou altere os filtros.</p>
+            </section>
+
+
         </main>
+
+        <dialog class="servidor-painel" id="detalhes-servidor" aria-labelledby="detalhes-titulo" aria-describedby="detalhes-perfil">
+            <header class="servidor-cabecalho">
+                <div class="servidor-titulo-linha">
+                    <h2 id="detalhes-titulo"></h2>
+                    <span class="servidor-status" id="detalhes-status"></span>
+                    <form method="dialog"><button class="servidor-fechar" aria-label="Fechar detalhes do servidor" autofocus>Fechar <span aria-hidden="true">×</span></button></form>
+                </div>
+                <p id="detalhes-perfil"></p>
+                <p id="detalhes-coleta"></p>
+            </header>
+            <div class="servidor-corpo" id="detalhes-conteudo"></div>
+
+        </dialog>
     </div>
 </body>
 

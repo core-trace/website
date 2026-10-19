@@ -60,31 +60,3 @@ function baixarAgente(idPerfilServidor, botao, feedback) {
             botao.textContent = textoOriginal;
         });
 }
-
-// Na dashboard antiga, o usuário escolhe o perfil em vez de usar um ID fixo.
-const perfilDownload = document.getElementById("perfilDownloadAgente");
-if (perfilDownload) {
-    const botao = document.getElementById("btnBaixarAgente");
-    const feedback = document.getElementById("downloadAgenteFeedback");
-    fetch("/servidor/perfis?empresa=" + Number(sessionStorage.ID_EMPRESA))
-        .then(function (resposta) {
-            if (!resposta.ok) throw new Error("Não foi possível carregar os perfis para download.");
-            return resposta.json();
-        })
-        .then(function (perfis) {
-            perfis.forEach(function (perfil) {
-                const opcao = document.createElement("option");
-                opcao.value = perfil.id_perfil_servidor;
-                opcao.textContent = perfil.nome;
-                perfilDownload.appendChild(opcao);
-            });
-            if (perfis.length === 0) perfilDownload.options[0].textContent = "Nenhum perfil cadastrado";
-        })
-        .catch(function (erro) {
-            feedback.textContent = erro.message;
-            feedback.hidden = false;
-        });
-    botao.addEventListener("click", function () {
-        baixarAgente(Number(perfilDownload.value), botao, feedback);
-    });
-}

@@ -145,12 +145,12 @@
                 <div class="wizard-alertas-lista"></div>
             </section>
 
-            <section class="wizard-equipe" aria-label="Membros da equipe e níveis de acesso" data-etapa="5" hidden>
+            <section class="wizard-equipe" aria-label="Membros da equipe" data-etapa="5" hidden>
                 <aside class="wizard-equipe-aviso">
                     <span class="wizard-equipe-aviso-icone"><img src="../assets/icons/escudo.svg" alt="" width="22" height="22"></span>
                     <div>
-                        <strong>Acessos podem ser alterados depois</strong>
-                        <p>Gerencie membros, funções e permissões em <a href="general-employee.html">Equipe e acessos</a>.</p>
+                        <strong>Colaboradores vinculados ao perfil</strong>
+                        <p>O nível de acesso de cada colaborador continua sendo o definido para sua conta.</p>
                     </div>
                 </aside>
 
@@ -173,23 +173,6 @@
                     <ul class="wizard-equipe-lista" aria-label="Pessoas que acompanharão este perfil"></ul>
                 </div>
 
-                <section class="wizard-equipe-niveis" aria-labelledby="perfil-equipe-niveis">
-                    <h3 id="perfil-equipe-niveis">Níveis de acesso</h3>
-                    <div class="wizard-equipe-niveis-lista">
-                        <div class="wizard-equipe-nivel wizard-equipe-nivel-proprietario">
-                            <img src="../assets/icons/coroa.svg" alt="" width="16" height="17">
-                            <div><strong>Proprietário</strong><p>Controle total da plataforma</p></div>
-                        </div>
-                        <div class="wizard-equipe-nivel">
-                            <img src="../assets/icons/ajuste.svg" alt="" width="16" height="16">
-                            <div><strong>Administrador</strong><p>Configura perfis, métricas e alertas</p></div>
-                        </div>
-                        <div class="wizard-equipe-nivel">
-                            <img src="../assets/icons/olho.svg" alt="" width="13" height="16">
-                            <div><strong>Visualizador</strong><p>Acompanha em modo leitura</p></div>
-                        </div>
-                    </div>
-                </section>
                 <p class="wizard-equipe-pendente" role="status">Selecione colaboradores ativos da sua empresa que ainda não fazem parte deste perfil.</p>
             </section>
         </div>
@@ -220,7 +203,7 @@
 
         <section class="wizard-instalacao" aria-labelledby="wizard-instalacao-titulo">
             <h3 id="wizard-instalacao-titulo">Instale o agente no servidor</h3>
-            <p>Extraia o ZIP, abra o terminal na pasta <strong>agente</strong> e execute <strong>python captura.py</strong>.</p>
+            <p>Extraia o ZIP, abra o terminal na pasta <strong>agente</strong>, execute <strong>bash instalar.sh</strong> e depois <strong>bash iniciar.sh</strong>.</p>
             <div class="wizard-terminal">
                 <div class="wizard-terminal-cabecalho">
                     <span><img src="../assets/icons/bash.svg" alt="" width="12" height="10"> Terminal</span>
@@ -228,7 +211,8 @@
                 <ol class="wizard-comandos">
                     <li><code>unzip agente.zip</code></li>
                     <li><code>cd agente</code></li>
-                    <li><code>python captura.py</code></li>
+                    <li><code>bash instalar.sh</code></li>
+                    <li><code>bash iniciar.sh</code></li>
                 </ol>
             </div>
         </section>

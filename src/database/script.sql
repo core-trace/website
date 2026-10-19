@@ -1,11 +1,10 @@
--- CORETRACE - CRIACAO COMPLETA DO BANCO
--- Esse script apaga e recria o banco coretrace.
--- Credenciais de exemplo apenas para desenvolvimento local
--- Empresa: token_instalacao = 123
--- Perfil Produção: token_perfil_servidor = 321
-
+-- CoreTrace (empresa 1): somente equipe de desenvolvimento, sem servidores ou metricas vinculadas
+-- iFood (empresa 2): token_instalacao = 123
+-- Perfis iFood: Carrinho (321), Financeiro (322), Catálogo (323)
 DROP DATABASE IF EXISTS coretrace;
+
 CREATE DATABASE coretrace;
+
 USE coretrace;
 
 CREATE TABLE empresa (
@@ -74,7 +73,6 @@ CREATE TABLE perfil_servidor (
 CREATE TABLE usuario_perfil_servidor (
     fk_usuario INT NOT NULL,
     fk_perfil_servidor INT NOT NULL,
-    papel VARCHAR(20) NOT NULL DEFAULT 'visualizador',
     FOREIGN KEY (fk_usuario) REFERENCES usuario(id_usuario),
     FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)
 );
@@ -86,14 +84,6 @@ CREATE TABLE servidores (
     endereco_mac VARCHAR(17) UNIQUE NOT NULL,
     fk_perfil_servidor INT NOT NULL,
     FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)
-);
-
-CREATE TABLE container (
-    id_container INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(45) NOT NULL,
-    status VARCHAR(45),
-    fk_servidor INT NOT NULL,
-    FOREIGN KEY (fk_servidor) REFERENCES servidores(id_servidor)
 );
 
 CREATE TABLE componentes (
@@ -124,41 +114,78 @@ CREATE TABLE componentes_perfil (
     FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)
 );
 
--- DADOS PARA TESTES
-INSERT INTO empresa (razao_social, cnpj, dt_registro, token_instalacao)
-VALUES ('CoreTrace Empresa Teste', '12345678000199', CURDATE(), '123');
+-- EMPRESAS PARA DEMONSTRACAO
+-- CoreTrace: administracao interna, sem perfis de servidor vinculados.
+-- iFood: cliente monitorado, com os perfis, servidores e limites abaixo.
+-- CNPJs e enderecos sao ficticios para testes.
+INSERT INTO empresa (razao_social, cnpj, dt_registro, token_instalacao) VALUES
+('CoreTrace', '00000000000191', CURDATE(), NULL),
+('iFood', '00000000000272', CURDATE(), '123');
 
-INSERT INTO endereco (numero, cidade, estado, logradouro, fk_empresa)
-VALUES ('100', 'São Paulo', 'SP', 'Avenida Paulista', 1);
+INSERT INTO endereco (numero, cidade, estado, logradouro, fk_empresa) VALUES
+('100', 'São Paulo', 'SP', 'Rua CoreTrace (ficticia)', 1),
+('200', 'Osasco', 'SP', 'Avenida iFood (ficticia)', 2);
 
 INSERT INTO nivel_acesso (nome, descricao) VALUES
-('Administrador', 'Acesso completo ao sistema'),
-('Operador', 'Acesso ao monitoramento dos servidores'),
-('Visualizador', 'Acesso somente para visualização');
+('Administrador CoreTrace', 'Acesso completo a plataforma, exclusivo para desenvolvedores CoreTrace'),
+('Administrador', 'Acesso ao monitoramento e gestao'),
+('Operador', 'Acesso ao monitoramento e perfis de servidor'),
+('Visualizador', 'Acesso somente ao monitoramento');
 
 INSERT INTO permissoes (nome, descricao) VALUES
-('GERENCIAR_USUARIOS', 'Gerenciar usuários'),
-('GERENCIAR_PERFIS', 'Gerenciar perfis'),
-('GERENCIAR_SERVIDORES', 'Gerenciar servidores'),
-('VISUALIZAR_MONITORAMENTO', 'Visualizar monitoramento'),
-('VISUALIZAR_ALERTAS', 'Visualizar alertas');
+('VISUALIZAR_DASHBOARD', 'Acessar dashboard'),
+('VISUALIZAR_ALERTAS', 'Acessar alertas'),
+('ACESSAR_PERFIS_SERVIDOR', 'Acessar perfis de servidor'),
+('ACESSAR_EQUIPE', 'Gerenciar equipe e acessos'),
+('ACESSAR_EMPRESAS', 'Gerenciar empresas');
 
-INSERT INTO nivel_acesso_permissoes (fk_nivel_acesso, fk_permissao) VALUES
-(1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
-(2, 3), (2, 4), (2, 5),
-(3, 4), (3, 5);
+INSERT INTO nivel_acesso_permissoes
+(fk_nivel_acesso, fk_permissao) VALUES
 
-INSERT INTO perfil_servidor (nome, descricao, token_perfil_servidor, fk_empresa)
-VALUES ('Produção', 'Perfil dos servidores do ambiente de produção', '321', 1);
+-- Administrador CoreTrace: acesso completo
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5),
 
+-- Administrador: tudo menos empresas
+(2, 1),
+(2, 2),
+(2, 3),
+(2, 4),
+
+-- Operador: monitoramento e perfis
+(3, 1),
+(3, 2),
+(3, 3),
+
+-- Visualizador: somente monitoramento
+(4, 1),
+(4, 2);
+
+-- PERFIS FUNCIONAIS PARA DEMONSTRACAO
+-- Os dados de monitoramento (CPU, RAM, Disco, Rede, processos e containers)
+-- serao simulados no front-end. Aqui ficam somente cadastros e limites.
+INSERT INTO perfil_servidor
+(nome, descricao, token_perfil_servidor, sistema_operacional, monitorar_docker, fk_empresa) VALUES
+('Carrinho', 'APIs e servicos responsaveis pelo carrinho e finalizacao de pedidos', '321', 'linux', TRUE, 2),
+('Financeiro', 'APIs de pagamento e banco de dados de transacoes', '322', 'linux', TRUE, 2),
+('Catálogo', 'Servicos de consulta e catalogacao de produtos', '323', 'linux', FALSE, 2);
+
+-- O status ATIVO e cadastral. A severidade (normal/atencao/critico)
+-- deve ser CALCULADA pelas metricas mockadas e limites do perfil.
 INSERT INTO servidores (nome, endereco_mac, status, fk_perfil_servidor) VALUES
-('Servidor Produção 01', 'AA:BB:CC:DD:EE:01', 'ATIVO', 1),
-('Servidor Produção 02', 'AA:BB:CC:DD:EE:02', 'ATIVO', 1);
-
-INSERT INTO container (nome, status, fk_servidor) VALUES
-('coretrace-api', 'ATIVO', 1),
-('coretrace-banco', 'ATIVO', 1),
-('coretrace-web', 'ATIVO', 2);
+('cart-api-07', 'AA:BB:CC:DD:EE:07', 'ATIVO', 1),
+('cart-api-12', 'AA:BB:CC:DD:EE:12', 'ATIVO', 1),
+('cart-api-02', 'AA:BB:CC:DD:EE:02', 'ATIVO', 1),
+('cart-api-09', 'AA:BB:CC:DD:EE:09', 'ATIVO', 1),
+('pay-db-02', 'AA:BB:CC:DD:EF:02', 'ATIVO', 2),
+('pay-api-04', 'AA:BB:CC:DD:EF:04', 'ATIVO', 2),
+('pay-api-06', 'AA:BB:CC:DD:EF:06', 'ATIVO', 2),
+('catalog-api-03', 'AA:BB:CC:DD:F0:03', 'ATIVO', 3),
+('catalog-api-05', 'AA:BB:CC:DD:F0:05', 'ATIVO', 3),
+('catalog-api-08', 'AA:BB:CC:DD:F0:08', 'ATIVO', 3);
 
 INSERT INTO componentes
 (nome, nome_coluna, funcao_psutil, argumento_nome, argumento_valor,
@@ -212,6 +239,9 @@ VALUES
 ('Pacotes recebidos (pacotes/s)', 'net_packets_recv', 'net_io_counters', 'pernic', 'True', 'packets_recv', NULL, 'pacotes/s', 'rede', FALSE, FALSE, NULL, TRUE, 5),
 ('Pacotes enviados (pacotes/s)', 'net_packets_sent', 'net_io_counters', 'pernic', 'True', 'packets_sent', NULL, 'pacotes/s', 'rede', FALSE, FALSE, NULL, TRUE, 6);
 
+-- Limites por perfil: usados pela classificacao de severidade no front.
+-- net_errors e net_drops representam taxas em eventos/pacotes por segundo
+-- (sem converter para porcentagem).
 INSERT INTO componentes_perfil
 (fk_componente, fk_perfil_servidor, limite_atencao, limite_critico)
 VALUES
@@ -245,21 +275,101 @@ VALUES
 (32, 1, NULL, NULL),
 (33, 1, NULL, NULL),
 (39, 1, NULL, NULL),
-(40, 1, NULL, NULL),
-(41, 1, NULL, NULL),
+(40, 1, 5.00, 15.00),
+(41, 1, 10.00, 30.00),
 (42, 1, NULL, NULL),
 (43, 1, NULL, NULL),
-(44, 1, NULL, NULL);
+(44, 1, NULL, NULL),
+(1, 2, 75.00, 92.00),
+(2, 2, NULL, NULL),
+(3, 2, NULL, NULL),
+(4, 2, NULL, NULL),
+(5, 2, NULL, NULL),
+(6, 2, NULL, NULL),
+(7, 2, NULL, NULL),
+(8, 2, NULL, NULL),
+(9, 2, NULL, NULL),
+(10, 2, NULL, NULL),
+(11, 2, NULL, NULL),
+(12, 2, NULL, NULL),
+(13, 2, NULL, NULL),
+(14, 2, 75.00, 90.00),
+(15, 2, NULL, NULL),
+(16, 2, NULL, NULL),
+(17, 2, NULL, NULL),
+(18, 2, 80.00, 95.00),
+(19, 2, NULL, NULL),
+(20, 2, NULL, NULL),
+(21, 2, NULL, NULL),
+(22, 2, 50.00, 80.00),
+(23, 2, NULL, NULL),
+(24, 2, NULL, NULL),
+(25, 2, NULL, NULL),
+(30, 2, NULL, NULL),
+(31, 2, NULL, NULL),
+(32, 2, NULL, NULL),
+(33, 2, NULL, NULL),
+(39, 2, NULL, NULL),
+(40, 2, 5.00, 15.00),
+(41, 2, 10.00, 30.00),
+(42, 2, NULL, NULL),
+(43, 2, NULL, NULL),
+(44, 2, NULL, NULL),
+(1, 3, 75.00, 90.00),
+(2, 3, NULL, NULL),
+(3, 3, NULL, NULL),
+(4, 3, NULL, NULL),
+(5, 3, NULL, NULL),
+(6, 3, NULL, NULL),
+(7, 3, NULL, NULL),
+(8, 3, NULL, NULL),
+(9, 3, NULL, NULL),
+(10, 3, NULL, NULL),
+(11, 3, NULL, NULL),
+(12, 3, NULL, NULL),
+(13, 3, NULL, NULL),
+(14, 3, 75.00, 90.00),
+(15, 3, NULL, NULL),
+(16, 3, NULL, NULL),
+(17, 3, NULL, NULL),
+(18, 3, 80.00, 95.00),
+(19, 3, NULL, NULL),
+(20, 3, NULL, NULL),
+(21, 3, NULL, NULL),
+(22, 3, 50.00, 80.00),
+(23, 3, NULL, NULL),
+(24, 3, NULL, NULL),
+(25, 3, NULL, NULL),
+(30, 3, NULL, NULL),
+(31, 3, NULL, NULL),
+(32, 3, NULL, NULL),
+(33, 3, NULL, NULL),
+(39, 3, NULL, NULL),
+(40, 3, 5.00, 15.00),
+(41, 3, 10.00, 30.00),
+(42, 3, NULL, NULL),
+(43, 3, NULL, NULL),
+(44, 3, NULL, NULL);
 
+-- USUARIOS DE DEMONSTRACAO: senhas e dados pessoais ficticios (apenas ambiente de teste)
+-- O nivel Administrador CoreTrace (1) e reservado a desenvolvedores CoreTrace.
+-- Os tres usuarios iFood usam os niveis Administrador (2), Operador (3) e Visualizador (4).
 INSERT INTO usuario
-(nome, email, senha, cpf, token_acesso, telefone, fk_empresa, fk_nivel_acesso, status)
-VALUES ('Administrador CoreTrace', 'admin@coretrace.com', '123456', '12345678900', NULL, '11999999999', 1, 1, 'ATIVO');
+(nome, email, senha, cpf, token_acesso, telefone, fk_empresa, fk_nivel_acesso, status) VALUES
+('Desenvolvedor CoreTrace', 'dev@coretrace.com', '123456', '12345678900', NULL, '11999999999', 1, 1, 'ATIVO'),
+('Administrador iFood', 'admin@ifood.teste', '123456', '12345678901', NULL, '11988888881', 2, 2, 'ATIVO'),
+('Operador iFood', 'operador@ifood.teste', '123456', '12345678902', NULL, '11988888882', 2, 3, 'ATIVO'),
+('Visualizador iFood', 'visualizador@ifood.teste', '123456', '12345678903', NULL, '11988888883', 2, 4, 'ATIVO');
 
-INSERT INTO usuario_perfil_servidor (fk_usuario, fk_perfil_servidor)
-VALUES (1, 1);
+-- Somente usuarios do iFood associados aos seus perfis de servidor.
+INSERT INTO usuario_perfil_servidor (fk_usuario, fk_perfil_servidor) VALUES
+(2, 1), (2, 2), (2, 3),
+(3, 1), (3, 2), (3, 3),
+(4, 1), (4, 2), (4, 3);
 
 -- CONSULTAS DE TESTE
 SELECT * FROM usuario;
+
 SELECT DISTINCT
     comp.nome, comp.nome_coluna, comp.funcao_psutil,
     comp.argumento_nome, comp.argumento_valor,
@@ -269,8 +379,10 @@ FROM servidores s
 JOIN perfil_servidor ps ON ps.id_perfil_servidor = s.fk_perfil_servidor
 JOIN componentes_perfil cp ON cp.fk_perfil_servidor = ps.id_perfil_servidor
 JOIN componentes comp ON comp.id_componente = cp.fk_componente
-WHERE s.endereco_mac = 'AA:BB:CC:DD:EE:01';
+WHERE s.endereco_mac = 'AA:BB:CC:DD:EE:07';
 
 SELECT * FROM perfil_servidor;
+
 SELECT * FROM componentes_perfil WHERE fk_perfil_servidor = 1;
+
 SELECT * FROM componentes_perfil;

@@ -3,6 +3,8 @@ import math
 
 
 def ler_valor_swap(registro, campo):
+    # O CSV contém texto
+    # Campos vazios ou com erro não entram no cálculo
     valor = registro.get(campo)
     if valor is None or valor == "":
         return None
@@ -19,6 +21,7 @@ def ler_valor_swap(registro, campo):
 
 
 def mesmo_servidor(lista):
+    # Separar por servidor antes de chamar as funções de análise.
     servidores = set()
     for registro in lista:
         servidores.add(registro.get("ENDERECO_MAC"))
@@ -53,10 +56,12 @@ def atividade_media_swap(lista, campo):
         taxa = ler_valor_swap(registro, campo)
         segundos = ler_valor_swap(registro, "swap_interval_seconds")
         if taxa is not None and segundos is not None and segundos > 0:
+            # A taxa já veio pronta. Recuperamos os bytes de cada intervalo.
             bytes_totais += taxa * segundos
             segundos_totais += segundos
     if segundos_totais == 0:
         return None
+    # Intervalos longos têm mais peso do que intervalos curtos.
     return bytes_totais / segundos_totais
 
 
@@ -72,7 +77,7 @@ def exibir_valor_swap(lista, nome, campo, valor, unidade):
     if valor is not None:
         ex.resultado(nome, valor, unidade)
         return
-    # Não confundir ausência de swap com falha ou aquecimento.
+    # ausência de swap n é falha ou aquecimento
     nao_aplicavel = len(lista) > 0
     for registro in lista:
         if registro.get(campo + "_status") != "nao_aplicavel":

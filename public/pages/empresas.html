@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreTrace - Empresas</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/equipeAcessos.css">
+    <script src="../scripts/navbarDashboard.js" defer></script>
+    <link rel="stylesheet" href="../css/empresas.css">
+    <script src="../scripts/empresas.js" defer></script>
+</head>
+
+<body class="dashboard-page">
+    <a class="dashboard-pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+
+    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
+        <div class="dashboard-menu-cabecalho">
+            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
+            <p class="dashboard-acesso-feedback" role="status">Carregando acessos...</p>
+        </nav>
+
+    </aside>
+
+    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
+
+    <div class="dashboard-conteudo">
+        <header class="dashboard-navbar">
+            <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu"
+                aria-controls="menu-dashboard" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <label class="dashboard-pesquisa">
+                <span class="dashboard-lupa" aria-hidden="true"></span>
+                <input type="search" name="busca" aria-label="Buscar por servidor, hostname ou perfil"
+                    placeholder="Buscar por servidor, hostname ou perfil...">
+            </label>
+
+            <div class="dashboard-usuario">
+                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
+                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
+                </button>
+
+                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
+
+                <div class="dashboard-usuario-dados">
+                    <span class="dashboard-usuario-nome"></span>
+                    <span class="dashboard-usuario-cargo"></span>
+                </div>
+                <div class="dashboard-conta">
+                    <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
+                        aria-controls="menu-conta" aria-expanded="false">
+                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
+                    </button>
+                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <p class="dashboard-conta-email"></p>
+                        <button class="dashboard-sair" type="button">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="equipe empresas" id="conteudo-principal" tabindex="-1">
+            <header class="equipe-cabecalho">
+                <div>
+                    <p class="equipe-secao">Administrador CoreTrace</p>
+                    <h1>Empresas</h1>
+                    <p class="equipe-descricao">Cadastre uma empresa e o primeiro administrador responsável pelo acesso à plataforma.</p>
+                </div>
+            </header>
+
+            <aside class="equipe-aviso">
+                <span class="equipe-aviso-icone"><img src="../assets/icons/escudo.svg" alt="" width="22" height="22"></span>
+                <div>
+                    <strong>Uma empresa começa com seu administrador</strong>
+                    <p>O responsável receberá um convite por email para definir a senha e ativar a conta.</p>
+                </div>
+            </aside>
+
+            <section id="empresaSucesso" class="equipe-sucesso" aria-labelledby="empresaSucessoTitulo" tabindex="-1" hidden>
+                <h2 id="empresaSucessoTitulo">Empresa cadastrada</h2>
+                <p id="empresaResumo"></p>
+                <p>O administrador deve abrir o convite recebido por email para definir a senha. Ao entrar, terá acesso à nova empresa.</p>
+                <button id="novaEmpresa" class="equipe-botao-secundario" type="button">Cadastrar outra empresa</button>
+            </section>
+
+            <form id="cadastroEmpresaForm">
+                <fieldset id="camposEmpresa" class="empresa-formulario">
+                    <legend class="empresa-legenda">Cadastro da empresa e do administrador</legend>
+                    <section class="equipe-card equipe-cadastro" aria-labelledby="dadosEmpresaTitulo">
+                        <h2 id="dadosEmpresaTitulo">Dados da empresa</h2>
+                        <p class="equipe-descricao">A data de registro será preenchida automaticamente no cadastro.</p>
+                        <div class="equipe-campos">
+                            <div class="equipe-campo">
+                                <label for="razaoSocial">Razão social</label>
+                                <input id="razaoSocial" name="razaoSocial" type="text" maxlength="45" autocomplete="organization" required placeholder="Razão social da empresa">
+                            </div>
+                            <div class="equipe-campo">
+                                <label for="cnpj">CNPJ</label>
+                                <input id="cnpj" name="cnpj" type="text" inputmode="numeric" maxlength="18" required aria-describedby="cnpjAjuda" placeholder="00.000.000/0000-00">
+                                <small id="cnpjAjuda">Digite os 14 números do CNPJ.</small>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="equipe-card equipe-cadastro" aria-labelledby="enderecoTitulo">
+                        <h2 id="enderecoTitulo">Endereço</h2>
+                        <div class="equipe-campos">
+                            <div class="equipe-campo">
+                                <label for="logradouro">Logradouro</label>
+                                <input id="logradouro" name="logradouro" type="text" maxlength="100" autocomplete="address-line1" placeholder="Rua ou avenida">
+                            </div>
+                            <div class="equipe-campo">
+                                <label for="numero">Número</label>
+                                <input id="numero" name="numero" type="text" maxlength="10" placeholder="Número ou s/n">
+                            </div>
+                            <div class="equipe-campo">
+                                <label for="cidade">Cidade</label>
+                                <input id="cidade" name="cidade" type="text" maxlength="45" autocomplete="address-level2" placeholder="Cidade">
+                            </div>
+                            <div class="equipe-campo">
+                                <label for="estado">Estado</label>
+                                <input id="estado" name="estado" type="text" maxlength="45" autocomplete="address-level1" placeholder="Estado ou UF">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="equipe-card equipe-cadastro" aria-labelledby="administradorTitulo">
+                        <h2 id="administradorTitulo">Primeiro administrador</h2>
+                        <p class="equipe-descricao">Esse usuário será cadastrado na nova empresa com o perfil Administrador.</p>
+                        <div class="equipe-campos">
+                            <div class="equipe-campo">
+                                <label for="administradorNome">Nome completo</label>
+                                <input id="administradorNome" name="administradorNome" type="text" maxlength="45" autocomplete="name" required placeholder="Nome do responsável">
+                            </div>
+                            <div class="equipe-campo">
+                                <label for="administradorEmail">Email</label>
+                                <input id="administradorEmail" name="administradorEmail" type="email" maxlength="45" autocomplete="email" required placeholder="nome@empresa.com" aria-describedby="emailAjuda">
+                                <small id="emailAjuda">O convite para ativar a conta será enviado para este endereço.</small>
+                            </div>
+                            <div class="equipe-campo">
+                                <label for="administradorCpf">CPF</label>
+                                <input id="administradorCpf" name="administradorCpf" type="text" maxlength="11" inputmode="numeric" pattern="[0-9]{11}" placeholder="Somente os 11 números">
+                            </div>
+                            <div class="equipe-campo">
+                                <label for="administradorTelefone">Telefone</label>
+                                <input id="administradorTelefone" name="administradorTelefone" type="tel" maxlength="15" autocomplete="tel" placeholder="(11) 99999-9999">
+                            </div>
+                        </div>
+                    </section>
+                    <div class="equipe-form-acoes">
+                        <button id="cadastrarEmpresa" class="equipe-botao-primario" type="submit">Cadastrar empresa e enviar convite</button>
+                    </div>
+                </fieldset>
+                <p id="empresaProgresso" class="equipe-feedback" role="status" aria-live="polite"></p>
+                <p id="empresaErro" class="equipe-erro" role="alert" hidden></p>
+            </form>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreTrace - Alertas</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/inicioDashboard.css">
+    <script src="../scripts/navbarDashboard.js" defer></script>
+    <script src="../scripts/monitoramentoMock.js" defer></script>
+    <script src="../scripts/dashboardDados.js" defer></script>
+    <script src="../scripts/dashboardAlertasMock.js" defer></script>
+    <script src="../scripts/dashboardCenario.js" defer></script>
+    <script src="../scripts/alertas.js" defer></script>
+    <style>
+        body { margin: 0; }
+        .alerta-resumo { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .alerta-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-height: 26px; padding: 6px 10px; border-radius: 999px;
+            font-size: 11px; font-weight: 600; letter-spacing: 0.02em; background: #f5f5f5; color: var(--cor-texto);
+        }
+        .alerta-badge.critico { background: rgba(204, 3, 1, 0.12); color: var(--cor-vermelho); }
+        .alerta-badge.atencao { background: rgba(167, 104, 0, 0.12); color: #a76800; }
+        .alerta-badge.normal { background: rgba(119, 114, 120, 0.12); color: #777278; }
+        .alertas-lista { display: grid; gap: 12px; margin-top: 14px; }
+        .alerta-card {
+            display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+            gap: 18px; align-items: center; padding: 18px 20px; border: 1px solid var(--dashboard-borda); border-radius: 14px; background: #fff;
+        }
+        .alerta-card h3 {
+            margin: 0 0 6px; font-size: 17px; line-height: 1.3;
+        }
+        .alerta-card p { margin: 0; font-size: 12px; color: var(--visao-texto-suave); }
+        .alerta-metrica { display: flex; flex-direction: column; gap: 4px; }
+        .alerta-metrica strong { font-size: 13px; }
+        .alerta-metrica span { font-size: 11px; color: #777278; }
+        .alerta-acao { display: flex; justify-content: flex-end; }
+        .alerta-acao a { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 0 12px; border-radius: 8px; background: #f5f1f1; color: var(--cor-texto); font-size: 12px; text-decoration: none; }
+        @media (max-width: 800px) {
+            .alerta-card { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body class="dashboard-page">
+    <a class="dashboard-pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+
+    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
+        <div class="dashboard-menu-cabecalho">
+            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
+            <p class="dashboard-acesso-feedback" role="status">Carregando acessos...</p>
+        </nav>
+        <div class="visao-sistema">
+            <span class="visao-sistema-ponto" aria-hidden="true"></span>
+            <div><p>Demonstração iFood</p><small id="demo-referencia">Preparando cenário...</small></div>
+        </div>
+    </aside>
+
+    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
+
+    <div class="dashboard-conteudo">
+        <header class="dashboard-navbar">
+            <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu" aria-controls="menu-dashboard" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <label class="dashboard-pesquisa">
+                <span class="dashboard-lupa" aria-hidden="true"></span>
+                <input type="search" name="busca" aria-label="Buscar alertas por servidor, perfil ou recurso" placeholder="Buscar por servidor, perfil ou recurso...">
+            </label>
+
+            <div class="dashboard-usuario">
+                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
+                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
+                </button>
+                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
+                <div class="dashboard-usuario-dados">
+                    <span class="dashboard-usuario-nome"></span>
+                    <span class="dashboard-usuario-cargo"></span>
+                </div>
+                <div class="dashboard-conta">
+                    <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta" aria-controls="menu-conta" aria-expanded="false">
+                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12" height="12">
+                    </button>
+                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <p class="dashboard-conta-email"></p>
+                        <button class="dashboard-sair" type="button">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="principal" id="conteudo-principal" tabindex="-1">
+            <section class="visao-cabecalho" aria-labelledby="titulo-alertas">
+                <div>
+                    <h1 id="titulo-alertas">Alertas ativos</h1>
+                    <p id="alertas-resumo">Carregando cenário...</p>
+                </div>
+                <div class="visao-filtros">
+                    <span class="visao-select-campo">
+                        <select class="visao-select" id="alerta-filtro-perfil" aria-label="Filtrar alertas por perfil">
+                            <option value="">Todos os perfis</option>
+                        </select>
+                    </span>
+                    <span class="visao-select-campo">
+                        <select class="visao-select" id="alerta-filtro-nivel" aria-label="Filtrar alertas por situação">
+                            <option value="">Todas as situações</option>
+                            <option value="critico">Crítico</option>
+                            <option value="atencao">Atenção</option>
+                        </select>
+                    </span>
+                </div>
+            </section>
+
+            <section class="visao-indicadores" aria-label="Indicadores de alertas">
+                <article class="visao-card visao-indicador">
+                    <h2>Alertas ativos</h2>
+                    <p class="visao-valor" id="alerta-total">—</p>
+                </article>
+                <article class="visao-card visao-indicador">
+                    <h2>Críticos</h2>
+                    <p class="visao-valor visao-critico" id="alerta-criticos">—</p>
+                </article>
+                <article class="visao-card visao-indicador">
+                    <h2>Atenção</h2>
+                    <p class="visao-valor visao-atencao" id="alerta-atencao">—</p>
+                </article>
+                <article class="visao-card visao-indicador">
+                    <h2>Perfil em foco</h2>
+                    <p class="visao-valor visao-normal" id="alerta-foco">—</p>
+                    <p class="visao-legenda" id="alerta-foco-legenda">Cenário principal em operação</p>
+                </article>
+            </section>
+
+            <section class="visao-card visao-servidores" aria-labelledby="titulo-alertas-lista">
+                <div class="visao-tabela-cabecalho">
+                    <h2 id="titulo-alertas-lista">Eventos em curso</h2>
+                    <span class="alerta-resumo" id="alerta-quantidade">0 eventos</span>
+                </div>
+                <div id="alertas-vazio" class="visao-vazio" hidden>Nenhum alerta encontrado para o filtro aplicado.</div>
+                <div id="lista-alertas" class="alertas-lista" aria-live="polite"></div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

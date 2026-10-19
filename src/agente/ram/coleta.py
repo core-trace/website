@@ -1,3 +1,4 @@
+# Coleta de ram: preparação, cabeçalho e leitura das métricas.
 import psutil as p
 import time
 import sys
@@ -20,6 +21,7 @@ ATRIBUTOS_RAM = {
 
 
 def ler_oom_linux():
+    # O psutil não tem OOM. Ler do contador do linux
     if not sys.platform.startswith("linux"):
         raise NotImplementedError("OOM disponível apenas nesta fonte Linux.")
 
@@ -38,7 +40,7 @@ def preparar_coleta_ram(selecionadas, fonte=p, ler_oom=ler_oom_linux, relogio=ti
         if nome in IDS_RAM and nome not in escolhas:
             escolhas.append(nome)
 
-    # Mantém os dados básicos de RAM necessários aos indicadores do produto.
+    # Mantém os dados básicos de RAM necessários aos indicadores do produto
     for nome in ["ram_percent", "ram_available", "ram_total", "ram_oom_kills"]:
         if nome not in escolhas:
             escolhas.append(nome)
@@ -58,6 +60,7 @@ def colunas_ram(estado):
         if nome in estado["selecionadas"]:
             colunas.append(nome)
             colunas.append(nome + "_status")
+    # Permitem identificar a máquina reiniciada e o período de cada contagem OOM
     colunas.extend(["ram_oom_boot_id", "ram_oom_interval_seconds"])
     return colunas
 
@@ -68,6 +71,7 @@ def coletar_ram(estado):
         dados[coluna] = None
 
     try:
+        # Todos os valores de memória vêm da mesma consulta
         memoria = estado["fonte"].virtual_memory()
         for nome in ATRIBUTOS_RAM:
             if nome not in estado["selecionadas"]:
@@ -82,6 +86,7 @@ def coletar_ram(estado):
                 else:
                     salvar_leitura(dados, nome, None, "indisponivel")
             else:
+                # GB decimal: 1 GB = 1.000.000.000 bytes
                 valor_gb = valor / 1_000_000_000
                 salvar_leitura(dados, nome, valor_gb)
     except (OSError, ValueError, AttributeError, NotImplementedError):
@@ -89,6 +94,7 @@ def coletar_ram(estado):
             if nome in estado["selecionadas"]:
                 salvar_leitura(dados, nome, None, "erro_fonte")
 
+    # Uma falha na leitura de memória não impede tentar ler o contador OOM
     coletar_oom(estado, dados)
     return dados
 
@@ -105,6 +111,7 @@ def coletar_oom(estado, dados):
         dados["ram_oom_boot_id"] = boot_id
 
         if anterior is None:
+            # Primeira leitura: guarda a referência, sem contar eventos antigos.
             salvar_leitura(dados, "ram_oom_kills", None, "aquecendo")
         elif boot_id != anterior["boot_id"]:
             salvar_leitura(dados, "ram_oom_kills", None, "maquina_reiniciada")
@@ -115,6 +122,7 @@ def coletar_oom(estado, dados):
             if intervalo <= 0:
                 salvar_leitura(dados, "ram_oom_kills", None, "intervalo_invalido")
             else:
+                # Exemplo: contador 12 antes e 14 agora significa 2 novos registros.
                 novos_registros = contador - anterior["contador"]
                 salvar_leitura(dados, "ram_oom_kills", novos_registros)
                 dados["ram_oom_interval_seconds"] = intervalo
@@ -127,4 +135,8 @@ def coletar_oom(estado, dados):
         estado["oom_anterior"] = None
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         salvar_leitura(dados, "ram_oom_kills", None, "erro_fonte")
+        # Ao recuperar a fonte, criar outra referência sem contar o período desconhecido.
         estado["oom_anterior"] = None
+
+
+# COLETA DISCO

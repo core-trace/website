@@ -1,4 +1,21 @@
 const usuarioModel = require("../models/usuarioModel");
+const navegacaoService = require("../services/navegacaoService");
+
+function navegacao(req, res) {
+    const idUsuario = Number(req.query.usuario);
+    if (typeof req.query.usuario !== "string" || !Number.isSafeInteger(idUsuario) || idUsuario <= 0) {
+        return res.status(400).json({ mensagem: "Informe um usuário válido." });
+    }
+    return usuarioModel.listarPermissoes(idUsuario)
+        .then(function (permissoes) {
+            res.set("Cache-Control", "no-store");
+            return res.json({ navegacao: navegacaoService.paraUsuario({ permissoes: permissoes.map(item => item.nome) }) });
+        })
+        .catch(function (erro) {
+            console.error("Erro ao carregar navegação:", erro.message);
+            return res.status(500).json({ mensagem: "Não foi possível carregar o menu." });
+        });
+}
 
 function cadastrar(req, res) {
     const dados = req.body || {};
@@ -107,7 +124,10 @@ function listarEquipe(req, res) {
             }
             return res.json({
                 empresa: resultados[0][0],
-                membros: resultados[1],
+                membros: resultados[1].map(membro => ({
+                    ...membro,
+                    podeAlterarPerfil: resultados[2].some(nivel => nivel.id_nivel_acesso === membro.fk_nivel_acesso)
+                })),
                 perfisAcesso: resultados[2]
             });
         })
@@ -162,6 +182,7 @@ function alterarPerfil(req, res) {
 }
 
 module.exports = {
+    navegacao,
     cadastrar,
     autenticar,
     listarEquipe,

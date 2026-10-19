@@ -70,21 +70,76 @@ nas tabelas `empresa` e `nivel_acesso`. O cadastro cria o usuário com status `A
 O login aceita usuários ativos e retorna `id_usuario`, `nome`, `email`,
 `fk_empresa`, `fk_nivel_acesso` e `status`.
 
+### Visibilidade da sidebar
+
+A sidebar consulta `GET /usuario/navegacao?usuario=<ID_USUARIO>`, usando o ID
+salvo no `sessionStorage` durante o login. O backend busca as permissões nas
+tabelas `usuario`, `nivel_acesso`, `nivel_acesso_permissoes` e `permissoes` e
+retorna apenas os itens que devem aparecer. Grupos sem itens não são renderizados.
+
+| Nível | Itens visíveis |
+| --- | --- |
+| Administrador CoreTrace | Dashboard, Alertas, Perfis de servidor, Equipe e acessos, Empresas |
+| Administrador | Dashboard, Alertas, Perfis de servidor, Equipe e acessos |
+| Operador | Dashboard, Alertas, Perfis de servidor |
+| Visualizador | Dashboard e Alertas |
+
+Este controle é somente visual, sem middleware, sessão por cookie ou bloqueio
+de URLs. O nível Administrador CoreTrace não aparece nas opções de perfil de
+acesso dos formulários.
+
+### Cadastro de empresas e primeiro administrador
+
+Na dashboard, **Administrador CoreTrace → Empresas** abre o cadastro da empresa junto com seu
+primeiro administrador. Razão social, CNPJ, nome e email do responsável são
+obrigatórios; endereço, CPF e telefone são opcionais. O servidor define a data
+de registro e gera o token de instalação automaticamente.
+
+`POST /empresa/cadastrar` recebe:
+
+```json
+{
+  "razaoSocial": "Empresa Exemplo",
+  "cnpj": "12345678000199",
+  "endereco": {
+    "logradouro": "Rua Exemplo",
+    "numero": "100",
+    "cidade": "São Paulo",
+    "estado": "SP"
+  },
+  "administrador": {
+    "nome": "Ana Silva",
+    "email": "ana@empresa.com"
+  }
+}
+```
+
+O perfil **Administrador** deve existir em `nivel_acesso`. Empresa, endereço
+e usuário são gravados na mesma transação. O usuário recebe status `PENDENTE`
+e o convite do fluxo existente do Resend para definir a senha e ativar a conta.
+Se o envio do convite falhar, a transação é desfeita.
+
+Configure `RESEND_API_KEY`, `RESEND_FROM` (remetente autorizado no Resend) e
+`APP_URL` (endereço público do site) no ambiente do servidor. O cadastro retorna
+os IDs da empresa e do usuário, sem expor os tokens. Ao entrar, o administrador
+terá `fk_empresa` da nova empresa salvo em `sessionStorage.ID_EMPRESA`, usado
+pelo download do agente para buscar o token de instalação no banco.
+
 ### Download do agente
 
 Ao concluir o wizard, a tela de sucesso mostra o perfil criado e oferece o
 **Download do pacote ZIP**. O botão envia `sessionStorage.ID_EMPRESA` e o
 `id_perfil_servidor` retornado por `POST /servidor/perfis` para
-`POST /agente/download`. O ID não é fixo. Na dashboard antiga, o usuário escolhe
-um perfil da empresa na lista ao lado do botão de download. Na página de perfis,
+`POST /agente/download`. O ID não é fixo. Na página de perfis,
 cada card também tem **Baixar agente ZIP**, que usa o ID daquele perfil.
 
-Depois de baixar, extraia o ZIP e execute o agente dentro da pasta `agente`:
+Depois de baixar, extraia o ZIP e, dentro da pasta `agente`, execute `instalar.sh` e depois `iniciar.sh`:
 
 ```bash
 unzip agente.zip
 cd agente
-python captura.py
+bash instalar.sh
+bash iniciar.sh
 ```
 
 A rota consulta `empresa.token_instalacao` e `perfil_servidor.token_perfil_servidor`,
@@ -149,8 +204,11 @@ tentativa. A página só confirma o envio após o Resend aceitar a solicitação
 
 ### Perfis de servidor e wizard
 
-Na página `/pages/inicioDashboard.html`, “Criar perfil de servidor” abre o modal
-de cadastro. O link “Perfis de servidor” leva a `/pages/perfisServidor.html`,
+A página `/pages/inicioDashboard.html` usa os cadastros, componentes e limites da rota existente `/servidor/lista`, com o contexto de usuário e empresa informado pelo login. Apenas as métricas e seus históricos permanecem simulados, associados pelo MAC. Não há fallback de servidores fictícios nem consulta a uma tabela de containers.
+
+Execute `npm start` (ou `npm run demo`) com o banco configurado e faça login. Consulte o [guia da demonstração](DEMONSTRACAO.md) para dependências, organização dos cenários, filtros, visibilidade da sidebar e roteiro das personas.
+
+O link “Perfis de servidor” leva a `/pages/perfisServidor.html`,
 que lista os perfis com `GET /servidor/perfis?empresa=<ID_EMPRESA>` usando a empresa
 do `sessionStorage`. A consulta retorna nome, descrição e quantidade de servidores
 vinculados; uma lista vazia e um erro de conexão têm estados distintos na tela.
@@ -175,7 +233,7 @@ Exemplo do corpo do cadastro:
   "sistemaOperacional": "linux",
   "monitorarDocker": false,
   "metricas": [{ "id": 1, "operador": ">", "atencao": 70, "critico": 90 }],
-  "equipe": [{ "id": 2, "papel": "visualizador" }]
+  "equipe": [{ "id": 2 }]
 }
 ```
 
@@ -186,8 +244,7 @@ O perfil `0` representa um cadastro novo. Para um perfil existente, informe seu 
 a consulta exclui quem já está em `usuario_perfil_servidor`. Também exclui o
 proprietário, usuários inativos e usuários de outras empresas. Quem já foi
 selecionado no formulário sai das opções até ser removido da equipe.
-Os papéis são armazenados no vínculo com o perfil, sem alterar o nível global do
-usuário. Alertas aceitam `>`, `>=`, `<` e `<=`; ambos os limites podem ser `null`.
+O vínculo registra somente o usuário e o perfil, conforme o esquema atual, sem alterar o nível global do usuário. Alertas aceitam `>`, `>=`, `<` e `<=`; ambos os limites podem ser `null`.
 A resposta `201` contém `mensagem` e `id_perfil_servidor`; erros de validação retornam `400`,
 proprietário inválido retorna `403` e falhas de persistência retornam `500`.
 
@@ -196,11 +253,9 @@ perfis. Ao fechar a conclusão, o formulário é limpo para um novo cadastro. Em
 o preenchimento é preservado para correção. A opção de Docker e os operadores são
 persistidos; sua execução pelo agente não faz parte desta rota.
 
-A aplicação atual usa IDs enviados pelo cliente, sem sessão autenticada no backend.
-A validação de vínculo desta rota segue esse padrão e não substitui autenticação.
+As telas enviam os IDs de empresa e usuário armazenados no `sessionStorage`, seguindo o fluxo existente.
 
-O login direciona para `/pages/inicioDashboard.html`. A navbar usa os dados do
-`sessionStorage` para mostrar nome, iniciais e nível de acesso. O menu da conta
+O login direciona para `/pages/inicioDashboard.html`. A navbar usa o `sessionStorage` para mostrar nome, iniciais e nível de acesso; os itens da sidebar vêm de `/usuario/navegacao`. O menu da conta
 mostra apenas o email do usuário e o botão Sair. O nome da empresa e o nível de acesso vêm dos
 joins com `empresa` e `nivel_acesso` na consulta de login.
 
@@ -234,7 +289,7 @@ até definir a senha pelo email de ativação.
 `nivel_acesso` (Administrador, Operador, Visualizador ou outros níveis cadastrados).
 No `script.sql` atual, essa tabela é compartilhada entre as empresas; não existe
 um vínculo de níveis por empresa. A seleção é salva em `usuario.fk_nivel_acesso`
-e não altera `usuario_perfil_servidor.papel` nem vincula o funcionário a servidores.
+e não altera os vínculos de `usuario_perfil_servidor` nem vincula o funcionário a servidores.
 
 Para alterar um usuário já cadastrado, selecione o perfil na linha do colaborador
 e clique em **Salvar**. `PATCH /usuario/:id/perfil` recebe `empresa` e `nivelAcesso`

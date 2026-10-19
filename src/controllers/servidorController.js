@@ -68,6 +68,23 @@ function ativarAgente(req, res) {
         });
 }
 
+function listarServidores(req, res) {
+    const idEmpresa = Number(req.query.empresa);
+    const idUsuario = Number(req.query.usuario);
+    if (typeof req.query.empresa !== "string" || !Number.isSafeInteger(idEmpresa) || idEmpresa <= 0
+        || typeof req.query.usuario !== "string" || !Number.isSafeInteger(idUsuario) || idUsuario <= 0) {
+        return res.status(400).json({ mensagem: "Informe uma empresa e um usuário válidos para consultar os servidores." });
+    }
+    return servidorModel.listarServidoresPorEmpresa(idEmpresa, idUsuario)
+        .then(function (servidores) {
+            return res.json(servidores);
+        })
+        .catch(function (erro) {
+            console.error("Erro ao listar servidores:", erro.message);
+            return res.status(500).json({ mensagem: "Não foi possível carregar os servidores. Tente novamente." });
+        });
+}
+
 function listarPerfis(req, res) {
     const idEmpresa = Number(req.query.empresa);
 
@@ -271,9 +288,6 @@ function validarPerfil(dados) {
         if (!membro || !Number.isSafeInteger(membro.id) || membro.id <= 0 || idsEquipe.includes(membro.id)) {
             return "Selecione colaboradores válidos, sem repetições.";
         }
-        if (membro.papel !== "administrador" && membro.papel !== "visualizador") {
-            return "Selecione um nível de acesso válido.";
-        }
         idsEquipe.push(membro.id);
     }
     return "";
@@ -308,6 +322,7 @@ function listarMembrosDisponiveis(req, res) {
 
 module.exports = {
     ativarAgente,
+    listarServidores,
     listarPerfis,
     listarMetricas,
     criarPerfil,

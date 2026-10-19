@@ -3,24 +3,34 @@ from datetime import datetime
 import math
 
 def ler_valor_cpu(registro, campo):
-   
+    # Lê o campo do CSV. 
+    # Se a métrica não foi coletada retorna None
     valor = registro.get(campo)
 
+    # Se campo for vazio ou leitura for inválida não deve entrar na média
     if valor is None or valor == "":
         return None
+
     status = registro.get(campo + "_status")
     if status is not None and status != "ok":
         return None
+
+    # Tenta transformar o valor em número
     try:
         numero = float(valor)
+
     except (ValueError, TypeError):
         return None
+
+    # Se for infinito ou Nan retorna none
     if not math.isfinite(numero):
         return None
     return numero
 
 
 def media_cpu(lista, campo, minutos=None):
+    # Soma só as leituras válidas
+    # Zero também é uma leitura válida
     if len(lista) == 0:
         return None
 
@@ -30,6 +40,7 @@ def media_cpu(lista, campo, minutos=None):
 
     soma = 0
     quantidade = 0
+
     for registro in lista:
         if minutos is not None and ultima_data is not None:
             data = datetime.strptime(registro["TIMESTAMP"], "%Y-%m-%d %H:%M:%S")
@@ -99,7 +110,7 @@ def media_cpu_iowait(lista: list):
 
 
 def interrupcoes_por_segundo(lista: list):
-
+    # A coleta já calculou eventos/s. Aqui fazemos a média dessas leituras.
     return media_cpu(
         lista,
         "cpu_interrupts_per_second"
@@ -142,6 +153,7 @@ def carga_relativa(registro, campo="load_avg_5"):
 
 
 def media_carga_relativa(lista, campo="load_avg_5"):
+    # Dividir cada leitura pela capacidade registrada naquela mesma
     servidores = set(registro.get("ENDERECO_MAC") for registro in lista)
     if len(servidores) != 1:
         return None
@@ -158,6 +170,7 @@ def media_carga_relativa(lista, campo="load_avg_5"):
 
 
 def exibir_valor_cpu(nome, valor, unidade=""):
+    # Tratar ausencia ja feito
     if valor is None:
         print(f"{nome} Sem dados válidos")
     else:

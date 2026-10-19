@@ -1,3 +1,4 @@
+# Coleta de cpu: preparação, cabeçalho e leitura das métricas.
 import psutil as p
 import time
 from utils.coleta import numero_valido, salvar_leitura
@@ -23,7 +24,9 @@ TAXAS_CPU = {
     "cpu_context_switches_per_second": "ctx_switches",
 }
 
+#Prepara as escolhas
 def preparar_coleta_cpu(selecionadas, fonte=p, relogio=time.monotonic):
+    #chama uma vez só
     quantidade = fonte.cpu_count(logical=True)
     if not isinstance(quantidade, int) or quantidade < 1:
         raise RuntimeError("Não foi possível identificar as CPUs lógicas para montar o CSV.")
@@ -33,6 +36,7 @@ def preparar_coleta_cpu(selecionadas, fonte=p, relogio=time.monotonic):
         if nome in IDS_CPU and nome not in escolhas:
             escolhas.append(nome)
 
+    # Dependências obg do coletor
     for nome in ["cpu_percent", "cpu_percent_percpu"]:
         if nome not in escolhas:
             escolhas.append(nome)
@@ -52,7 +56,11 @@ def preparar_coleta_cpu(selecionadas, fonte=p, relogio=time.monotonic):
         "relogio": relogio,
     }
 
+
+
+# Monta o cabeçalho CPU do CSV
 def colunas_cpu(estado):
+    # Uma opção "por CPU lógica" pode gerar várias colunas no CSV
     valores = []
     for identificador in METRICAS_SELECIONAVEIS:
         if identificador in estado["selecionadas"] and identificador != "cpu_percent_percpu":
@@ -71,6 +79,10 @@ def colunas_cpu(estado):
     return colunas
 
 
+# Verifica valores se da par usar
+
+
+# Organiza uma rodada de captura
 def coletar_cpu(estado):
     dados = {}
     for coluna in colunas_cpu(estado):
@@ -95,6 +107,7 @@ def coletar_cpu(estado):
         estado["contadores_anteriores"] = None
         return dados
 
+    # Cada etapa consulta uma fonte. Não precisa esperar por metrica
     coletar_percentuais(estado, dados, por_cpu=False)
     coletar_percentuais(estado, dados, por_cpu=True)
     coletar_modos(estado, dados)
@@ -104,6 +117,11 @@ def coletar_cpu(estado):
     return dados
 
 
+# Guarda o valor e status
+# Falha fica vazia, não vira zero
+
+
+# Lê o uso total ou cada CPU lógica e descarta a primeira leitura
 def coletar_percentuais(estado, dados, por_cpu):
     if por_cpu:
         grupo = "por_cpu"
@@ -120,6 +138,7 @@ def coletar_percentuais(estado, dados, por_cpu):
         if len(valores) != len(colunas):
             raise ValueError("Quantidade de CPUs mudou durante a leitura")
 
+        # A primeira consulta apenas cria a referência do psutil
         pronta = grupo in estado["aquecidas"]
         for indice in range(len(colunas)):
             valor = valores[indice]
@@ -139,6 +158,7 @@ def coletar_percentuais(estado, dados, por_cpu):
             estado["aquecidas"].remove(grupo)
 
 
+# Uma única consulta dá usuário, sistema, ociosa e espera por I/O
 def coletar_modos(estado, dados):
     modos = []
     for nome in MODOS_CPU:
@@ -168,6 +188,7 @@ def coletar_modos(estado, dados):
                 estado["aquecidas"].remove("modos")
 
 
+# Compara contadores de duas rodadas e divide os novos eventos pelo tempo
 def coletar_taxas(estado, dados):
     taxas = []
     for nome in TAXAS_CPU:
@@ -190,13 +211,13 @@ def coletar_taxas(estado, dados):
                     salvar_leitura(dados, nome, None, "indisponivel")
                 elif anterior is None or antes is None or not numero_valido(antes):
                     salvar_leitura(dados, nome, None, "aquecendo")
-                # Primeiro verifica se existe um intervalo; depois compara com zero.
+                # Primeiro verifica se existe um intervalo depois compara com zero.
                 elif intervalo is None or intervalo <= 0:
                     salvar_leitura(dados, nome, None, "intervalo_invalido")
                 elif valor < antes:
                     salvar_leitura(dados, nome, None, "contador_reiniciado")
                 else:
-                    # Exemplo: 100 novos eventos em 2 s = 50 eventos/s.
+                    # Ex: 100 novos eventos em 2 s = 50 eventos/s
                     novos_eventos = valor - antes
                     eventos_por_segundo = novos_eventos / intervalo
                     salvar_leitura(dados, nome, eventos_por_segundo)
@@ -207,6 +228,7 @@ def coletar_taxas(estado, dados):
             estado["contadores_anteriores"] = None
 
 
+# Lê as frequências escolhidas e trata fonte indisponível
 def coletar_frequencias(estado, dados):
     atributos = {
         "cpu_freq_current": "current",
@@ -230,9 +252,11 @@ def coletar_frequencias(estado, dados):
             for coluna in frequencias:
                 salvar_leitura(dados, coluna, None, "erro_fonte")
 
+# Preserva a quantidade de núcleos físicos
 def coletar_inventario_fisico(estado, dados):
     if "cpu_count_physical" in estado["selecionadas"]:
         try:
             salvar_leitura(dados, "cpu_count_physical", estado["fonte"].cpu_count(logical=False))
         except (OSError, NotImplementedError):
             salvar_leitura(dados, "cpu_count_physical", None, "erro_fonte")
+

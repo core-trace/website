@@ -41,6 +41,48 @@ function ativar(idServidor, idPerfilServidor) {
     return database.executar(instrucaoSql, [idServidor, idPerfilServidor]);
 }
 
+async function listarServidoresPorEmpresa(idEmpresa, idUsuario) {
+    const servidores = await database.executar(`
+        SELECT s.id_servidor, s.nome, s.endereco_mac, p.id_perfil_servidor,
+               p.nome AS nome_perfil, p.sistema_operacional, p.monitorar_docker
+        FROM servidores s
+        INNER JOIN perfil_servidor p ON p.id_perfil_servidor = s.fk_perfil_servidor
+        WHERE p.fk_empresa = ? AND EXISTS (
+            SELECT 1 FROM usuario u
+            INNER JOIN nivel_acesso n ON n.id_nivel_acesso = u.fk_nivel_acesso
+            WHERE u.id_usuario = ? AND u.fk_empresa = p.fk_empresa AND u.status = 'ATIVO'
+              AND (EXISTS (
+                  SELECT 1 FROM nivel_acesso_permissoes np
+                  INNER JOIN permissoes perm ON perm.id_permissao = np.fk_permissao
+                  WHERE np.fk_nivel_acesso = n.id_nivel_acesso
+                    AND perm.nome IN ('ACESSAR_EQUIPE', 'ACESSAR_EMPRESAS')
+              ) OR EXISTS (
+                  SELECT 1 FROM usuario_perfil_servidor up
+                  WHERE up.fk_usuario = u.id_usuario AND up.fk_perfil_servidor = p.id_perfil_servidor
+              ))
+        )
+        ORDER BY s.id_servidor ASC;
+    `, [idEmpresa, idUsuario]);
+    if (!servidores.length) return [];
+    const perfis = [...new Set(servidores.map(servidor => servidor.id_perfil_servidor))];
+    const componentes = await database.executar(`
+        SELECT cp.fk_perfil_servidor AS perfilId, c.id_componente AS id,
+               c.nome, c.nome_coluna AS coluna, cp.operador,
+               cp.limite_atencao AS atencao, cp.limite_critico AS critico,
+               CASE c.categoria WHEN 'cpu' THEN 'CPU' WHEN 'carga' THEN 'CPU'
+                   WHEN 'ram' THEN 'RAM' WHEN 'swap' THEN 'RAM'
+                   WHEN 'disco' THEN 'Disco' WHEN 'rede' THEN 'Rede'
+                   ELSE 'Outros' END AS recurso
+        FROM componentes_perfil cp
+        INNER JOIN componentes c ON c.id_componente = cp.fk_componente
+        WHERE cp.fk_perfil_servidor IN (${perfis.map(() => '?').join(', ')})
+        ORDER BY cp.fk_perfil_servidor, c.id_componente;
+    `, perfis);
+    return servidores.map(servidor => ({ ...servidor,
+        componentes: componentes.filter(componente => componente.perfilId === servidor.id_perfil_servidor)
+    }));
+}
+
 function listarPerfisPorEmpresa(idEmpresa) {
     const instrucaoSql = `
         SELECT p.id_perfil_servidor, p.nome, p.descricao,
@@ -120,12 +162,12 @@ function criarPerfil(dados) {
         }
 
         const sqlMembro = `
-            INSERT INTO usuario_perfil_servidor (fk_usuario, fk_perfil_servidor, papel)
-            VALUES (?, ?, ?);
+            INSERT INTO usuario_perfil_servidor (fk_usuario, fk_perfil_servidor)
+            VALUES (?, ?);
         `;
-        await executar(sqlMembro, [dados.proprietario, idPerfil, "proprietario"]);
+        await executar(sqlMembro, [dados.proprietario, idPerfil]);
         for (const membro of dados.equipe) {
-            await executar(sqlMembro, [membro.id, idPerfil, membro.papel]);
+            await executar(sqlMembro, [membro.id, idPerfil]);
         }
         return resultado;
     });
@@ -182,6 +224,6 @@ function atualizarPerfil(idPerfil, dados) {
 
 module.exports = {
     buscarPerfil, buscarPorMac, cadastrar, ativar,
-    listarPerfisPorEmpresa, listarMetricas, buscarProprietario,
+    listarServidoresPorEmpresa, listarPerfisPorEmpresa, listarMetricas, buscarProprietario,
     listarMembrosDisponiveis, criarPerfil, obterPerfil, atualizarPerfil
 };

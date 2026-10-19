@@ -85,9 +85,21 @@ function listarNiveisAcesso() {
     const instrucaoSql = `
         SELECT id_nivel_acesso, nome, descricao
         FROM nivel_acesso
+        WHERE nome <> 'Administrador CoreTrace'
         ORDER BY id_nivel_acesso;
     `;
     return database.executar(instrucaoSql);
+}
+
+function listarPermissoes(idUsuario) {
+    return database.executar(`
+        SELECT DISTINCT p.nome
+        FROM usuario u
+        INNER JOIN nivel_acesso n ON n.id_nivel_acesso = u.fk_nivel_acesso
+        INNER JOIN nivel_acesso_permissoes np ON np.fk_nivel_acesso = n.id_nivel_acesso
+        INNER JOIN permissoes p ON p.id_permissao = np.fk_permissao
+        WHERE u.id_usuario = ? AND u.status = 'ATIVO';
+    `, [idUsuario]);
 }
 
 function alterarPerfil(idUsuario, idEmpresa, nivelAcesso) {
@@ -109,5 +121,6 @@ module.exports = {
     buscarEmpresa,
     listarEquipe,
     listarNiveisAcesso,
+    listarPermissoes,
     alterarPerfil
 }

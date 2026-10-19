@@ -6,8 +6,7 @@ function mostrarUsuarioLogado() {
 
     const nome = sessionStorage.NOME_USUARIO || "Usuário";
     const email = sessionStorage.EMAIL_USUARIO || "";
-    const niveis = { 1: "Administrador", 2: "Operador", 3: "Visualizador" };
-    const nivel = sessionStorage.NIVEL_ACESSO || niveis[sessionStorage.ID_NIVEL_ACESSO] || "";
+    const nivel = sessionStorage.NIVEL_ACESSO || "";
     const partes = nome.trim().split(/\s+/);
     let iniciais = partes[0].charAt(0);
     if (partes.length > 1) iniciais += partes[partes.length - 1].charAt(0);
@@ -19,7 +18,56 @@ function mostrarUsuarioLogado() {
     document.querySelector(".dashboard-conta-email").textContent = email;
 }
 
+function renderizarNavegacao(grupos) {
+    const navegacao = document.querySelector(".dashboard-navegacao");
+    const secoes = grupos.filter(grupo => grupo.itens.length > 0).map(grupo => {
+        const secao = document.createElement("div");
+        secao.className = "dashboard-menu-grupo";
+        const titulo = document.createElement("h2");
+        titulo.className = "dashboard-menu-titulo";
+        titulo.textContent = grupo.titulo;
+        secao.appendChild(titulo);
+        for (const item of grupo.itens) {
+            const link = document.createElement("a");
+            link.className = "dashboard-menu-item";
+            link.href = item.href;
+            if (item.href === window.location.pathname) link.setAttribute("aria-current", "page");
+            const icone = document.createElement("img");
+            icone.src = item.icone;
+            icone.alt = "";
+            icone.width = 20;
+            icone.height = 20;
+            const rotulo = document.createElement("span");
+            rotulo.textContent = item.rotulo;
+            link.append(icone, rotulo);
+            secao.appendChild(link);
+        }
+        return secao;
+    });
+    navegacao.replaceChildren(...secoes);
+    navegacao.setAttribute("aria-busy", "false");
+}
+
+async function carregarNavegacao() {
+    if (!sessionStorage.ID_USUARIO) return;
+    try {
+        const resposta = await fetch(`/usuario/navegacao?usuario=${encodeURIComponent(sessionStorage.ID_USUARIO)}`, { cache: "no-store" });
+        if (!resposta.ok) throw new Error("Não foi possível carregar seus acessos.");
+        const dados = await resposta.json();
+        renderizarNavegacao(dados.navegacao);
+    } catch {
+        const navegacao = document.querySelector(".dashboard-navegacao");
+        const aviso = document.createElement("p");
+        aviso.className = "dashboard-acesso-feedback";
+        aviso.setAttribute("role", "alert");
+        aviso.textContent = "Não foi possível carregar o menu. Atualize a página para tentar novamente.";
+        navegacao.replaceChildren(aviso);
+        navegacao.setAttribute("aria-busy", "false");
+    }
+}
+
 mostrarUsuarioLogado();
+carregarNavegacao();
 
 const menu = document.querySelector(".dashboard-menu");
 const botaoAbrirMenu = document.querySelector(".dashboard-abrir-menu");

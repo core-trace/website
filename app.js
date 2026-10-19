@@ -15,14 +15,13 @@ const HOST_APP = process.env.APP_HOST;
 const app = express();
 
 const indexRouter = require("./src/routes/index");
-const loginRouter = require("./src/routes/login");
 const conviteRouter = require("./src/routes/criarconviteRoutes");
 const ativacaoRouter = require("./src/routes/ativacaoRoutes");
-const employeeRouter = require("./src/routes/employees");
 const usuarioRouter = require("./src/routes/usuarioRoutes");
 const agenteRouter = require("./src/routes/agenteRoutes");
 const servidorRouter = require("./src/routes/servidorRoutes");
 const contatoRouter = require("./src/routes/contatoRoutes");
+const empresaRouter = require("./src/routes/empresaRoutes");
 
 
 app.use(express.json());
@@ -34,12 +33,11 @@ app.use("/ativar-conta", ativacaoRouter);
 app.use(cors());
 
 app.use("/", indexRouter);
-app.use("/user", loginRouter);
-app.use("/employee", employeeRouter);
 app.use("/usuario", usuarioRouter);
 app.use("/agente", agenteRouter);
 app.use("/servidor", servidorRouter);
 app.use("/contato", contatoRouter);
+app.use("/empresa", empresaRouter);
 
 app.listen(PORTA_APP, function () {
     console.log(`Servidor rodando: http://${HOST_APP}:${PORTA_APP}`);

@@ -22,6 +22,7 @@ def coluna_rede(interface, campo):
 
 
 def agrupar_rede(lista):
+    # Cada linha geral contém várias interfaces, cada uma em suas próprias colunas.
     grupos = {}
     for registro in lista:
         for coluna in registro:
@@ -76,6 +77,7 @@ def exibir_rede(lista):
     for chave, registros in grupos.items():
         mac, interface = chave
         print(f"\nREDE · {mac} · {interface}")
+        # Receber registros em ordem temporal. O estado usa a última linha, sem média.
         ultima = registros[-1]
         estado = ler_valor_rede(ultima, coluna_rede(interface, "net_isup"))
         if estado == 1:

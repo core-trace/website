@@ -24,7 +24,7 @@
         texto("detalhes-titulo", servidor.nome);
         const situacao = { critico: "Crítico", atencao: "Atenção", normal: "Normal", "sem-dados": "Dados insuficientes" }[servidor.situacao] || "Crítico";
         texto("detalhes-status", situacao);
-        document.getElementById("detalhes-status").style.color = servidor.situacao === "atencao" ? "#a76800" : servidor.situacao === "critico" ? "#cc0301" : "#777278";
+        document.getElementById("detalhes-status").style.color = servidor.situacao === "atencao" ? "#875700" : servidor.situacao === "critico" ? "#cc0301" : "#4b4350";
         texto("detalhes-perfil", `${servidor.perfil} · ${servidor.sistemaOperacional} · 8 CPUs lógicas · uptime ${servidor.uptime}`);
         texto("detalhes-coleta", servidor.coletas ? (servidor.ultimaColeta
             ? `Coleta simulada: ${monitoramentoMock.dataHora(servidor.ultimaColeta.instante)}${servidor.desatualizado ? " · informação possivelmente desatualizada" : ""}`
@@ -193,8 +193,8 @@
         }
         const disco = historico.discos[selecao.disco];
         const rede = historico.redes[selecao.rede];
-        const serie = (label, data, cor) => ({ label, data: data.map((y, indice) => ({ x: historico.instantes[indice], y })), borderColor: cor, backgroundColor: cor, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, tension: 0, spanGaps: false });
-        const azul = "#477da7", laranja = "#a76800", vermelho = "#cc0301", verde = "#15865c";
+        const serie = (label, data, cor) => ({ label, data: data.map((y, indice) => ({ x: historico.instantes[indice], y })), borderColor: cor, backgroundColor: cor, borderWidth: 3, pointRadius: 0, pointHoverRadius: 4, tension: 0, spanGaps: false });
+        const azul = "#477da7", laranja = "#875700", vermelho = "#cc0301", verde = "#15865c";
         const configuracoes = [
             ["cpu", [serie("CPU", historico.cpu, vermelho)], "%", 100],
             ["cpu-logica", [serie(`CPU lógica ${selecao.nucleo}`, historico.nucleos[selecao.nucleo], vermelho)], "%", 100],
@@ -229,13 +229,13 @@
                     responsive: true, maintainAspectRatio: false, animation: false,
                     locale: "pt-BR", interaction: { mode: "index", intersect: false },
                     plugins: {
-                        legend: { display: datasets.length > 1, position: "bottom", labels: { boxWidth: 12, boxHeight: 2, color: "#777278", font: { family: "Poppins", size: 10 } } },
-                        tooltip: { callbacks: { title: itens => monitoramentoMock.dataHora(itens[0].parsed.x), label: (contexto) => `${contexto.dataset.label}: ${numero(contexto.parsed.y)}${unidade}` } }
+                        legend: { display: datasets.length > 1, position: "bottom", labels: { boxWidth: 18, boxHeight: 3, color: "#4b4350", font: { family: "Poppins", size: 14 } } },
+                        tooltip: { titleFont: { size: 15 }, bodyFont: { size: 14 }, footerFont: { size: 14 }, padding: 12, callbacks: { title: itens => monitoramentoMock.dataHora(itens[0].parsed.x), label: (contexto) => `${contexto.dataset.label}: ${numero(contexto.parsed.y)}${unidade}` } }
                     },
                     scales: {
                         x: { type: "linear", min: historico.instantes[0], max: historico.instantes.at(-1), grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 4, maxRotation: 0,
-                            callback: valor => selecao.minutos >= 1440 ? monitoramentoMock.dataHora(valor) : monitoramentoMock.horario(valor), color: "#777278", font: { family: "Poppins", size: 10 } } },
-                        y: { min: 0, ...(unidade === "%" ? { max: maximo } : { suggestedMax: maximo }), border: { display: false }, grid: { color: "#e8e8e8" }, ticks: { maxTicksLimit: 3, color: "#777278", font: { family: "Poppins", size: 10 }, callback: (valor) => `${numero(valor)}${unidade}` } }
+                            callback: valor => selecao.minutos >= 1440 ? monitoramentoMock.dataHora(valor) : monitoramentoMock.horario(valor), color: "#4b4350", font: { family: "Poppins", size: 14 } } },
+                        y: { min: 0, ...(unidade === "%" ? { max: maximo } : { suggestedMax: maximo }), border: { display: false }, grid: { color: "#d6dbe3" }, ticks: { maxTicksLimit: 3, color: "#4b4350", font: { family: "Poppins", size: 14 }, callback: (valor) => `${numero(valor)}${unidade}` } }
                     }
                 }
             }));

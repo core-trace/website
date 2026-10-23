@@ -35,9 +35,15 @@
                 </div>
 
                 <ul class="navbar-links">
-                    <li><a href="/">Página inicial</a></li>
-                    <li><a href="/pages/sobreNos.html">Sobre nós</a></li>
-                    <li><a href="/pages/contato.html" aria-current="page">Contato</a></li>
+                    <li>
+                        <a href="/">Página inicial</a>
+                    </li>
+                    <li>
+                        <a href="/pages/sobreNos.html">Sobre nós</a>
+                    </li>
+                    <li>
+                        <a href="/pages/contato.html" aria-current="page">Contato</a>
+                    </li>
                 </ul>
 
                 <div class="navbar-acoes">
@@ -46,15 +52,14 @@
             </div>
         </nav>
     </header>
-
-    <main class="container-principal">
-
-        <!-- ===== ENTRE EM CONTATO ===== -->
-        <section class="container-entre-em-contato">
+    <section class="container-principal">
+        <div class="container-entre-em-contato">
             <div class="container-entre-em-contato-esquerda">
                 <p class="traço">_</p>
-                <p class="rotulo">FALE CONOSCO</p>
-                <h1 class="titulo-contato">Entre em <span class="vermelho">contato</span></h1>
+                <p class="rotulo-contato">FALE CONOSCO</p>
+                <h1 class="titulo-contato">Entre em
+                    <span class="vermelho">contato</span>
+                </h1>
                 <p class="texto-contato">Tem alguma dúvida, sugestão ou precisa de uma solução personalizada?
                     Nossa equipe está pronta para ajudar. Entre em contato com a CoreTrace e fale com especialistas
                     em infraestrutura e monitoramento.</p>
@@ -66,48 +71,54 @@
             <div class="container-entre-em-contato-direita">
                 <img src="../assets/icons/servidor_entre_em_contato.png" alt="" class="imagem-servidor">
             </div>
-        </section>
-
-        <!-- ===== ESTAMOS PRONTOS PARA OUVIR ===== -->
-        <section id="estamos-prontos" class="container-estamos-prontos-para-ouvir">
+        </div>
+        <div id="estamos-prontos" class="container-estamos-prontos-para-ouvir">
             <div class="container-estamos-prontos-para-ouvir-centrado">
                 <div class="container-estamos-prontos-para-ouvir-superior">
                     <div class="container-fale-conosco">
                         <p class="traço">_</p>
-                        <p class="rotulo rotulo-claro">FALE CONOSCO</p>
-                        <h2 class="titulo-fale-conosco">Estamos prontos para <span class="vermelho">ouvir</span></h2>
-                        <p class="texto-fale-conosco">Tem alguma dúvida, sugestão ou precisa de uma solução
-                            personalizada? Nossa equipe está pronta para ajudar.</p>
+                        <p class="rotulo-fale-conosco">FALE CONOSCO</p>
+                        <h2 class="titulo-fale-conosco">
+                            Estamos prontos para
+                            <span class="vermelho">ouvir</span>
+                        </h2>
+                        <p class="texto-fale-conosco">
+                            Tem alguma dúvida, sugestão ou precisa de uma solução personalizada? Nossa equipe está
+                            pronta para ajudar.
+                        </p>
                     </div>
-
                     <div class="container-enviar-email">
                         <div class="container-email">
                             <div class="divisao-email-1">
                                 <div class="campo-input">
-                                    <input class="caixa-input" type="text" placeholder="Nome completo" id="id_nome">
+                                    <input class="caixa-input" type="text" placeholder="Nome completo" id="id_nome"
+                                        aria-label="Nome completo">
                                 </div>
                                 <div class="campo-input">
-                                    <input class="caixa-input" type="email" placeholder="E-mail" id="id_email">
+                                    <input class="caixa-input" type="email" placeholder="E-mail" id="id_email"
+                                        aria-label="E-mail">
                                 </div>
                             </div>
                             <div class="divisao-email-2">
                                 <div class="campo-input-2">
-                                    <input class="caixa-input" type="text" placeholder="Assunto" id="id_assunto">
+                                    <input class="caixa-input" type="text" placeholder="Assunto" id="id_assunto"
+                                        aria-label="Assunto">
                                 </div>
                             </div>
                             <div class="divisao-email-3">
                                 <div class="campo-input-3">
-                                    <textarea class="caixa-input-3" placeholder="Conteúdo do e-mail"
-                                        id="id_conteudo"></textarea>
+                                    <textarea class="caixa-input-3" placeholder="Conteúdo do e-mail" id="id_conteudo"
+                                        aria-label="Conteúdo do e-mail"></textarea>
                                 </div>
                             </div>
                             <div class="divisao-email-4">
-                                <button class="botao-enviar" type="button" onclick="enviar()">Enviar</button>
+                                <button class="botao-enviar" type="button" onclick="enviar()">
+                                    Enviar
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <div class="container-estamos-prontos-para-ouvir-inferior">
                     <div class="contatos">
                         <div class="imagem-contato imagem-contato-email"></div>
@@ -149,80 +160,91 @@
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- ===== MAIS QUE TECNOLOGIA ===== -->
-        <section class="container-mais-que-tecnologia">
+        </div>
+        <div class="container-mais-que-tecnologia">
             <div class="container-nosso-diferencial">
-                <div class="barra-vermelha"></div>
+                <div class="barra-diferencial"></div>
                 <p class="rotulo-diferencial">NOSSO DIFERENCIAL</p>
-                <h2 class="titulo-diferencial">Mais que tecnologia,<br>
+                <h2 class="titulo-diferencial">
+                    Mais que tecnologia,<br>
                     <span class="vermelho">resultados reais.</span>
                 </h2>
-                <p class="texto-diferencial">Combinamos inovação, expertise e um atendimento próximo para entregar
-                    soluções que fazem a diferença na operação do seu negócio.</p>
+                <p class="texto-diferencial">
+                    Combinamos inovação, expertise e um atendimento próximo para entregar soluções que fazem a
+                    diferença na operação do seu negócio.
+                </p>
             </div>
-
             <div class="container-boxes-coretrace">
-                <article class="caixa-beneficios">
-                    <img src="../assets/images/alta-performance-contato.png" alt="" class="imagens-boxes">
-                    <h3>Alta performance</h3>
-                    <p>Soluções otimizadas para garantir máxima eficiência e disponibilidade do seu ambiente.</p>
-                </article>
-                <article class="caixa-beneficios">
-                    <img src="../assets/images/seguranca-contato.png" alt="" class="imagens-boxes">
-                    <h3>Segurança de ponta</h3>
-                    <p>Proteção em todas as camadas da infraestrutura, com monitoramento contínuo e análise
-                        inteligente.</p>
-                </article>
-                <article class="caixa-beneficios">
-                    <img src="../assets/images/suporte-especializado-contato.png" alt="" class="imagens-boxes">
-                    <h3>Suporte especializado</h3>
-                    <p>Uma equipe experiente e próxima, pronta para te acompanhar em todas as etapas.</p>
-                </article>
-                <article class="caixa-beneficios">
-                    <img src="../assets/images/escalabilidade-contato.png" alt="" class="imagens-boxes">
-                    <h3>Escalabilidade</h3>
-                    <p>Infraestrutura flexível para crescer com o seu negócio, sem complicação.</p>
-                </article>
-            </div>
-        </section>
-    </main>
-
-    <footer class="rodape" id="footer">
-        <div class="rodape-container">
-            <div class="rodape-links">
-                <div class="rodape-coluna">
-                    <h2>CoreTrace</h2>
-                    <a href="/">Página inicial</a>
-                    <a href="/pages/sobreNos.html">Sobre nós</a>
-                    <a href="#footer">Termos de serviço</a>
-                    <a href="/pages/contato.html">Contato</a>
+                <div class="caixa-beneficios">
+                    <div class="texto-beneficios">
+                        <img src="../assets/images/alta-performance-contato.png" alt="" class="imagens-boxes">
+                        <h3>Alta performance</h3>
+                        <p>Soluções otimizadas para garantir máxima eficiência e disponibilidade do seu ambiente.</p>
+                    </div>
+                    <div class="detalhe-beneficios"></div>
                 </div>
-
-                <div class="rodape-coluna">
-                    <h2>Contato</h2>
-                    <a href="mailto:contato@coretrace.com">E-mail</a>
-                    <a href="tel:+5519987654321">Telefone</a>
-                    <a href="mailto:suporte@coretrace.com">Suporte</a>
+                <div class="caixa-beneficios">
+                    <div class="texto-beneficios">
+                        <img src="../assets/images/seguranca-contato.png" alt="" class="imagens-boxes">
+                        <h3>Segurança de ponta</h3>
+                        <p>Proteção em todas as camadas da infraestrutura, com monitoramento contínuo e análise
+                            inteligente.</p>
+                    </div>
+                    <div class="detalhe-beneficios"></div>
                 </div>
-
-                <div class="rodape-coluna">
-                    <h2>Redes sociais</h2>
-                    <a href="https://www.linkedin.com/">LinkedIn</a>
-                    <a href="https://www.instagram.com/">Instagram</a>
-                    <a href="https://github.com/core-trace">GitHub</a>
+                <div class="caixa-beneficios">
+                    <div class="texto-beneficios">
+                        <img src="../assets/images/suporte-especializado-contato.png" alt="" class="imagens-boxes">
+                        <h3>Suporte especializado</h3>
+                        <p>Uma equipe experiente e próxima, pronta para te acompanhar em todas as etapas.</p>
+                    </div>
+                    <div class="detalhe-beneficios"></div>
                 </div>
-            </div>
-
-            <div class="rodape-base">
-                <a class="rodape-marca" href="/" aria-label="CoreTrace — início">
-                    <img src="../assets/icons/core_trace_white.svg" alt="CoreTrace" width="131" height="31">
-                </a>
-                <p>© 2026 CoreTrace. Todos os direitos reservados.</p>
+                <div class="caixa-beneficios">
+                    <div class="texto-beneficios">
+                        <img src="../assets/images/escalabilidade-contato.png" alt="" class="imagens-boxes">
+                        <h3>Escalabilidade</h3>
+                        <p>Infraestrutura flexível para crescer com o seu negócio, sem complicação.</p>
+                    </div>
+                    <div class="detalhe-beneficios"></div>
+                </div>
             </div>
         </div>
-    </footer>
+        <footer class="rodape" id="footer">
+            <div class="rodape-container">
+                <div class="rodape-links">
+                    <div class="rodape-coluna">
+                        <h2>CoreTrace</h2>
+                        <a href="/">Página inicial</a>
+                        <a href="/pages/sobreNos.html">Sobre nós</a>
+                        <a href="#footer">Termos de serviço</a>
+                        <a href="/pages/contato.html">Contato</a>
+                    </div>
+
+                    <div class="rodape-coluna">
+                        <h2>Contato</h2>
+                        <a href="mailto:contato@coretrace.com">E-mail</a>
+                        <a href="tel:+550000000000">Telefone</a>
+                        <a href="mailto:suporte@coretrace.com">Suporte</a>
+                    </div>
+
+                    <div class="rodape-coluna">
+                        <h2>Redes sociais</h2>
+                        <a href="https://www.linkedin.com/">LinkedIn</a>
+                        <a href="https://www.instagram.com/">Instagram</a>
+                        <a href="https://github.com/">GitHub</a>
+                    </div>
+                </div>
+
+                <div class="rodape-base">
+                    <a class="rodape-marca" href="/" aria-label="CoreTrace — início">
+                        <img src="../assets/icons/core_trace_white.svg" alt="CoreTrace" width="131" height="31">
+                    </a>
+                    <p>© 2026 CoreTrace. Todos os direitos reservados.</p>
+                </div>
+            </div>
+        </footer>
+    </section>
 </body>
 
 </html>

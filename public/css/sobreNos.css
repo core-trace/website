@@ -64,7 +64,7 @@
 }
 
 .historia-texto p {
-    font-size: 1vw;
+    font-size: 1.2vw;
     line-height: 1.5;
     margin-bottom: 2.5vh;
 }
@@ -78,7 +78,7 @@
     padding: 1.5vh 2vw;
     border-radius: 0.5vw;
     text-decoration: none;
-    font-size: 1vw;
+    font-size: 1.2vw;
     font-weight: 600;
 }
 
@@ -131,14 +131,14 @@
 }
 
 .beneficio h2 {
-    font-size: 1.15vw;
+    font-size: 1.2vw;
     font-weight: 700;
     margin-bottom: 1vh;
 }
 
 .beneficio p {
-    font-size: 0.85vw;
-    color: #aaa5a8;
+    font-size: 0.95vw;
+    color: #eeeaed;
     line-height: 1.6;
 }
 .beneficios{
@@ -179,7 +179,7 @@
 }
 
 .equipe-texto p {
-    font-size: 1vw;
+    font-size: 1.2vw;
     line-height: 1.6;
 }
 
@@ -226,8 +226,8 @@
 }
 
 .informacoes p {
-    font-size: 0.8vw;
-    color: #aaa5a8;
+    font-size: 0.95vw;
+    color: #eeeaed;
 }
 .redes {
     display: flex;
@@ -260,8 +260,8 @@
     color: #cc0301;
 }
 
-.diferencial-texto > p {
-    font-size: 1vw;
+.diferencial-texto p {
+    font-size: 1.2vw;
     margin-bottom: 2vh;
     line-height: 1.6;
 }
@@ -280,15 +280,15 @@
 }
 
 .vantagem h3 {
-    font-size: 1.1vw;
+    font-size: 1.2vw;
     border-left: 0.3vw solid #cc0301;
     padding-left: 1vw;
     margin-bottom: 1vh;
 }
 
 .vantagem p {
-    font-size: 0.85vw;
-    color: #aaa5a8;
+    font-size: 0.95vw;
+        color: #eeeaed;
     line-height: 1.6;
 }
 

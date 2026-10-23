@@ -25,7 +25,7 @@
         const situacao = { critico: "Crítico", atencao: "Atenção", normal: "Normal", "sem-dados": "Dados insuficientes" }[servidor.situacao] || "Crítico";
         texto("detalhes-status", situacao);
         document.getElementById("detalhes-status").style.color = servidor.situacao === "atencao" ? "#875700" : servidor.situacao === "critico" ? "#cc0301" : "#4b4350";
-        texto("detalhes-perfil", `${servidor.perfil} · ${servidor.sistemaOperacional} · 8 CPUs lógicas · uptime ${servidor.uptime}`);
+        texto("detalhes-perfil", `${servidor.perfil} · ${servidor.sistemaOperacional} · ${servidor.nucleos} CPUs lógicas · uptime ${servidor.uptime}`);
         texto("detalhes-coleta", servidor.coletas ? (servidor.ultimaColeta
             ? `Coleta simulada: ${monitoramentoMock.dataHora(servidor.ultimaColeta.instante)}${servidor.desatualizado ? " · informação possivelmente desatualizada" : ""}`
             : "Sem coleta válida · os dados abaixo são apenas exemplos ilustrativos")
@@ -36,14 +36,14 @@
             conteudo.innerHTML='<section class="servidor-card"><h3>Dados indisponíveis</h3><p>Não há cenário de métricas associado ao MAC deste servidor. Nenhum valor foi estimado.</p></section>';
             return;
         }
-        const nucleos = Array.from({ length: 8 }, (_, indice) => `<div class="servidor-nucleo"><label for="nucleo-${indice}">CPU ${indice}</label><meter id="nucleo-${indice}" min="0" max="100" value="0">0%</meter><span id="nucleo-valor-${indice}"></span></div>`).join("");
+        const nucleos = Array.from({ length: servidor.nucleos }, (_, indice) => `<div class="servidor-nucleo"><label for="nucleo-${indice}">CPU ${indice}</label><meter id="nucleo-${indice}" min="0" max="100" value="0">0%</meter><span id="nucleo-valor-${indice}"></span></div>`).join("");
         const executando = cenario.containers.filter((item) => item.estado === "Executando").length;
         const parados = cenario.containers.length - executando;
 
         // Somente os cenários fixos da demonstração são interpolados em HTML.
         // Nome e perfil provenientes do cadastro são atribuídos acima via textContent.
         conteudo.innerHTML = `
-            <div class="servidor-alerta servidor-alerta-${servidor.situacao}"><strong>${cenario.alerta}</strong></div>
+            <div class="servidor-alerta servidor-alerta-${servidor.situacao}"><strong>${escapar(cenario.alerta)}</strong></div>
             <section class="servidor-card" aria-labelledby="titulo-incidentes">
                 <h3 id="titulo-incidentes">Histórico de incidentes</h3>
                 <div id="detalhes-incidentes" role="region" aria-label="Histórico de incidentes" tabindex="0" class="servidor-tabela-scroll"></div>
@@ -51,15 +51,15 @@
             <section class="servidor-card" aria-labelledby="titulo-cpu">
                 <div class="servidor-card-cabecalho">
                     <h3 id="titulo-cpu">Uso de CPU</h3><span class="servidor-cpu-valor">${servidor.cpu}</span>
-                    ${seletor("detalhes-periodo", "Período de todos os gráficos", monitoramentoMock.periodos.map(minutos => `<option value="${minutos}"${minutos === 30 ? ' selected' : ''}>${monitoramentoMock.rotulosPeriodo[minutos]}</option>`).join(''))}
+                    ${seletor("detalhes-periodo", "Período de todos os gráficos", monitoramentoMock.periodos.map(minutos => `<option value="${minutos}"${minutos === selecao.minutos ? ' selected' : ''}>${monitoramentoMock.rotulosPeriodo[minutos]}</option>`).join(''))}
                 </div>
                 ${canvas("cpu", "Histórico de uso total de CPU em porcentagem")}
                 <h4>Uso por CPU lógica · média no período de ${periodo}</h4>
                 <div class="servidor-nucleos">${nucleos}</div>
-                <p class="servidor-notas">Carga por CPU lógica · 5 min: ${numero(cenario.carga5)} · 15 min: ${numero(cenario.carga15)}</p>
-                <p class="servidor-legenda">Espera por I/O: ${cenario.iowait}%</p>
+                <p class="servidor-notas">Carga do sistema · 5 min: ${numero(cenario.carga5)} · 15 min: ${numero(cenario.carga15)}</p>
+                <p class="servidor-legenda">Espera por I/O: ${numero(cenario.iowait)}%</p>
                 <div class="servidor-subcabecalho">
-                    ${seletor("detalhes-cpu-logica", "CPU lógica", Array.from({ length: 8 }, (_, indice) => `<option value="${indice}"${indice === 3 ? ' selected' : ''}>CPU lógica ${indice}</option>`).join(""))}
+                    ${seletor("detalhes-cpu-logica", "CPU lógica", Array.from({ length: servidor.nucleos }, (_, indice) => `<option value="${indice}"${indice === selecao.nucleo ? ' selected' : ''}>CPU lógica ${indice}</option>`).join(""))}
                     <span class="servidor-legenda">Uso no período de ${periodo}</span>
                 </div>
                 ${canvas("cpu-logica", "Histórico da CPU lógica selecionada em porcentagem")}
@@ -71,10 +71,11 @@
                 <p class="servidor-legenda">Histórico de ocupação da RAM (%)</p>
                 ${canvas("ram", "Histórico de ocupação da memória RAM em porcentagem")}
                 <p class="servidor-notas">Ocupação da RAM: ${servidor.ram}</p>
-                <p class="servidor-notas"><span>Swap: ${cenario.swap}% ocupado</span><span>Entrada: ${numero(cenario.swapEntrada)} bytes/s · saída: ${numero(cenario.swapSaida)} bytes/s</span></p>
+                <p class="servidor-notas"><span>Swap: ${numero(cenario.swap)}% ocupado</span><span>Entrada: ${numero(cenario.swapEntrada)} bytes/s · saída: ${numero(cenario.swapSaida)} bytes/s</span></p>
             </section>
             <section class="servidor-card" aria-labelledby="titulo-swap">
                 <h3 id="titulo-swap">Histórico de ocupação da swap</h3>
+                <p class="servidor-legenda">${memoria(cenario.swapUsada)} usados · ${memoria(cenario.swapLivre)} livres · capacidade ${memoria(cenario.swapTotal)}</p>
                 ${canvas("swap", "Uso da swap em porcentagem")}
             </section>
             <section class="servidor-card" aria-labelledby="titulo-oom">
@@ -84,11 +85,12 @@
             <section class="servidor-card" aria-labelledby="titulo-ocupacao">
                 <h3 id="titulo-ocupacao">Ocupação de /dados · ${servidor.disco} na última coleta</h3>
                 ${canvas('ocupacao','Histórico de ocupação de disco em porcentagem')}
-                <h4>Espaço disponível em /dados · capacidade de 200 GB</h4>
+                <h4>Espaço disponível em /dados · capacidade de ${numero(cenario.volumes[0].capacidade)} GB</h4>
                 ${canvas('espaco-livre','Histórico de espaço disponível no volume em GB')}
             </section>
             <section class="servidor-card" aria-labelledby="titulo-previsao-volumes">
                 <h3 id="titulo-previsao-volumes">Previsão de esgotamento por volume</h3>
+                <p class="servidor-legenda">Prazo estimado até o limite crítico do perfil; não representa um alerta atual.</p>
                 <div class="servidor-tabela-scroll" role="region" aria-label="Previsão de esgotamento por volume" tabindex="0">
                     <table class="servidor-tabela"><thead><tr><th scope="col">Volume</th><th scope="col">Espaço livre</th><th scope="col">Espaço: dias restantes</th><th scope="col">Inodes usados</th><th scope="col">Inodes: dias restantes</th></tr></thead>
                     <tbody>${cenario.volumes.map((volume) => `<tr><td>${volume.nome}</td><td>${numero(volume.livre)} GB</td><td>${prazo(volume.diasEspaco)}</td><td>${numero(volume.inodesUsados)}%</td><td>${prazo(volume.diasInodes)}</td></tr>`).join("")}</tbody></table>
@@ -149,7 +151,15 @@
                     }).join("")}</tbody></table>
                 </div>
                 <p class="servidor-legenda">¹ CPU na convenção Docker: 100% equivale a uma CPU lógica; pode ultrapassar 100%. Estado do container não confirma saúde da aplicação.</p>
-            </section>` : `<section class="servidor-card" aria-labelledby="titulo-containers"><h3 id="titulo-containers">Containers Docker</h3><p class="servidor-legenda">${!servidor.monitorarDocker ? "Monitoramento Docker não habilitado neste perfil." : servidor.dadosContainersDisponiveis ? "Nenhum container encontrado na coleta deste servidor." : "Dados de containers ainda não recebidos do agente."}</p></section>`}`;
+            </section>` : `<section class="servidor-card" aria-labelledby="titulo-containers"><h3 id="titulo-containers">Containers Docker</h3><p class="servidor-legenda">${!servidor.monitorarDocker ? "Não monitorado · Docker não habilitado neste perfil." : servidor.dadosContainersDisponiveis ? "Nenhum container encontrado na coleta deste servidor." : "Aguardando dados de containers para este servidor."}</p></section>`}`;
+    }
+
+    function linhaIncidente(item) {
+        const niveis = { normal: 'Normal', atencao: 'Atenção', critico: 'Crítico' };
+        const transicoes = item.transicoes.map(t => `${monitoramentoMock.dataHora(t.instante)} · ${niveis[t.nivel]}`).join('<br>');
+        return `<tr><td>${escapar(item.nome)}<p class="servidor-legenda">Pico: ${numero(item.valorPico)} ${escapar(item.unidade)} · ${monitoramentoMock.dataHora(item.instantePico)}</p></td>
+            <td class="visao-${item.nivel}">${niveis[item.severidadeMaxima]}<p class="servidor-legenda">Atual: ${niveis[item.severidadeAtual]}</p><details><summary>Transições</summary>${transicoes}</details></td>
+            <td>${monitoramentoMock.dataHora(item.inicio)}</td><td>${item.fim === null ? 'Ainda ativo' : monitoramentoMock.dataHora(item.fim)}</td></tr>`;
     }
 
     function atualizarMetricas(historico) {
@@ -165,7 +175,7 @@
             texto(`nucleo-valor-${indice}`, `${media}%`);
         });
         const incidentes = document.getElementById("detalhes-incidentes");
-        incidentes.innerHTML = historico.incidentes.length ? `<table class="servidor-tabela"><thead><tr><th scope="col">Componente</th><th scope="col">Severidade</th><th scope="col">Início</th><th scope="col">Fim</th></tr></thead><tbody>${historico.incidentes.map(item => `<tr><td>${escapar(item.nome)}</td><td class="visao-${item.nivel}">${item.nivel === 'critico' ? 'Crítico' : 'Atenção'}</td><td>${monitoramentoMock.dataHora(item.inicio)}</td><td>${item.fim === null ? 'Ainda ativo' : monitoramentoMock.dataHora(item.fim)}</td></tr>`).join('')}</tbody></table>` : '<p class="servidor-legenda">Nenhum incidente neste período.</p>';
+        incidentes.innerHTML = historico.incidentes.length ? `<table class="servidor-tabela"><thead><tr><th scope="col">Componente</th><th scope="col">Severidade máxima</th><th scope="col">Início</th><th scope="col">Fim</th></tr></thead><tbody>${historico.incidentes.map(linhaIncidente).join('')}</tbody></table>` : '<p class="servidor-legenda">Nenhum incidente neste período.</p>';
         texto("detalhes-oom-total", historico.oom.length);
         texto("detalhes-oom-descricao", historico.oom.length
             ? `Novos registros nos últimos ${selecao.minutos} minutos · última detecção na coleta das ${historico.oom.at(-1)}.`
@@ -200,7 +210,7 @@
             ["cpu-logica", [serie(`CPU lógica ${selecao.nucleo}`, historico.nucleos[selecao.nucleo], vermelho)], "%", 100],
             ["ram", [serie("RAM", historico.ram, azul)], "%", 100],
             ["ocupacao", [serie("Ocupação", historico.ocupacao, laranja)], "%", 100],
-            ["espaco-livre", [serie("Espaço disponível", historico.espacoLivre, azul)], " GB", 200],
+            ["espaco-livre", [serie("Espaço disponível", historico.espacoLivre, azul)], " GB", servidorAtual.volumes[0].capacidade],
             ["swap", [serie("Swap", historico.swap, laranja)], "%", 100],
             ["carga", [serie("5 minutos", historico.carga5, vermelho), serie("15 minutos", historico.carga15, azul)], " processos", 12],
             ["disco", [serie("Leitura", disco.leitura, azul), serie("Escrita", disco.escrita, laranja)], " MB/s", 20],
@@ -215,7 +225,7 @@
             const componente = servidorAtual.componentes.find(item => item.coluna === coluna);
             if (componente) for (const [nivel, cor] of [['atencao', laranja], ['critico', vermelho]]) {
                 const limite = componente[nivel];
-                if (Number.isFinite(limite)) datasets.push({ ...serie(`${nivel === 'critico' ? 'Crítico' : 'Atenção'} ${componente.operador} ${limite}%`, historico.instantes.map(() => limite), cor), borderDash: [5, 5], borderWidth: 1, pointHoverRadius: 0 });
+                if (Number.isFinite(limite)) datasets.push({ ...serie(`${nivel === 'critico' ? 'Crítico' : 'Atenção'} ${componente.operador} ${numero(limite)}%`, historico.instantes.map(() => limite), cor), borderDash: [5, 5], borderWidth: 1, pointHoverRadius: 0 });
             }
             const elemento = document.getElementById(`servidor-chart-${id}`);
             const origem = ["disco", "latencia", "fila"].includes(id) ? `Dispositivo ${disco.nome}. `
@@ -247,7 +257,8 @@
 
         botaoOrigem = document.activeElement;
         servidorAtual = servidor;
-        selecao = { minutos: 30, nucleo: 3, disco: 0, rede: 0 };
+        const minutos = Number(document.getElementById('filtro-periodo').value);
+        selecao = { minutos: monitoramentoMock.periodos.includes(minutos) ? minutos : 30, nucleo: 3, disco: 0, rede: 0 };
         destruirGraficos();
         renderizarPainel(servidor, monitoramentoMock.cenario(servidor));
         dialogo.showModal();

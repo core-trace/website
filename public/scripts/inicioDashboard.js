@@ -1,11 +1,11 @@
-(() => {
-    const cenario = dashboardCenario.criar();
+(async () => {
+    const cenario = await dashboardCenario.carregar();
     const { servidores, referencia, registros: historicoAlertas } = cenario;
     let resumo;
-    const situacoes = { critico: "Crítico", atencao: "Atenção", normal: "Normal" };
+    const situacoes = { critico: "Crítico", atencao: "Atenção", normal: "Normal", "sem-dados": "Dados insuficientes" };
     const filtroPerfil = document.getElementById("filtro-perfil");
     const filtroPeriodo = document.getElementById("filtro-periodo");
-    dashboardCenario.configurarFiltros(filtroPerfil, filtroPeriodo);
+    dashboardCenario.configurarFiltros(filtroPerfil, filtroPeriodo, servidores);
     const filtroSituacao = document.getElementById("filtro-situacao");
     const busca = document.getElementById('busca-servidores');
     const lista = document.getElementById("lista-servidores");
@@ -29,37 +29,23 @@
 
     function atualizarIndicadores() {
         const selecionados = servidoresDoPerfil();
-        const { inicio, fim } = periodoAtual();
-        const severidades = { critico: 0, atencao: 0 };
-
-        for (const servidor of selecionados) {
-            let maiorNivel = "normal";
-            for (const coleta of servidor.coletas) {
-                if (coleta.instante < inicio || coleta.instante > fim) continue;
-                const estado = dashboardDados.classificar(servidor.componentes, coleta);
-                if (estado.severidade === "critico") {
-                    maiorNivel = "critico";
-                    break;
-                }
-                if (estado.severidade === "atencao") maiorNivel = "atencao";
-            }
-            if (maiorNivel === "critico") severidades.critico++;
-            else if (maiorNivel === "atencao") severidades.atencao++;
-        }
-
         resumo = dashboardDados.agregar(selecionados, [], referencia);
+        const { inicio, fim } = periodoAtual();
+        const indicadores = dashboardDados.indicadoresNoPeriodo(selecionados, inicio, fim);
         const total = selecionados.length;
-        const previsao = resumo.previsao;
-        texto("visao-resumo", `iFood · ${total} servidores · ${monitoramentoMock.dataHora(referencia)}`);
+        const previsao = indicadores.previsao;
+        texto("visao-resumo", `${total} servidores · ${monitoramentoMock.dataHora(inicio)} a ${monitoramentoMock.dataHora(fim)} BRT`);
         texto("titulo-servidores", `Servidores (${total})`);
-        texto("indicador-atencao", severidades.atencao);
-        texto("indicador-criticos", severidades.critico);
-        texto("indicador-alertas", severidades.atencao + severidades.critico);
-        texto("alertas-criticos", `${severidades.critico} críticos`);
-        texto("alertas-atencao", `${severidades.atencao} atenção`);
-        texto("indicador-previsao", previsao ? `${previsao.dias} ${previsao.dias === 1 ? "dia" : "dias"}` : "Sem tendência");
+        texto("indicador-atencao", indicadores.atencao);
+        texto("indicador-criticos", indicadores.criticos);
+        texto("indicador-alertas", indicadores.alertas.atencao + indicadores.alertas.critico);
+        texto("alertas-criticos", `${indicadores.alertas.critico} críticos`);
+        texto("alertas-atencao", `${indicadores.alertas.atencao} atenção`);
+        const periodoCurto = fim - inicio < 86400000;
+        texto("indicador-previsao", previsao ? `${previsao.dias} ${previsao.dias === 1 ? "dia" : "dias"}` : periodoCurto ? "Dados insuficientes" : "Sem tendência");
         document.getElementById("indicador-previsao").classList.toggle("visao-sem-previsao", !previsao);
-        texto("legenda-previsao", previsao ? `${previsao.servidor.nome} · ${previsao.volume}` : "Armazenamento estável");
+        const volume = previsao?.servidor.volumes.find(item => item.nome === previsao.volume);
+        texto("legenda-previsao", previsao ? `${previsao.servidor.nome} · ${previsao.volume} · ${volume.uso.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% utilizado` : periodoCurto ? "Selecione ao menos 24 horas para estimar a tendência" : "Sem tendência de crescimento no período");
     }
 
     function atualizarTabela() {
@@ -72,7 +58,7 @@
         // Nomes e perfis do banco são texto, nunca HTML; a seleção usa o ID, não o nome.
         const linhas = filtrados.map((servidor) => {
             const linha = document.createElement("tr");
-            [servidor.nome, servidor.perfil, situacoes[servidor.situacao], servidor.cpu, servidor.ram, servidor.disco, servidor.docker, servidor.uptime].forEach((valor, indice) => {
+            [servidor.nome, servidor.perfil, situacoes[servidor.situacao], servidor.cpu, servidor.ram, servidor.disco, servidor.docker].forEach((valor, indice) => {
                 const celula = document.createElement("td");
                 celula.textContent = valor;
                 if (indice === 2) celula.className = `visao-${servidor.situacao}`;
@@ -121,10 +107,14 @@
     lista.addEventListener("click", (evento) => {
         const botao = evento.target.closest("[data-servidor]");
         if (!botao) return;
-        const servidor = resumo.servidores.find((item) => item.id === Number(botao.dataset.servidor));
+        const servidor = resumo.servidores.find((item) => String(item.id) === botao.dataset.servidor);
         if (servidor) document.dispatchEvent(new CustomEvent("abrir-detalhes-servidor", { detail: servidor }));
     });
     atualizarIndicadores();
     atualizarTabela();
     atualizarGraficos();
-})();
+})().catch(erro => {
+    const mensagem = document.getElementById('visao-resumo');
+    mensagem.textContent = erro.message;
+    mensagem.setAttribute('role', 'alert');
+});

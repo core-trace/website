@@ -2,94 +2,6 @@ const dashboardAlertasMock = (() => {
     const minuto = 60_000;
     const recursos = ['CPU', 'RAM', 'Disco', 'Rede'];
     const pesos = { normal: 0, atencao: 1, critico: 2 };
-    const metricas = {
-        CPU: { coluna: 'cpu_percent', nome: 'Uso de CPU', unidade: '%', atencao: 75, critico: 90 },
-        RAM: { coluna: 'ram_percent', nome: 'Uso de RAM', unidade: '%', atencao: 75, critico: 90 },
-        Disco: { coluna: 'disk_percent', nome: 'Ocupação do disco', unidade: '%', atencao: 75, critico: 90 },
-        Rede: { coluna: 'net_errors', nome: 'Erros de rede', unidade: 'eventos/s', atencao: 7.5, critico: 9 }
-    };
-    const perfis = [{ id: '1', nome: 'Carrinho' }, { id: '2', nome: 'Financeiro' }, { id: '3', nome: 'Catálogo' }];
-    const servidores = [
-        ['cart-api-07', '1'], ['cart-api-12', '1'], ['cart-api-02', '1'], ['cart-api-09', '1'],
-        ['pay-db-02', '2'], ['pay-api-04', '2'], ['pay-api-06', '2'],
-        ['catalog-api-03', '3'], ['catalog-api-05', '3'], ['catalog-api-08', '3']
-    ];
-
-    // Rampa de demanda seguida de recuperação; horários de São Paulo (UTC−3).
-    function onda(hora, inicio, pico, fim) {
-        return Math.max(0, Math.min((hora - inicio) / (pico - inicio), (fim - hora) / (fim - pico)));
-    }
-
-    function aplicarAjusteServidor(registros) {
-        const aplicar = (servidor, recurso, valor) => {
-            registros.filter(item => item.servidor === servidor && item.recurso === recurso)
-                .slice(-24)
-                .forEach(item => {
-                    item.valor = Number(Math.max(0, Math.min(100, valor)).toFixed(2));
-                    item.severidade = item.valor >= metricas[recurso].critico ? 'critico' : item.valor >= metricas[recurso].atencao ? 'atencao' : 'normal';
-                });
-        };
-
-        aplicar('pay-db-02', 'CPU', 92);
-        aplicar('pay-db-02', 'RAM', 62);
-        aplicar('pay-db-02', 'Disco', 72);
-        aplicar('pay-api-04', 'CPU', 68);
-        aplicar('pay-api-04', 'RAM', 92);
-        aplicar('pay-api-04', 'Disco', 70);
-
-        aplicar('cart-api-07', 'CPU', 79);
-        aplicar('cart-api-07', 'RAM', 61);
-        aplicar('cart-api-12', 'RAM', 81);
-        aplicar('cart-api-12', 'CPU', 62);
-        aplicar('cart-api-02', 'RAM', 78);
-        aplicar('cart-api-02', 'CPU', 64);
-        aplicar('cart-api-09', 'CPU', 80);
-        aplicar('cart-api-09', 'RAM', 63);
-        aplicar('pay-api-06', 'CPU', 83);
-        aplicar('pay-api-06', 'RAM', 64);
-        aplicar('catalog-api-03', 'Disco', 82);
-        aplicar('catalog-api-03', 'RAM', 66);
-        aplicar('catalog-api-05', 'RAM', 70);
-        aplicar('catalog-api-05', 'Disco', 72);
-
-        return registros;
-    }
-
-    function criarBase(referencia) {
-        const registros = [];
-        for (let timestamp = referencia - 10080 * minuto; timestamp <= referencia; timestamp += 5 * minuto) {
-            const local = new Date(timestamp - 3 * 60 * minuto);
-            const hora = local.getUTCHours() + local.getUTCMinutes() / 60;
-            const fatorDia = [1.12, 0.90, 0.94, 0.97, 1, 1.08, 1.15][local.getUTCDay()];
-            const demanda = atraso => fatorDia * (
-                0.92 * onda(hora - atraso, 10.5, 12.4, 15.6) +
-                1.22 * onda(hora - atraso, 17, 19.5, 23)
-            );
-            servidores.forEach(([servidor, perfil], indice) => {
-                const sensibilidade = [1.34, 1.18, 1.08, 0.88, 1.20, 1.10, 0.94, 1.12, 0.98, 0.86][indice];
-                const variacao = 2 * Math.sin(hora * 2 + indice + local.getUTCDate());
-                const valores = {
-                    CPU: 27 + 58 * demanda(0) * sensibilidade + variacao,
-                    RAM: 38 + 47 * demanda(0.35) * sensibilidade + variacao,
-                    // Escritas de pagamentos e cache do catálogo pressionam disco no pico.
-                    Disco: 40 + (indice === 4 ? 48 : indice === 8 ? 33 : 15) * demanda(0.5),
-                    // O catálogo concentra o tráfego; os demais têm margem de rede.
-                    Rede: 25 + (perfil === '3' ? 55 * sensibilidade : 24) * demanda(0)
-                };
-                recursos.forEach(recurso => {
-                    const metrica = metricas[recurso];
-                    const valor = Number((Math.min(100, Math.max(0, valores[recurso])) / (recurso === 'Rede' ? 10 : 1)).toFixed(2));
-                    registros.push(Object.freeze({
-                        servidor, perfil, recurso, timestamp, valor,
-                        severidade: valor >= metrica.critico ? 'critico' : valor >= metrica.atencao ? 'atencao' : 'normal'
-                    }));
-                });
-            });
-        }
-        // Estados normais também são registrados para representar a recuperação.
-        return Object.freeze(aplicarAjusteServidor(registros));
-    }
-
     function reduzir(pontos, inicio, granularidade) {
         const janelas = new Map();
         pontos.forEach(ponto => {
@@ -111,7 +23,7 @@ const dashboardAlertasMock = (() => {
 
     function agregar(registros, { inicio, fim, perfil = '' }) {
         const periodo = (fim - inicio) / minuto;
-        const granularidade = periodo <= 60 ? 5 : periodo <= 360 ? 15 : periodo <= 720 ? 30 : periodo <= 1440 ? 60 : 360;
+        const granularidade = periodo <= 60 ? 1 : periodo <= 360 ? 15 : periodo <= 720 ? 30 : periodo <= 1440 ? 60 : 360;
         const porRecurso = new Map(recursos.map(recurso => [recurso, new Map()]));
         const porInstante = new Map();
         const servidoresNoPeriodo = new Set();
@@ -141,5 +53,5 @@ const dashboardAlertasMock = (() => {
         };
     }
 
-    return { criarBase, agregar, recursos, perfis, metricas };
+    return { agregar, recursos };
 })();

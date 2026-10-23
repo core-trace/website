@@ -1,5 +1,5 @@
-(() => {
-    const cenario = dashboardCenario.criar();
+(async () => {
+    const cenario = await dashboardCenario.carregar();
     const filtroPerfil = document.getElementById('alerta-filtro-perfil');
     const filtroNivel = document.getElementById('alerta-filtro-nivel');
     const busca = document.getElementById('busca-alertas');
@@ -10,9 +10,7 @@
     const nivelClasse = { critico: 'critico', atencao: 'atencao', normal: 'normal' };
 
     function preencherFiltros() {
-        dashboardAlertasMock.perfis.forEach(perfil => {
-            filtroPerfil.add(new Option(perfil.nome, perfil.id));
-        });
+        dashboardCenario.configurarFiltros(filtroPerfil, null, cenario.servidores);
     }
 
     function servidoresFiltrados() {
@@ -21,32 +19,7 @@
     }
 
     function eventosAtivos() {
-        return cenario.servidores.flatMap((servidor) => {
-            const ultimaColeta = servidor.ultimaColeta;
-            const estado = dashboardDados.classificar(servidor.componentes, ultimaColeta);
-            return estado.alertas.map((alerta) => {
-                const componente = servidor.componentes.find((item) => item.id === alerta.componente) || {};
-                const valor = ultimaColeta?.valores?.[componente.coluna];
-                return {
-                    id: `${servidor.id}-${alerta.componente}`,
-                    serverId: servidor.id,
-                    servidor: servidor.nome,
-                    perfilId: String(servidor.perfilId),
-                    perfil: servidor.perfil,
-                    recurso: alerta.recurso,
-                    nome: alerta.nome,
-                    nivel: alerta.nivel,
-                    limite: componente.critico ?? componente.atencao ?? 0,
-                    valor: Number.isFinite(valor) ? Number(valor) : 0,
-                    inicio: ultimaColeta?.instante ?? cenario.referencia,
-                    monitorarDocker: servidor.monitorarDocker,
-                    docker: servidor.docker
-                };
-            });
-        }).sort((a, b) => {
-            if (a.nivel !== b.nivel) return a.nivel === 'critico' ? -1 : 1;
-            return a.servidor.localeCompare(b.servidor, 'pt-BR');
-        });
+        return dashboardCenario.alertasAtivos(cenario.servidores);
     }
 
     function atualizarResumo() {
@@ -57,12 +30,11 @@
         const criticos = eventos.filter((alerta) => alerta.nivel === 'critico').length;
         const atencao = eventos.filter((alerta) => alerta.nivel === 'atencao').length;
 
-        document.getElementById('demo-referencia').textContent = monitoramentoMock.dataHora(cenario.referencia);
-        document.getElementById('alertas-resumo').textContent = `Última atualização ${monitoramentoMock.dataHora(cenario.referencia)} · ${resumo.alertas.critico} crítico(s) e ${resumo.alertas.atencao} alerta(s) em atenção.`;
+        document.getElementById('alertas-resumo').textContent = `${monitoramentoMock.dataHora(cenario.referencia)} BRT · ${resumo.criticos} servidores críticos · ${resumo.atencao} em atenção · ${eventos.length} alertas ativos.`;
         document.getElementById('alerta-total').textContent = eventos.length;
         document.getElementById('alerta-criticos').textContent = criticos;
         document.getElementById('alerta-atencao').textContent = atencao;
-        document.getElementById('alerta-foco').textContent = perfil ? dashboardAlertasMock.perfis.find((item) => item.id === perfil)?.nome || 'Todos' : 'Todos';
+        document.getElementById('alerta-foco').textContent = perfil ? cenario.servidores.find(item => item.perfilId === perfil)?.perfil || 'Todos' : 'Todos';
         document.getElementById('alerta-foco-legenda').textContent = perfil ? 'Perfil com foco atual em alertas' : 'Cenário principal em operação';
     }
 
@@ -101,9 +73,9 @@
             const metrica = document.createElement('div');
             metrica.className = 'alerta-metrica';
             const label = document.createElement('strong');
-            label.textContent = `${alerta.nome}: ${Number(alerta.valor).toFixed(2)}${alerta.nome.includes('%') ? '%' : ''}`;
+            label.textContent = `${alerta.nome}: ${alerta.valor.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} ${alerta.unidade}`;
             const detalhe = document.createElement('span');
-            detalhe.textContent = `Limite ${nivelTexto[alerta.nivel].toLowerCase()}: ${Number(alerta.limite).toFixed(2)}${alerta.nome.includes('%') ? '%' : ''}`;
+            detalhe.textContent = `Limite ${nivelTexto[alerta.nivel].toLowerCase()}: ${alerta.operador} ${alerta.limite.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} ${alerta.unidade}`;
             metrica.append(label, detalhe);
 
             const estado = document.createElement('div');
@@ -132,4 +104,8 @@
         atualizarLista();
     });
     busca.addEventListener('input', atualizarLista);
-})();
+})().catch(erro => {
+    const mensagem = document.getElementById('alertas-resumo');
+    mensagem.textContent = erro.message;
+    mensagem.setAttribute('role', 'alert');
+});

@@ -43,7 +43,7 @@ function ativar(idServidor, idPerfilServidor) {
 
 async function listarServidoresPorEmpresa(idEmpresa, idUsuario) {
     const servidores = await database.executar(`
-        SELECT s.id_servidor, s.nome, s.endereco_mac, p.id_perfil_servidor,
+        SELECT s.id_servidor, s.nome, s.endereco_mac, s.status, p.id_perfil_servidor,
                p.nome AS nome_perfil, p.sistema_operacional, p.monitorar_docker
         FROM servidores s
         INNER JOIN perfil_servidor p ON p.id_perfil_servidor = s.fk_perfil_servidor
@@ -67,7 +67,7 @@ async function listarServidoresPorEmpresa(idEmpresa, idUsuario) {
     const perfis = [...new Set(servidores.map(servidor => servidor.id_perfil_servidor))];
     const componentes = await database.executar(`
         SELECT cp.fk_perfil_servidor AS perfilId, c.id_componente AS id,
-               c.nome, c.nome_coluna AS coluna, cp.operador,
+               c.nome, c.nome_coluna AS coluna, c.unidade, cp.operador,
                cp.limite_atencao AS atencao, cp.limite_critico AS critico,
                CASE c.categoria WHEN 'cpu' THEN 'CPU' WHEN 'carga' THEN 'CPU'
                    WHEN 'ram' THEN 'RAM' WHEN 'swap' THEN 'RAM'

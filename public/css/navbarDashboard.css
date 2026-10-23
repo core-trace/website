@@ -1,7 +1,8 @@
 .dashboard-page {
     --dashboard-menu-largura: 280px;
     --dashboard-navbar-altura: 98px;
-    --dashboard-borda: #e0e3e5;
+    --dashboard-borda: #c9ced8;
+    background-color: #eef0f4;
 }
 
 .dashboard-pular-conteudo {
@@ -59,7 +60,7 @@
 .dashboard-acesso-feedback {
     padding: 24px;
     color: var(--cor-cinza);
-    font-size: 12px;
+    font-size: 16px;
     line-height: 1.6;
 }
 
@@ -70,7 +71,7 @@
 .dashboard-menu-titulo {
     margin-bottom: 6px;
     color: var(--cor-cinza);
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 600;
     line-height: 1.5;
     text-transform: uppercase;
@@ -84,7 +85,7 @@
     padding: 10px 16px;
     border-radius: 16px;
     color: var(--cor-cinza);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
     text-decoration: none;
     transition: background-color 0.2s;
@@ -170,16 +171,17 @@
     outline: none;
     background-color: transparent;
     color: var(--cor-texto);
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .dashboard-pesquisa input::placeholder {
-    color: #939093;
+    color: #4b4350;
     opacity: 1;
 }
 
 .dashboard-usuario {
     display: flex;
+    margin-left: auto;
     align-items: center;
     flex-shrink: 0;
     gap: 12px;
@@ -218,7 +220,7 @@
     border-radius: 50%;
     background-color: #e6e4dc;
     color: var(--cor-cinza);
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
 }
 
@@ -235,13 +237,13 @@
 
 .dashboard-usuario-nome {
     color: var(--cor-cinza);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
 }
 
 .dashboard-usuario-cargo {
-    color: #939093;
-    font-size: 12px;
+    color: #4b4350;
+    font-size: 16px;
 }
 
 .dashboard-conta {
@@ -300,7 +302,7 @@
     border-radius: 6px;
     background-color: transparent;
     color: var(--cor-primaria);
-    font-size: 14px;
+    font-size: 16px;
     text-align: left;
 }
 
@@ -417,7 +419,7 @@
     }
 
     .dashboard-fechar-menu {
-        font-size: 30px;
+        font-size: 32px;
     }
 
     .dashboard-menu-aberto .dashboard-menu-fundo {
@@ -457,7 +459,7 @@
     .dashboard-avatar {
         width: 44px;
         height: 44px;
-        font-size: 16px;
+        font-size: 18px;
     }
 
     .dashboard-pesquisa {
@@ -468,7 +470,7 @@
     }
 
     .dashboard-pesquisa input {
-        font-size: 12px;
+        font-size: 16px;
     }
 }
 
@@ -481,7 +483,7 @@
 
 .dashboard-menu-conta p {
     margin: 6px 10px;
-    font-size: 12px;
+    font-size: 16px;
     overflow-wrap: anywhere;
 }
 

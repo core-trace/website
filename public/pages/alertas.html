@@ -10,8 +10,11 @@
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/inicioDashboard.css">
     <script src="../scripts/navbarDashboard.js" defer></script>
+    <script src="../scripts/cenario/cenario-coretrace-7dias.js" defer></script>
+    <script src="../scripts/cenario/detalhamento-servidor.js" defer></script>
     <script src="../scripts/monitoramentoMock.js" defer></script>
     <script src="../scripts/dashboardDados.js" defer></script>
+    <script src="../scripts/dashboardSimulacao.js" defer></script>
     <script src="../scripts/dashboardAlertasMock.js" defer></script>
     <script src="../scripts/dashboardCenario.js" defer></script>
     <script src="../scripts/alertas.js" defer></script>
@@ -21,25 +24,25 @@
         .alerta-badge {
             display: inline-flex; align-items: center; justify-content: center;
             min-height: 26px; padding: 6px 10px; border-radius: 999px;
-            font-size: 11px; font-weight: 600; letter-spacing: 0.02em; background: #f5f5f5; color: var(--cor-texto);
+            font-size: 16px; font-weight: 600; letter-spacing: 0.02em; background: #f5f5f5; color: var(--cor-texto);
         }
         .alerta-badge.critico { background: rgba(204, 3, 1, 0.12); color: var(--cor-vermelho); }
-        .alerta-badge.atencao { background: rgba(167, 104, 0, 0.12); color: #a76800; }
-        .alerta-badge.normal { background: rgba(119, 114, 120, 0.12); color: #777278; }
+        .alerta-badge.atencao { background: rgba(167, 104, 0, 0.12); color: #875700; }
+        .alerta-badge.normal { background: rgba(119, 114, 120, 0.12); color: #4b4350; }
         .alertas-lista { display: grid; gap: 12px; margin-top: 14px; }
         .alerta-card {
             display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr) auto;
             gap: 18px; align-items: center; padding: 18px 20px; border: 1px solid var(--dashboard-borda); border-radius: 14px; background: #fff;
         }
         .alerta-card h3 {
-            margin: 0 0 6px; font-size: 17px; line-height: 1.3;
+            margin: 0 0 6px; font-size: 20px; line-height: 1.3;
         }
-        .alerta-card p { margin: 0; font-size: 12px; color: var(--visao-texto-suave); }
+        .alerta-card p { margin: 0; font-size: 16px; color: var(--visao-texto-suave); }
         .alerta-metrica { display: flex; flex-direction: column; gap: 4px; }
-        .alerta-metrica strong { font-size: 13px; }
-        .alerta-metrica span { font-size: 11px; color: #777278; }
+        .alerta-metrica strong { font-size: 16px; }
+        .alerta-metrica span { font-size: 16px; color: #4b4350; }
         .alerta-acao { display: flex; justify-content: flex-end; }
-        .alerta-acao a { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 0 12px; border-radius: 8px; background: #f5f1f1; color: var(--cor-texto); font-size: 12px; text-decoration: none; }
+        .alerta-acao a { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 0 12px; border-radius: 8px; background: #f5f1f1; color: var(--cor-texto); font-size: 16px; text-decoration: none; }
         @media (max-width: 800px) {
             .alerta-card { grid-template-columns: 1fr; }
         }
@@ -62,10 +65,6 @@
         <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
             <p class="dashboard-acesso-feedback" role="status">Carregando acessos...</p>
         </nav>
-        <div class="visao-sistema">
-            <span class="visao-sistema-ponto" aria-hidden="true"></span>
-            <div><p>Demonstração iFood</p><small id="demo-referencia">Preparando cenário...</small></div>
-        </div>
     </aside>
 
     <div class="dashboard-menu-fundo" aria-hidden="true"></div>
@@ -77,11 +76,6 @@
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
             </button>
-
-            <label class="dashboard-pesquisa">
-                <span class="dashboard-lupa" aria-hidden="true"></span>
-                <input type="search" name="busca" aria-label="Buscar alertas por servidor, perfil ou recurso" placeholder="Buscar por servidor, perfil ou recurso...">
-            </label>
 
             <div class="dashboard-usuario">
                 <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
@@ -149,6 +143,11 @@
             <section class="visao-card visao-servidores" aria-labelledby="titulo-alertas-lista">
                 <div class="visao-tabela-cabecalho">
                     <h2 id="titulo-alertas-lista">Eventos em curso</h2>
+                    <label class="visao-busca-servidores">
+                        <span class="dashboard-lupa" aria-hidden="true"></span>
+                        <input type="search" id="busca-alertas" aria-label="Buscar alertas por servidor, perfil ou recurso"
+                            placeholder="Buscar servidor, perfil ou recurso..." aria-controls="lista-alertas">
+                    </label>
                     <span class="alerta-resumo" id="alerta-quantidade">0 eventos</span>
                 </div>
                 <div id="alertas-vazio" class="visao-vazio" hidden>Nenhum alerta encontrado para o filtro aplicado.</div>

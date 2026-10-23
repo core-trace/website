@@ -70,9 +70,9 @@ const dashboardDados = (() => {
         if (amostras.length < 3) return null;
         const primeiro = amostras[0], ultimo = amostras.at(-1);
         const dias = (ultimo.instante - primeiro.instante) / 86400000;
-        if (dias < 2) return null;
+        if (dias < 1) return null;
         const crescimento = (ultimo.uso - primeiro.uso) / dias;
-        if (crescimento <= 0) return null;
+        if (crescimento <= 0 || crescimento < (volume.minimoCrescimento ?? 0)) return null;
         const prazo = (volume.limite - ultimo.uso) / crescimento;
         // Evita transformar 14.000000000000002 em 15 por precisão binária.
         const diasInteiros = Math.abs(prazo - Math.round(prazo)) < 1e-9 ? Math.round(prazo) : Math.ceil(prazo);
@@ -122,6 +122,42 @@ const dashboardDados = (() => {
         return resumo;
     }
 
+    function indicadoresNoPeriodo(servidores, inicio, fim) {
+        const resumo = { atencao: 0, criticos: 0, alertas: { atencao: 0, critico: 0 }, previsao: null };
+        for (const servidor of new Map(servidores.map(s => [s.id, s])).values()) {
+            let severidade = 'sem-dados';
+            const abertos = new Map();
+            for (const coleta of servidor.coletas) {
+                if (coleta.instante < inicio || coleta.instante > fim) continue;
+                const estado = classificar(servidor.componentes, coleta);
+                severidade = maior(severidade, estado.severidade);
+                const ativos = new Set(estado.alertas.map(a => a.componente));
+                for (const id of abertos.keys()) if (!ativos.has(id)) abertos.delete(id);
+                for (const alerta of estado.alertas) {
+                    const anterior = abertos.get(alerta.componente);
+                    if (!anterior) {
+                        resumo.alertas[alerta.nivel]++;
+                        abertos.set(alerta.componente, alerta.nivel);
+                    } else if (pesos[alerta.nivel] > pesos[anterior]) {
+                        resumo.alertas[anterior]--;
+                        resumo.alertas[alerta.nivel]++;
+                        abertos.set(alerta.componente, alerta.nivel);
+                    }
+                }
+            }
+            if (severidade === 'atencao') resumo.atencao++;
+            if (severidade === 'critico') resumo.criticos++;
+            for (const volume of servidor.volumes) {
+                const previsao = preverVolume({ ...volume,
+                    historico: volume.historico.filter(c => c.instante >= inicio && c.instante <= fim) });
+                if (previsao && (!resumo.previsao || previsao.dias < resumo.previsao.dias)) {
+                    resumo.previsao = { ...previsao, servidor, volume: volume.nome };
+                }
+            }
+        }
+        return resumo;
+    }
+
     function recursosNoPeriodo(servidores, inicio, fim) {
         const resultado=Object.fromEntries(recursos.map(r=>[r,{monitorados:0,comDados:0,atencao:0,critico:0}]));
         for(const servidor of new Map(servidores.map(s=>[s.id,s])).values()) {
@@ -138,5 +174,5 @@ const dashboardDados = (() => {
         }
         return resultado;
     }
-    return { classificar, preverVolume, agregar, recursosNoPeriodo, reduzirPontos, recursos };
+    return { classificar, preverVolume, agregar, indicadoresNoPeriodo, recursosNoPeriodo, reduzirPontos, recursos };
 })();

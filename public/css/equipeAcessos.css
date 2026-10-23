@@ -16,23 +16,23 @@
 .equipe-secao {
     margin-bottom: 8px;
     color: var(--cor-primaria);
-    font-size: 12px;
+    font-size: 16px;
     letter-spacing: 1px;
     text-transform: uppercase;
 }
 
 .equipe h1 {
     margin-bottom: 12px;
-    font-size: 30px;
+    font-size: 32px;
 }
 
 .equipe h2 {
-    font-size: 20px;
+    font-size: 22px;
 }
 
 .equipe-descricao {
-    color: #777278;
-    font-size: 13px;
+    color: #4b4350;
+    font-size: 16px;
     line-height: 1.7;
 }
 
@@ -48,7 +48,7 @@
     border-radius: 8px;
     background-color: var(--cor-primaria);
     color: #ffffff;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -57,7 +57,7 @@
 }
 
 .equipe-botao-primario span {
-    font-size: 20px;
+    font-size: 22px;
 }
 
 .equipe-botao-primario:hover {
@@ -100,13 +100,13 @@
 }
 
 .equipe-aviso strong {
-    font-size: 13px;
+    font-size: 16px;
 }
 
 .equipe-aviso p {
     margin-top: 5px;
-    color: #777278;
-    font-size: 12px;
+    color: #4b4350;
+    font-size: 16px;
 }
 
 .equipe-card {
@@ -142,20 +142,20 @@
 .equipe-campo label {
     display: block;
     margin-bottom: 8px;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 600;
 }
 
 .equipe-campo label span,
 .equipe-campo small {
-    color: #777278;
+    color: #4b4350;
     font-weight: 400;
 }
 
 .equipe-campo small {
     display: block;
     margin-top: 7px;
-    font-size: 11px;
+    font-size: 16px;
 }
 
 .equipe-campo input,
@@ -167,7 +167,7 @@
     border-radius: 8px;
     background-color: #ffffff;
     color: var(--cor-texto);
-    font-size: 12px;
+    font-size: 16px;
 }
 
 .equipe-campo input[readonly] {
@@ -185,7 +185,7 @@
 .equipe-erro,
 .equipe-sucesso {
     margin-bottom: 20px;
-    font-size: 13px;
+    font-size: 16px;
 }
 
 .equipe-erro {
@@ -216,7 +216,7 @@
     border-radius: 20px;
     background-color: #fcece7;
     color: var(--cor-primaria);
-    font-size: 10px;
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -254,7 +254,7 @@
     border-radius: 50%;
     background-color: #e4f5ed;
     color: #008c5e;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 700;
 }
 
@@ -272,14 +272,14 @@
 
 .equipe-identidade strong {
     overflow-wrap: anywhere;
-    font-size: 13px;
+    font-size: 16px;
 }
 
 .equipe-membro-email {
     margin-top: 5px;
     overflow-wrap: anywhere;
-    color: #777278;
-    font-size: 12px;
+    color: #4b4350;
+    font-size: 16px;
 }
 
 .equipe-status {
@@ -321,14 +321,14 @@
 .equipe-perfil-erro {
     margin-top: 8px;
     color: #b42318;
-    font-size: 12px;
+    font-size: 16px;
 }
 
 .equipe-vazio {
     padding: 24px 0;
     text-align: center;
-    color: #777278;
-    font-size: 13px;
+    color: #4b4350;
+    font-size: 16px;
 }
 
 .equipe-perfis {
@@ -337,7 +337,7 @@
 
 .equipe-perfis h2 {
     margin-bottom: 16px;
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .equipe-perfis-lista {
@@ -363,12 +363,12 @@
 
 .equipe-perfil h3 {
     margin-bottom: 5px;
-    font-size: 12px;
+    font-size: 16px;
 }
 
 .equipe-perfil p {
-    color: #777278;
-    font-size: 11px;
+    color: #4b4350;
+    font-size: 16px;
 }
 
 @media (max-width: 1100px) {
@@ -383,7 +383,7 @@
         padding: 32px 20px;
     }
     .equipe h1 {
-        font-size: 26px;
+        font-size: 28px;
     }
     .equipe-card {
         padding: 18px 14px;

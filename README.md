@@ -204,9 +204,9 @@ tentativa. A página só confirma o envio após o Resend aceitar a solicitação
 
 ### Perfis de servidor e wizard
 
-A página `/pages/inicioDashboard.html` usa os cadastros, componentes e limites da rota existente `/servidor/lista`, com o contexto de usuário e empresa informado pelo login. Apenas as métricas e seus históricos permanecem simulados, associados pelo MAC. Não há fallback de servidores fictícios nem consulta a uma tabela de containers.
+A página `/pages/inicioDashboard.html` usa um histórico local de sete dias para os dez servidores. Os filtros de tempo e perfil atualizam os KPIs e os gráficos. A previsão de armazenamento exige pelo menos 24 horas de histórico; a tabela e os detalhes mostram também os valores da última coleta.
 
-Execute `npm start` (ou `npm run demo`) com o banco configurado e faça login. Consulte o [guia da demonstração](DEMONSTRACAO.md) para dependências, organização dos cenários, filtros, visibilidade da sidebar e roteiro das personas.
+Execute `npm start` com o banco configurado para login e administração. Os dados de monitoramento não dependem da API de servidores. Execute `npm test` para validar as métricas, os incidentes e os filtros.
 
 O link “Perfis de servidor” leva a `/pages/perfisServidor.html`,
 que lista os perfis com `GET /servidor/perfis?empresa=<ID_EMPRESA>` usando a empresa

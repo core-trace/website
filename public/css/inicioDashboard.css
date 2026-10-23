@@ -1,5 +1,15 @@
+.dashboard-legivel {
+    --dashboard-borda: #c9ced8;
+    background-color: #eef0f4;
+}
+.dashboard-legivel .dashboard-menu-titulo { font-size: 16px; color: #4b4350; }
+.dashboard-legivel .dashboard-menu-item,
+.dashboard-legivel .dashboard-usuario-nome { font-size: 18px; }
+.dashboard-legivel .dashboard-usuario-cargo { font-size: 16px; color: #4b4350; }
+.dashboard-legivel .dashboard-conta-email { font-size: 16px; overflow-wrap: anywhere; }
+
 .principal {
-    --visao-texto-suave: #777278;
+    --visao-texto-suave: #4b4350;
     padding: 34px 32px 28px;
 }
 
@@ -16,7 +26,7 @@
 }
 
 .visao-cabecalho h1 {
-    font-size: clamp(23px, 1.8vw, 32px);
+    font-size: clamp(30px, 2.2vw, 38px);
     font-weight: 600;
     letter-spacing: -0.7px;
 }
@@ -24,7 +34,7 @@
 .visao-cabecalho p {
     margin-top: 10px;
     color: var(--visao-texto-suave);
-    font-size: 13px;
+    font-size: 18px;
 }
 
 .visao-filtros {
@@ -34,13 +44,13 @@
 
 .visao-select,
 .visao-periodo {
-    min-height: 40px;
+    min-height: 46px;
     padding: 10px 14px;
     border: 1px solid var(--dashboard-borda);
     border-radius: 7px;
     background-color: #fff;
-    color: #777278;
-    font-size: 12px;
+    color: #4b4350;
+    font-size: 18px;
 }
 
 .visao-select {
@@ -70,10 +80,11 @@
 .visao-atualizacao {
     margin: 20px 0;
     color: var(--visao-texto-suave);
-    font-size: 12px;
+    font-size: 18px;
 }
 
 .visao-indicadores {
+    margin-top: 24px;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
@@ -85,10 +96,11 @@
     border: 1px solid var(--dashboard-borda);
     border-radius: 14px;
     background-color: #fff;
+    box-shadow: 0 2px 8px rgb(20 17 21 / 5%);
 }
 
 .visao-card h2 {
-    font-size: 17px;
+    font-size: 22px;
     font-weight: 600;
     line-height: 1.5;
 }
@@ -98,12 +110,12 @@
 
 .visao-indicador h2 {
     color: var(--visao-texto-suave);
-    font-size: 13px;
+    font-size: 18px;
 }
 
 .visao-valor {
     margin: 6px 0 10px;
-    font-size: clamp(26px, 2vw, 34px);
+    font-size: clamp(38px, 3vw, 46px);
     font-weight: 600;
     letter-spacing: -0.7px;
     line-height: 1.4;
@@ -111,18 +123,43 @@
 
 .visao-positivo { color: #15865c; }
 .visao-critico { color: #cc0301; }
-.visao-atencao { color: #a76800; }
+.visao-atencao { color: #875700; }
 .visao-sem-dados,
-.visao-normal { color: #777278; }
+.visao-normal { color: #4b4350; }
 
 .visao-legenda {
-    color: #777278;
-    font-size: 11px;
+    color: #4b4350;
+    font-size: 16px;
     line-height: 1.7;
 }
 
 .visao-servidores {
     margin-top: 20px;
+}
+
+.visao-navbar .dashboard-usuario { margin-left: auto; }
+.visao-servidores .visao-tabela-cabecalho { flex-wrap: wrap; }
+.visao-busca-servidores {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 240px;
+    min-width: 0;
+    min-height: 46px;
+    padding: 10px 14px;
+    border: 1px solid var(--dashboard-borda);
+    border-radius: 7px;
+}
+.visao-busca-servidores input::placeholder { color: #59515f; opacity: 1; }
+.visao-busca-servidores:focus-within { border-color: var(--cor-cinza); }
+.visao-busca-servidores input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--cor-texto);
+    font-size: 18px;
 }
 
 .visao-servidores > .visao-legenda {
@@ -133,14 +170,14 @@
 .visao-grafico-card { display: flex; flex-direction: column; }
 .visao-grafico-card > .visao-select-campo { align-self: flex-start; margin-top: 8px; }
 .visao-grafico-card > .visao-legenda { margin-top: 8px; }
-.visao-grafico-area { position: relative; height: 275px; min-width: 0; margin-top: auto; padding-top: 20px; }
+.visao-grafico-area { position: relative; height: 390px; min-width: 0; margin-top: auto; padding-top: 20px; }
 .visao-grafico-area canvas { display: block; max-width: 100%; }
 .visao-grafico-area canvas[hidden] { display: none; }
-.visao-grafico-status { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: #777278; font-size: 12px; }
+.visao-grafico-status { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: #4b4350; font-size: 18px; }
 .visao-grafico-status[hidden] { display: none; }
 .visao-alertas-legenda { display: flex; flex-wrap: wrap; gap: 4px 8px; }
-.visao-valor.visao-sem-previsao { font-size: 21px; letter-spacing: -0.3px; }
-.visao-coleta-aviso { display: block; margin-top: 4px; color: #a76800; font-size: 10px; }
+.visao-valor.visao-sem-previsao { font-size: 26px; letter-spacing: -0.3px; }
+.visao-coleta-aviso { display: block; margin-top: 4px; color: #875700; font-size: 16px; }
 .visao-select-situacao { min-width: 260px; background-color: #fcece7; color: var(--cor-vermelho); }
 .visao-tabela-scroll { position: relative; margin-top: 14px; overflow-x: auto; }
 
@@ -148,18 +185,18 @@
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 11px;
+    font-size: 16px;
     white-space: nowrap;
 }
 
 .visao-tabela th {
     padding: 10px 12px;
-    background-color: var(--cor-fundo);
+    background-color: #e9edf3;
     color: var(--visao-texto-suave);
-    font-weight: 400;
+    font-weight: 600;
 }
 
-.visao-tabela td { padding: 12px; border-bottom: 1px solid var(--dashboard-borda); }
+.visao-tabela td { padding: 16px 12px; border-bottom: 1px solid var(--dashboard-borda); }
 .visao-tabela th:first-child,
 .visao-tabela td:first-child { padding-left: 0; }
 .visao-tabela tbody tr:hover { background-color: #fafaf8; }
@@ -177,12 +214,12 @@
 }
 
 .visao-detalhes-botao:hover:not(:disabled) { text-decoration: underline; }
-.visao-detalhes-botao:disabled { color: #777278; cursor: default; opacity: 0.55; }
+.visao-detalhes-botao:disabled { color: #4b4350; cursor: default; opacity: 0.55; }
 .visao-detalhes-botao:disabled img { filter: grayscale(1); }
 .visao-detalhes-botao img { width: 11px; height: 11px; }
 .visao-tabela-rodape p { margin-top: 12px; }
-.visao-vazio { padding: 28px 12px; color: var(--visao-texto-suave); text-align: center; font-size: 13px; }
-.visao-rodape { margin-top: 20px; color: var(--visao-texto-suave); font-size: 10px; }
+.visao-vazio { padding: 28px 12px; color: var(--visao-texto-suave); text-align: center; font-size: 18px; }
+.visao-rodape { margin-top: 20px; color: var(--visao-texto-suave); font-size: 16px; }
 
 .visao-sistema {
     display: flex;
@@ -190,10 +227,10 @@
     gap: 8px;
     margin-top: auto;
     padding: 24px;
-    font-size: 13px;
+    font-size: 18px;
 }
 
-.visao-sistema small { font-size: 10px; }
+.visao-sistema small { font-size: 16px; }
 .visao-sistema-ponto { flex-shrink: 0; width: 16px; height: 16px; margin-top: 2px; border-radius: 50%; background: #4de0aa; }
 .visao-seta-conta { transform: rotate(-90deg); }
 .dashboard-usuario-toggle[aria-expanded="true"] .visao-seta-conta { transform: rotate(90deg); }
@@ -224,17 +261,18 @@
     .visao-select-campo select { width: 100%; }
     .visao-indicadores { grid-template-columns: 1fr; gap: 12px; }
     .visao-card { padding: 16px; }
-    .visao-indicador h2 { font-size: 11px; }
-    .visao-valor { font-size: 25px; }
+    .visao-indicador h2 { font-size: 16px; }
+    .visao-valor { font-size: 36px; }
     .visao-tabela-cabecalho { align-items: stretch; flex-direction: column; gap: 12px; }
+    .visao-busca-servidores { flex: 0 0 auto; }
     .visao-select-situacao { min-width: 0; width: 100%; }
-    .visao-grafico-area { height: 250px; }
+    .visao-grafico-area { height: 350px; }
 }
 
 @media (max-width: 360px) {
     .visao-indicadores { grid-template-columns: 1fr; }
 }
 
-.visao-erro { padding: 24px 16px; color: var(--cor-vermelho); font-size: 13px; text-align: center; }
-.visao-erro button { margin-top: 12px; padding: 8px 14px; border: 1px solid var(--dashboard-borda); border-radius: 6px; background: var(--cor-fundo); color: var(--cor-texto); font-size: 12px; }
+.visao-erro { padding: 24px 16px; color: var(--cor-vermelho); font-size: 18px; text-align: center; }
+.visao-erro button { margin-top: 12px; padding: 8px 14px; border: 1px solid var(--dashboard-borda); border-radius: 6px; background: var(--cor-fundo); color: var(--cor-texto); font-size: 18px; }
 .visao-indicador .visao-legenda { overflow-wrap: anywhere; }

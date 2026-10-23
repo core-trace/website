@@ -30,6 +30,7 @@
         let membrosEquipe = [];
         const linhasAlertas = new Map();
         let categoriasMetricas = [];
+        let catalogoOriginal = [];
         let etapa = 1;
         let catalogoCarregado = false;
         let buscandoMetricas = false;
@@ -395,6 +396,29 @@
             listaAlertas.replaceChildren(...grupos);
         }
 
+        function renderizarMetricas(preservar = false) {
+            const selecao = new Map([...lista.querySelectorAll('input')].map(input => [input.value, input.checked]));
+            const anteriores = new Map(categoriasMetricas.flatMap(categoria => categoria.metricas).map(metrica => [String(metrica.id), metrica]));
+            categoriasMetricas = metricasPlataforma.adaptar(catalogoOriginal, formulario.elements.sistemaOperacional.value);
+            lista.replaceChildren(...categoriasMetricas.map(criarCategoria));
+            if (preservar) lista.querySelectorAll('input').forEach(input => {
+                if (selecao.has(input.value)) input.checked = input.disabled || selecao.get(input.value);
+            });
+            vazio.hidden = categoriasMetricas.length > 0;
+            lista.hidden = categoriasMetricas.length === 0;
+            resumo.hidden = categoriasMetricas.length === 0;
+            recomendar.disabled = categoriasMetricas.length === 0;
+            // Preserva os limites comuns; substituições podem mudar a unidade.
+            const atuais = new Map(categoriasMetricas.flatMap(categoria => categoria.metricas).map(metrica => [String(metrica.id), metrica]));
+            for (const id of linhasAlertas.keys()) {
+                const anterior = anteriores.get(id), atual = atuais.get(id);
+                if (!atual || anterior?.nome !== atual.nome || anterior?.unidade !== atual.unidade) linhasAlertas.delete(id);
+            }
+            listaAlertas.replaceChildren();
+            atualizarContadores();
+            atualizarProximo();
+        }
+
         async function carregarMetricas() {
             if (catalogoCarregado || buscandoMetricas) return;
             buscandoMetricas = true;
@@ -415,14 +439,8 @@
                     throw new Error("Catálogo de métricas inválido.");
                 }
 
-                const categorias = dados.categorias.filter((categoria) => categoria.metricas.length > 0);
-                categoriasMetricas = categorias;
-                lista.replaceChildren(...categorias.map(criarCategoria));
-                vazio.hidden = categorias.length > 0;
-                lista.hidden = categorias.length === 0;
-                resumo.hidden = categorias.length === 0;
-                recomendar.disabled = categorias.length === 0;
-                atualizarContadores();
+                catalogoOriginal = dados.categorias;
+                renderizarMetricas();
                 catalogoCarregado = true;
             } catch (falha) {
                 erro.hidden = false;
@@ -521,6 +539,7 @@
             dialogo.querySelector(".wizard-etapas li:last-child").hidden = false;
             feedbackCadastro.hidden = true;
             formulario.reset();
+            if (catalogoCarregado) renderizarMetricas();
             membrosEquipe = [];
             linhasAlertas.clear();
             contador.textContent = "0/500";
@@ -557,6 +576,7 @@
             descricao.value = perfil.descricao || "";
             contador.textContent = descricao.value.length + "/500";
             formulario.elements.sistemaOperacional.value = perfil.sistema_operacional;
+            if (catalogoCarregado) renderizarMetricas();
             monitorarDocker.checked = Boolean(Number(perfil.monitorar_docker));
             lista.querySelectorAll("input").forEach(function (input) {
                 input.checked = input.dataset.essencial === "true" || metricasSalvas.some(function (metrica) {
@@ -650,6 +670,9 @@
             if (etapa === 1) dialogo.close();
             else mostrarEtapa(etapa - 1);
         });
+        formulario.elements.sistemaOperacional.forEach(input => input.addEventListener("change", () => {
+            if (catalogoCarregado) renderizarMetricas(true);
+        }));
         monitorarDocker.addEventListener("change", atualizarDocker);
         lista.addEventListener("change", atualizarContadores);
         recomendar.addEventListener("click", () => {

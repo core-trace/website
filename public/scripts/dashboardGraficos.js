@@ -26,7 +26,8 @@ const dashboardGraficos = (() => {
                 data: evolucao ? resumo.evolucao.map(item => ({ x: item.instante, y: item[nivel] })) : recursos.map(recurso => resumo.recursos[recurso][nivel]),
                 backgroundColor: cores[nivel], borderColor: nivel === 'atencao' ? '#9b7200' : cores[nivel], borderWidth: evolucao ? 3 : 1,
                 borderRadius: evolucao ? 0 : 3, maxBarThickness: 32,
-                pointRadius: 0, pointHoverRadius: 4, tension: 0, spanGaps: false
+                pointRadius: 0, pointHoverRadius: 4, tension: 0, spanGaps: false,
+                stepped: evolucao ? 'before' : false
             }));
             graficos.push(new Chart(document.getElementById(`grafico-${tipo}`), {
                 type: evolucao ? 'line' : 'bar',

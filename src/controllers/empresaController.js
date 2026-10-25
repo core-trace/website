@@ -81,4 +81,45 @@ async function cadastrar(req, res) {
     }
 }
 
-module.exports = { cadastrar };
+async function buscarMetricasPorToken(req, res) {
+    const authorization = req.headers.authorization;
+    const tokenPerfil = req.headers["token-perfil"];
+    if (!authorization) {
+        return res.status(401).json({ status: "error", message: "Token de instalação não informado" });
+    }
+    if (!tokenPerfil) {
+        return res.status(401).json({ status: "error", message: "Token do perfil não informado" });
+    }
+    const bearer = typeof authorization === "string" && /^Bearer\s+(\S+)$/i.exec(authorization.trim());
+    if (!bearer || bearer[1].length > 255) {
+        return res.status(401).json({ status: "error", message: "Token de instalação inválido" });
+    }
+    if (typeof tokenPerfil !== "string" || !tokenPerfil.trim() || tokenPerfil.trim().length > 255) {
+        return res.status(401).json({ status: "error", message: "Token do perfil inválido" });
+    }
+    try {
+        const metricas = await empresaModel.buscarMetricasPorToken(bearer[1], tokenPerfil.trim());
+        res.set("Cache-Control", "no-store");
+        return res.status(200).json(metricas);
+    } catch (erro) {
+        console.error("Erro ao consultar métricas de captura:", erro.code);
+        return res.status(500).json({ status: "error", message: "Ocorreu um erro interno" });
+    }
+}
+
+async function listarLimites(req, res) {
+    const idPerfil = Number(req.params.idPerfil);
+    if (!/^\d+$/.test(req.params.idPerfil) || !Number.isSafeInteger(idPerfil) || idPerfil <= 0) {
+        return res.status(400).json({ status: "error", message: "Informe um perfil de servidor válido" });
+    }
+    try {
+        const limites = await empresaModel.listarLimites(idPerfil);
+        res.set("Cache-Control", "no-store");
+        return res.status(200).json(limites);
+    } catch (erro) {
+        console.error("Erro ao consultar limites de captura:", erro.code);
+        return res.status(500).json({ status: "error", message: "Ocorreu um erro interno" });
+    }
+}
+
+module.exports = { cadastrar, buscarMetricasPorToken, listarLimites };

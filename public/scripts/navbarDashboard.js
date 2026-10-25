@@ -4,8 +4,20 @@ function mostrarUsuarioLogado() {
         return;
     }
 
-    const nome = sessionStorage.NOME_USUARIO || "Usuário";
     const email = sessionStorage.EMAIL_USUARIO || "";
+    let nome = sessionStorage.NOME_USUARIO || "";
+    const nomesContas = {
+        "admin@ifood.teste": "Eduardo",
+        "analista@ifood.teste": "Amanda",
+        "visualizador@ifood.teste": "Marcelo"
+    };
+    // Atualiza sessões antigas que ainda guardam o perfil como nome da conta.
+    const nomeConta = nomesContas[email.trim().toLowerCase()];
+    if (nomeConta && (!nome.trim() || /^(administrador|admin|analista|operador|visualizador)(?:\s+(?:do\s+)?ifood)?$/i.test(nome.trim()))) {
+        nome = nomeConta;
+        sessionStorage.NOME_USUARIO = nome;
+    }
+    nome = nome.trim() || "Usuário";
     const nivel = sessionStorage.NIVEL_ACESSO || "";
     const partes = nome.trim().split(/\s+/);
     let iniciais = partes[0].charAt(0);

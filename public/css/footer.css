@@ -33,7 +33,8 @@
     text-transform: uppercase;
 }
 
-.rodape-coluna a {
+.rodape-coluna a,
+.rodape-link-indisponivel {
     color: #dedadd;
     font-size: 12px;
     text-decoration: none;

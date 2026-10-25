@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon --exec node app.js",
-    "test": "node tests/validar-monitoramento.js && node tests/validar-detalhamento.js && node --test tests/cenario-integracao.test.js",
-    "test:browser": "node tests/cenario-navegador.js"
+    "gerar:resumo": "node scripts/gerar-resumo-dashboard.js"
   },
   "dependencies": {
     "archiver": "^7.0.1",

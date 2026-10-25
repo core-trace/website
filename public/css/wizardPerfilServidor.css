@@ -56,7 +56,7 @@ body.wizard-perfil-aberto {
 
 .wizard-etapas {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0;
     margin: 0;
     padding: 0;
@@ -118,8 +118,7 @@ body.wizard-perfil-aberto {
 
 .wizard-perfil[data-etapa="2"] [aria-current="step"] .wizard-etapa-nome,
 .wizard-perfil[data-etapa="3"] [aria-current="step"] .wizard-etapa-nome,
-.wizard-perfil[data-etapa="4"] [aria-current="step"] .wizard-etapa-nome,
-.wizard-perfil[data-etapa="5"] [aria-current="step"] .wizard-etapa-nome {
+.wizard-perfil[data-etapa="4"] [aria-current="step"] .wizard-etapa-nome {
     color: var(--cor-primaria);
 }
 
@@ -564,8 +563,7 @@ input:checked ~ .wizard-sistema-selecao::after {
 }
 
 .wizard-perfil[data-etapa="3"],
-.wizard-perfil[data-etapa="4"],
-.wizard-perfil[data-etapa="5"] {
+.wizard-perfil[data-etapa="4"] {
     height: 800px;
 }
 
@@ -887,262 +885,6 @@ input:checked ~ .wizard-sistema-selecao::after {
     font-size: 16px;
 }
 
-.wizard-perfil[data-etapa="5"] .wizard-cabecalho p {
-    max-width: none;
-}
-
-.wizard-equipe-aviso {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 18px;
-    margin-bottom: 24px;
-}
-
-.wizard-equipe-aviso-icone {
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background-color: #fcece7;
-}
-
-.wizard-equipe-aviso strong {
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.wizard-equipe-aviso p {
-    margin-top: 4px;
-    color: #6f6a6d;
-    font-size: 16px;
-}
-
-.wizard-equipe-aviso a {
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.wizard-equipe-aviso a:hover {
-    text-decoration: underline;
-}
-
-.wizard-equipe-cabecalho {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.wizard-equipe-cabecalho h3 {
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.wizard-equipe-contagem,
-.wizard-equipe-voce,
-.wizard-equipe-status {
-    padding: 4px 8px;
-    border-radius: 20px;
-    background-color: #fcece7;
-    color: var(--cor-primaria);
-    font-size: 16px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.wizard-equipe-card {
-    padding: 20px 18px 8px;
-    border: 1px solid #dededb;
-    border-radius: 12px;
-    background-color: #fafaf8;
-    box-shadow: 0 5px 12px rgb(20 17 21 / 5%);
-}
-
-.wizard-equipe-adicionar {
-    display: flex;
-    align-items: end;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-.wizard-equipe-selecao {
-    position: relative;
-    flex: 1;
-    min-width: 0;
-}
-
-.wizard-equipe-selecao label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 16px;
-}
-
-.wizard-equipe-selecao select,
-.wizard-equipe-membro select,
-.wizard-equipe-papel,
-.wizard-equipe-incluir {
-    min-height: 40px;
-    padding: 8px 12px;
-    border: 1px solid #c9c7c8;
-    border-radius: 8px;
-    background-color: #ffffff;
-    color: var(--cor-texto);
-    font-size: 16px;
-}
-
-.wizard-equipe-selecao select {
-    width: 100%;
-    height: 44px;
-    padding-left: 12px;
-}
-
-.wizard-equipe-incluir:hover,
-.wizard-equipe-remover:hover {
-    background-color: #fcece7;
-}
-
-.wizard-equipe-lista {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.wizard-equipe-membro {
-    display: grid;
-    grid-template-columns: 36px minmax(0, 1fr) 154px 60px;
-    align-items: center;
-    gap: 14px;
-    min-height: 66px;
-    padding-block: 14px;
-    border-top: 1px solid #dededb;
-}
-
-.wizard-equipe-avatar {
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: #e4f5ed;
-    color: #008c5e;
-    font-size: 16px;
-    font-weight: 700;
-}
-
-.wizard-equipe-proprietario .wizard-equipe-avatar {
-    background-color: #fcece7;
-    color: var(--cor-primaria);
-}
-
-.wizard-equipe-identidade {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.wizard-equipe-dados strong {
-    font-size: 16px;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-}
-
-.wizard-equipe-dados p {
-    margin-top: 4px;
-    color: #6f6a6d;
-    font-size: 16px;
-    overflow-wrap: anywhere;
-}
-
-.wizard-equipe-status {
-    background-color: #efeeec;
-    color: var(--cor-cinza);
-}
-
-.wizard-equipe-status.ativo {
-    background-color: #e4f5ed;
-    color: #008c5e;
-}
-
-.wizard-equipe-papel {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-
-.wizard-equipe-remover {
-    display: grid;
-    place-items: center;
-    width: 60px;
-    height: 40px;
-    font-size: 16px;
-    padding: 0;
-    border: 0;
-    border-radius: 6px;
-    background-color: transparent;
-    color: var(--cor-cinza);
-}
-
-.wizard-equipe-niveis {
-    margin-top: 20px;
-}
-
-.wizard-equipe-niveis h3 {
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.wizard-equipe-niveis-lista {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-}
-
-.wizard-equipe-nivel {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    border: 1px solid #dededb;
-    border-radius: 8px;
-    background-color: #fafaf8;
-}
-
-.wizard-equipe-nivel img {
-    flex-shrink: 0;
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-}
-
-.wizard-equipe-nivel-proprietario {
-    border-color: transparent;
-    background-color: #fcece7;
-}
-
-.wizard-equipe-nivel strong {
-    display: block;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.wizard-equipe-nivel p {
-    color: #6f6a6d;
-    font-size: 16px;
-}
-
-.wizard-equipe-feedback,
-.wizard-equipe-pendente {
-    margin-block: 12px;
-    color: #6f6a6d;
-    font-size: 16px;
-}
-
 @media (max-width: 900px) and (min-width: 701px) {
     .wizard-metricas-lista:not([hidden]) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1160,8 +902,7 @@ input:checked ~ .wizard-sistema-selecao::after {
 @media (max-width: 700px) {
     .wizard-perfil,
     .wizard-perfil[data-etapa="3"],
-    .wizard-perfil[data-etapa="4"],
-    .wizard-perfil[data-etapa="5"] {
+    .wizard-perfil[data-etapa="4"] {
         width: calc(100% - 12px);
         height: calc(100dvh - 12px);
         max-height: calc(100dvh - 12px);
@@ -1201,7 +942,7 @@ input:checked ~ .wizard-sistema-selecao::after {
     }
 
     .wizard-etapas::after {
-        width: calc((100% - 24px) / var(--wizard-total-intervalos, 4) * var(--wizard-etapas-concluidas, 0));
+        width: calc((100% - 24px) / var(--wizard-total-intervalos, 3) * var(--wizard-etapas-concluidas, 0));
         background-color: var(--cor-primaria);
     }
 
@@ -1483,52 +1224,6 @@ input:checked ~ .wizard-sistema-selecao::after {
         gap: 5px;
         padding-left: 5px;
     }
-
-    .wizard-equipe-aviso {
-        gap: 10px;
-        padding: 10px 0;
-        margin-bottom: 16px;
-    }
-
-    .wizard-equipe-aviso strong,
-    .wizard-equipe-dados strong {
-        font-size: 16px;
-    }
-
-    .wizard-equipe-cabecalho h3 {
-        font-size: 18px;
-    }
-
-    .wizard-equipe-card {
-        padding: 12px 10px 0;
-    }
-
-    .wizard-equipe-membro {
-        grid-template-columns: 36px minmax(0, 1fr) 60px;
-        gap: 10px;
-    }
-
-    .wizard-equipe-dados {
-        grid-column: 2 / -1;
-    }
-
-    .wizard-equipe-membro select,
-    .wizard-equipe-papel {
-        grid-column: 2;
-        min-width: 0;
-        width: 100%;
-    }
-
-    .wizard-equipe-niveis-lista {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-
-    .wizard-perfil[data-etapa="5"] .wizard-proximo {
-        flex: 1.7;
-        gap: 8px;
-        font-size: 16px;
-    }
 }
 
 @media (max-width: 380px) {
@@ -1756,12 +1451,6 @@ input:checked ~ .wizard-sistema-selecao::after {
     }
 }
 
-.wizard-equipe-selecao select,
-.wizard-equipe-membro select {
-    appearance: none;
-    background-image: none;
-}
-
 .wizard-editando .wizard-etapas {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -1774,7 +1463,7 @@ input:checked ~ .wizard-sistema-selecao::after {
     display: none;
 }
 
-.wizard-editando {
+.wizard-perfil {
     --wizard-total-intervalos: 3;
 }
 
@@ -1789,8 +1478,7 @@ input:checked ~ .wizard-sistema-selecao::after {
     }
 
     .wizard-conteudo > section:not([hidden]),
-    .wizard-finalizado:not([hidden]),
-    .wizard-equipe-membro {
+    .wizard-finalizado:not([hidden]) {
         animation: wizard-entrada 180ms ease-out;
     }
 
@@ -1804,3 +1492,8 @@ input:checked ~ .wizard-sistema-selecao::after {
 }
 
 .wizard-metrica-opcao span { min-width: 0; }
+
+.wizard-voltar[hidden],
+.wizard-baixar-agente[hidden] {
+    display: none;
+}

@@ -1,6 +1,6 @@
 (async () => {
     const cenario = await dashboardCenario.carregar();
-    const { servidores, referencia, registros: historicoAlertas } = cenario;
+    const { servidores, referencia } = cenario;
     let resumo;
     const situacoes = { critico: "Crítico", atencao: "Atenção", normal: "Normal", "sem-dados": "Dados insuficientes" };
     const filtroPerfil = document.getElementById("filtro-perfil");
@@ -20,7 +20,7 @@
 
     function atualizarGraficos() {
         const { inicio, fim } = periodoAtual();
-        dashboardGraficos.renderizar(dashboardAlertasMock.agregar(historicoAlertas, {
+        dashboardGraficos.renderizar(cenario.resumos?.[filtroPerfil.value]?.[filtroPeriodo.value]?.graficos || dashboardAlertasMock.agregar(cenario.registros, {
             inicio,
             fim,
             perfil: filtroPerfil.value
@@ -31,7 +31,8 @@
         const selecionados = servidoresDoPerfil();
         resumo = dashboardDados.agregar(selecionados, [], referencia);
         const { inicio, fim } = periodoAtual();
-        const indicadores = dashboardDados.indicadoresNoPeriodo(selecionados, inicio, fim);
+        const indicadores = cenario.resumos?.[filtroPerfil.value]?.[filtroPeriodo.value]?.indicadores
+            || dashboardDados.indicadoresNoPeriodo(selecionados, inicio, fim);
         const total = selecionados.length;
         const previsao = indicadores.previsao;
         texto("visao-resumo", `${total} servidores · ${monitoramentoMock.dataHora(inicio)} a ${monitoramentoMock.dataHora(fim)} BRT`);
@@ -44,7 +45,8 @@
         const periodoCurto = fim - inicio < 86400000;
         texto("indicador-previsao", previsao ? `${previsao.dias} ${previsao.dias === 1 ? "dia" : "dias"}` : periodoCurto ? "Dados insuficientes" : "Sem tendência");
         document.getElementById("indicador-previsao").classList.toggle("visao-sem-previsao", !previsao);
-        const volume = previsao?.servidor.volumes.find(item => item.nome === previsao.volume);
+        const volume = previsao && selecionados.find(servidor => servidor.id === previsao.servidor.id)
+            ?.volumes.find(item => item.nome === previsao.volume);
         texto("legenda-previsao", previsao ? `${previsao.servidor.nome} · ${previsao.volume} · ${volume.uso.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}% utilizado` : periodoCurto ? "Selecione ao menos 24 horas para estimar a tendência" : "Sem tendência de crescimento no período");
     }
 

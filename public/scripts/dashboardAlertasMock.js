@@ -2,23 +2,12 @@ const dashboardAlertasMock = (() => {
     const minuto = 60_000;
     const recursos = ['CPU', 'RAM', 'Disco', 'Rede'];
     const pesos = { normal: 0, atencao: 1, critico: 2 };
-    function reduzir(pontos, inicio, granularidade) {
-        const janelas = new Map();
-        pontos.forEach(ponto => {
-            const chave = Math.floor((ponto.instante - inicio) / (granularidade * minuto));
-            if (!janelas.has(chave)) janelas.set(chave, []);
-            janelas.get(chave).push(ponto);
-        });
-        const selecionados = new Set(pontos.length ? [pontos[0], pontos.at(-1)] : []);
-        // Seleciona coletas reais, mantendo juntos os estados das duas linhas.
-        // Não soma estados de horários diferentes nem oculta picos breves.
-        janelas.forEach(janela => {
-            ['atencao', 'critico'].forEach(nivel => {
-                selecionados.add(janela.reduce((a, b) => b[nivel] > a[nivel] ? b : a));
-                selecionados.add(janela.reduce((a, b) => b[nivel] < a[nivel] ? b : a));
-            });
-        });
-        return [...selecionados].sort((a, b) => a.instante - b.instante);
+    function reduzir(pontos) {
+        // Remove somente repetições: toda mudança fica no minuto real da coleta.
+        // Os dois extremos são necessários mesmo quando a janela inteira é constante.
+        return pontos.filter((ponto, indice) => indice === 0 || indice === pontos.length - 1
+            || ponto.atencao !== pontos[indice - 1].atencao
+            || ponto.critico !== pontos[indice - 1].critico);
     }
 
     function agregar(registros, { inicio, fim, perfil = '' }) {
@@ -49,7 +38,7 @@ const dashboardAlertasMock = (() => {
         return {
             inicio, fim, periodo, granularidade, totalServidores: servidoresNoPeriodo.size,
             recursos: Object.fromEntries([...porRecurso].map(([recurso, estados]) => [recurso, contar(estados)])),
-            evolucao: reduzir(pontos, inicio, granularidade)
+            evolucao: reduzir(pontos)
         };
     }
 

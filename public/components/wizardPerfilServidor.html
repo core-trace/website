@@ -21,13 +21,9 @@
                 <span class="wizard-etapa-numero" aria-hidden="true">4</span>
                 <span class="wizard-etapa-nome">Alertas</span>
             </li>
-            <li aria-label="Etapa 5: Equipe">
-                <span class="wizard-etapa-numero" aria-hidden="true">5</span>
-                <span class="wizard-etapa-nome">Equipe</span>
-            </li>
         </ol>
         <div class="wizard-resumo-etapa" aria-hidden="true">
-            <span class="wizard-etapa-contagem">Etapa 1 de 5</span>
+            <span class="wizard-etapa-contagem">Etapa 1 de 4</span>
             <strong class="wizard-etapa-atual">Informações básicas</strong>
         </div>
     </div>
@@ -140,36 +136,6 @@
                 <div class="wizard-alertas-lista"></div>
             </section>
 
-            <section class="wizard-equipe" aria-label="Membros da equipe" data-etapa="5" hidden>
-                <aside class="wizard-equipe-aviso">
-                    <span class="wizard-equipe-aviso-icone"><img src="../assets/icons/escudo.svg" alt="" width="22" height="22"></span>
-                    <div>
-                        <strong>Colaboradores vinculados ao perfil</strong>
-                        <p>O nível de acesso de cada colaborador continua sendo o definido para sua conta.</p>
-                    </div>
-                </aside>
-
-                <header class="wizard-equipe-cabecalho">
-                    <h3>Membros da equipe</h3>
-                    <span class="wizard-equipe-contagem" role="status" aria-live="polite">1 pessoa</span>
-                </header>
-                <div class="wizard-equipe-card">
-                    <div class="wizard-equipe-adicionar">
-                        <div class="wizard-equipe-selecao">
-                            <label for="perfil-equipe-usuario">Colaborador da empresa</label>
-                            <select id="perfil-equipe-usuario" aria-describedby="perfil-equipe-feedback" disabled>
-                                <option value="">Carregando colaboradores...</option>
-                            </select>
-                        </div>
-                        <button class="wizard-equipe-incluir" type="button" disabled>Adicionar</button>
-                    </div>
-                    <p id="perfil-equipe-feedback" class="wizard-equipe-feedback" role="status" aria-live="polite" hidden></p>
-                    <button class="wizard-equipe-tentar" type="button" hidden>Tentar novamente</button>
-                    <ul class="wizard-equipe-lista" aria-label="Pessoas que acompanharão este perfil"></ul>
-                </div>
-
-                <p class="wizard-equipe-pendente" role="status">Selecione colaboradores ativos da sua empresa que ainda não fazem parte deste perfil.</p>
-            </section>
         </div>
 
         <p class="wizard-cadastro-feedback" role="alert" hidden></p>

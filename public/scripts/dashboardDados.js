@@ -81,14 +81,14 @@ const dashboardDados = (() => {
 
     function agregar(entrada, instantes, agora) {
         const unicos = [...new Map(entrada.map(servidor => [servidor.id, servidor])).values()];
-        for (const servidor of unicos) if (!indices.has(servidor.coletas)) indices.set(servidor.coletas, new Map(servidor.coletas.map(item => [item.instante, item])));
+        for (const servidor of unicos) if (instantes.length && !indices.has(servidor.coletas)) indices.set(servidor.coletas, new Map(servidor.coletas.map(item => [item.instante, item])));
         const resumo = {
             atencao: 0, criticos: 0, alertas: { atencao: 0, critico: 0 }, previsao: null,
             recursos: Object.fromEntries(recursos.map(recurso => [recurso, { monitorados: 0, comDados: 0, atencao: 0, critico: 0 }])),
             servidores: [], evolucao: []
         };
         for (const servidor of unicos) {
-            const ultimaColeta = servidor.coletas.filter(coleta => coleta.instante <= agora && servidor.componentes.some(componente => temValor(componente, coleta)))
+            const ultimaColeta = servidor.ultimaColeta?.instante === agora ? servidor.ultimaColeta : servidor.coletas.filter(coleta => coleta.instante <= agora && servidor.componentes.some(componente => temValor(componente, coleta)))
                 .sort((a, b) => b.instante - a.instante)[0] || null;
             const estado = classificar(servidor.componentes, ultimaColeta);
             if (estado.severidade === "critico") resumo.criticos++;
@@ -100,7 +100,11 @@ const dashboardDados = (() => {
                 if (classificacao.comDados) resumo.recursos[recurso].comDados++;
                 if (["atencao", "critico"].includes(classificacao.severidade)) resumo.recursos[recurso][classificacao.severidade]++;
             }
-            resumo.servidores.push({ ...servidor, estado, situacao: estado.severidade, ultimaColeta, desatualizado: !!ultimaColeta && agora - ultimaColeta.instante > 90 * 60000 });
+            // Mantém o histórico sob demanda também nos servidores usados pela tabela.
+            const item = Object.defineProperties({}, Object.getOwnPropertyDescriptors(servidor));
+            Object.assign(item, { estado, situacao: estado.severidade, ultimaColeta,
+                desatualizado: !!ultimaColeta && agora - ultimaColeta.instante > 90 * 60000 });
+            resumo.servidores.push(item);
             for (const volume of servidor.volumes) {
                 const previsao = preverVolume(volume);
                 if (previsao && (!resumo.previsao || previsao.dias < resumo.previsao.dias)) resumo.previsao = { ...previsao, servidor, volume: volume.nome };

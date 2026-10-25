@@ -69,6 +69,7 @@ async function listarServidoresPorEmpresa(idEmpresa, idUsuario) {
         SELECT cp.fk_perfil_servidor AS perfilId, c.id_componente AS id,
                c.nome, c.nome_coluna AS coluna, c.unidade, cp.operador,
                cp.limite_atencao AS atencao, cp.limite_critico AS critico,
+               cp.operador_2 AS operador2, cp.limite_atencao_2 AS atencao2, cp.limite_critico_2 AS critico2,
                CASE c.categoria WHEN 'cpu' THEN 'CPU' WHEN 'carga' THEN 'CPU'
                    WHEN 'ram' THEN 'RAM' WHEN 'swap' THEN 'RAM'
                    WHEN 'disco' THEN 'Disco' WHEN 'rede' THEN 'Rede'
@@ -154,11 +155,13 @@ function criarPerfil(dados) {
 
         const sqlMetrica = `
             INSERT INTO componentes_perfil
-                (fk_componente, fk_perfil_servidor, operador, limite_atencao, limite_critico)
-            VALUES (?, ?, ?, ?, ?);
+                (fk_componente, fk_perfil_servidor, operador, limite_atencao, limite_critico,
+                     operador_2, limite_atencao_2, limite_critico_2)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
         `;
         for (const metrica of dados.metricas) {
-            await executar(sqlMetrica, [metrica.id, idPerfil, metrica.operador, metrica.atencao, metrica.critico]);
+            await executar(sqlMetrica, [metrica.id, idPerfil, metrica.operador, metrica.atencao, metrica.critico,
+                metrica.operador2 ?? null, metrica.atencao2 ?? null, metrica.critico2 ?? null]);
         }
 
         const sqlMembro = `
@@ -184,7 +187,8 @@ function obterPerfil(idPerfil, idEmpresa) {
             if (perfis.length === 0) return null;
             const perfil = perfis[0];
             return database.executar(`
-                SELECT fk_componente AS id, operador, limite_atencao AS atencao, limite_critico AS critico
+                SELECT fk_componente AS id, operador, limite_atencao AS atencao, limite_critico AS critico,
+                       operador_2 AS operador2, limite_atencao_2 AS atencao2, limite_critico_2 AS critico2
                 FROM componentes_perfil
                 WHERE fk_perfil_servidor = ?;
             `, [idPerfil]).then(function (metricas) {
@@ -214,9 +218,11 @@ function atualizarPerfil(idPerfil, dados) {
         for (const metrica of dados.metricas) {
             await executar(`
                 INSERT INTO componentes_perfil
-                    (fk_componente, fk_perfil_servidor, operador, limite_atencao, limite_critico)
-                VALUES (?, ?, ?, ?, ?);
-            `, [metrica.id, idPerfil, metrica.operador, metrica.atencao, metrica.critico]);
+                    (fk_componente, fk_perfil_servidor, operador, limite_atencao, limite_critico,
+                     operador_2, limite_atencao_2, limite_critico_2)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            `, [metrica.id, idPerfil, metrica.operador, metrica.atencao, metrica.critico,
+                metrica.operador2 ?? null, metrica.atencao2 ?? null, metrica.critico2 ?? null]);
         }
         return true;
     });

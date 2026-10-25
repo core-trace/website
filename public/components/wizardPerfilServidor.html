@@ -36,10 +36,7 @@
                     <p id="wizard-descricao">Comece dando um nome ao perfil do servidor e escolha o sistema operacional que será utilizado.</p>
                     <p class="wizard-docker-introducao" hidden>Os contêineres serão identificados automaticamente pelo agente.</p>
                 </div>
-                <button class="wizard-recomendar" type="button" hidden disabled>
-                    <img src="../assets/icons/estrela.svg" alt="" width="16" height="16">
-                    Aplicar perfil recomendado
-                </button>
+                <button class="wizard-recomendar" type="button"></button>
             </header>
 
             <section class="wizard-basicos" aria-label="Informações básicas" data-etapa="1">
@@ -133,6 +130,7 @@
                         Servidor
                     </button>
                 </div>
+                <p class="wizard-alertas-ajuda">Cada faixa tem seus próprios limites de atenção e crítico. Por exemplo: acima de 70% para atenção e 90% para crítico; abaixo de 20% para atenção e 10% para crítico. Basta atingir uma das faixas; crítico tem prioridade.</p>
                 <div class="wizard-alertas-lista"></div>
             </section>
 

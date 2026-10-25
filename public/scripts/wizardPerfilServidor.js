@@ -132,30 +132,47 @@ const acessoPerfis = {
         }
 
         function validarLimites(linha) {
-            const operador = linha.querySelector("select").value;
-            const atencao = linha.querySelector('[data-limite="atencao"]');
-            const critico = linha.querySelector('[data-limite="critico"]');
             const mensagem = linha.querySelector(".wizard-alerta-erro");
-            critico.setCustomValidity("");
-            let erroLimites = "";
-            if (!atencao.validity.valid || !critico.validity.valid) {
-                erroLimites = atencao.max === "100"
-                    ? "Informe limites entre 0 e 100%." : "Informe limites numéricos válidos.";
-            } else if ((atencao.value === "") !== (critico.value === "")) {
-                erroLimites = "Preencha os dois limites ou deixe ambos vazios.";
-            } else if (atencao.value !== "" && critico.value !== "") {
-                const ordemValida = operador.startsWith(">")
-                    ? critico.valueAsNumber > atencao.valueAsNumber
-                    : critico.valueAsNumber < atencao.valueAsNumber;
-                if (!ordemValida) erroLimites = operador.startsWith(">")
-                    ? "O limite crítico deve ser maior que o de atenção."
-                    : "O limite crítico deve ser menor que o de atenção.";
+            const segundoOperador = linha.querySelector('[data-segundo-operador]');
+            const faixaAtiva = segundoOperador && !segundoOperador.disabled;
+            const campos = [...linha.querySelectorAll('input[type="number"]')];
+            campos.forEach(campo => campo.setCustomValidity(""));
+            const erros = [];
+            for (const sufixo of faixaAtiva ? ["", "-segundo"] : [""]) {
+                const operador = sufixo ? segundoOperador.value : linha.querySelector("select").value;
+                const atencao = linha.querySelector(`[data-limite="atencao${sufixo}"]`);
+                const critico = linha.querySelector(`[data-limite="critico${sufixo}"]`);
+                const faixa = sufixo ? "Segunda faixa" : "Primeira faixa";
+                let erro = "";
+                if (sufixo) {
+                    const direcao = operador.startsWith("<") ? "inferior" : "superior";
+                    for (const [campo, nome] of [[atencao, "de atenção"], [critico, "crítico"]]) {
+                        const rotulo = `Limite ${nome} ${direcao}`;
+                        campo.closest('.wizard-alerta-segundo').querySelector('span').textContent = rotulo;
+                        campo.setAttribute('aria-label', `${rotulo}: ${linha.querySelector('th').textContent}`);
+                    }
+                }
+                if (!atencao.validity.valid || !critico.validity.valid) {
+                    erro = atencao.max === "100" ? "Informe limites entre 0 e 100%." : "Informe limites numéricos válidos.";
+                } else if (faixaAtiva && (atencao.value === "" || critico.value === "")) {
+                    erro = "Preencha os limites de atenção e crítico desta faixa.";
+                } else if ((atencao.value === "") !== (critico.value === "")) {
+                    erro = "Preencha os dois limites ou deixe ambos vazios.";
+                } else if (atencao.value !== "" && critico.value !== "") {
+                    const crescente = operador.startsWith(">");
+                    const valido = crescente ? critico.valueAsNumber > atencao.valueAsNumber
+                        : critico.valueAsNumber < atencao.valueAsNumber;
+                    if (!valido) erro = `Com o operador ${operador}, o limite crítico deve ser ${crescente ? "maior" : "menor"} que o de atenção. Os valores devem ser diferentes.`;
+                }
+                if (erro) {
+                    const texto = `${faixa}: ${erro}`;
+                    critico.setCustomValidity(texto);
+                    erros.push(texto);
+                }
             }
-            critico.setCustomValidity(erroLimites);
-            atencao.setAttribute("aria-invalid", String(!atencao.validity.valid));
-            critico.setAttribute("aria-invalid", String(!critico.validity.valid));
-            mensagem.textContent = erroLimites;
-            mensagem.hidden = !erroLimites;
+            campos.forEach(campo => campo.setAttribute("aria-invalid", String(!campo.disabled && !campo.validity.valid)));
+            mensagem.textContent = erros.join(" ");
+            mensagem.hidden = !erros.length;
         }
 
         function criarLinhaAlerta(metrica) {
@@ -228,6 +245,66 @@ const acessoPerfis = {
                 operador.value = salva.operador;
                 linha.querySelector('[data-limite="atencao"]').value = salva.atencao === null ? "" : salva.atencao;
                 linha.querySelector('[data-limite="critico"]').value = salva.critico === null ? "" : salva.critico;
+            }
+            const adicionarFaixa = document.createElement("button");
+            adicionarFaixa.type = "button";
+            adicionarFaixa.className = "wizard-alerta-adicionar-faixa";
+            adicionarFaixa.textContent = "+ Segundo operador";
+            adicionarFaixa.setAttribute("aria-label", `Adicionar segundo operador para ${metrica.nome}`);
+            adicionarFaixa.setAttribute("aria-expanded", "false");
+            const grupoOperador = document.createElement("div");
+            grupoOperador.className = "wizard-alerta-segundo";
+            grupoOperador.id = `${identificador}-faixa`;
+            grupoOperador.hidden = true;
+            adicionarFaixa.setAttribute("aria-controls", grupoOperador.id);
+            const conjuncao = document.createElement("span");
+            conjuncao.textContent = "ou";
+            const segundoOperador = operador.cloneNode(true);
+            segundoOperador.name = `alertas[${metrica.id}][segundoOperador]`;
+            segundoOperador.dataset.segundoOperador = "true";
+            segundoOperador.setAttribute("aria-label", `Segundo operador de ${metrica.nome}`);
+            segundoOperador.disabled = true;
+            grupoOperador.append(conjuncao, segundoOperador);
+            celulaOperador.append(grupoOperador, adicionarFaixa);
+            const segundosCampos = ["atencao", "critico"].map(nivel => {
+                const primeiro = linha.querySelector(`[data-limite="${nivel}"]`);
+                const grupo = document.createElement("div");
+                grupo.className = "wizard-alerta-segundo";
+                grupo.hidden = true;
+                const rotulo = document.createElement("span");
+                rotulo.textContent = "Segundo limite";
+                const campo = primeiro.parentElement.cloneNode(true);
+                const segundo = campo.querySelector("input");
+                segundo.name = `alertas[${metrica.id}][${nivel}Segundo]`;
+                segundo.dataset.limite = `${nivel}-segundo`;
+                segundo.setAttribute("aria-label", `Segundo limite de ${nivel === "atencao" ? "atenção" : "crítico"}: ${metrica.nome}`);
+                segundo.value = "";
+                segundo.disabled = true;
+                grupo.append(rotulo, campo);
+                primeiro.parentElement.after(grupo);
+                return grupo;
+            });
+            adicionarFaixa.addEventListener("click", () => {
+                const ativar = segundoOperador.disabled;
+                if (ativar) segundoOperador.value = operador.value.startsWith(">") ? "<=" : ">=";
+                segundoOperador.disabled = !ativar;
+                grupoOperador.hidden = !ativar;
+                segundosCampos.forEach(grupo => {
+                    grupo.hidden = !ativar;
+                    grupo.querySelector("input").disabled = !ativar;
+                });
+                adicionarFaixa.textContent = ativar ? "Remover faixa" : "+ Segundo operador";
+                adicionarFaixa.setAttribute("aria-expanded", String(ativar));
+                adicionarFaixa.setAttribute("aria-label", `${ativar ? "Remover faixa" : "Adicionar segundo operador"} de ${metrica.nome}`);
+                validarLimites(linha);
+                if (ativar) segundoOperador.focus();
+            });
+            if (salva?.operador2) {
+                adicionarFaixa.click();
+                segundoOperador.value = salva.operador2;
+                linha.querySelector('[data-limite="atencao-segundo"]').value = salva.atencao2 ?? "";
+                linha.querySelector('[data-limite="critico-segundo"]').value = salva.critico2 ?? "";
+                validarLimites(linha);
             }
             linha.addEventListener("input", () => validarLimites(linha));
             linha.addEventListener("change", () => validarLimites(linha));
@@ -378,7 +455,13 @@ const acessoPerfis = {
                     id: Number(input.value),
                     operador: linha.querySelector("select").value,
                     atencao: atencao.value === "" ? null : atencao.valueAsNumber,
-                    critico: critico.value === "" ? null : critico.valueAsNumber
+                    critico: critico.value === "" ? null : critico.valueAsNumber,
+                    operador2: linha.querySelector('[data-segundo-operador]').disabled ? null
+                        : linha.querySelector('[data-segundo-operador]').value,
+                    atencao2: linha.querySelector('[data-segundo-operador]').disabled ? null
+                        : linha.querySelector('[data-limite="atencao-segundo"]').valueAsNumber,
+                    critico2: linha.querySelector('[data-segundo-operador]').disabled ? null
+                        : linha.querySelector('[data-limite="critico-segundo"]').valueAsNumber
                 });
             });
             // Componentes técnicos fora dos cards continuam vinculados e preservados.

@@ -139,9 +139,15 @@ CREATE TABLE componentes (
 CREATE TABLE componentes_perfil (
     fk_componente INT NOT NULL,
     fk_perfil_servidor INT NOT NULL,
+
+    operador VARCHAR(2) NOT NULL DEFAULT '>',
     limite_atencao DOUBLE,
     limite_critico DOUBLE,
-    operador VARCHAR(2) NOT NULL DEFAULT '>',
+
+    operador_2 VARCHAR(2),
+    limite_atencao_2 DOUBLE,
+    limite_critico_2 DOUBLE,
+
     CONSTRAINT pk_componentes_perfil PRIMARY KEY (fk_componente, fk_perfil_servidor),
     CONSTRAINT fk_componentes_perfil_fk_componente FOREIGN KEY (fk_componente) REFERENCES componentes(id_componente),
     CONSTRAINT fk_componentes_perfil_fk_perfil_servidor FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)

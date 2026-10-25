@@ -4,10 +4,6 @@
 const metricasPlataforma = (() => {
     const alternativas = [
         [/espera por i\/o/i, 'Interrupções de CPU (%)', '%', 'psutil.cpu_times_percent().interrupt'],
-        [/memória em cache/i, 'Memória em cache (GB)', 'GB', 'WMI: Win32_PerfFormattedData_PerfOS_Memory.CacheBytes / 1024³'],
-        [/oom/i, 'Eventos de esgotamento de memória', 'ocorrências', 'PowerShell: Get-WinEvent -FilterHashtable @{LogName="System"; ProviderName="Microsoft-Windows-Resource-Exhaustion-Detector"; Id=2004}'],
-        [/inodes/i, 'Ocupação do volume (%)', '%', 'psutil.disk_usage("C:\\\\").percent'],
-        [/fila média de i\/o/i, 'Fila de I/O', 'operações', 'WMI: Win32_PerfFormattedData_PerfDisk_PhysicalDisk.CurrentDiskQueueLength'],
         [/entrada de swap/i, 'Paginação de entrada', 'páginas/s', 'WMI: Win32_PerfFormattedData_PerfOS_Memory.PagesInputPersec'],
         [/saída de swap/i, 'Paginação de saída', 'páginas/s', 'WMI: Win32_PerfFormattedData_PerfOS_Memory.PagesOutputPersec']
     ];

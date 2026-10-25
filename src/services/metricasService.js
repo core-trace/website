@@ -83,23 +83,25 @@ function validarEssenciaisCPU(selecionadas, componentes) {
     }
     return "";
 }
-function validarEssenciaisRAM(selecionadas, componentes) {
+function validarEssenciaisRAM(selecionadas, componentes, sistema = "linux") {
     const essenciais = componentes.filter(item => item.categoria === "ram" && Number(item.essencial) === 1);
     if (essenciais.length !== 4) {
         return "Catálogo RAM incompleto. Recrie o banco com o script.sql atualizado antes de salvar perfis.";
     }
     for (const componente of essenciais) {
+        if (sistema === "windows" && ["ram_oom_kills", "disk_inodes_percent", "disk_queue"].includes(componente.nome_coluna)) continue;
         const selecionada = selecionadas.some(item => Number(item.id) === Number(componente.id_componente));
         if (!selecionada) return "As métricas essenciais de RAM devem permanecer selecionadas.";
     }
     return "";
 }
-function validarEssenciaisDisco(selecionadas, componentes) {
+function validarEssenciaisDisco(selecionadas, componentes, sistema = "linux") {
     const essenciais = componentes.filter(item => item.categoria === "disco" && Number(item.essencial) === 1);
     if (essenciais.length !== 5) {
         return "Catálogo Disco incompleto. Recrie o banco com o script.sql atualizado antes de salvar perfis.";
     }
     for (const componente of essenciais) {
+        if (sistema === "windows" && ["ram_oom_kills", "disk_inodes_percent", "disk_queue"].includes(componente.nome_coluna)) continue;
         const selecionada = selecionadas.some(item => Number(item.id) === Number(componente.id_componente));
         if (!selecionada) return "As métricas essenciais de Disco devem permanecer selecionadas.";
     }

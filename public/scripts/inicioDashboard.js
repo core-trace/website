@@ -52,10 +52,13 @@
 
     function atualizarTabela() {
         const termo = normalizar(busca.value.trim());
+        const termoMac = /^[0-9a-f:\s-]+$/.test(termo) ? termo.replace(/[:\s-]/g, '') : '';
         const selecionados = resumo.servidores;
         const filtrados = selecionados.filter((servidor) =>
             (!filtroSituacao.value || servidor.situacao === filtroSituacao.value) &&
-            normalizar(`${servidor.nome} ${servidor.perfil}`).includes(termo)
+            (normalizar(`${servidor.nome} ${servidor.perfil}`).includes(termo)
+                || (termoMac !== '' && String(servidor.endereco_mac || servidor.mac || '')
+                    .replace(/[:\s-]/g, '').toLowerCase().includes(termoMac)))
         );
         // Nomes e perfis do banco são texto, nunca HTML; a seleção usa o ID, não o nome.
         const linhas = filtrados.map((servidor) => {
@@ -63,6 +66,15 @@
             [servidor.nome, servidor.perfil, situacoes[servidor.situacao], servidor.cpu, servidor.ram, servidor.disco, servidor.docker].forEach((valor, indice) => {
                 const celula = document.createElement("td");
                 celula.textContent = valor;
+                if (indice === 0) {
+                    const enderecoMac = servidor.endereco_mac || servidor.mac;
+                    if (enderecoMac) {
+                        const mac = document.createElement("span");
+                        mac.className = "visao-servidor-mac";
+                        mac.textContent = `MAC: ${enderecoMac}`;
+                        celula.append(mac);
+                    }
+                }
                 if (indice === 2) celula.className = `visao-${servidor.situacao}`;
                 linha.append(celula);
             });

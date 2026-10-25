@@ -48,22 +48,23 @@ function renderizarNavegacao(grupos) {
     navegacao.setAttribute("aria-busy", "false");
 }
 
-async function carregarNavegacao() {
-    if (!sessionStorage.ID_USUARIO) return;
-    try {
-        const resposta = await fetch(`/usuario/navegacao?usuario=${encodeURIComponent(sessionStorage.ID_USUARIO)}`, { cache: "no-store" });
-        if (!resposta.ok) throw new Error("Não foi possível carregar seus acessos.");
-        const dados = await resposta.json();
-        renderizarNavegacao(dados.navegacao);
-    } catch {
-        const navegacao = document.querySelector(".dashboard-navegacao");
-        const aviso = document.createElement("p");
-        aviso.className = "dashboard-acesso-feedback";
-        aviso.setAttribute("role", "alert");
-        aviso.textContent = "Não foi possível carregar o menu. Atualize a página para tentar novamente.";
-        navegacao.replaceChildren(aviso);
-        navegacao.setAttribute("aria-busy", "false");
-    }
+function carregarNavegacao() {
+    const nivel = Number(sessionStorage.ID_NIVEL_ACESSO);
+    if (![1, 2, 3, 4].includes(nivel)) return;
+    const grupos = [
+        { titulo: 'Monitoramento', itens: [
+            { rotulo: 'Dashboard', href: '/pages/inicioDashboard.html', icone: '/assets/icons/dashboard.png' },
+            { rotulo: 'Alertas', href: '/pages/alertas.html', icone: '/assets/icons/sino.png' }
+        ] },
+        { titulo: 'Gestão', itens: [
+            { rotulo: 'Perfis de servidor', href: '/pages/perfisServidor.html', icone: '/assets/icons/perfil.png' }
+        ] }
+    ];
+    if (nivel <= 2) grupos[1].itens.push({ rotulo: 'Equipe e acessos', href: '/pages/general-employee.html', icone: '/assets/icons/pessoas.png' });
+    if (nivel === 1) grupos.push({ titulo: 'Administrador CoreTrace', itens: [
+        { rotulo: 'Empresas', href: '/pages/empresas.html', icone: '/assets/icons/empresa.svg' }
+    ] });
+    renderizarNavegacao(grupos);
 }
 
 mostrarUsuarioLogado();

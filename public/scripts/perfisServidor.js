@@ -8,6 +8,8 @@ const contagemPerfis = document.querySelector(".perfis-contagem");
 const tentarPerfis = document.querySelector(".perfis-tentar");
 const loginPerfis = document.querySelector(".perfis-login");
 
+let permissoesPerfis = {};
+
 function criarCardPerfil(perfil) {
     const card = document.createElement("li");
     card.className = "perfil-card";
@@ -44,14 +46,15 @@ function criarCardPerfil(perfil) {
 
     const acoes = document.createElement("div");
     acoes.className = "perfil-acoes";
-    acoes.append(editar, baixar);
+    if (permissoesPerfis.editar || permissoesPerfis.limites) acoes.append(editar);
+    if (permissoesPerfis.criar) acoes.append(baixar);
     card.append(nome, descricao, servidores, acoes, feedback);
     return card;
 }
 
 async function carregarPerfis() {
     resultadosPerfis.setAttribute("aria-busy", "true");
-    carregandoPerfis.hidden = false;
+    carregandoPerfis.hidden = true;
     listaPerfis.hidden = true;
     vazioPerfis.hidden = true;
     erroPerfis.hidden = true;
@@ -68,6 +71,8 @@ async function carregarPerfis() {
             throw new Error("Faça login para visualizar os perfis da sua empresa.");
         }
 
+        permissoesPerfis = await acessoPerfis.carregar();
+        document.querySelector('[data-abrir-wizard-perfil]').hidden = !permissoesPerfis.criar;
         const resposta = await fetch(`/servidor/perfis?empresa=${idEmpresa}`);
         if (!resposta.ok) {
             throw new Error("Não foi possível consultar os perfis. Tente novamente em instantes.");

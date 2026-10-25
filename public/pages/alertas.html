@@ -16,6 +16,7 @@
     <script src="../scripts/dashboardDados.js" defer></script>
     <script src="../scripts/dashboardSimulacao.js" defer></script>
     <script src="../scripts/dashboardAlertasMock.js" defer></script>
+    <script src="../data/dashboard-resumo.js" defer></script>
     <script src="../scripts/dashboardCenario.js" defer></script>
     <script src="../scripts/alertas.js" defer></script>
     <style>
@@ -63,7 +64,7 @@
         </div>
 
         <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
-            <p class="dashboard-acesso-feedback" role="status">Carregando acessos...</p>
+            <p class="dashboard-acesso-feedback" role="status"></p>
         </nav>
     </aside>
 
@@ -102,7 +103,7 @@
             <section class="visao-cabecalho" aria-labelledby="titulo-alertas">
                 <div>
                     <h1 id="titulo-alertas">Alertas ativos</h1>
-                    <p id="alertas-resumo">Carregando cenário...</p>
+                    <p id="alertas-resumo"></p>
                 </div>
                 <div class="visao-filtros">
                     <span class="visao-select-campo">

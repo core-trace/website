@@ -201,7 +201,7 @@ function mostrarPerfisAcesso() {
         const card = document.createElement("article");
         card.className = "equipe-perfil";
         card.innerHTML = '<img alt="" width="18" height="18"><div><h3></h3><p></p></div>';
-        const icones = { administrador: "ajuste.svg", operador: "config.png", visualizador: "olho.svg" };
+        const icones = { administrador: "ajuste.svg", analista: "config.png", visualizador: "olho.svg" };
         card.querySelector("img").src = "../assets/icons/" + (icones[perfil.nome.toLowerCase()] || "escudo.svg");
         card.querySelector("h3").textContent = perfil.nome;
         card.querySelector("p").textContent = perfil.descricao || "Perfil de acesso ao site.";
@@ -229,7 +229,7 @@ function atualizarDescricaoPerfil() {
 }
 
 function carregarEquipe() {
-    equipeCarregando.hidden = false;
+    equipeCarregando.hidden = true;
     equipeErro.hidden = true;
     tentarEquipe.disabled = true;
     abrirCadastro.disabled = true;

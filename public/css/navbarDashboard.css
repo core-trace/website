@@ -368,13 +368,13 @@
         width: min(var(--dashboard-menu-largura), 88vw);
         visibility: hidden;
         transform: translateX(-100%);
-        transition: transform 0.2s, visibility 0s linear 0.2s;
+        transition: none;
     }
 
     .dashboard-menu-aberto .dashboard-menu {
         visibility: visible;
         transform: translateX(0);
-        transition: transform 0.2s;
+        transition: none;
     }
 
     .dashboard-menu-cabecalho {

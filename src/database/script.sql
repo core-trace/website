@@ -1,9 +1,22 @@
+-- ============================================================================
+-- CORETRACE - SCRIPT COMPLETO COM INSERTS DIRETOS (MySQL 8.0+)
+-- Permissoes por nivel:
+-- 1. Administrador CoreTrace: todas as permissoes (uso interno)
+-- 2. Administrador: gestao de equipe e completa dos perfis de servidor
+-- 3. Analista: consulta + somente editar limites de atencao e critico
+-- 4. Visualizador: somente consultar dashboard, alertas e perfis
+--
+-- ATENCAO: DROP DATABASE APAGA TODOS OS DADOS ANTERIORES!
+-- Script unico: cria todas as tabelas e popula os dados finais diretamente, sem migracao.
+-- A autorizacao deve ser aplicada no BACKEND e limitada a empresa do usuario.
+-- ============================================================================
+
 -- CoreTrace (empresa 1): somente equipe de desenvolvimento, sem servidores ou metricas vinculadas
 -- iFood (empresa 2): token_instalacao = 123
 -- Perfis iFood: Carrinho (321), Financeiro (322), Catálogo (323)
 DROP DATABASE IF EXISTS coretrace;
 
-CREATE DATABASE coretrace;
+CREATE DATABASE coretrace CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE coretrace;
 
@@ -33,19 +46,22 @@ CREATE TABLE nivel_acesso (
     id_nivel_acesso INT AUTO_INCREMENT,
     nome VARCHAR(45) NOT NULL,
     descricao VARCHAR(255),
-    CONSTRAINT pk_nivel_acesso PRIMARY KEY (id_nivel_acesso)
+    CONSTRAINT pk_nivel_acesso PRIMARY KEY (id_nivel_acesso),
+    CONSTRAINT uq_nivel_acesso_nome UNIQUE (nome)
 );
 
 CREATE TABLE permissoes (
     id_permissao INT AUTO_INCREMENT,
     nome VARCHAR(45) NOT NULL,
-    descricao VARCHAR(45),
-    CONSTRAINT pk_permissoes PRIMARY KEY (id_permissao)
+    descricao VARCHAR(255),
+    CONSTRAINT pk_permissoes PRIMARY KEY (id_permissao),
+    CONSTRAINT uq_permissoes_nome UNIQUE (nome)
 );
 
 CREATE TABLE nivel_acesso_permissoes (
     fk_nivel_acesso INT NOT NULL,
     fk_permissao INT NOT NULL,
+    CONSTRAINT pk_nivel_acesso_permissoes PRIMARY KEY (fk_nivel_acesso, fk_permissao),
     CONSTRAINT fk_nivel_acesso_permissoes_fk_nivel_acesso FOREIGN KEY (fk_nivel_acesso) REFERENCES nivel_acesso(id_nivel_acesso),
     CONSTRAINT fk_nivel_acesso_permissoes_fk_permissao FOREIGN KEY (fk_permissao) REFERENCES permissoes(id_permissao)
 );
@@ -54,7 +70,7 @@ CREATE TABLE usuario (
     id_usuario INT AUTO_INCREMENT,
     nome VARCHAR(45) NOT NULL,
     email VARCHAR(45) NOT NULL,
-    senha VARCHAR(45),
+    senha VARCHAR(255), -- comporta hashes de senha em uma implementacao real
     cpf CHAR(11),
     token_acesso VARCHAR(255),
     telefone VARCHAR(45),
@@ -84,6 +100,7 @@ CREATE TABLE perfil_servidor (
 CREATE TABLE usuario_perfil_servidor (
     fk_usuario INT NOT NULL,
     fk_perfil_servidor INT NOT NULL,
+    CONSTRAINT pk_usuario_perfil_servidor PRIMARY KEY (fk_usuario, fk_perfil_servidor),
     CONSTRAINT fk_usuario_perfil_servidor_fk_usuario FOREIGN KEY (fk_usuario) REFERENCES usuario(id_usuario),
     CONSTRAINT fk_usuario_perfil_servidor_fk_perfil_servidor FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)
 );
@@ -125,6 +142,7 @@ CREATE TABLE componentes_perfil (
     limite_atencao DOUBLE,
     limite_critico DOUBLE,
     operador VARCHAR(2) NOT NULL DEFAULT '>',
+    CONSTRAINT pk_componentes_perfil PRIMARY KEY (fk_componente, fk_perfil_servidor),
     CONSTRAINT fk_componentes_perfil_fk_componente FOREIGN KEY (fk_componente) REFERENCES componentes(id_componente),
     CONSTRAINT fk_componentes_perfil_fk_perfil_servidor FOREIGN KEY (fk_perfil_servidor) REFERENCES perfil_servidor(id_perfil_servidor)
 );
@@ -141,43 +159,43 @@ INSERT INTO endereco (numero, cidade, estado, logradouro, fk_empresa) VALUES
 ('100', 'São Paulo', 'SP', 'Rua CoreTrace (ficticia)', 1),
 ('200', 'Osasco', 'SP', 'Avenida iFood (ficticia)', 2);
 
+-- NIVEIS DE ACESSO - MANTER IDs PARA COMPATIBILIDADE COM O FRONT/BACK
 INSERT INTO nivel_acesso (nome, descricao) VALUES
-('Administrador CoreTrace', 'Acesso completo a plataforma, exclusivo para desenvolvedores CoreTrace'),
-('Administrador', 'Acesso ao monitoramento e gestao'),
-('Operador', 'Acesso ao monitoramento e perfis de servidor'),
-('Visualizador', 'Acesso somente ao monitoramento');
+('Administrador CoreTrace', 'Acesso interno completo da equipe de desenvolvimento CoreTrace'),
+('Administrador', 'Gerencia equipe, perfis, metricas monitoradas e limites'),
+('Analista', 'Consulta e edita somente os limites de alerta'),
+('Visualizador', 'Consulta dashboards, alertas e perfis de servidor sem alterar dados');
 
+-- Acesso a tela != permissao de alterar os dados da tela.
+-- Analista pode atualizar limites, mas NAO pode selecionar/adicionar/remover metricas.
+-- Alteracoes de papeis devem ser validadas nas rotas do backend.
+-- EDITAR_METRICAS_PERFIL: adiciona/remove componentes_perfil; nao altera limites de outras metricas.
+-- EDITAR_LIMITES_METRICAS: atualiza limite_atencao, limite_critico, operador;
+-- nao permite adicionar/remover componentes nem editar dados cadastrais do perfil.
 INSERT INTO permissoes (nome, descricao) VALUES
-('VISUALIZAR_DASHBOARD', 'Acessar dashboard'),
-('VISUALIZAR_ALERTAS', 'Acessar alertas'),
-('ACESSAR_PERFIS_SERVIDOR', 'Acessar perfis de servidor'),
-('ACESSAR_EQUIPE', 'Gerenciar equipe e acessos'),
-('ACESSAR_EMPRESAS', 'Gerenciar empresas');
+('VISUALIZAR_DASHBOARD', 'Acessar dashboard'),             -- 1
+('VISUALIZAR_ALERTAS', 'Acessar alertas'),                 -- 2
+('ACESSAR_PERFIS_SERVIDOR', 'Consultar perfis de servidor'), -- 3
+('ACESSAR_EQUIPE', 'Gerenciar equipe e acessos'),         -- 4
+('ACESSAR_EMPRESAS', 'Gerenciar empresas'),               -- 5 (exclusivo CoreTrace)
+('CRIAR_PERFIL_SERVIDOR', 'Criar perfil de servidor'),    -- 6
+('EDITAR_DADOS_PERFIL', 'Editar dados do perfil de servidor'), -- 7
+('EDITAR_METRICAS_PERFIL', 'Selecionar metricas monitoradas'), -- 8
+('EDITAR_LIMITES_METRICAS', 'Editar limites de atencao e critico'), -- 9
+('EXCLUIR_PERFIL_SERVIDOR', 'Excluir perfil de servidor'); -- 10
 
-INSERT INTO nivel_acesso_permissoes
-(fk_nivel_acesso, fk_permissao) VALUES
-
--- Administrador CoreTrace: acesso completo
-(1, 1),
-(1, 2),
-(1, 3),
-(1, 4),
-(1, 5),
-
--- Administrador: tudo menos empresas
-(2, 1),
-(2, 2),
-(2, 3),
-(2, 4),
-
--- Operador: monitoramento e perfis
-(3, 1),
-(3, 2),
-(3, 3),
-
--- Visualizador: somente monitoramento
-(4, 1),
-(4, 2);
+-- MATRIZ DE PERMISSOES
+-- CoreTrace interno: 1 a 10 (tudo)
+-- Administrador cliente: 1,2,3,4,6,7,8,9,10
+-- Analista cliente: 1,2,3,9 (nao edita metricas monitoradas)
+-- Visualizador cliente: 1,2,3
+INSERT INTO nivel_acesso_permissoes (fk_nivel_acesso, fk_permissao) VALUES
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
+(1, 6), (1, 7), (1, 8), (1, 9), (1, 10),
+(2, 1), (2, 2), (2, 3), (2, 4),
+(2, 6), (2, 7), (2, 8), (2, 9), (2, 10),
+(3, 1), (3, 2), (3, 3), (3, 9),
+(4, 1), (4, 2), (4, 3);
 
 -- PERFIS FUNCIONAIS PARA DEMONSTRACAO
 -- Os dados de monitoramento (CPU, RAM, Disco, Rede, processos e containers)
@@ -368,13 +386,15 @@ VALUES
 
 -- USUARIOS DE DEMONSTRACAO: senhas e dados pessoais ficticios (apenas ambiente de teste)
 -- O nivel Administrador CoreTrace (1) e reservado a desenvolvedores CoreTrace.
--- Os tres usuarios iFood usam os niveis Administrador (2), Operador (3) e Visualizador (4).
+-- Os tres usuarios iFood usam os niveis Administrador (2), Analista (3) e Visualizador (4).
+-- ATENCAO: senhas em texto puro SOMENTE para simular o ambiente didatico.
+-- Em producao, armazenar hash de senha (ex.: Argon2id ou bcrypt).
 INSERT INTO usuario
 (nome, email, senha, cpf, token_acesso, telefone, fk_empresa, fk_nivel_acesso, status) VALUES
 ('Desenvolvedor CoreTrace', 'dev@coretrace.com', '123456', '12345678900', NULL, '11999999999', 1, 1, 'ATIVO'),
-('Administrador iFood', 'admin@ifood.teste', '123456', '12345678901', NULL, '11988888881', 2, 2, 'ATIVO'),
-('Operador iFood', 'operador@ifood.teste', '123456', '12345678902', NULL, '11988888882', 2, 3, 'ATIVO'),
-('Visualizador iFood', 'visualizador@ifood.teste', '123456', '12345678903', NULL, '11988888883', 2, 4, 'ATIVO');
+('Eduardo', 'admin@ifood.teste', '123456', '12345678901', NULL, '11988888881', 2, 2, 'ATIVO'),
+('Amanda', 'analista@ifood.teste', '123456', '12345678902', NULL, '11988888882', 2, 3, 'ATIVO'),
+('Marcelo', 'visualizador@ifood.teste', '123456', '12345678903', NULL, '11988888883', 2, 4, 'ATIVO');
 
 -- Somente usuarios do iFood associados aos seus perfis de servidor.
 INSERT INTO usuario_perfil_servidor (fk_usuario, fk_perfil_servidor) VALUES
@@ -401,3 +421,16 @@ SELECT * FROM perfil_servidor;
 SELECT * FROM componentes_perfil WHERE fk_perfil_servidor = 1;
 
 SELECT * FROM componentes_perfil;
+
+-- VERIFICACAO DA MATRIZ DE ACESSO (cada linha e uma permissao efetiva)
+SELECT na.id_nivel_acesso, na.nome AS nivel, p.nome AS permissao
+FROM nivel_acesso na
+JOIN nivel_acesso_permissoes nap ON nap.fk_nivel_acesso = na.id_nivel_acesso
+JOIN permissoes p ON p.id_permissao = nap.fk_permissao
+ORDER BY na.id_nivel_acesso, p.id_permissao;
+
+-- VERIFICACAO DE SEGURANCA: esperado = 0 linhas (Analista sem editar metricas)
+SELECT p.nome AS permissao_indevida_analista
+FROM nivel_acesso_permissoes nap
+JOIN permissoes p ON p.id_permissao = nap.fk_permissao
+WHERE nap.fk_nivel_acesso = 3 AND p.nome = 'EDITAR_METRICAS_PERFIL';

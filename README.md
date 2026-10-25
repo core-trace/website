@@ -206,7 +206,7 @@ tentativa. A página só confirma o envio após o Resend aceitar a solicitação
 
 A página `/pages/inicioDashboard.html` usa um histórico local de sete dias para os dez servidores. Os filtros de tempo e perfil atualizam os KPIs e os gráficos. A previsão de armazenamento exige pelo menos 24 horas de histórico; a tabela e os detalhes mostram também os valores da última coleta.
 
-Execute `npm start` com o banco configurado para login e administração. Os dados de monitoramento não dependem da API de servidores. Execute `npm test` para validar as métricas, os incidentes e os filtros.
+Execute `npm start` com o banco configurado para login e administração. Os dados de monitoramento não dependem da API de servidores. Após alterar as métricas do cenário, execute `npm run gerar:resumo` para atualizar o resumo usado na dashboard e nos alertas.
 
 O link “Perfis de servidor” leva a `/pages/perfisServidor.html`,
 que lista os perfis com `GET /servidor/perfis?empresa=<ID_EMPRESA>` usando a empresa

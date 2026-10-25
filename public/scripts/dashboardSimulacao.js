@@ -45,7 +45,7 @@ const dashboardSimulacao = (() => {
                 const rede = detalhes.rede(mac, v);
                 carga5 += v.load_avg_1 - (dados[i - 5]?.load_avg_1 || 0);
                 carga15 += v.load_avg_1 - (dados[i - 15]?.load_avg_1 || 0);
-                return { instante: Date.parse(v.timestamp), valores: { ...v,
+                return { instante: Date.parse(v.timestamp), valores: Object.assign(v, {
                     load_avg_5: Number((carga5 / Math.min(5, i + 1)).toFixed(3)),
                     load_avg_15: Number((carga15 / Math.min(15, i + 1)).toFixed(3)),
                     swap_total: swapTotal, swap_used: swapUsada,
@@ -53,7 +53,7 @@ const dashboardSimulacao = (() => {
                     net_traffic: Math.round((rede.recebimentoMBs + rede.envioMBs) * 1000000), net_isup: 1,
                     swap_sin: Math.round(Math.max(0, v.ram_percent - 75) * 8000),
                     swap_sout: Math.round(Math.max(0, v.ram_percent - 80) * 4500)
-                } };
+                }) };
             });
             historicos.set(mac, coletas);
         }

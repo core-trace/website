@@ -1,7 +1,20 @@
 // Demonstração local: cadastro, métricas e limites vêm do cenário do README.
 const dashboardCenario = (() => {
-    async function carregar() {
-        return dashboardSimulacao.criar();
+    let cenario;
+    function carregar() {
+        if (cenario) return cenario;
+        cenario = CoreTraceResumo;
+        for (const servidor of cenario.servidores) {
+            let coletas;
+            Object.defineProperty(servidor, 'coletas', { get() {
+                // Só calcula o histórico quando o detalhamento realmente o utiliza.
+                if (!coletas) coletas = dashboardSimulacao.criar(
+                    dashboardSimulacao.cadastrosDemo().filter(s => s.id_servidor === servidor.id)
+                ).servidores[0].coletas;
+                return coletas;
+            } });
+        }
+        return cenario;
     }
 
     function configurarFiltros(perfil, periodo, servidores) {

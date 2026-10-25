@@ -50,7 +50,13 @@ const dashboardDados = (() => {
                 continue;
             }
             const valor = coleta.valores[componente.coluna];
-            const nivel = comparar(valor, componente.critico) ? "critico" : comparar(valor, componente.atencao) ? "atencao" : "normal";
+            const comparar2 = operadores[componente.operador2];
+            const segundaFaixaValida = comparar2 && Number.isFinite(componente.atencao2) && Number.isFinite(componente.critico2);
+            const critico = comparar(valor, componente.critico)
+                || (segundaFaixaValida && comparar2(valor, componente.critico2));
+            const atencao = comparar(valor, componente.atencao)
+                || (segundaFaixaValida && comparar2(valor, componente.atencao2));
+            const nivel = critico ? "critico" : atencao ? "atencao" : "normal";
             severidade = maior(severidade, nivel);
             if (recurso) {
                 recurso.comDados = true;

@@ -180,8 +180,8 @@ function validarMetricasDoCatalogo(selecionadas, catalogo) {
             return item.id_componente === metrica.id;
         });
         if (!componente) return "Uma das métricas selecionadas não existe.";
-        if (componente.unidade === "%" && metrica.atencao !== null
-            && (metrica.atencao < 0 || metrica.atencao > 100 || metrica.critico < 0 || metrica.critico > 100)) {
+        if (componente.unidade === "%" && [metrica.atencao, metrica.critico, metrica.atencao2, metrica.critico2]
+            .some(valor => valor != null && (valor < 0 || valor > 100))) {
             return "Os limites percentuais devem estar entre 0 e 100.";
         }
     }
@@ -268,15 +268,26 @@ function validarPerfil(dados) {
         if (![">", ">=", "<", "<="].includes(metrica.operador)) {
             return "Selecione um operador válido para o alerta.";
         }
-        if (metrica.atencao === null && metrica.critico === null) continue;
-        if (!Number.isFinite(metrica.atencao) || !Number.isFinite(metrica.critico)) {
-            return "Preencha os dois limites ou deixe ambos vazios.";
+        const temSegundoOperador = metrica.operador2 != null;
+        if (!temSegundoOperador && (metrica.atencao2 != null || metrica.critico2 != null)) {
+            return "Informe o segundo operador para os limites da faixa.";
         }
-        if ((metrica.operador === ">" || metrica.operador === ">=") && metrica.critico <= metrica.atencao) {
-            return "O limite crítico deve ser maior que o de atenção.";
-        }
-        if ((metrica.operador === "<" || metrica.operador === "<=") && metrica.critico >= metrica.atencao) {
-            return "O limite crítico deve ser menor que o de atenção.";
+        for (const sufixo of temSegundoOperador ? ["", "2"] : [""]) {
+            const operador = metrica["operador" + sufixo];
+            const atencao = metrica["atencao" + sufixo];
+            const critico = metrica["critico" + sufixo];
+            const faixa = sufixo ? "Segunda faixa" : "Primeira faixa";
+            if (![">", ">=", "<", "<="].includes(operador)) {
+                return `${faixa}: selecione um operador válido para o alerta.`;
+            }
+            if (!temSegundoOperador && atencao === null && critico === null) continue;
+            if (!Number.isFinite(atencao) || !Number.isFinite(critico)) {
+                return `${faixa}: preencha os limites de atenção e crítico${temSegundoOperador ? "." : " ou deixe ambos vazios."}`;
+            }
+            const crescente = operador.startsWith(">");
+            if (crescente ? critico <= atencao : critico >= atencao) {
+                return `${faixa}: com o operador ${operador}, o limite crítico deve ser ${crescente ? "maior" : "menor"} que o de atenção. Os valores devem ser diferentes.`;
+            }
         }
     }
 

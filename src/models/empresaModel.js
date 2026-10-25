@@ -45,4 +45,29 @@ function cadastrarComAdministrador(dados, enviarConvite) {
     });
 }
 
-module.exports = { cadastrarComAdministrador };
+function buscarMetricasPorToken(tokenInstalacao, tokenPerfil) {
+    return database.executar(`
+        SELECT c.nome, c.nome_coluna, c.funcao_psutil, c.argumento_nome,
+               c.argumento_valor, c.atributo_retorno, c.indice_retorno, c.unidade
+        FROM empresa e
+        JOIN perfil_servidor ps ON ps.fk_empresa = e.id_empresa
+        JOIN componentes_perfil cp ON cp.fk_perfil_servidor = ps.id_perfil_servidor
+        JOIN componentes c ON c.id_componente = cp.fk_componente
+        WHERE e.token_instalacao = ? AND ps.token_perfil_servidor = ?
+        ORDER BY c.id_componente;
+    `, [tokenInstalacao, tokenPerfil]);
+}
+
+function listarLimites(idPerfil) {
+    return database.executar(`
+        SELECT c.nome AS componente, c.unidade,
+               cp.limite_atencao, cp.limite_critico, cp.operador,
+               cp.operador_2, cp.limite_atencao_2, cp.limite_critico_2
+        FROM componentes_perfil cp
+        JOIN componentes c ON c.id_componente = cp.fk_componente
+        WHERE cp.fk_perfil_servidor = ?
+        ORDER BY c.id_componente;
+    `, [idPerfil]);
+}
+
+module.exports = { cadastrarComAdministrador, buscarMetricasPorToken, listarLimites };

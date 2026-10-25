@@ -296,3 +296,15 @@ e clique em **Salvar**. `PATCH /usuario/:id/perfil` recebe `empresa` e `nivelAce
 como números, valida o nível escolhido e atualiza somente o usuário da empresa
 informada. A edição também está disponível para convites pendentes. Ao alterar o
 próprio usuário, o nível no `sessionStorage` e na navbar é atualizado após salvar.
+
+
+### Endpoints de configuração da captura
+
+A API do site atende também os endpoints de captura, na mesma porta de `npm start` (3333 na configuração local):
+
+- `GET /empresa/metricas`: retorna as métricas vinculadas ao perfil. Envie `Authorization: Bearer <token_instalacao>` e `token-perfil: <token_perfil_servidor>` nos headers. O retorno mantém os campos de captura usados pelo agente (`nome_coluna`, `funcao_psutil`, argumentos, atributo, índice e unidade).
+- `GET /empresa/listarLimites/:idPerfil`: retorna os limites do perfil, incluindo `operador`, `limite_atencao`, `limite_critico`, `operador_2`, `limite_atencao_2` e `limite_critico_2`. Os campos `componente` e `unidade` foram preservados.
+
+As respostas de consulta são listas JSON; consultas sem resultados retornam `[]`. Headers ausentes ou malformados retornam 401, IDs inválidos retornam 400 e falhas de banco retornam 500.
+
+O agente distribuído pelo site usa `API_BASE_URL` em `src/agente/capturas/captura.py` para ativação e consulta das métricas. Não é necessário iniciar uma API na porta 3334. Em instalações antigas do agente, atualize essa URL para o endereço e a porta da API do site, ou baixe novamente o pacote.

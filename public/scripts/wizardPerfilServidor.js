@@ -19,7 +19,6 @@ const acessoPerfis = {
         const introducao = dialogo.querySelector("#wizard-descricao");
         const conteudo = dialogo.querySelector(".wizard-conteudo");
         const proximo = dialogo.querySelector(".wizard-proximo");
-        const recomendar = dialogo.querySelector(".wizard-recomendar");
         const metricas = dialogo.querySelector(".wizard-metricas");
         const lista = dialogo.querySelector(".wizard-metricas-lista");
         const resumo = dialogo.querySelector(".wizard-metricas-resumo");
@@ -360,7 +359,6 @@ const acessoPerfis = {
             vazio.hidden = categoriasMetricas.length > 0;
             lista.hidden = categoriasMetricas.length === 0;
             resumo.hidden = categoriasMetricas.length === 0;
-            recomendar.disabled = categoriasMetricas.length === 0;
             // Preserva os limites comuns; substituições podem mudar a unidade.
             const atuais = new Map(categoriasMetricas.flatMap(categoria => categoria.metricas).map(metrica => [String(metrica.id), metrica]));
             for (const id of linhasAlertas.keys()) {
@@ -381,7 +379,6 @@ const acessoPerfis = {
             vazio.hidden = true;
             lista.hidden = true;
             resumo.hidden = true;
-            recomendar.disabled = true;
 
             try {
                 const resposta = await fetch("/servidor/metricas");
@@ -436,7 +433,6 @@ const acessoPerfis = {
             dialogo.querySelector(".wizard-voltar").hidden = somenteLimites;
             dialogo.querySelector(".wizard-etapa-contagem").textContent = `Etapa ${numero} de 4`;
             dialogo.querySelector(".wizard-etapa-atual").textContent = nomeEtapa;
-            recomendar.hidden = numero !== 2;
 
             atualizarProximo();
             conteudo.scrollTop = 0;
@@ -624,12 +620,6 @@ const acessoPerfis = {
         }));
         monitorarDocker.addEventListener("change", atualizarDocker);
         lista.addEventListener("change", atualizarContadores);
-        recomendar.addEventListener("click", () => {
-            lista.querySelectorAll("input").forEach((checkbox) => {
-                checkbox.checked = checkbox.dataset.essencial === "true" || checkbox.dataset.recomendada === "true";
-            });
-            atualizarContadores();
-        });
         dialogo.querySelector(".wizard-metricas-tentar").addEventListener("click", carregarMetricas);
         dialogo.querySelector(".wizard-fechar").addEventListener("click", () => dialogo.close());
         dialogo.addEventListener("close", () => {

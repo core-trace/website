@@ -399,33 +399,9 @@ input:checked ~ .wizard-sistema-selecao::after {
     font-size: 16px;
 }
 
-.wizard-recomendar:not([hidden]) {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
 
-.wizard-recomendar {
-    flex-shrink: 0;
-    min-height: 36px;
-    padding: 8px 12px;
-    border: 1px solid #dededb;
-    border-radius: 8px;
-    background-color: #fafaf8;
-    color: var(--cor-primaria);
-    font-size: 16px;
-    font-weight: 600;
-}
 
-.wizard-recomendar:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
 
-.wizard-recomendar:not(:disabled):hover {
-    background-color: #fcece7;
-}
 
 .wizard-metricas-carregando,
 .wizard-metricas-erro,
@@ -1118,10 +1094,6 @@ input:checked ~ .wizard-sistema-selecao::after {
         font-size: 16px;
     }
 
-    .wizard-recomendar {
-        align-self: flex-start;
-        min-height: 40px;
-    }
 
     .wizard-perfil[data-etapa="3"] .wizard-cabecalho {
         margin-bottom: 18px;

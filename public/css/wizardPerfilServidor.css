@@ -400,7 +400,7 @@ input:checked ~ .wizard-sistema-selecao::after {
 }
 
 .wizard-recomendar:not([hidden]) {
-    display: inline-flex;
+    display: none;
     align-items: center;
     justify-content: center;
     gap: 8px;

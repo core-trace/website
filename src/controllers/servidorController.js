@@ -135,7 +135,7 @@ function criarPerfil(req, res) {
             if (proprietarios.length === 0) {
                 return res.status(403).json({ mensagem: "Proprietário ativo não encontrado nesta empresa." });
             }
-            const erroMetricas = validarMetricasDoCatalogo(dados.metricas, metricas);
+            const erroMetricas = validarMetricasDoCatalogo(dados.metricas, metricas, dados.sistemaOperacional);
             if (erroMetricas) {
                 return res.status(400).json({ mensagem: erroMetricas });
             }
@@ -162,12 +162,12 @@ function criarPerfil(req, res) {
         });
 }
 
-function validarMetricasDoCatalogo(selecionadas, catalogo) {
+function validarMetricasDoCatalogo(selecionadas, catalogo, sistema) {
     const erroEssenciais = validarEssenciaisCPU(selecionadas, catalogo);
     if (erroEssenciais) return erroEssenciais;
-    const erroRAM = validarEssenciaisRAM(selecionadas, catalogo);
+    const erroRAM = validarEssenciaisRAM(selecionadas, catalogo, sistema);
     if (erroRAM) return erroRAM;
-    const erroDisco = validarEssenciaisDisco(selecionadas, catalogo);
+    const erroDisco = validarEssenciaisDisco(selecionadas, catalogo, sistema);
     if (erroDisco) return erroDisco;
     const erroSwap = validarEssenciaisSwap(selecionadas, catalogo);
     if (erroSwap) return erroSwap;
@@ -224,7 +224,7 @@ function atualizarPerfil(req, res) {
             if (resultados[0].length === 0) {
                 return res.status(403).json({ mensagem: "Usuário ativo não encontrado nesta empresa." });
             }
-            const erroMetricas = validarMetricasDoCatalogo(dados.metricas, resultados[1]);
+            const erroMetricas = validarMetricasDoCatalogo(dados.metricas, resultados[1], dados.sistemaOperacional);
             if (erroMetricas) return res.status(400).json({ mensagem: erroMetricas });
             return servidorModel.atualizarPerfil(idPerfil, dados)
                 .then(function (atualizado) {

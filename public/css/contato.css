@@ -329,11 +329,10 @@
     background-repeat: no-repeat;
 }
 
-/* AJUSTE os nomes dos arquivos para os ícones que existem no projeto */
-.imagem-contato-email    { background-image: url("../assets/icons/email.svg"); }
-.imagem-contato-telefone { background-image: url("../assets/icons/telefone.svg"); }
-.imagem-contato-suporte  { background-image: url("../assets/icons/suporte.svg"); }
-.imagem-contato-social   { background-image: url("../assets/icons/social.svg"); }
+.imagem-contato-email    { background-image: url("../assets/images/email-contato.png"); }
+.imagem-contato-telefone { background-image: url("../assets/images/telefone-contato.png"); }
+.imagem-contato-suporte  { background-image: url("../assets/images/suporte-contato.png"); }
+.imagem-contato-social   { background-image: url("../assets/images/social-contato.png"); }
 
 .descricao-contato {
     min-width: 0;

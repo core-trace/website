@@ -2,6 +2,7 @@
     --dashboard-menu-largura: 280px;
     --dashboard-navbar-altura: 98px;
     --dashboard-borda: #c9ced8;
+    --dashboard-transicao: 300ms cubic-bezier(0.22, 1, 0.36, 1);
     background-color: #eef0f4;
 }
 
@@ -29,9 +30,10 @@
     flex-direction: column;
     width: var(--dashboard-menu-largura);
     height: 100dvh;
-    overflow-y: auto;
+    overflow: visible;
     background-color: var(--cor-fundo);
     box-shadow: 8px 0 32px rgb(20 17 21 / 3%);
+    transition: width var(--dashboard-transicao);
 }
 
 .dashboard-menu-cabecalho {
@@ -54,6 +56,9 @@
 }
 
 .dashboard-menu-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     padding: 24px;
 }
 
@@ -69,11 +74,11 @@
 }
 
 .dashboard-menu-titulo {
-    margin-bottom: 6px;
+    margin-bottom: 0;
     color: var(--cor-cinza);
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
-    line-height: 1.5;
+    line-height: 22px;
     text-transform: uppercase;
 }
 
@@ -81,12 +86,17 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    min-height: 48px;
-    padding: 10px 16px;
-    border-radius: 16px;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px 10px 16px;
+    border: 0;
+    border-radius: 15px;
+    background: transparent;
+    text-align: left;
     color: var(--cor-cinza);
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 500;
+    line-height: 24px;
     text-decoration: none;
     transition: background-color 0.2s;
 }
@@ -103,14 +113,15 @@
 }
 
 .dashboard-menu-item[aria-current="page"] {
-    background-color: #fcece7;
-    color: #e00000;
+    background-color: #fcede8;
+    color: var(--cor-primaria);
 }
 
 .dashboard-conteudo {
     min-width: 0;
     min-height: 100dvh;
     margin-left: var(--dashboard-menu-largura);
+    transition: margin-left var(--dashboard-transicao);
 }
 
 .dashboard-navbar {
@@ -237,7 +248,7 @@
 
 .dashboard-usuario-nome {
     color: var(--cor-cinza);
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 500;
 }
 
@@ -319,7 +330,7 @@
 
 @media (max-width: 1280px) {
     .dashboard-page {
-        --dashboard-menu-largura: 248px;
+        --dashboard-menu-largura: 280px;
         --dashboard-navbar-altura: 88px;
     }
 
@@ -368,13 +379,13 @@
         width: min(var(--dashboard-menu-largura), 88vw);
         visibility: hidden;
         transform: translateX(-100%);
-        transition: none;
+        transition: transform var(--dashboard-transicao), visibility 0s 300ms;
     }
 
     .dashboard-menu-aberto .dashboard-menu {
         visibility: visible;
         transform: translateX(0);
-        transition: none;
+        transition: transform var(--dashboard-transicao), visibility 0s;
     }
 
     .dashboard-menu-cabecalho {
@@ -490,4 +501,194 @@
 .dashboard-menu-conta {
     min-width: 220px;
     max-width: calc(100vw - 40px);
+}
+
+.dashboard-navegacao {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.dashboard-menu-grupo + .dashboard-menu-grupo {
+    border-color: #e0e5eb;
+}
+
+.dashboard-menu-rotulo {
+    flex: 1;
+    min-width: 0;
+}
+
+.dashboard-menu-item[aria-disabled="true"] {
+    cursor: default;
+}
+
+.dashboard-item-ativo {
+    background-color: #fcede8;
+    color: var(--cor-primaria);
+}
+
+.dashboard-menu-item .dashboard-menu-seta {
+    width: 16px;
+    height: 16px;
+}
+
+.dashboard-dashboards-toggle[aria-expanded="true"] .dashboard-menu-seta {
+    transform: rotate(180deg);
+}
+
+.dashboard-submenu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+    padding-left: 32px;
+}
+
+.dashboard-submenu[hidden] {
+    display: none;
+}
+
+.dashboard-submenu .dashboard-menu-item {
+    min-height: 40px;
+    padding: 10px 8px 10px 16px;
+}
+
+.dashboard-submenu-titulo {
+    display: none;
+}
+
+.dashboard-recolher-menu {
+    position: absolute;
+    top: 82px;
+    right: -12px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1px solid #e0e5eb;
+    border-radius: 50%;
+    background: var(--cor-fundo);
+    color: var(--cor-cinza);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.dashboard-recolher-menu:hover {
+    background: #fcede8;
+    color: var(--cor-primaria);
+}
+
+.dashboard-logo .dashboard-logo-compacta {
+    display: none;
+    width: 44.545px;
+    height: 50px;
+    max-width: none;
+}
+
+@media (min-width: 801px) {
+    .dashboard-page.dashboard-menu-recolhido {
+        --dashboard-menu-largura: 80px;
+    }
+
+    .dashboard-menu-recolhido .dashboard-menu-cabecalho {
+        justify-content: center;
+        padding: 24px 0;
+        min-height: 98px;
+    }
+
+    .dashboard-menu-recolhido .dashboard-logo {
+        width: 44.545px;
+    }
+
+    .dashboard-menu-recolhido .dashboard-logo > img:first-child {
+        display: none;
+    }
+
+    .dashboard-menu-recolhido .dashboard-logo .dashboard-logo-compacta {
+        display: block;
+    }
+
+    .dashboard-menu-recolhido .dashboard-menu-grupo {
+        padding: 24px 18px;
+    }
+
+    .dashboard-menu-recolhido .dashboard-menu-titulo,
+    .dashboard-menu-recolhido .dashboard-menu-grupo > .dashboard-menu-item > .dashboard-menu-rotulo,
+    .dashboard-menu-recolhido .dashboard-dashboards-toggle > .dashboard-menu-rotulo,
+    .dashboard-menu-recolhido .dashboard-menu-seta {
+        display: none;
+    }
+
+    .dashboard-menu-recolhido .dashboard-menu-grupo > .dashboard-menu-item,
+    .dashboard-menu-recolhido .dashboard-dashboards-toggle {
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        padding: 12px;
+    }
+
+    .dashboard-menu-recolhido .dashboard-submenu {
+        position: fixed;
+        z-index: 35;
+        width: 280px;
+        max-height: calc(100dvh - 24px);
+        margin: 0;
+        padding: 12px;
+        overflow-y: auto;
+        border: 1px solid #e0e5eb;
+        border-radius: 15px;
+        background: var(--cor-fundo);
+        box-shadow: 0 8px 24px rgb(20 17 21 / 12%);
+    }
+
+    .dashboard-menu-recolhido .dashboard-submenu-titulo {
+        display: block;
+        padding: 4px 16px 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--cor-cinza);
+    }
+
+
+}
+
+@media (max-width: 800px) {
+    .dashboard-recolher-menu {
+        display: none;
+    }
+}
+
+.dashboard-icone-equipe {
+    position: relative;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    overflow: hidden;
+}
+
+.dashboard-icone-equipe img {
+    position: absolute;
+    top: -1px;
+    left: -2px;
+    width: 25px;
+    height: 23px;
+    max-width: none;
+}
+
+.dashboard-menu-seta {
+    transition: transform 220ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-page {
+        --dashboard-transicao: 0s;
+    }
+
+    .dashboard-conteudo,
+    .dashboard-menu-seta {
+        transition: none;
+    }
 }

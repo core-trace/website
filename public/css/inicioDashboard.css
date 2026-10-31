@@ -2,11 +2,6 @@
     --dashboard-borda: #c9ced8;
     background-color: #eef0f4;
 }
-.dashboard-legivel .dashboard-menu-titulo { font-size: 16px; color: #4b4350; }
-.dashboard-legivel .dashboard-menu-item,
-.dashboard-legivel .dashboard-usuario-nome { font-size: 18px; }
-.dashboard-legivel .dashboard-usuario-cargo { font-size: 16px; color: #4b4350; }
-.dashboard-legivel .dashboard-conta-email { font-size: 16px; overflow-wrap: anywhere; }
 
 .principal {
     --visao-texto-suave: #4b4350;

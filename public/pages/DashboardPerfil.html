@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/DashboardPerfil.css">
+    <script src="../scripts/vendor/chart.umd.js" defer></script>
+<script src="../scripts/DashboardPerfil.js" defer></script>
     <!-- <script src="../scripts/navbarDashboard.js" defer></script>-->
 </head>
 
@@ -152,6 +154,107 @@
                 </article>
 
             </section>
+            <section class="perfil-graficos">
+
+    <article class="perfil-card">
+
+        <div class="perfil-card-cabecalho">
+            <h2>Total de servidores por perfil</h2>
+            <p>Distribuição de servidores vinculados a cada perfil</p>
+        </div>
+
+        <div class="grafico-servidores">
+            <canvas id="graficoServidores"></canvas>
+        </div>
+
+    </article>
+
+    <article class="perfil-card">
+
+        <div class="perfil-card-cabecalho">
+            <h2>Status de servidores por perfil</h2>
+            <p>Situação dos servidores vinculados</p>
+        </div>
+
+        <div class="grafico-status">
+            <canvas id="graficoStatus"></canvas>
+        </div>
+
+    </article>
+
+    <article class="perfil-card">
+
+        <div class="perfil-card-cabecalho">
+            <h2>Quantidade de containers por perfil</h2>
+        </div>
+
+        <div class="containers-conteudo">
+
+            <div class="grafico-containers">
+                <canvas id="graficoContainers"></canvas>
+            </div>
+
+            <div class="containers-observacao">
+                <p>Pedido não possui servidores nem containers vinculados.</p>
+            </div>
+
+        </div>
+
+    </article>
+
+    <article class="perfil-card">
+
+        <div class="perfil-card-cabecalho">
+            <h2>Componentes monitorados</h2>
+        </div>
+
+        <div class="componentes-lista">
+
+            <div class="componente">
+                <img src="../assets/images/cpuroxo.png" alt="">
+                <span>CPU</span>
+                <strong>4</strong>
+                <p>perfis configurados</p>
+            </div>
+
+            <div class="componente">
+                <img src="../assets/images/ramroxo.png" alt="">
+                <span>RAM</span>
+                <strong>4</strong>
+                <p>perfis configurados</p>
+            </div>
+
+            <div class="componente">
+                <img src="../assets/images/discoroxo.png" alt="">
+                <span>Disco</span>
+                <strong>4</strong>
+                <p>perfis configurados</p>
+            </div>
+
+            <div class="componente">
+                <img src="../assets/images/rederoxo.png" alt="">
+                <span>Rede</span>
+                <strong>2</strong>
+                <p>perfis configurados</p>
+            </div>
+
+            <div class="componente">
+                <img src="../assets/images/swaproxo.png" alt="">
+                <span>Swap</span>
+                <strong>3</strong>
+                <p>perfis configurados</p>
+            </div>
+
+        </div>
+
+        <p class="componentes-observacao">
+            As métricas são configuradas por perfil,
+            independentemente da existência de servidores vinculados.
+        </p>
+
+    </article>
+
+</section>
 
            
 </body>

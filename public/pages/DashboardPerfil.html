@@ -103,7 +103,16 @@
             </div>
 
             <header class="perfil-cabecalho">
-                <h1>Visão geral dos perfis de servidores</h1>
+                <div class="perfil-titulo">
+        <h1>Visão geral dos perfis de servidores</h1>
+<select class="perfil-filtro" id="filtroPerfil">
+    <option value="todos">Todos os perfis</option>
+    <option value="carrinho">Carrinho</option>
+    <option value="catalogo">Catálogo</option>
+    <option value="financeiro">Financeiro</option>
+    <option value="pedido">Pedido</option>
+</select>
+    </div>
                 <p>Confira um panorama completo da sua infraestrutura.</p>
             </header>
 
@@ -247,10 +256,7 @@
 
         </div>
 
-        <p class="componentes-observacao">
-            As métricas são configuradas por perfil,
-            independentemente da existência de servidores vinculados.
-        </p>
+
 
     </article>
 

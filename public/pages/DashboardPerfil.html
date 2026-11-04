@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreTrace - Dashboard de Perfis</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/DashboardPerfil.css">
+    <!-- <script src="../scripts/navbarDashboard.js" defer></script>-->
+</head>
+
+<body class="dashboard-page">
+
+    <a class="dashboard-pular-conteudo" href="#conteudo-principal">
+        Pular para o conteúdo
+    </a>
+
+    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
+
+        <div class="dashboard-menu-cabecalho">
+            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+
+            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
+            <p class="dashboard-acesso-feedback" role="status"></p>
+        </nav>
+
+        <div class="dashboard-sistema">
+            <span class="sistema-status"></span>
+            <div>
+                <p>Sistema online</p>
+                <small>Última atualização: 10:30</small>
+            </div>
+        </div>
+
+    </aside>
+
+    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
+
+    <div class="dashboard-conteudo">
+
+        <header class="dashboard-navbar">
+
+            <button class="dashboard-abrir-menu" type="button"
+                aria-label="Abrir menu" aria-controls="menu-dashboard"
+                aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <div class="dashboard-pesquisa">
+                <input type="search" placeholder="Buscar por servidor, hostname ou perfil...">
+            </div>
+
+            <div class="dashboard-usuario">
+
+                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
+                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
+                </button>
+
+                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
+
+                <div class="dashboard-usuario-dados">
+                    <span class="dashboard-usuario-nome"></span>
+                    <span class="dashboard-usuario-cargo"></span>
+                </div>
+
+                <div class="dashboard-conta">
+                    <button class="dashboard-usuario-toggle" type="button"
+                        aria-label="Abrir menu da conta" aria-controls="menu-conta"
+                        aria-expanded="false">
+                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
+                    </button>
+
+                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <p class="dashboard-conta-email"></p>
+                        <button class="dashboard-sair" type="button">Sair</button>
+                    </div>
+                </div>
+
+            </div>
+        </header>
+
+        <main class="dashboard-perfil" id="conteudo-principal" tabindex="-1">
+
+            <div class="perfil-breadcrumb">
+                <span>Dashboard</span>
+                <span>›</span>
+                <span>Perfis de servidores</span>
+            </div>
+
+            <header class="perfil-cabecalho">
+                <h1>Visão geral dos perfis de servidores</h1>
+                <p>Confira um panorama completo da sua infraestrutura.</p>
+            </header>
+
+            <section class="perfil-indicadores">
+
+                <article class="perfil-indicador">
+                    <div class="indicador-icone">
+                        <img src="../assets/images/iconePerfil.png" alt="">
+                    </div>
+                    <div class="indicador-conteudo">
+                        <h2>Perfis cadastrados</h2>
+                        <strong>3</strong>
+                        <p>Quantidade de perfis criados</p>
+                    </div>
+                </article>
+
+                <article class="perfil-indicador">
+                    <div class="indicador-icone">
+                        <img src="../assets/images/iconeServidor.png" alt="">
+                    </div>
+                    <div class="indicador-conteudo">
+                        <h2>Servidores</h2>
+                        <strong>50</strong>
+                        <p>Máquinas que estão monitoradas</p>
+                    </div>
+                </article>
+
+                <article class="perfil-indicador">
+                    <div class="indicador-icone">
+                        <img src="../assets/images/iconeContainer.png" alt="">
+                    </div>
+                    <div class="indicador-conteudo">
+                        <h2>Containers</h2>
+                        <strong>12</strong>
+                        <p>Em operação neste perfil</p>
+                    </div>
+                </article>
+
+                <article class="perfil-indicador">
+                    <div class="indicador-icone">
+                        <img src="../assets/images/iconeAtivo.png" alt="">
+                    </div>
+                    <div class="indicador-conteudo">
+                        <h2>Perfis ativos</h2>
+                        <strong>3</strong>
+                        <p>Com servidores vinculados</p>
+                    </div>
+                </article>
+
+            </section>
+
+           
+</body>
+</html>

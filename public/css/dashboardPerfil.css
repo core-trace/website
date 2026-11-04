@@ -1,0 +1,189 @@
+
+.dashboard-perfil {
+    padding: 32px 40px 60px;
+    min-width: 0;
+    width: 100%;
+}
+
+.perfil-comeco {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #85818b;
+}
+
+.perfil-atual {
+    color: #6f3ab8;
+    font-weight: 600;
+}
+.perfil-cabecalho {
+    margin-bottom: 32px;
+}
+
+.perfil-cabecalho h1 {
+    color: #201b2a;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 8px;
+}
+
+.perfil-cabecalho p {
+    color: #85818b;
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.perfil-indicadores {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+.perfil-indicador {
+    flex: 1;
+}
+
+.perfil-indicador {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    min-height: 145px;
+    padding: 22px 20px;
+    background-color: #ffffff;
+    border: 1px solid #e9e6ee;
+    border-radius: 14px;
+    box-shadow: 0 3px 12px rgba(30, 20, 50, 0.04);
+}
+
+.indicador-icone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    background-color: #f2eafb;
+    border-radius: 12px;
+}
+
+.indicador-icone img {
+    display: block;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.indicador-conteudo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.indicador-conteudo h2 {
+    color: #696473;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+
+.indicador-conteudo strong {
+    color: #21182e;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+
+.indicador-conteudo p {
+    color: #97919e;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+@media (max-width: 1500px) {
+    .dashboard-perfil {
+        padding: 28px 30px 50px;
+    }
+
+    .perfil-indicadores {
+        gap: 14px;
+    }
+
+    .perfil-indicador {
+        gap: 12px;
+        padding: 18px 14px;
+    }
+
+    .indicador-icone {
+        width: 48px;
+        height: 48px;
+    }
+
+    .indicador-icone img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .indicador-conteudo strong {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .perfil-indicadores {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-perfil {
+        padding: 24px 20px 40px;
+    }
+
+    .perfil-cabecalho h1 {
+        font-size: 24px;
+    }
+
+    .perfil-cabecalho p {
+        font-size: 14px;
+    }
+
+    .perfil-indicadores {
+        gap: 12px;
+    }
+
+    .perfil-indicador {
+        min-height: 125px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-perfil {
+        padding: 20px 16px 32px;
+    }
+
+    .perfil-indicadores {
+        grid-template-columns: 1fr;
+    }
+
+    .perfil-indicador {
+        min-height: 110px;
+        padding: 18px;
+    }
+
+    .perfil-cabecalho h1 {
+        font-size: 21px;
+    }
+
+    .indicador-conteudo strong {
+        font-size: 30px;
+    }
+}

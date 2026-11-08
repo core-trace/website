@@ -226,4 +226,13 @@
     color: #92909a;
     margin: 0;
 }
+.grafico-infraestrutura {
+    position: relative;
+    width: 100%;
+    height: 240px;
+}
 
+.grafico-infraestrutura canvas {
+    width: 100% ;
+    height: 100%;
+}

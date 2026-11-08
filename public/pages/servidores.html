@@ -77,7 +77,70 @@
                 </div>
             </div>
         </header>
+        <main class="principal" id="conteudo-principal" tabindex="-1">
 
+        <div class="visao-geral">
+            <h1 class="titulo-visao-geral">Visão geral dos servidores</h1>
+            <p class="texto-visao-geral">Localize as prioridades atuais e siga para a investigação.</p>
+        </div>
+
+        <div class="KPIs">
+            <div class="KPI">
+                <h3 class="titulo-KPI">Servidores reportando</h3>
+                <h1 class="qtd-servidores" id="servidores-ativos">0</h1>
+                <p class="descricao-KPI">reportados</p>
+            </div>
+            <div class="KPI">
+                <h3 class="titulo-KPI">Servidores críticos</h3>
+                <h1 class="qtd-servidores" id="servidores-criticos">0</h1>
+                <p class="descricao-KPI">em estado crítico</p>
+            </div>
+            <div class="KPI">
+                <h3 class="titulo-KPI">Servidores em atenção</h3>
+                <h1 class="qtd-servidores" id="servidores-atencao">0</h1>
+                <p class="descricao-KPI">em estado de atenção</p>
+            </div>
+            <div class="KPI">
+                <h3 class="titulo-KPI">Servidores estáveis</h3>
+                <h1 class="qtd-servidores" id="servidores-estaveis">0</h1>
+                <p class="descricao-KPI">em estado normal</p>
+            </div>
+        </div>
+
+
+        <section class="visao-card visao-servidores" aria-labelledby="titulo-servidores">
+                <div class="visao-tabela-cabecalho">
+                    <h2 id="titulo-servidores">Servidores</h2>
+                    <label class="visao-busca-servidores">
+                        <span class="dashboard-lupa" aria-hidden="true"></span>
+                        <input type="search" id="busca-servidores" aria-label="Buscar servidor, perfil ou MAC"
+                            placeholder="Buscar servidor, perfil ou MAC..." aria-controls="lista-servidores">
+                    </label>
+                    <span class="visao-select-campo"><select class="visao-select" id="filtro-perfil" aria-label="Filtrar por perfil">
+                        <option value="">Todos os perfis</option>
+                    </select></span>
+                    <span class="visao-select-campo"><select class="visao-select visao-select-situacao" id="filtro-situacao" aria-label="Filtrar por situação">
+                        <option value="">Todas as situações</option>
+                        <option value="critico">Crítico</option>
+                        <option value="atencao">Atenção</option>
+                        <option value="normal">Normal</option>
+                    </select></span>
+                </div>
+                <div class="visao-tabela-scroll" role="region" aria-label="Lista de servidores" tabindex="0">
+                    <table class="visao-tabela">
+                        <thead>
+                            <tr>
+                                <th scope="col">Servidor</th><th scope="col">Perfil</th><th scope="col">Situação</th>
+                                <th scope="col">CPU</th><th scope="col">RAM</th><th scope="col">Disco</th>
+                                <th scope="col">Recebimento de rede</th><th scope="col">Escrita de rede</th><th scope="col">Último registro</th><th scope="col"><span class="visao-sr-only">Ações</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-servidores"></tbody>
+                    </table>
+                </div>
+                
+            </section>
+        </main>
 <body>
     
 </body>

@@ -236,3 +236,88 @@
     width: 100% ;
     height: 100%;
 }
+.perfil-servidores {
+    margin-top: 20px;
+    background-color: white;
+    border: 1px solid #e8e6ed;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.servidores-cabecalho {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e8e6ed;
+}
+
+.servidores-cabecalho h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #21182e;
+}
+
+.servidores-cabecalho span {
+    background-color: #f0eef3;
+    color: #77717f;
+    padding: 3px 7px;
+    border-radius: 20px;
+    font-size: 11px;
+    margin-left: 5px;
+}
+
+.servidores-descricao {
+    font-size: 12px;
+    color: #92909a;
+    padding: 12px 20px;
+}
+
+.servidores-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.servidores-tabela th {
+    text-align: left;
+    font-weight: 500;
+    color: #92909a;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e8e6ed;
+}
+
+.servidores-tabela td {
+    padding: 12px 20px;
+    border-bottom: 1px solid #f0eef3;
+    color: #38313e;
+}
+
+.servidores-tabela tr:last-child td {
+    border-bottom: none;
+}
+
+.servidores-tabela td:last-child {
+    text-align: right;
+}
+
+.situacao-critico {
+    color: #e53935;
+    font-weight: 500;
+}
+
+.situacao-atencao {
+    color: #d99425;
+    font-weight: 500;
+}
+
+.botao-investigar {
+    background-color: white;
+    border: 1px solid #e53935;
+    color: #e53935;
+    border-radius: 5px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.botao-investigar:hover {
+    background-color: #fff0f0;
+}

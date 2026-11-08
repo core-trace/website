@@ -255,13 +255,14 @@
 .containers-conteudo {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 25px;
 }
 
 .grafico-containers {
-    width: 180px;
-    height: 180px;
+    width: 65%;
+    height: 230px;
 }
+
 
 .containers-observacao {
     font-size: 12px;

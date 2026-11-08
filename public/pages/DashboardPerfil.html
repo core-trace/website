@@ -204,7 +204,10 @@
             </div>
 
             <div class="containers-observacao">
-                <p>Pedido não possui servidores nem containers vinculados.</p>
+<p>
+    Pedido não possui servidores
+    nem containers vinculados.
+</p>
             </div>
 
         </div>
@@ -297,5 +300,117 @@ options: {
     }
 }
   });
+
+  
+const ctxStatus = document.getElementById("graficoStatus");
+
+new Chart(ctxStatus, {
+    type: "bar",
+
+    data: {
+        labels: ["Carrinho", "Catálogo", "Financeiro", "Pedido"],
+
+        datasets: [
+            {
+                label: "Normal",
+                data: [6, 7, 6, 0],
+                backgroundColor: "#55B894",
+                borderWidth: 0,
+                borderRadius: 4
+            },
+            {
+                label: "Atenção",
+                data: [4, 3, 3, 0],
+                backgroundColor: "#F5CB68",
+                borderWidth: 0
+            },
+            {
+                label: "Crítico",
+                data: [3, 5, 3, 0],
+                backgroundColor: "#ED7398",
+                borderWidth: 0,
+                borderRadius: 4
+            }
+        ]
+    },
+
+    options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+
+        plugins: {
+            legend: {
+                position: "top",
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: "circle",
+                    boxWidth: 8,
+                    boxHeight: 8
+                }
+            }
+        },
+
+        scales: {
+            x: {
+                stacked: true,
+                min: 0,
+                max: 20,
+                ticks: {
+                    stepSize: 5
+                },
+                grid: {
+                    display: false
+                }
+            },
+
+            y: {
+                stacked: true,
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+const ctx3 = document.getElementById("graficoContainers");
+
+new Chart(ctx3, {
+    type: "doughnut",
+
+    data: {
+        labels: ["Carrinho", "Catálogo", "Financeiro"],
+
+        datasets: [{
+            label: "Containers",
+            data: [1, 1, 2],
+            backgroundColor: [
+                "#8C52D6",
+                "#B49BE5",
+                "#D99AC2"
+            ],
+            borderWidth: 0
+        }]
+    },
+
+options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: "65%",
+
+    plugins: {
+        legend: {
+            position: "right",
+            labels: {
+                usePointStyle: true,
+                pointStyle: "circle",
+                boxWidth: 10,
+                padding: 10
+            }
+        }
+    }
+}});
+
 </script>
 </html>

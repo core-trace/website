@@ -10,8 +10,7 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/DashboardPerfilEspecifico.css">
-
-    <script src="../scripts/vendor/chart.umd.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
    <!-- <script src="../scripts/navbarDashboard.js" defer></script>-->
     <script src="../scripts/DashboardPerfilEspecifico.js" defer></script>
 </head>
@@ -308,4 +307,63 @@
     </div>
 
 </body>
+<script>
+const ctx = document.getElementById("graficoInfraestrutura");
+
+new Chart(ctx, {
+    type: "bar",
+
+    data: {
+        labels: ["Servidores", "Containers"],
+
+        datasets: [
+            {
+                label: "Ativos",
+                data: [13, 1],
+                backgroundColor: "#7BAE9D",
+                borderRadius: 3
+            },
+            {
+                label: "Inativos",
+                data: [5, 1],
+                backgroundColor: "#D98C88",
+                borderRadius: 3
+            }
+        ]
+    },
+
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+const ctx2 = document.getElementById("graficoSaude");
+
+new Chart(ctx2, {
+    type: "doughnut",
+
+    data: {
+        labels: ["Normais", "Críticos", "Atenção"],
+
+        datasets: [{
+            label: "Servidores",
+            data: [7, 2, 4],
+            backgroundColor: [
+                "#7BAE9D",
+                "#D98C88",
+                "#D7B66E"
+            ],
+        }]
+    }
+});
+
+
+</script>
 </html>

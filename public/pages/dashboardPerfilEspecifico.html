@@ -110,7 +110,7 @@
                     <img src="../assets/images/iconeContainer.png" alt="">
 
                     <div>
-                        <h1>Perfil: <span id="nomePerfil">Carrinho</span></h1>
+                        <h1>Perfil: <span id="nomePerfil">Financeiro</span></h1>
                         <p>Confira os detalhes e métricas desse perfil.</p>
                     </div>
                 </div>
@@ -137,6 +137,7 @@
                         <p>Quantidade de componentes</p>
                     </div>
                 </article>
+                
 
                 <article class="perfil-indicador">
                     <div class="indicador-icone">
@@ -145,10 +146,21 @@
 
                     <div class="indicador-conteudo">
                         <h2>Servidores</h2>
-                        <strong id="totalServidores">18</strong>
+                        <strong id="totalServidores">13</strong>
                         <p>Máquinas que serão monitoradas</p>
                     </div>
                 </article>
+                <article class="perfil-indicador">
+    <div class="indicador-icone">
+        <img src="../assets/images/iconeCritico.png" alt="">
+    </div>
+
+    <div class="indicador-conteudo">
+        <h2>Críticos</h2>
+        <strong id="totalCriticos">2</strong>
+        <p>Servidores e containers que precisam de atenção</p>
+    </div>
+</article>
 
                 <article class="perfil-indicador">
                     <div class="indicador-icone">
@@ -226,7 +238,8 @@
                 <article class="perfil-card">
 
                     <div class="perfil-card-cabecalho">
-                        <h2>Status da Infraestrutura</h2>
+                            <h2>Saúde dos Containers</h2>
+        <p>Distribuição atual dos containers ativos</p>
                     </div>
 
                     <div class="grafico-infraestrutura">
@@ -240,12 +253,12 @@
 <section class="perfil-servidores">
 
     <div class="servidores-cabecalho">
-        <h2>Servidores <span>4</span></h2>
-    </div>
+    <h2>Servidores e containers <span>4</span></h2>
+</div>
 
-    <p class="servidores-descricao">
-        Servidores que precisam ser investigados
-    </p>
+<p class="servidores-descricao">
+    Servidores e containers que precisam ser investigados
+</p>
 
     <table class="servidores-tabela">
         <thead>
@@ -308,41 +321,56 @@
 
 </body>
 <script>
-const ctx = document.getElementById("graficoInfraestrutura");
 
-new Chart(ctx, {
+const ctxInfraestrutura = document.getElementById("graficoInfraestrutura");
+
+new Chart(ctxInfraestrutura, {
     type: "bar",
 
     data: {
-        labels: ["Servidores", "Containers"],
+        labels: ["Normal", "Atenção", "Crítico"],
 
-        datasets: [
-            {
-                label: "Ativos",
-                data: [13, 1],
-                backgroundColor: "#7BAE9D",
-                borderRadius: 3
-            },
-            {
-                label: "Inativos",
-                data: [5, 1],
-                backgroundColor: "#D98C88",
-                borderRadius: 3
-            }
-        ]
+        datasets: [{
+            label: "Containers",
+            data: [2, 0, 0],
+            backgroundColor: [
+                "#169B62",
+                "#D7B66E",
+                "#D98C88"
+            ],
+            borderRadius: 3,
+            barThickness: 30
+        }]
     },
 
     options: {
         responsive: true,
         maintainAspectRatio: false,
 
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+
         scales: {
             y: {
-                beginAtZero: true
+                beginAtZero: true,
+                max: 2,
+                ticks: {
+                    stepSize: 1
+                }
+            },
+
+            x: {
+                grid: {
+                    display: false
+                }
             }
         }
     }
 });
+
 
 const ctx2 = document.getElementById("graficoSaude");
 
@@ -354,7 +382,7 @@ new Chart(ctx2, {
 
         datasets: [{
             label: "Servidores",
-            data: [7, 2, 4],
+            data: [9, 2, 2],
             backgroundColor: [
                 "#7BAE9D",
                 "#D98C88",

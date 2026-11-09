@@ -70,29 +70,42 @@
     width: 100%;
     margin-bottom: 20px;
 }
-
 .perfil-indicador {
     flex: 1;
     display: flex;
     align-items: center;
     gap: 15px;
-    min-width: 0;
-    min-height: 105px;
     padding: 18px;
     background-color: white;
     border: 1px solid #e8e6ed;
     border-radius: 10px;
+    min-width: 0;
     box-sizing: border-box;
+}
+.indicador-conteudo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.indicador-conteudo p {
+    font-size: 11px;
+    line-height: 1.4;
 }
 
 .indicador-icone {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
-    background-color: #f0f5f9;
-    border-radius: 8px;
+    margin-top: 8px;
+}
+
+.indicador-conteudo {
+    display: flex;
+    flex-direction: column;
 }
 
 .indicador-icone img {

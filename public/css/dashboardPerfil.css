@@ -109,9 +109,119 @@
     color: var(--cor-vermelho);
 }
 
+/* Parte 2: painéis e espaços reservados aos gráficos do Chart.js. */
+.pagina-perfis .grade-paineis {
+    display: grid;
+    grid-template-columns: minmax(0, 1.13fr) minmax(0, 1fr);
+    gap: 16px;
+}
+
+.pagina-perfis .painel {
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--perfis-borda);
+    border-radius: 8px;
+    background-color: var(--perfis-superficie);
+}
+
+.pagina-perfis .painel h2 {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.pagina-perfis .cabecalho-painel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pagina-perfis .cabecalho-painel p {
+    margin-top: 4px;
+    color: var(--perfis-texto-secundario);
+    font-size: 11px;
+}
+
+.pagina-perfis .seletor-perfil {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 10px;
+    border: 1px solid var(--perfis-borda);
+    border-radius: 6px;
+    background-color: var(--perfis-superficie);
+    color: var(--perfis-texto-secundario);
+    font-size: 10px;
+}
+
+.pagina-perfis .seletor-perfil select {
+    min-width: 90px;
+    min-height: 32px;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 6px;
+    background-color: transparent;
+    color: var(--perfis-texto);
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.pagina-perfis .grafico-barras,
+.pagina-perfis .lista-criticos {
+    position: relative;
+    height: 180px;
+    margin-top: 20px;
+}
+
+.pagina-perfis .conteudo-saude {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 18px;
+}
+
+.pagina-perfis .grafico-rosca {
+    position: relative;
+    flex: 0 0 144px;
+    width: 144px;
+    height: 144px;
+}
+
+.pagina-perfis .grafico-barras canvas,
+.pagina-perfis .grafico-rosca canvas,
+.pagina-perfis .lista-criticos canvas {
+    display: block;
+    max-width: 100%;
+}
+
+.pagina-perfis .criticos h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagina-perfis .criticos h2 img {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.pagina-perfis .limites {
+    grid-column: 1 / -1;
+}
+
 @media (max-width: 1100px) {
     .pagina-perfis .indicadores {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pagina-perfis .grade-paineis {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -137,5 +247,13 @@
 
     .pagina-perfis .indicador .nome-perfil {
         font-size: 20px;
+    }
+
+    .pagina-perfis .painel {
+        padding: 16px;
+    }
+
+    .pagina-perfis .conteudo-saude {
+        justify-content: flex-start;
     }
 }

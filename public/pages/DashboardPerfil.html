@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreTrace | Perfis de servidores</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <script src="../scripts/vendor/chart.umd.js" defer></script>
+    <!-- <script src="../scripts/navbarDashboard.js" defer></script> -->
+</head>
+<body class="dashboard-page dashboard-legivel">
+    <a class="dashboard-pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+
+    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
+        <div class="dashboard-menu-cabecalho">
+            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
+            <p class="dashboard-acesso-feedback" role="status"></p>
+        </nav>
+    </aside>
+
+    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
+
+    <div class="dashboard-conteudo">
+        <header class="dashboard-navbar visao-navbar">
+            <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu"
+                aria-controls="menu-dashboard" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <div class="dashboard-usuario">
+                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
+                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
+                </button>
+
+                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
+
+                <div class="dashboard-usuario-dados">
+                    <span class="dashboard-usuario-nome"></span>
+                    <span class="dashboard-usuario-cargo"></span>
+                </div>
+                <div class="dashboard-conta">
+                    <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
+                        aria-controls="menu-conta" aria-expanded="false">
+                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12" height="12">
+                    </button>
+                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <p class="dashboard-conta-email"></p>
+                        <button class="dashboard-sair" type="button">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="principal" id="conteudo-principal" tabindex="-1">
+            <p class="breadcrumb">Dashboard / Visão geral</p>
+            <div class="page-heading"><div><h1>Visão dos perfis de servidores</h1><p>Panorama completo dos seus perfis, servidores e containers.</p></div><label class="period"><select aria-label="Período"><option>Últimos 30 min</option><option>Última hora</option><option>Últimas 7 horas</option><option>Últimas 24 horas</option></select></label></div>
+            <section class="stats" aria-label="Resumo dos perfis">
+                <article class="stat"><img class="stat-icon" src="../assets/images/Ícone Perfis configurados.png" alt="" width="34" height="34"><div><strong>4</strong><p>Perfis configurados</p></div></article>
+                <article class="stat"><img class="stat-icon success" src="../assets/images/Ícone Perfis ativos.png" alt="" width="34" height="34"><div><strong>3</strong><p>Perfis ativos</p></div></article>
+                <article class="stat"><img class="stat-icon" src="../assets/images/catalogoIcone.png" alt="" width="34" height="34"><div><strong class="red profile-name">Catálogo</strong><p>Perfis ativos</p></div></article>
+                <article class="stat"><img class="stat-icon" src="../assets/images/servidoresIcone.png" alt="" width="34" height="34"><div><strong class="red">5</strong><p>servidores inativos</p></div></article>
+            </section>
+            <div class="dashboard-grid">
+                <section class="panel servers"><h2>Servidores por perfil</h2><div class="bar-chart"><canvas id="grafico-servidores-perfil" role="img" aria-label="Servidores por perfil: Carrinho 12, Catálogo 15, Financeiro 13 e Pedido 0">Carrinho: 12 servidores; Catálogo: 15; Financeiro: 13; Pedido: 0.</canvas></div></section>
+                <section class="panel health"><div class="panel-heading"><div><h2>Saúde por perfil</h2><p>Distribuição das 15 máquinas do perfil</p></div><label class="profile-select">Perfil: <select id="health-profile" aria-label="Perfil do gráfico de saúde"><option>Catálogo</option><option>Financeiro</option><option>Carrinho</option><option>Pedido</option></select></label></div><div class="health-content"><div class="donut"><canvas id="grafico-saude-perfil" role="img" aria-label="Saúde do perfil Catálogo: 3 normais, 2 em atenção, 7 críticos e 3 com dados inativos">15 máquinas: 3 normais, 2 em atenção, 7 críticas e 3 com dados inativos.</canvas></div><ul class="legend"><li><i class="green-dot"></i>Normal — 3</li><li><i class="amber-dot"></i>Atenção — 2</li><li><i class="red-dot"></i>Crítico — 7</li><li><i class="gray-dot"></i>Dados inativos — 3</li></ul></div></section>
+                <section class="panel status"><h2>Status dos servidores por perfil</h2><table><thead><tr><th>Perfil</th><th>Ativos</th><th>Inativos</th></tr></thead><tbody><tr data-profile="Carrinho"><td><i class="green-dot"></i>Carrinho</td><td>10</td><td>2</td></tr><tr data-profile="Catálogo"><td><i class="green-dot"></i>Catálogo</td><td>12</td><td>3</td></tr><tr data-profile="Financeiro"><td><i class="green-dot"></i>Financeiro</td><td>13</td><td>0</td></tr><tr data-profile="Pedido"><td><i class="gray-dot"></i>Pedido</td><td>0</td><td>0</td></tr></tbody></table></section>
+                <section class="panel critical"><h2><img src="../assets/images/Alerta — triângulo contornado.png" alt="" width="18" height="18"> Perfis com maior % de servidores críticos</h2><div class="critical-list"><canvas id="grafico-perfis-criticos" role="img" aria-label="Percentual de servidores críticos por perfil: Catálogo 60%, Financeiro 55%, Carrinho 10% e Pedidos 0%">Catálogo: 60%; Financeiro: 55%; Carrinho: 10%; Pedidos: 0%.</canvas></div></section>
+                <section class="panel limits"><div class="panel-heading"><div><h2>Limites por perfil</h2><p>Métricas monitoradas nos componentes presentes neste perfil</p></div><label class="profile-select">Perfil: <select aria-label="Perfil dos limites"><option>Financeiro</option><option>Catálogo</option><option>Carrinho</option><option>Pedido</option></select></label></div><div class="metrics"><div><h3>CPU</h3><p>Clique para ver os seus limites</p></div><div><h3>RAM</h3><p>Clique para ver os seus limites</p></div><div><h3>Rede</h3><p>Clique para ver os seus limites</p></div><div><h3>Swap</h3><p>Clique para ver os seus limites</p></div><div><h3>Disco</h3><p>Clique para ver os seus limites</p></div></div></section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

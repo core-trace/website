@@ -46,6 +46,14 @@
     flex-shrink: 0;
 }
 
+.pagina-perfis .periodo select:focus,
+.pagina-perfis .periodo select:focus-visible,
+.pagina-perfis .seletor-perfil select:focus,
+.pagina-perfis .seletor-perfil select:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
 .pagina-perfis .periodo select {
     min-height: 40px;
     padding: 8px 12px;

@@ -283,25 +283,81 @@
     margin-top: 16px;
 }
 
-.pagina-perfis .metricas > div {
+.pagina-perfis .componente-limites {
     min-width: 0;
-    padding: 12px 10px;
     border: 1px solid var(--perfis-borda);
     border-radius: 14px;
     background-color: #eaeae5;
 }
 
-.pagina-perfis .metricas h3 {
+.pagina-perfis .componente-limites summary {
+    padding: 12px 10px;
+    cursor: pointer;
+}
+
+.pagina-perfis .componente-limites summary span {
     font-size: 13px;
     font-weight: 500;
 }
 
-.pagina-perfis .metricas p {
+.pagina-perfis .componente-limites summary small {
+    display: block;
     margin-top: 5px;
     color: var(--perfis-texto-secundario);
     font-size: 9px;
     line-height: 1.5;
     overflow-wrap: anywhere;
+}
+
+.pagina-perfis .componente-limites[open] {
+    grid-column: 1 / -1;
+}
+
+.pagina-perfis .componente-limites[open] summary {
+    border-bottom: 1px solid var(--perfis-borda);
+}
+
+.pagina-perfis .aviso-limites {
+    margin-top: 12px;
+    color: var(--perfis-texto-secundario);
+    font-size: 11px;
+}
+
+.pagina-perfis .tabela-limites-area {
+    padding: 12px;
+    overflow-x: auto;
+}
+
+.pagina-perfis .tabela-limites {
+    width: 100%;
+    min-width: 320px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 12px;
+}
+
+.pagina-perfis .tabela-limites caption {
+    margin-bottom: 10px;
+    text-align: left;
+    font-weight: 500;
+}
+
+.pagina-perfis .tabela-limites th,
+.pagina-perfis .tabela-limites td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--perfis-borda);
+}
+
+.pagina-perfis .tabela-limites th {
+    font-weight: 500;
+}
+
+.pagina-perfis .tabela-limites td:nth-child(2) {
+    color: #8b5b00;
+}
+
+.pagina-perfis .tabela-limites td:nth-child(3) {
+    color: var(--cor-vermelho);
 }
 
 @media (max-width: 1100px) {

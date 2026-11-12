@@ -79,7 +79,80 @@
                 <section class="painel saude"><div class="cabecalho-painel"><div><h2>Saúde por perfil</h2><p>Distribuição das 15 máquinas do perfil</p></div><label class="seletor-perfil">Perfil: <select id="health-profile" aria-label="Perfil do gráfico de saúde"><option>Catálogo</option><option>Financeiro</option><option>Carrinho</option><option>Pedido</option></select></label></div><div class="conteudo-saude"><div class="grafico-rosca"><canvas id="grafico-saude-perfil" role="img" aria-label="Saúde do perfil Catálogo: 3 normais, 2 em atenção, 7 críticos e 3 com dados inativos">15 máquinas: 3 normais, 2 em atenção, 7 críticas e 3 com dados inativos.</canvas></div></div></section>
                 <section class="painel situacao"><h2>Status dos servidores por perfil</h2><table><thead><tr><th>Perfil</th><th>Ativos</th><th>Inativos</th></tr></thead><tbody><tr data-profile="Carrinho"><td><i class="ponto-verde"></i>Carrinho</td><td>10</td><td>2</td></tr><tr data-profile="Catálogo"><td><i class="ponto-verde"></i>Catálogo</td><td>12</td><td>3</td></tr><tr data-profile="Financeiro"><td><i class="ponto-verde"></i>Financeiro</td><td>13</td><td>0</td></tr><tr data-profile="Pedido"><td><i class="ponto-cinza"></i>Pedido</td><td>0</td><td>0</td></tr></tbody></table></section>
                 <section class="painel criticos"><h2><img src="../assets/images/Alerta — triângulo contornado.png" alt="" width="18" height="18"> Perfis com maior % de servidores críticos</h2><div class="lista-criticos"><canvas id="grafico-perfis-criticos" role="img" aria-label="Percentual de servidores críticos por perfil: Catálogo 60%, Financeiro 55%, Carrinho 10% e Pedidos 0%">Catálogo: 60%; Financeiro: 55%; Carrinho: 10%; Pedidos: 0%.</canvas></div></section>
-                <section class="painel limites"><div class="cabecalho-painel"><div><h2>Limites por perfil</h2><p>Métricas monitoradas nos componentes presentes neste perfil</p></div><label class="seletor-perfil">Perfil: <select aria-label="Perfil dos limites"><option>Financeiro</option><option>Catálogo</option><option>Carrinho</option><option>Pedido</option></select></label></div><div class="metricas"><div><h3>CPU</h3><p>Clique para ver os seus limites</p></div><div><h3>RAM</h3><p>Clique para ver os seus limites</p></div><div><h3>Rede</h3><p>Clique para ver os seus limites</p></div><div><h3>Swap</h3><p>Clique para ver os seus limites</p></div><div><h3>Disco</h3><p>Clique para ver os seus limites</p></div></div></section>
+                <section class="painel limites">
+                    <div class="cabecalho-painel">
+                        <div><h2>Limites por perfil</h2><p>Métricas monitoradas nos componentes presentes neste perfil</p></div>
+                        <label class="seletor-perfil">Perfil: <select aria-label="Perfil dos limites"><option>Financeiro</option><option>Catálogo</option><option>Carrinho</option><option>Pedido</option></select></label>
+                    </div>
+                    <p class="aviso-limites">Dados demonstrativos: os limites abaixo são exemplos iguais para todos os perfis.</p>
+                    <div class="metricas">
+                        <details class="componente-limites">
+                            <summary><span>CPU</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de CPU — limites de exemplo</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody>
+                                    <tr><th scope="row">Uso da CPU</th><td>≥ 80%</td><td>≥ 90%</td></tr>
+                                    <tr><th scope="row">Espera por E/S</th><td>≥ 10%</td><td>≥ 20%</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="componente-limites">
+                            <summary><span>RAM</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de RAM — limites de exemplo</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody>
+                                    <tr><th scope="row">Uso da memória</th><td>≥ 80%</td><td>≥ 90%</td></tr>
+                                    <tr><th scope="row">Memória disponível</th><td>≤ 2 GiB</td><td>≤ 1 GiB</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="componente-limites">
+                            <summary><span>Rede</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de Rede — limites de exemplo</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody>
+                                    <tr><th scope="row">Tráfego recebido</th><td>≥ 80 MiB/s</td><td>≥ 100 MiB/s</td></tr>
+                                    <tr><th scope="row">Tráfego enviado</th><td>≥ 80 MiB/s</td><td>≥ 100 MiB/s</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="componente-limites">
+                            <summary><span>Swap</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de Swap — limites de exemplo</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody>
+                                    <tr><th scope="row">Uso de swap</th><td>≥ 50%</td><td>≥ 80%</td></tr>
+                                    <tr><th scope="row">Espaço livre em swap</th><td>≤ 1 GiB</td><td>≤ 0,5 GiB</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="componente-limites">
+                            <summary><span>Disco</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de Disco — limites de exemplo</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody>
+                                    <tr><th scope="row">Ocupação do disco</th><td>≥ 80%</td><td>≥ 90%</td></tr>
+                                    <tr><th scope="row">Uso de inodes</th><td>≥ 80%</td><td>≥ 90%</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                    </div>
+                </section>
             </div>
         </main>
     </div>

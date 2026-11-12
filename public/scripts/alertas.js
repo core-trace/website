@@ -43,7 +43,7 @@ const TEXTO_SITUACAO = {
     critico: 'Crítico',
     atencao: 'Atenção',
     normal: 'Normal',
-    semdados: 'Sem envio de dados'
+    semdados: 'Sem dados'
 };
 
 const COR_SITUACAO = {
@@ -58,8 +58,12 @@ const COR_SITUACAO = {
    2) DADOS FICTÍCIOS
    ========================================================= */
 
-/* Monta a série de pontos de uma métrica a partir dos valores do período. */
-const montarSerie = (valores) => TEMPO_LINHA.map((hora, indice) => ({ hora, valor: valores[indice] }));
+/* Monta a série de pontos de uma métrica a partir dos valores do período.
+   Valores null marcam a lacuna de quem parou de enviar dados. */
+const montarSerie = (valores) => TEMPO_LINHA.map((hora, indice) => ({
+    hora,
+    valor: valores[indice] === undefined ? null : valores[indice]
+}));
 
 const SERVIDORES_FICTICIOS = [
     /* ---------- Perfil Financeiro ---------- */
@@ -128,6 +132,20 @@ const SERVIDORES_FICTICIOS = [
             rede: montarSerie([12, 13, 14, 15, 16, 17])
         }
     },
+    {
+        id: 'srv-pay-06',
+        nome: 'srv-pay-06',
+        perfil: 'Financeiro',
+        status: 'semdados',
+        desde: '20:10',
+        ultimaColeta: '20:10',
+        metricasEmAlerta: [],
+        historico: {
+            cpu: montarSerie([52, 58, 63, 66, null, null]),
+            ram: montarSerie([48, 50, 52, 55, null, null]),
+            rede: montarSerie([22, 25, 28, 31, null, null])
+        }
+    },
 
     /* ---------- Perfil Banco de Dados ---------- */
     {
@@ -169,6 +187,20 @@ const SERVIDORES_FICTICIOS = [
             rede: montarSerie([20, 21, 22, 23, 24, 26])
         }
     },
+    {
+        id: 'srv-db-04',
+        nome: 'srv-db-04',
+        perfil: 'Banco de Dados',
+        status: 'semdados',
+        desde: '20:20',
+        ultimaColeta: '20:20',
+        metricasEmAlerta: [],
+        historico: {
+            cpu: montarSerie([45, 48, 52, 55, 58, null]),
+            ram: montarSerie([50, 52, 54, 57, 60, null]),
+            rede: montarSerie([30, 32, 34, 36, 38, null])
+        }
+    },
 
     /* ---------- Perfil API de Pedidos ---------- */
     {
@@ -208,6 +240,20 @@ const SERVIDORES_FICTICIOS = [
             cpu: montarSerie([55, 60, 68, 76, 85, 91]),
             ram: montarSerie([48, 51, 55, 60, 66, 71]),
             rede: montarSerie([28, 31, 35, 40, 46, 52])
+        }
+    },
+    {
+        id: 'srv-api-04',
+        nome: 'srv-api-04',
+        perfil: 'API de Pedidos',
+        status: 'semdados',
+        desde: '20:00',
+        ultimaColeta: '20:00',
+        metricasEmAlerta: [],
+        historico: {
+            cpu: montarSerie([44, 47, 50, null, null, null]),
+            ram: montarSerie([33, 35, 37, null, null, null]),
+            rede: montarSerie([24, 27, 30, null, null, null])
         }
     },
 
@@ -256,20 +302,35 @@ const SERVIDORES_FICTICIOS = [
         nome: 'srv-fis-04',
         perfil: 'Meteorologia',
         status: 'semdados',
-        desde: '18:10',
+        desde: '20:20',
+        ultimaColeta: '20:20',
         metricasEmAlerta: [],
         historico: {
-            cpu: montarSerie([44, 46, 45, 47, 46, 45]),
-            ram: montarSerie([39, 40, 41, 40, 40, 39]),
-            rede: montarSerie([21, 22, 23, 22, 22, 21])
+            cpu: montarSerie([44, 46, 45, 47, 46, null]),
+            ram: montarSerie([39, 40, 41, 40, 40, null]),
+            rede: montarSerie([21, 22, 23, 22, 22, null])
         }
     },
 
-    /* ---------- Perfil Nós Focados ---------- */
+    /* ---------- Perfil Notas Fiscais ---------- */
     {
         id: 'srv-nf-01',
         nome: 'srv-nf-01',
-        perfil: 'Nós Focados',
+        perfil: 'Notas Fiscais',
+        status: 'semdados',
+        desde: '19:45',
+        ultimaColeta: '19:45',
+        metricasEmAlerta: [],
+        historico: {
+            cpu: montarSerie([40, 42, null, null, null, null]),
+            ram: montarSerie([33, 35, null, null, null, null]),
+            rede: montarSerie([19, 21, null, null, null, null])
+        }
+    },
+    {
+        id: 'srv-nf-02',
+        nome: 'srv-nf-02',
+        perfil: 'Notas Fiscais',
         status: 'normal',
         desde: '20:25',
         metricasEmAlerta: [],
@@ -277,19 +338,6 @@ const SERVIDORES_FICTICIOS = [
             cpu: montarSerie([26, 27, 28, 29, 30, 31]),
             ram: montarSerie([30, 31, 32, 33, 34, 35]),
             rede: montarSerie([14, 15, 16, 17, 18, 19])
-        }
-    },
-    {
-        id: 'srv-nf-02',
-        nome: 'srv-nf-02',
-        perfil: 'Nós Focados',
-        status: 'semdados',
-        desde: '17:45',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([38, 39, 40, 39, 39, 38]),
-            ram: montarSerie([33, 34, 35, 34, 34, 33]),
-            rede: montarSerie([19, 20, 20, 19, 19, 18])
         }
     },
 
@@ -312,12 +360,13 @@ const SERVIDORES_FICTICIOS = [
         nome: 'srv-por-02',
         perfil: 'Portal Corporativo',
         status: 'semdados',
-        desde: '16:30',
+        desde: '20:10',
+        ultimaColeta: '20:10',
         metricasEmAlerta: [],
         historico: {
-            cpu: montarSerie([31, 32, 33, 32, 32, 31]),
-            ram: montarSerie([27, 28, 29, 28, 28, 27]),
-            rede: montarSerie([16, 17, 17, 16, 16, 15])
+            cpu: montarSerie([31, 32, 33, 32, null, null]),
+            ram: montarSerie([27, 28, 29, 28, null, null]),
+            rede: montarSerie([16, 17, 17, 16, null, null])
         }
     }
 ];
@@ -346,7 +395,6 @@ const estado = {
     perfilAtual: 'todos',
     metricaAtual: 'cpu',
     servidoresSelecionados: [],
-    somentePerfisComAlerta: false,
     servidores: []
 };
 
@@ -362,6 +410,16 @@ function minutosDaHora(hora) {
 
 function minutosEmAlerta(servidor) {
     return Math.max(0, minutosDaHora(HORA_ATUALIZACAO) - minutosDaHora(servidor.desde));
+}
+
+/* Horário da última coleta recebida do servidor. */
+function ultimaColetaDe(servidor) {
+    return servidor.ultimaColeta || servidor.desde;
+}
+
+/* Quantos minutos o servidor está sem enviar dados. */
+function minutosSemDados(servidor) {
+    return Math.max(0, minutosDaHora(HORA_ATUALIZACAO) - minutosDaHora(ultimaColetaDe(servidor)));
 }
 
 function formatarDuracao(minutos) {
@@ -394,8 +452,13 @@ function servidoresDoPerfil(perfil, servidores = estado.servidores) {
     return servidores.filter((servidor) => servidor.perfil === perfil);
 }
 
+/* Crítico, atenção e falta de dados contam como alerta. */
 function servidoresEmAlerta(servidores) {
-    return servidores.filter((servidor) => servidor.status === 'critico' || servidor.status === 'atencao');
+    return servidores.filter((servidor) => (
+        servidor.status === 'critico'
+        || servidor.status === 'atencao'
+        || servidor.status === 'semdados'
+    ));
 }
 
 function contarSituacao(servidores, situacao) {
@@ -419,7 +482,7 @@ function contarSemDados(servidores) {
 }
 
 function contarEmAlerta(servidores) {
-    return contarCriticos(servidores) + contarAtencao(servidores);
+    return contarCriticos(servidores) + contarAtencao(servidores) + contarSemDados(servidores);
 }
 
 function maiorTempoEmCritico(servidores) {
@@ -472,6 +535,10 @@ function corDoPerfil(servidores) {
         return 'atencao';
     }
 
+    if (contarSemDados(servidores)) {
+        return 'semdados';
+    }
+
     if (contarNormais(servidores)) {
         return 'normal';
     }
@@ -485,9 +552,21 @@ function servidoresSelecionados() {
         .filter(Boolean);
 }
 
+/* Último ponto com valor recebido (ignora a lacuna de quem parou de enviar dados). */
+function ultimoPontoRecebido(serie) {
+    for (let indice = serie.length - 1; indice >= 0; indice -= 1) {
+        if (serie[indice].valor !== null) {
+            return serie[indice];
+        }
+    }
+
+    return null;
+}
+
 function ultimoValor(servidor) {
     const serie = servidor.historico[estado.metricaAtual] || [];
-    return serie.length ? serie[serie.length - 1].valor : 0;
+    const ponto = ultimoPontoRecebido(serie);
+    return ponto ? ponto.valor : 0;
 }
 
 function rotuloMetricaAtual() {
@@ -507,7 +586,7 @@ function descricaoDoServidor(servidor) {
     }
 
     if (servidor.status === 'semdados') {
-        return `sem envio de dados desde ${servidor.desde} · ${duracao}`;
+        return `último dado ${ultimaColetaDe(servidor)} · sem dados há ${minutosSemDados(servidor)} min`;
     }
 
     return `última coleta (${duracao})`;
@@ -613,8 +692,8 @@ function desenharCards() {
     });
 }
 
-function criarChip(perfil, rotulo, contagem, ativo, cor = 'critico') {
-    const chip = criarElemento('button', `alertas-chip${ativo ? ' ativo' : ''}`);
+function criarChip(perfil, rotulo, contagem, ativo, cor = 'critico', esmaecido = false) {
+    const chip = criarElemento('button', `alertas-chip${ativo ? ' ativo' : ''}${esmaecido ? ' esmaecido' : ''}`);
     chip.type = 'button';
     chip.dataset.perfil = perfil;
     chip.setAttribute('aria-pressed', String(ativo));
@@ -627,6 +706,13 @@ function criarChip(perfil, rotulo, contagem, ativo, cor = 'critico') {
         criarElemento('span', 'alertas-chip-texto', rotulo),
         criarElemento('span', 'alertas-chip-conta', String(contagem))
     );
+
+    /* Perfil sem servidores em alerta: esmaecido e não selecionável. */
+    if (esmaecido) {
+        chip.disabled = true;
+        chip.setAttribute('aria-disabled', 'true');
+        chip.title = 'Perfil sem servidores em alerta no momento';
+    }
 
     return chip;
 }
@@ -647,26 +733,19 @@ function desenharChips() {
         const servidores = servidoresDoPerfil(perfil);
         const emAlerta = contarEmAlerta(servidores);
 
-        if (estado.somentePerfisComAlerta && !emAlerta) {
-            return;
-        }
-
         container.append(criarChip(
             perfil,
             perfil,
             emAlerta,
             estado.perfilAtual === perfil,
-            corDoPerfil(servidores)
+            corDoPerfil(servidores),
+            emAlerta === 0
         ));
     });
 }
 
 function criarLinhaServidor(servidor) {
     const linha = criarElemento('tr', 'alertas-linha');
-
-    if (servidor.status === 'normal' || servidor.status === 'semdados') {
-        linha.classList.add('tranquila');
-    }
 
     const celulaServidor = criarElemento('td');
     const blocoServidor = criarElemento('div', 'alertas-servidor');
@@ -717,17 +796,16 @@ function desenharLista() {
     const vazio = document.getElementById('alertas-vazio');
     corpo.innerHTML = '';
 
+    /* A lista da visão geral mostra somente servidores em alerta (crítico, atenção ou sem dados). */
     const escopo = servidoresDoPerfil(estado.perfilAtual);
-    const visiveis = estado.somentePerfisComAlerta
-        ? escopo.filter((servidor) => contarEmAlerta(servidoresDoPerfil(servidor.perfil)) > 0)
-        : escopo;
+    const visiveis = servidoresEmAlerta(escopo);
 
     const ordenados = ordenarPorCriticidade(visiveis);
     ordenados.forEach((servidor) => corpo.append(criarLinhaServidor(servidor)));
 
     vazio.hidden = ordenados.length > 0;
 
-    const emAlertaVisiveis = servidoresEmAlerta(visiveis).length;
+    const emAlertaVisiveis = visiveis.length;
     const emAlertaTotal = servidoresEmAlerta(estado.servidores).length;
 
     document.getElementById('alertas-resumo-lista').textContent =
@@ -784,7 +862,8 @@ function desenharLegenda() {
 
     servidoresSelecionados().forEach((servidor) => {
         const item = criarElemento('li', 'alertas-legend-item');
-        item.append(criarElemento('span', `alertas-ponto ${nivelDoValor(ultimoValor(servidor))}`));
+        const nivel = servidor.status === 'semdados' ? 'semdados' : nivelDoValor(ultimoValor(servidor));
+        item.append(criarElemento('span', `alertas-ponto ${nivel}`));
         item.append(criarElemento('span', '', `${servidor.nome} - ${servidor.perfil}`));
         legenda.append(item);
     });
@@ -806,6 +885,8 @@ function desenharGrafico() {
 
     const servidores = servidoresSelecionados();
 
+    desenharAvisoSemDados();
+
     if (!servidores.length) {
         area.append(criarElemento(
             'p',
@@ -822,7 +903,10 @@ function desenharGrafico() {
     const areaAltura = altura - margem.topo - margem.baixo;
 
     const tempos = temposDoGrafico(servidores);
-    const posX = (hora) => margem.esquerda + (tempos.indexOf(hora) / Math.max(1, tempos.length - 1)) * areaLargura;
+    const posX = (hora) => {
+        const indice = Math.max(0, tempos.indexOf(hora));
+        return margem.esquerda + (indice / Math.max(1, tempos.length - 1)) * areaLargura;
+    };
     const posY = (valor) => margem.topo + areaAltura - (valor / 100) * areaAltura;
 
     const svg = criarSvg('svg', {
@@ -901,6 +985,22 @@ function desenharGrafico() {
         'font-size': 13
     }));
 
+    /* Períodos sem dados: faixa cinza tracejada da última coleta até agora. */
+    servidores.forEach((servidor) => {
+        if (servidor.status !== 'semdados') {
+            return;
+        }
+
+        const serie = servidor.historico[estado.metricaAtual] || [];
+        const ultimo = ultimoPontoRecebido(serie);
+
+        if (!ultimo) {
+            return;
+        }
+
+        desenharFaixaSemDados(svg, ultimo, posX, posY, margem, areaLargura);
+    });
+
     /* Uma linha por servidor selecionado */
     servidores.forEach((servidor) => {
         const serie = servidor.historico[estado.metricaAtual] || [];
@@ -912,6 +1012,12 @@ function desenharGrafico() {
         for (let indice = 0; indice < serie.length - 1; indice += 1) {
             const inicio = serie[indice];
             const fim = serie[indice + 1];
+
+            /* A linha para no último ponto recebido: a lacuna não é ligada. */
+            if (inicio.valor === null || fim.valor === null) {
+                continue;
+            }
+
             const nivel = nivelDoValor(Math.max(inicio.valor, fim.valor));
 
             svg.append(criarSvg('line', {
@@ -926,6 +1032,10 @@ function desenharGrafico() {
         }
 
         serie.forEach((ponto) => {
+            if (ponto.valor === null) {
+                return;
+            }
+
             svg.append(criarSvg('circle', {
                 cx: posX(ponto.hora),
                 cy: posY(ponto.valor),
@@ -936,7 +1046,7 @@ function desenharGrafico() {
             }));
         });
 
-        const primeiroCritico = serie.find((ponto) => ponto.valor >= LIMITE_CRITICO);
+        const primeiroCritico = serie.find((ponto) => ponto.valor !== null && ponto.valor >= LIMITE_CRITICO);
 
         if (primeiroCritico) {
             const x = posX(primeiroCritico.hora);
@@ -960,7 +1070,18 @@ function desenharGrafico() {
             }));
         }
 
-        const ultimo = serie[serie.length - 1];
+        const ultimo = ultimoPontoRecebido(serie);
+
+        if (!ultimo) {
+            return;
+        }
+
+        /* Servidor sem envio de dados: marcador cinza no último ponto recebido. */
+        if (servidor.status === 'semdados') {
+            desenharMarcadorParada(svg, ultimo, posX, posY, margem, areaLargura);
+            return;
+        }
+
         const nivel = nivelDoValor(ultimo.valor);
 
         svg.append(criarSvg('rect', {
@@ -982,22 +1103,104 @@ function desenharGrafico() {
     area.append(svg);
 }
 
+/* Faixa cinza tracejada indicando o período sem dados (última coleta até agora). */
+function desenharFaixaSemDados(svg, ponto, posX, posY, margem, areaLargura) {
+    const x = posX(ponto.hora);
+    const topo = posY(100);
+    const base = posY(0);
+    const fimX = posX(HORA_ATUALIZACAO);
+    const largura = Math.max(0, fimX - x);
+
+    svg.append(criarSvg('rect', {
+        x: x,
+        y: topo,
+        width: largura,
+        height: base - topo,
+        fill: 'rgba(138, 143, 156, 0.12)',
+        stroke: '#8a8f9c',
+        'stroke-width': 1,
+        'stroke-dasharray': '6 5'
+    }));
+
+    if (largura > 70) {
+        svg.append(criarSvgTexto(x + largura / 2, topo + 18, 'sem dados', {
+            'text-anchor': 'middle',
+            fill: '#5b5f6b',
+            'font-size': 12,
+            'font-weight': 600
+        }));
+    }
+}
+
+/* Marcador cinza no último ponto recebido, com o momento da parada. */
+function desenharMarcadorParada(svg, ponto, posX, posY, margem, areaLargura) {
+    const x = posX(ponto.hora);
+    const y = posY(ponto.valor);
+
+    svg.append(criarSvg('circle', {
+        cx: x,
+        cy: y,
+        r: 5.5,
+        fill: '#8a8f9c',
+        stroke: '#ffffff',
+        'stroke-width': 2
+    }));
+
+    /* O rótulo fica para dentro do gráfico para não estourar a área do SVG. */
+    const paraEsquerda = x > margem.esquerda + areaLargura / 2;
+
+    svg.append(criarSvgTexto(paraEsquerda ? x - 10 : x + 10, y - 16, `Parou de enviar dados às ${ponto.hora}`, {
+        'text-anchor': paraEsquerda ? 'end' : 'start',
+        fill: '#5b5f6b',
+        'font-size': 12,
+        'font-weight': 600
+    }));
+}
+
+/* Aviso de falta de dados logo abaixo do gráfico. */
+function desenharAvisoSemDados() {
+    const aviso = document.getElementById('alertas-grafico-aviso');
+    const semDados = servidoresSelecionados().filter((servidor) => servidor.status === 'semdados');
+
+    aviso.innerHTML = '';
+    aviso.hidden = semDados.length === 0;
+
+    semDados.forEach((servidor) => {
+        const texto = semDados.length > 1
+            ? `${servidor.nome} · Sem dados há ${minutosSemDados(servidor)} min · última coleta ${ultimaColetaDe(servidor)}`
+            : `Sem dados há ${minutosSemDados(servidor)} min · última coleta ${ultimaColetaDe(servidor)}`;
+
+        aviso.append(criarElemento('span', 'alertas-grafico-aviso-item', texto));
+    });
+}
+
 function atualizarAbas() {
     document.querySelectorAll('#alertas-abas [data-metrica]').forEach((aba) => {
         aba.setAttribute('aria-selected', String(aba.dataset.metrica === estado.metricaAtual));
     });
 }
 
-function atualizarAlternador() {
-    const botao = document.getElementById('alertas-alternador');
-    botao.setAttribute('aria-pressed', String(estado.somentePerfisComAlerta));
+/* Limpa o conteúdo da seção do perfil quando a visão geral está ativa. */
+function limparSecaoPerfil() {
+    document.getElementById('alertas-legend').innerHTML = '';
+    document.getElementById('alertas-grafico-area').innerHTML = '';
+    document.getElementById('alertas-lateral-lista').innerHTML = '';
+    document.getElementById('alertas-grafico-aviso').innerHTML = '';
+    document.getElementById('alertas-grafico-aviso').hidden = true;
+    document.getElementById('alertas-selo-grafico').textContent = '';
+    document.getElementById('alertas-resumo-grafico').textContent = '';
+    document.getElementById('alertas-selo-lateral').textContent = '';
+    document.getElementById('alertas-resumo-lateral').textContent = '';
 }
 
 function atualizarTudo() {
     const emPerfil = estado.perfilAtual !== 'todos';
 
+    /* Visão geral e seção do perfil se alternam conforme o perfil atual. */
     document.getElementById('alertas-painel-geral').hidden = emPerfil;
     document.getElementById('alertas-painel-perfil').hidden = !emPerfil;
+    document.getElementById('alertas-painel-grafico').hidden = !emPerfil;
+    document.getElementById('alertas-painel-lateral').hidden = !emPerfil;
 
     const selo = document.getElementById('alertas-selo-perfil');
     selo.innerHTML = '';
@@ -1008,16 +1211,21 @@ function atualizarTudo() {
         selo.append(criarElemento('span', '', estado.perfilAtual));
     }
 
-    document.getElementById('alertas-grafico-perfil').textContent = estado.perfilAtual;
+    document.getElementById('alertas-grafico-perfil').textContent = emPerfil ? estado.perfilAtual : '';
 
     desenharCards();
     desenharChips();
     desenharLista();
-    desenharLateral();
-    desenharLegenda();
-    desenharGrafico();
     atualizarAbas();
-    atualizarAlternador();
+
+    /* Gráfico e lista lateral do perfil só existem com um perfil selecionado. */
+    if (emPerfil) {
+        desenharLateral();
+        desenharLegenda();
+        desenharGrafico();
+    } else {
+        limparSecaoPerfil();
+    }
 }
 
 
@@ -1031,6 +1239,13 @@ function trocarPerfil(perfil, servidorPreferido = null) {
     }
 
     estado.perfilAtual = perfil;
+
+    /* Na visão geral não há gráfico: nenhuma seleção é mantida. */
+    if (perfil === 'todos') {
+        estado.servidoresSelecionados = [];
+        atualizarTudo();
+        return;
+    }
 
     const emAlerta = servidoresEmAlerta(servidoresDoPerfil(perfil));
     const alvo = servidorPreferido || ordenarPorCriticidade(emAlerta)[0];
@@ -1107,11 +1322,6 @@ function iniciarEventos() {
         if (servidor) {
             trocarPerfil(servidor.perfil, servidor.id);
         }
-    });
-
-    document.getElementById('alertas-alternador').addEventListener('click', () => {
-        estado.somentePerfisComAlerta = !estado.somentePerfisComAlerta;
-        atualizarTudo();
     });
 
     document.getElementById('alertas-atualizar').addEventListener('click', (evento) => {

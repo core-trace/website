@@ -87,9 +87,6 @@
 
             <section class="alertas-chips-barra" aria-label="Filtros por perfil">
                 <div class="alertas-chips" id="alertas-chips"></div>
-                <button type="button" class="alertas-alternador" id="alertas-alternador" aria-pressed="false">
-                    Somente perfis com alerta
-                </button>
             </section>
 
             <section class="alertas-painel" id="alertas-painel-geral" aria-labelledby="alertas-titulo-geral">
@@ -120,7 +117,7 @@
             </section>
 
             <section class="alertas-perfil" id="alertas-painel-perfil" hidden aria-labelledby="alertas-titulo-grafico">
-                <article class="alertas-painel alertas-grafico-painel">
+                <article class="alertas-painel alertas-grafico-painel" id="alertas-painel-grafico">
                     <header class="alertas-painel-topo">
                         <h2 id="alertas-titulo-grafico">Evolução no perfil <span id="alertas-grafico-perfil"></span></h2>
                         <span class="alertas-selo" id="alertas-selo-grafico"></span>
@@ -145,9 +142,11 @@
                     </p>
 
                     <div class="alertas-grafico-area" id="alertas-grafico-area"></div>
+
+                    <p class="alertas-grafico-aviso" id="alertas-grafico-aviso" hidden></p>
                 </article>
 
-                <aside class="alertas-painel alertas-lateral" aria-labelledby="alertas-titulo-lateral">
+                <aside class="alertas-painel alertas-lateral" id="alertas-painel-lateral" aria-labelledby="alertas-titulo-lateral">
                     <header class="alertas-painel-topo">
                         <h2 id="alertas-titulo-lateral">Servidores em alerta do perfil</h2>
                         <span class="alertas-selo" id="alertas-selo-lateral"></span>

@@ -183,25 +183,7 @@
     margin-top: 20px;
 }
 
-.pagina-perfis .conteudo-saude {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    margin-top: 18px;
-}
-
-.pagina-perfis .grafico-rosca {
-    position: relative;
-    flex: 1 1 0;
-    min-width: 0;
-    width: 100%;
-    height: 180px;
-}
-
 .pagina-perfis .grafico-barras canvas,
-.pagina-perfis .grafico-rosca canvas,
 .pagina-perfis .lista-criticos canvas {
     display: block;
     max-width: 100%;
@@ -270,9 +252,14 @@
     color: #138c62;
 }
 
-.pagina-perfis .situacao tr[data-profile="Carrinho"] td:last-child,
-.pagina-perfis .situacao tr[data-profile="Catálogo"] td:last-child {
+.pagina-perfis .situacao td.tem-inativos {
     color: var(--cor-vermelho);
+}
+
+.pagina-perfis #dashboard-feedback {
+    margin-bottom: 16px;
+    color: var(--perfis-texto-secundario);
+    font-size: 13px;
 }
 
 .pagina-perfis .limites {
@@ -406,10 +393,6 @@
         padding: 16px;
     }
 
-    .pagina-perfis .conteudo-saude {
-        justify-content: flex-start;
-    }
-
     .pagina-perfis .metricas {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -430,4 +413,8 @@
     .pagina-perfis .metricas {
         grid-template-columns: minmax(0, 1fr);
     }
+}
+
+.pagina-perfis .painel.servidores {
+    grid-column: 1 / -1;
 }

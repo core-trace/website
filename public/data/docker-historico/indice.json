@@ -1,11 +1,18 @@
 {
-  "demonstracao": false,
-  "anonimizado": true,
+  "demonstracao": true,
+  "cenario": "Black Friday 2026 — dados totalmente fictícios",
   "arquivos": [
-    "data=2026-10-28/resumo.json",
-    "data=2026-10-30/resumo.json",
-    "data=2026-11-02/resumo.json",
-    "data=2026-11-06/resumo.json",
-    "data=2026-11-08/resumo.json"
+    "data=2026-11-18/resumo.json",
+    "data=2026-11-19/resumo.json",
+    "data=2026-11-20/resumo.json",
+    "data=2026-11-21/resumo.json",
+    "data=2026-11-22/resumo.json",
+    "data=2026-11-23/resumo.json",
+    "data=2026-11-24/resumo.json",
+    "data=2026-11-25/resumo.json",
+    "data=2026-11-26/resumo.json",
+    "data=2026-11-27/resumo.json",
+    "data=2026-11-28/resumo.json",
+    "data=2026-11-29/resumo.json"
   ]
 }

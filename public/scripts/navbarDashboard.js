@@ -125,7 +125,7 @@ function carregarNavegacao() {
             { rotulo: "Dashboards", icone: "/assets/sidebar/dashboard.svg", filhos: [
                 { rotulo: "Geral", href: "/pages/inicioDashboard.html" },
                 { rotulo: "Processos" },
-                { rotulo: "Docker" },
+                { rotulo: "Docker", href: "/pages/dockerDashboard.html" },
                 { rotulo: "Alertas", href: "/pages/alertas.html" },
                 { rotulo: "Servidores" },
                 { rotulo: "Análise por perfil" }

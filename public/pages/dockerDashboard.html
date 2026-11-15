@@ -38,6 +38,11 @@
                 aria-expanded="false">
                 <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
             </button>
+            <label class="dashboard-pesquisa">
+                <span class="dashboard-lupa" aria-hidden="true"></span>
+                <input type="search" id="docker-pesquisa-contexto" placeholder="Buscar por servidor ou perfil..."
+                    aria-label="Buscar servidor ou perfil disponível" aria-controls="docker-contexto-resultado">
+            </label>
             <div class="dashboard-usuario">
                 <button class="dashboard-notificacoes" type="button" aria-label="Notificações"><img
                         src="../assets/icons/sino.png" alt="" width="24" height="24"></button>
@@ -61,10 +66,10 @@
             </div>
             <div class="docker-hero">
                 <div>
-                    <div class="docker-titulo-com-icone"><img src="../assets/icons/docker.svg" alt="">
+                    <div class="docker-titulo-com-icone">
                         <h1>Docker</h1>
                     </div>
-                    <p>Acompanhe o desempenho e investigue ocorrências dos contêineres do servidor.</p>
+                    <p>Monitoramento e análise dos contêineres do servidor selecionado.</p>
                 </div>
             </div>
 
@@ -82,7 +87,12 @@
                         <button type="button" data-periodo="30" class="ativo" aria-pressed="true">30 dias</button>
                     </div>
                 </div>
+                <div class="docker-atualizacao">
+                    <span id="docker-ultima-coleta">Aguardando resumo</span>
+                    <span id="docker-origem-dados"></span>
+                </div>
             </section>
+            <p id="docker-contexto-resultado" class="docker-contexto-resultado" role="status" hidden></p>
             <p class="docker-periodo-info" id="docker-periodo-info" role="status">Preparando resumo...</p>
             <div class="docker-feedback" id="docker-feedback" role="alert" hidden></div>
 
@@ -90,7 +100,7 @@
                 <article class="docker-card docker-kpi">
                     <h2>Falhas de execução</h2>
                     <div class="docker-kpi-valor" id="kpi-falhas">—</div>
-                    <p>Encerramentos com erro identificados no período</p><small
+                    <p>Encerramentos por erro ou OOM no período</p><small
                         id="kpi-falhas-nota">—</small>
                 </article>
                 <article class="docker-card docker-kpi">
@@ -114,7 +124,7 @@
                     <p id="kpi-pico-descricao">—</p><small id="kpi-pico-nota">—</small>
                 </article>
             </section>
-            <p class="docker-escopo">Os indicadores mostram dados de todo o servidor, mesmo após selecionar um contêiner.</p>
+            <p class="docker-escopo" id="docker-escopo-servidor">Servidor inteiro, mesmo com um contêiner selecionado.</p>
 
             <section class="docker-card docker-lista" aria-labelledby="docker-lista-titulo">
                 <div class="docker-secao-topo">
@@ -137,7 +147,7 @@
                                 <th scope="col">Último estado</th>
                                 <th scope="col">Falhas no período</th>
                                 <th scope="col">Reinícios entre resumos</th>
-                                <th scope="col">Logs ERROR</th>
+                                <th scope="col">Logs ERROR no período</th>
                             </tr>
                         </thead>
                         <tbody id="docker-linhas">
@@ -147,7 +157,7 @@
                         </tbody>
                     </table>
                 </div>
-                <p class="docker-nota-tabela" id="docker-nota-tabela">Os estados exibidos correspondem à última coleta disponível.</p>
+                <p class="docker-nota-tabela" id="docker-nota-tabela">O último estado não representa todo o histórico do período. Um contêiner encerrado pode não ter falhas no intervalo selecionado.</p>
             </section>
 
             <section class="docker-card docker-detalhe" aria-labelledby="docker-detalhe-titulo">
@@ -157,6 +167,7 @@
                         <p id="docker-detalhe-id">Selecione um contêiner na tabela</p>
                     </div><span class="docker-estado" id="docker-detalhe-estado">—</span>
                 </div>
+                <dl id="docker-detalhe-metricas" class="docker-detalhe-metricas"></dl>
                 <dl id="docker-detalhe-campos" class="docker-detalhe-grid">
                     <div>As informações aparecerão aqui.</div>
                 </dl>
@@ -165,8 +176,8 @@
             <div class="docker-desempenho-titulo">
                 <div>
                     <h2 id="docker-desempenho-titulo">Desempenho</h2>
-                    <p>Evolução diária com médias, picos e contadores dos resumos disponíveis.</p>
-                </div><span class="docker-tag neutra">Evolução diária</span>
+                    <p id="docker-desempenho-descricao">Histórico diário · período compartilhado</p>
+                </div>
             </div>
             <section class="docker-graficos" id="docker-graficos" aria-label="Métricas do contêiner"></section>
             <p class="docker-escopo docker-aviso-medicoes">Cada ponto representa um dia com resumo disponível. Dias sem coleta não são tratados como zero; gráficos de contadores mostram valores acumulados, não consumo diário.</p>
@@ -205,8 +216,9 @@
                 <div class="docker-secao-topo">
                     <div>
                         <h2 id="docker-eventos-titulo">Eventos do contêiner</h2>
-                        <p>Eventos do dia mais recente disponível</p>
+                        <p id="docker-eventos-descricao">Histórico do período selecionado · mais recentes primeiro</p>
                     </div>
+                    <span id="docker-eventos-health" class="docker-estado parado">Healthcheck não informado</span>
                 </div>
                 <div id="docker-eventos-conteudo" class="docker-registros-conteudo">Selecione um contêiner.</div>
             </section>

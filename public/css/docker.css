@@ -15,6 +15,17 @@
     border-bottom-color: #e7e6e3;
 }
 
+.docker-pagina .dashboard-pesquisa {
+    border-width: 1px;
+    max-width: 760px;
+    height: 48px;
+    gap: 16px;
+}
+
+.docker-pagina .dashboard-pesquisa input {
+    font-size: 14px;
+}
+
 .docker-pagina .dashboard-menu-grupo {
     padding-block: 18px;
 }
@@ -55,9 +66,9 @@
 }
 
 .docker-principal {
-    max-width: 1650px;
+    max-width: 1800px;
     margin: 0 auto;
-    padding: 30px 32px 70px;
+    padding: 30px 28px 40px;
 }
 
 .docker-breadcrumb {
@@ -73,8 +84,8 @@
 }
 
 .docker-breadcrumb strong {
-    color: #c51b15;
-    font-weight: 600;
+    color: #625c60;
+    font-weight: 400;
 }
 
 .docker-hero {
@@ -97,7 +108,7 @@
 }
 
 .docker-hero h1 {
-    font-size: clamp(25px, 2.2vw, 36px);
+    font-size: clamp(25px, 2.2vw, 30px);
     letter-spacing: -.045em;
     font-weight: 700;
 }
@@ -105,7 +116,7 @@
 .docker-hero p {
     margin-top: 7px;
     color: #726d70;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .docker-tag {
@@ -129,9 +140,23 @@
 
 .docker-controles {
     display: grid;
-    grid-template-columns: minmax(150px, 240px) minmax(180px, 280px) minmax(280px, 1fr);
+    grid-template-columns: minmax(130px, .85fr) minmax(180px, 1.05fr) minmax(310px, 1.8fr) minmax(190px, 1.15fr);
     gap: 16px;
     align-items: end;
+}
+
+.docker-atualizacao {
+    display: grid;
+    gap: 5px;
+    align-self: center;
+    color: #777073;
+    font-size: 11px;
+}
+
+.docker-contexto-resultado {
+    margin-top: 12px;
+    color: #625c60;
+    font-size: 13px;
 }
 
 .docker-campo {
@@ -161,7 +186,7 @@
 
 .docker-botoes-periodo {
     display: flex;
-    gap: 8px;
+    gap: 12px;
 }
 
 .docker-botoes-periodo button {
@@ -199,25 +224,25 @@
 .docker-kpis {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
+    gap: 16px;
 }
 
 .docker-card {
     border: 1px solid #e6e3e0;
     border-radius: 12px;
     background: #fff;
-    box-shadow: 0 1px 3px rgba(35, 25, 23, .025);
+    box-shadow: none;
 }
 
 .docker-kpi {
     display: flex;
     flex-direction: column;
-    min-height: 205px;
-    padding: 21px 19px 18px;
+    min-height: 175px;
+    padding: 20px;
 }
 
 .docker-kpi h2 {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     color: #716a6e;
 }
@@ -233,16 +258,16 @@
 
 .docker-kpi p {
     color: #696368;
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1.5;
 }
 
 .docker-kpi small {
     display: block;
-    margin-top: auto;
-    padding-top: 9px;
+    margin-top: 3px;
+    padding-top: 0;
     color: #706a6e;
-    font-size: 13px;
+    font-size: 11px;
     line-height: 1.5;
 }
 
@@ -251,6 +276,20 @@
     justify-content: space-between;
     align-items: start;
     gap: 8px;
+}
+
+.docker-kpi-pico {
+    position: relative;
+}
+
+.docker-kpi-pico .docker-pico-alternancia {
+    position: absolute;
+    top: 51px;
+    right: 20px;
+}
+
+.docker-kpi-pico .docker-kpi-valor {
+    padding-right: 92px;
 }
 
 .docker-pico-alternancia {
@@ -292,7 +331,7 @@
 
 .docker-secao-topo h2,
 .docker-desempenho-titulo h2 {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 650;
     letter-spacing: -.025em;
 }
@@ -305,7 +344,7 @@
 .docker-secao-topo p {
     margin-top: 6px;
     color: #817b7e;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .docker-lista-acoes {
@@ -413,7 +452,7 @@
 }
 
 .docker-tabela td:first-child {
-    width: 28%;
+    width: 26%;
 }
 
 .docker-container-escolha {
@@ -480,9 +519,21 @@
 
 .docker-detalhe-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 19px 16px;
-    margin-top: 24px;
+    margin: 18px 0 0;
+}
+
+.docker-detalhe-metricas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin: 22px 0 0;
+}
+
+.docker-detalhe-metricas .docker-atributo dd {
+    margin-top: 10px;
+    font-size: 18px;
 }
 
 .docker-atributo {
@@ -491,13 +542,13 @@
 
 .docker-atributo dt {
     color: #8a8387;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .docker-atributo dd {
     margin: 5px 0 0;
     color: #242024;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 600;
     overflow-wrap: anywhere;
 }
@@ -519,10 +570,11 @@
 .docker-graficos {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 13px;
+    gap: 16px;
 }
 
 .docker-grafico-card {
+    min-width: 0;
     min-height: 225px;
     padding: 19px;
 }
@@ -535,7 +587,7 @@
 }
 
 .docker-grafico-topo h3 {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 650;
 }
 
@@ -546,17 +598,17 @@
 }
 
 .docker-grafico-destaque {
-    flex-shrink: 0;
-    color: #b51b14;
+    text-align: right;
+    color: #625c60;
     font-weight: 650;
-    font-size: 15px;
+    font-size: 13px;
 }
 
 /* Os canvas do Chart.js precisam de um pai com altura definida para
    permanecerem legíveis e responsivos ao trocar o período ou o contêiner. */
 .docker-grafico-area {
     position: relative;
-    height: 225px;
+    height: 245px;
     margin-top: 18px;
 }
 
@@ -715,7 +767,7 @@
 
 .docker-logs-pesquisa {
     flex: 1;
-    max-width: 335px;
+    max-width: 420px;
 }
 
 .docker-logs-pesquisa input {
@@ -738,7 +790,7 @@
     border-radius: 8px;
     background: #211f23;
     color: #d6d4d8;
-    font: 14px/1.65 "Consolas", "Liberation Mono", monospace;
+    font: 13px/1.65 "Consolas", "Liberation Mono", monospace;
 }
 
 .docker-console-cabecalho {
@@ -876,7 +928,24 @@
     padding: 19px 0;
 }
 
-@media (max-width: 1300px) {
+@media (max-width: 1500px) {
+    .docker-controles {
+        grid-template-columns: minmax(130px, 1fr) minmax(180px, 1.2fr) minmax(310px, 2fr);
+    }
+
+    .docker-atualizacao {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+    }
+
+    .docker-detalhe-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1200px) {
     .docker-principal {
         padding-inline: 22px;
     }
@@ -900,7 +969,7 @@
     }
 
     .docker-graficos {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .docker-secao-topo {
@@ -974,7 +1043,21 @@
     }
 
     .docker-detalhe-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 15px;
+    }
+
+    .docker-detalhe-metricas {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .docker-grafico-topo {
+        flex-wrap: wrap;
+    }
+
+    .docker-grafico-destaque {
+        text-align: left;
     }
 
     .docker-desempenho-titulo {
@@ -985,4 +1068,9 @@
     .docker-tag {
         white-space: normal;
     }
+}
+
+.docker-pagina :is(button, input, select, [tabindex]):focus-visible {
+    outline: 2px solid #b91c16;
+    outline-offset: 3px;
 }

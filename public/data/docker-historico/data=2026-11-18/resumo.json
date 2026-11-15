@@ -1,0 +1,861 @@
+{
+  "schema_version": 1,
+  "tipo_documento": "resumo_diario",
+  "data": "2026-11-18",
+  "endereco_mac": "00:00:00:00:00:00",
+  "cenario": "black_friday_2026_simulada",
+  "dados_simulados": true,
+  "lotes_atuais": [],
+  "resumos": {
+    "containers": [
+      {
+        "container_id": "sim-api-java-01",
+        "nome": "api-java",
+        "imagem": "coretrace/api-java:simulada",
+        "status": "running",
+        "health_status": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-11-18T09:00:00-03:00",
+        "finished_at": null,
+        "exit_code": 0,
+        "oom_killed": false,
+        "primeira_observacao": "2026-11-18T10:00:00-03:00",
+        "ultima_observacao": "2026-11-18T22:00:00-03:00",
+        "amostras_observadas": 60,
+        "cpu": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 19,
+            "minimo": 10,
+            "maximo": 31
+          },
+          "nucleos": {
+            "metrica": null,
+            "unidade": "núcleos",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 4,
+            "ultimo_status": "ok"
+          },
+          "tempo_throttled": {
+            "metrica": null,
+            "unidade": "ns",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        },
+        "memoria": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 27,
+            "minimo": 22,
+            "maximo": 36
+          },
+          "utilizada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 289910292.48,
+            "minimo": 236223201.28,
+            "maximo": 386547056.64
+          },
+          "limite": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 1073741824,
+            "ultimo_status": "ok"
+          }
+        },
+        "pids": {
+          "atuais": {
+            "metrica": null,
+            "unidade": "processos",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 15,
+            "minimo": 12,
+            "maximo": 26
+          }
+        },
+        "rede": {
+          "recebidos": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 62599987,
+            "ultimo_status": "ok"
+          },
+          "enviados": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 47972352,
+            "ultimo_status": "ok"
+          }
+        },
+        "disco": {
+          "leitura_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 38587597,
+            "ultimo_status": "ok"
+          },
+          "escrita_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 27105690,
+            "ultimo_status": "ok"
+          }
+        },
+        "reinicios": {
+          "total": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        }
+      },
+      {
+        "container_id": "sim-pay-api-04",
+        "nome": "pay-api-04",
+        "imagem": "coretrace/pay-api:simulada",
+        "status": "running",
+        "health_status": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-11-18T09:00:00-03:00",
+        "finished_at": null,
+        "exit_code": 0,
+        "oom_killed": false,
+        "primeira_observacao": "2026-11-18T10:00:00-03:00",
+        "ultima_observacao": "2026-11-18T22:00:00-03:00",
+        "amostras_observadas": 60,
+        "cpu": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 24,
+            "minimo": 15,
+            "maximo": 36
+          },
+          "nucleos": {
+            "metrica": null,
+            "unidade": "núcleos",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 4,
+            "ultimo_status": "ok"
+          },
+          "tempo_throttled": {
+            "metrica": null,
+            "unidade": "ns",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        },
+        "memoria": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 32,
+            "minimo": 27,
+            "maximo": 41
+          },
+          "utilizada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 343597383.68,
+            "minimo": 289910292.48,
+            "maximo": 440234147.84
+          },
+          "limite": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 1073741824,
+            "ultimo_status": "ok"
+          }
+        },
+        "pids": {
+          "atuais": {
+            "metrica": null,
+            "unidade": "processos",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 16,
+            "minimo": 13,
+            "maximo": 28
+          }
+        },
+        "rede": {
+          "recebidos": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 64172851,
+            "ultimo_status": "ok"
+          },
+          "enviados": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 49283072,
+            "ultimo_status": "ok"
+          }
+        },
+        "disco": {
+          "leitura_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 39636173,
+            "ultimo_status": "ok"
+          },
+          "escrita_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 27892122,
+            "ultimo_status": "ok"
+          }
+        },
+        "reinicios": {
+          "total": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        }
+      },
+      {
+        "container_id": "sim-orders-api-02",
+        "nome": "orders-api-02",
+        "imagem": "coretrace/orders-api:simulada",
+        "status": "running",
+        "health_status": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-11-18T09:00:00-03:00",
+        "finished_at": null,
+        "exit_code": 0,
+        "oom_killed": false,
+        "primeira_observacao": "2026-11-18T10:00:00-03:00",
+        "ultima_observacao": "2026-11-18T22:00:00-03:00",
+        "amostras_observadas": 60,
+        "cpu": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 17,
+            "minimo": 8,
+            "maximo": 29
+          },
+          "nucleos": {
+            "metrica": null,
+            "unidade": "núcleos",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 4,
+            "ultimo_status": "ok"
+          },
+          "tempo_throttled": {
+            "metrica": null,
+            "unidade": "ns",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        },
+        "memoria": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 24,
+            "minimo": 19,
+            "maximo": 33
+          },
+          "utilizada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 386547056.64,
+            "minimo": 306016419.84,
+            "maximo": 531502202.88
+          },
+          "limite": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 1610612736,
+            "ultimo_status": "ok"
+          }
+        },
+        "pids": {
+          "atuais": {
+            "metrica": null,
+            "unidade": "processos",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 14,
+            "minimo": 11,
+            "maximo": 26
+          }
+        },
+        "rede": {
+          "recebidos": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 61970842,
+            "ultimo_status": "ok"
+          },
+          "enviados": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 47448064,
+            "ultimo_status": "ok"
+          }
+        },
+        "disco": {
+          "leitura_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 38168166,
+            "ultimo_status": "ok"
+          },
+          "escrita_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 26791117,
+            "ultimo_status": "ok"
+          }
+        },
+        "reinicios": {
+          "total": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        }
+      },
+      {
+        "container_id": "sim-mysql-01",
+        "nome": "mysql",
+        "imagem": "mysql:simulada",
+        "status": "running",
+        "health_status": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-11-18T09:00:00-03:00",
+        "finished_at": null,
+        "exit_code": 0,
+        "oom_killed": false,
+        "primeira_observacao": "2026-11-18T10:00:00-03:00",
+        "ultima_observacao": "2026-11-18T22:00:00-03:00",
+        "amostras_observadas": 60,
+        "cpu": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 15,
+            "minimo": 6,
+            "maximo": 27
+          },
+          "nucleos": {
+            "metrica": null,
+            "unidade": "núcleos",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 4,
+            "ultimo_status": "ok"
+          },
+          "tempo_throttled": {
+            "metrica": null,
+            "unidade": "ns",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        },
+        "memoria": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 38,
+            "minimo": 33,
+            "maximo": 47
+          },
+          "utilizada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 816043786.24,
+            "minimo": 708669603.84,
+            "maximo": 1009317314.56
+          },
+          "limite": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 2147483648,
+            "ultimo_status": "ok"
+          }
+        },
+        "pids": {
+          "atuais": {
+            "metrica": null,
+            "unidade": "processos",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 14,
+            "minimo": 11,
+            "maximo": 25
+          }
+        },
+        "rede": {
+          "recebidos": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 61341696,
+            "ultimo_status": "ok"
+          },
+          "enviados": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 46923776,
+            "ultimo_status": "ok"
+          }
+        },
+        "disco": {
+          "leitura_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 37748736,
+            "ultimo_status": "ok"
+          },
+          "escrita_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 26476544,
+            "ultimo_status": "ok"
+          }
+        },
+        "reinicios": {
+          "total": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        }
+      },
+      {
+        "container_id": "sim-redis-cache-01",
+        "nome": "redis-cache-01",
+        "imagem": "redis:simulada",
+        "status": "running",
+        "health_status": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-11-18T09:00:00-03:00",
+        "finished_at": null,
+        "exit_code": 0,
+        "oom_killed": false,
+        "primeira_observacao": "2026-11-18T10:00:00-03:00",
+        "ultima_observacao": "2026-11-18T22:00:00-03:00",
+        "amostras_observadas": 60,
+        "cpu": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 8,
+            "minimo": 0,
+            "maximo": 20
+          },
+          "nucleos": {
+            "metrica": null,
+            "unidade": "núcleos",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 4,
+            "ultimo_status": "ok"
+          },
+          "tempo_throttled": {
+            "metrica": null,
+            "unidade": "ns",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        },
+        "memoria": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 42,
+            "minimo": 37,
+            "maximo": 51
+          },
+          "utilizada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 225485783.04,
+            "minimo": 198642237.44,
+            "maximo": 273804165.12
+          },
+          "limite": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 536870912,
+            "ultimo_status": "ok"
+          }
+        },
+        "pids": {
+          "atuais": {
+            "metrica": null,
+            "unidade": "processos",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 12,
+            "minimo": 10,
+            "maximo": 23
+          }
+        },
+        "rede": {
+          "recebidos": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 59139686,
+            "ultimo_status": "ok"
+          },
+          "enviados": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 45088768,
+            "ultimo_status": "ok"
+          }
+        },
+        "disco": {
+          "leitura_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 36280730,
+            "ultimo_status": "ok"
+          },
+          "escrita_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 25375539,
+            "ultimo_status": "ok"
+          }
+        },
+        "reinicios": {
+          "total": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        }
+      }
+    ],
+    "logs": [
+      {
+        "container_id": "sim-api-java-01",
+        "nome": "api-java",
+        "total": {
+          "metrica": null,
+          "unidade": "mensagens",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 62,
+          "amostras_invalidas": 0,
+          "total_observado": 62
+        },
+        "niveis": {
+          "info": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "total_observado": 60
+          },
+          "warn": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 2,
+            "amostras_invalidas": 0,
+            "total_observado": 2
+          }
+        }
+      },
+      {
+        "container_id": "sim-pay-api-04",
+        "nome": "pay-api-04",
+        "total": {
+          "metrica": null,
+          "unidade": "mensagens",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 68,
+          "amostras_invalidas": 0,
+          "total_observado": 68
+        },
+        "niveis": {
+          "info": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 66,
+            "amostras_invalidas": 0,
+            "total_observado": 66
+          },
+          "warn": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 2,
+            "amostras_invalidas": 0,
+            "total_observado": 2
+          }
+        }
+      },
+      {
+        "container_id": "sim-orders-api-02",
+        "nome": "orders-api-02",
+        "total": {
+          "metrica": null,
+          "unidade": "mensagens",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 59,
+          "amostras_invalidas": 0,
+          "total_observado": 59
+        },
+        "niveis": {
+          "info": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 57,
+            "amostras_invalidas": 0,
+            "total_observado": 57
+          },
+          "warn": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 2,
+            "amostras_invalidas": 0,
+            "total_observado": 2
+          }
+        }
+      },
+      {
+        "container_id": "sim-mysql-01",
+        "nome": "mysql",
+        "total": {
+          "metrica": null,
+          "unidade": "mensagens",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 57,
+          "amostras_invalidas": 0,
+          "total_observado": 57
+        },
+        "niveis": {
+          "info": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 55,
+            "amostras_invalidas": 0,
+            "total_observado": 55
+          },
+          "warn": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 2,
+            "amostras_invalidas": 0,
+            "total_observado": 2
+          }
+        }
+      },
+      {
+        "container_id": "sim-redis-cache-01",
+        "nome": "redis-cache-01",
+        "total": {
+          "metrica": null,
+          "unidade": "mensagens",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 46,
+          "amostras_invalidas": 0,
+          "total_observado": 46
+        },
+        "niveis": {
+          "info": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 45,
+            "amostras_invalidas": 0,
+            "total_observado": 45
+          },
+          "warn": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 1,
+            "amostras_invalidas": 0,
+            "total_observado": 1
+          }
+        }
+      }
+    ],
+    "eventos": []
+  }
+}

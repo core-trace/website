@@ -457,7 +457,8 @@ function desenharGrafico() {
     [0, 0.2, 0.4, 0.6, 0.8, 1].forEach((fator) => {
         const valor = Math.round(maxEscala * fator);
         svg.append(criarSvg('line', { x1: margem.esquerda, y1: posY(valor), x2: margem.esquerda + areaLargura, y2: posY(valor), stroke: '#e6e9ef', 'stroke-width': 1 }));
-        svg.append(criarSvgTexto(margem.esquerda - 12, posY(valor) + 5, formatarValorComUnidade(valor, unidade), { 'text-anchor': 'end', fill: '#6b7280', 'font-size': 12 }));
+const tituloEixoY = rotulo.includes(`(${unidade})`) ? rotulo : `${rotulo} (${unidade})`;
+svg.append(criarSvgTexto(4, 16, tituloEixoY, { fill: '#6b7280', 'font-size': 13 }));
     });
 
     [
@@ -651,7 +652,9 @@ function iniciarEventos() {
         const chip = e.target.closest('.alertas-chip');
         if (chip) trocarPerfil(chip.dataset.perfil);
     });
-    document.getElementById('alertas-abas').addEventListener('click', (e) => {
+
+    const abasEl = document.getElementById('alertas-abas');
+    abasEl.addEventListener('click', (e) => {
         const aba = e.target.closest('[data-metrica]');
         if (!aba) return;
         estado.metricaAtual = aba.dataset.metrica;
@@ -660,10 +663,19 @@ function iniciarEventos() {
         desenharLegenda();
         desenharGrafico();
     });
+
+    abasEl.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+            e.preventDefault();
+            abasEl.scrollLeft += e.deltaY;
+        }
+    }, { passive: false });
+
     document.getElementById('alertas-lateral-lista').addEventListener('click', (e) => {
         const botao = e.target.closest('[data-servidor]');
         if (botao) alternarSelecao(botao.dataset.servidor);
     });
+
     document.getElementById('alertas-lista').addEventListener('click', (e) => {
         const chamado = e.target.closest('[data-chamado]');
         if (chamado) {
@@ -678,6 +690,7 @@ function iniciarEventos() {
             if (servidor) trocarPerfil(servidor.perfil, servidor.id);
         }
     });
+
     document.getElementById('alertas-atualizar').addEventListener('click', async (e) => {
         const botao = e.currentTarget;
         botao.classList.remove('girando');

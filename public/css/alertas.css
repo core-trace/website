@@ -716,3 +716,33 @@
         display: none;
     }
 }
+/* Garante que o card do gráfico nunca estoure a coluna do grid */
+#alertas-painel-grafico {
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Container das pílulas de métrica com scroll horizontal invisível */
+#alertas-abas {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* Edge / IE */
+    scroll-behavior: smooth;
+    cursor: grab;
+}
+
+#alertas-abas::-webkit-scrollbar {
+    display: none;               /* Chrome, Brave, Safari */
+}
+
+#alertas-abas [data-metrica] {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    border-radius: 999px;
+}

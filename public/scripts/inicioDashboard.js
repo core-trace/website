@@ -1,5 +1,3 @@
-// Tela Geral. Por enquanto lê o dado de geralMock.js (cenário da Black Friday).
-// Quando a leitura da Gold estiver pronta, isso troca pra um fetch de verdade.
 (() => {
     const dado = geralMock;
 
@@ -132,7 +130,6 @@
 
     function configurarExportar() {
         document.getElementById("botao-exportar").addEventListener("click", () => {
-            // Exportação de verdade ainda não existe (hipótese B). Por enquanto só avisa.
             alert("Exportar relatório ainda não está implementado — isso é só o layout.");
         });
     }

@@ -1,10 +1,3 @@
-/* Dashboard Geral — segue o protótipo Figma V4, ajustado nas correções da Marcelly. */
-/* Navbar e sidebar continuam sendo as compartilhadas (navbarDashboard.css/js) — só o
-   conteúdo principal é específico desta tela. */
-/* Fontes seguem o mesmo piso da sidebar/navbar compartilhada (16-17px pro texto
-   comum): a tela vai ser apresentada com projetor na banca, então nada pode
-   ficar menor que isso, senão some num projetor ruim. */
-
 .dashboard-legivel {
     --ct-ink: #211e22;
     --ct-muted: #777279;

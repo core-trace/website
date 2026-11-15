@@ -1,6 +1,4 @@
-// Dado mocado da Geral, cenário da Black Friday (27/11/2026, 20h30).
-// Isso é só pra montar a tela por enquanto. Depois esse arquivo sai e o dado
-// passa a vir da Gold (S3), pelo caminho real do projeto.
+// Dados mocados
 const geralMock = {
     estado: { titulo: "Estado às 20h30", data: "27 nov 2026" },
 

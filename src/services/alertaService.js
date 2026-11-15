@@ -23,14 +23,12 @@ function normalizarMac(mac) {
 }
 
 function dataHojeLocal() {
-    const agora = new Date();
-    const partes = new Intl.DateTimeFormat("sv-SE", {
+    return new Intl.DateTimeFormat("sv-SE", {
         timeZone: "America/Sao_Paulo",
         year: "numeric",
         month: "2-digit",
         day: "2-digit"
-    }).format(agora);
-    return partes; // YYYY-MM-DD
+    }).format(new Date());
 }
 
 function horaFormatada(data) {
@@ -80,17 +78,11 @@ async function listarLotesMaquina(mac, dataStr) {
     return chaves.sort();
 }
 
-/**
- * Percorre recursivamente o objeto de uma captura do formato_gold.py
- * e extrai todas as leituras válidas ({ metrica, valor, status, unidade }).
- */
 function extrairLeituras(no, destino = new Map()) {
     if (!no || typeof no !== "object") return destino;
 
     if (Array.isArray(no)) {
-        for (const item of no) {
-            extrairLeituras(item, destino);
-        }
+        for (const item of no) extrairLeituras(item, destino);
         return destino;
     }
 
@@ -98,7 +90,6 @@ function extrairLeituras(no, destino = new Map()) {
         if (no.status === "ok" && typeof no.valor === "number" && Number.isFinite(no.valor)) {
             const chave = String(no.metrica).toLowerCase();
             const existente = destino.get(chave);
-            // Para recursos múltiplos (ex: discos/volumes), mantém o pior (maior) percentual
             if (!existente || no.valor > existente.valor) {
                 destino.set(chave, {
                     metrica: chave,
@@ -112,9 +103,7 @@ function extrairLeituras(no, destino = new Map()) {
     }
 
     for (const valor of Object.values(no)) {
-        if (valor && typeof valor === "object") {
-            extrairLeituras(valor, destino);
-        }
+        if (valor && typeof valor === "object") extrairLeituras(valor, destino);
     }
 
     return destino;
@@ -146,16 +135,6 @@ function avaliarComponente(valor, comp) {
     return "normal";
 }
 
-function mapearCategoriaGrafico(comp) {
-    const col = String(comp.coluna || "").toLowerCase();
-    const rec = String(comp.recurso || "").toLowerCase();
-    if (col === "cpu_percent" || rec === "cpu") return "cpu";
-    if (col === "ram_percent" || rec === "ram") return "ram";
-    if (rec === "rede" || col.startsWith("net_")) return "rede";
-    if (rec === "disco" || col.startsWith("disk_")) return "disco";
-    return col;
-}
-
 function gerarEtiquetaJira(mac, recurso, metrica, campoOrigem = "") {
     const identificador = [mac, recurso, metrica, campoOrigem].join("|").toLowerCase();
     const hash = crypto.createHash("sha256").update(identificador, "utf-8").digest("hex");
@@ -166,7 +145,7 @@ async function buscarChamadoJiraPorEtiqueta(etiqueta) {
     const baseUrl = (process.env.JIRA_BASE_URL || "").replace(/\/+$/, "");
     const email = process.env.JIRA_EMAIL || "";
     const token = process.env.JIRA_API_TOKEN || "";
-    const projeto = process.env.JIRA_PROJECT_KEY || "CT";
+    const projeto = process.env.JIRA_PROJECT_KEY || "SUP";
 
     if (!baseUrl || !email || !token) return null;
 
@@ -181,11 +160,7 @@ async function buscarChamadoJiraPorEtiqueta(etiqueta) {
                 "Accept": "application/json",
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                jql,
-                maxResults: 1,
-                fields: ["summary", "status"]
-            })
+            body: JSON.stringify({ jql, maxResults: 1, fields: ["summary", "status"] })
         });
 
         if (!resp.ok) return null;
@@ -208,7 +183,7 @@ async function abrirOuObterChamadoJira({ mac, nomeServidor, perfil, metricaPrinc
     const baseUrl = (process.env.JIRA_BASE_URL || "").replace(/\/+$/, "");
     const email = process.env.JIRA_EMAIL || "";
     const token = process.env.JIRA_API_TOKEN || "";
-    const projeto = process.env.JIRA_PROJECT_KEY || "CT";
+    const projeto = process.env.JIRA_PROJECT_KEY || "SUP";
 
     if (!baseUrl || !email || !token) {
         return { configurado: false };
@@ -226,8 +201,9 @@ async function abrirOuObterChamadoJira({ mac, nomeServidor, perfil, metricaPrinc
 
     const auth = Buffer.from(`${email}:${token}`).toString("base64");
     const prefixoNivel = nivel === "critico" ? "CRÍTICO" : nivel === "atencao" ? "ATENÇÃO" : "SEM DADOS";
-    const valorFmt = metricaPrincipal ? `${Number(metricaPrincipal.valor).toFixed(1)}%` : "indisponível";
-    const summary = `[${prefixoNivel}] Alerta em ${recurso} (${valorFmt}) | Servidor ${nomeServidor} (${mac})`;
+    const unidade = metricaPrincipal?.unidade || "%";
+    const valorFmt = metricaPrincipal ? `${Number(metricaPrincipal.valor).toFixed(1)}${unidade}` : "indisponível";
+    const summary = `[${prefixoNivel}] Alerta em ${metricaPrincipal?.nome || recurso} (${valorFmt}) | Servidor ${nomeServidor} (${mac})`;
 
     const resp = await fetch(`${baseUrl}/rest/api/3/issue`, {
         method: "POST",
@@ -245,17 +221,13 @@ async function abrirOuObterChamadoJira({ mac, nomeServidor, perfil, metricaPrinc
                 description: {
                     type: "doc",
                     version: 1,
-                    content: [
-                        {
-                            type: "paragraph",
-                            content: [
-                                {
-                                    type: "text",
-                                    text: `Incidente identificado pelo CoreTrace no servidor ${nomeServidor} (MAC: ${mac}, Perfil: ${perfil}). Métrica: ${metrica} = ${valorFmt}.`
-                                }
-                            ]
-                        }
-                    ]
+                    content: [{
+                        type: "paragraph",
+                        content: [{
+                            type: "text",
+                            text: `Incidente identificado pelo CoreTrace no servidor ${nomeServidor} (MAC: ${mac}, Perfil: ${perfil}). Métrica: ${metrica} = ${valorFmt}.`
+                        }]
+                    }]
                 }
             }
         })
@@ -305,7 +277,6 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
         let pontosBrutos = [];
         try {
             const chavesLotes = await listarLotesMaquina(mac, hoje);
-            // Lê os 6 lotes mais recentes do dia para cobrir a janela de 1h com baixa latência
             const recentes = chavesLotes.slice(-6);
             const conteudos = await Promise.all(recentes.map((chave) => lerJsonS3(chave).catch(() => null)));
 
@@ -322,37 +293,60 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
                 }
             }
         } catch (erroS3) {
-            console.warn(`[Alertas S3] Falha ao ler lotes de ${mac}:`, erroS3.message);
+            console.warn(`[Alertas S3] Sem lotes disponíveis para ${mac}:`, erroS3.message);
         }
 
         pontosBrutos.sort((a, b) => a.ts - b.ts);
         const ultimoPonto = pontosBrutos[pontosBrutos.length - 1] || null;
         const semDados = !ultimoPonto || (agora.getTime() - ultimoPonto.ts) > LIMITE_SEM_DADOS_MINUTOS * 60_000;
 
-        // Monta séries temporais alinhadas à grade do gráfico (cpu, ram, rede)
-        const historico = { cpu: [], ram: [], rede: [] };
-        for (const slot of slots) {
-            const noSlot = pontosBrutos.filter((p) => p.ts >= slot.inicioMs && p.ts < slot.fimMs);
-            const amostra = noSlot[noSlot.length - 1] || null;
+        // Monta dinamicamente as métricas configuradas no perfil do servidor
+        const metricasConfiguradas = componentes.map((comp) => ({
+            id: String(comp.coluna || "").toLowerCase(),
+            rotulo: comp.nome,
+            recurso: comp.recurso,
+            unidade: comp.unidade || "%",
+            operador: comp.operador || ">",
+            atencao: comp.atencao,
+            critico: comp.critico,
+            operador2: comp.operador2,
+            atencao2: comp.atencao2,
+            critico2: comp.critico2
+        }));
 
-            historico.cpu.push({
-                hora: slot.hora,
-                valor: amostra?.leituras.get("cpu_percent")?.valor ?? null
-            });
-            historico.ram.push({
-                hora: slot.hora,
-                valor: amostra?.leituras.get("ram_percent")?.valor ?? null
-            });
-
-            // Para rede, usa net_percent se existir ou normaliza taxa se configurada
-            const netVal = amostra?.leituras.get("net_percent")?.valor ?? null;
-            historico.rede.push({
-                hora: slot.hora,
-                valor: netVal
-            });
+        // Fallback caso o perfil ainda não tenha componentes cadastrados
+        if (!metricasConfiguradas.length) {
+            metricasConfiguradas.push(
+                { id: "cpu_percent", rotulo: "CPU", recurso: "CPU", unidade: "%", operador: ">", atencao: 70, critico: 85 },
+                { id: "ram_percent", rotulo: "RAM", recurso: "RAM", unidade: "%", operador: ">", atencao: 70, critico: 85 }
+            );
         }
 
-        // Avalia o estado atual com base na última amostra recebida e nos limites do perfil
+        const historico = {};
+        const limites = {};
+
+        for (const met of metricasConfiguradas) {
+            historico[met.id] = slots.map((slot) => {
+                const noSlot = pontosBrutos.filter((p) => p.ts >= slot.inicioMs && p.ts < slot.fimMs);
+                const amostra = noSlot[noSlot.length - 1] || null;
+                return {
+                    hora: slot.hora,
+                    valor: amostra?.leituras.get(met.id)?.valor ?? null
+                };
+            });
+
+            limites[met.id] = {
+                operador: met.operador,
+                atencao: met.atencao,
+                critico: met.critico,
+                operador2: met.operador2,
+                atencao2: met.atencao2,
+                critico2: met.critico2,
+                unidade: met.unidade,
+                rotulo: met.rotulo
+            };
+        }
+
         let status = "normal";
         const metricasEmAlerta = [];
 
@@ -367,7 +361,7 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
                 const nivel = avaliarComponente(leitura.valor, comp);
                 if (nivel !== "normal") {
                     metricasEmAlerta.push({
-                        metrica: mapearCategoriaGrafico(comp),
+                        metrica: col,
                         coluna: col,
                         recurso: comp.recurso,
                         nome: comp.nome,
@@ -383,7 +377,6 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
             }
         }
 
-        // Calcula desde quando o servidor está no estado atual
         let desde = ultimoPonto ? ultimoPonto.hora : horaAtualizacao;
         if (status === "critico" || status === "atencao") {
             for (let i = pontosBrutos.length - 1; i >= 0; i -= 1) {
@@ -397,11 +390,6 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
             }
         }
 
-        // Limites de referência do perfil (CPU por padrão para o gráfico)
-        const compCpu = componentes.find((c) => String(c.coluna || "").toLowerCase() === "cpu_percent");
-        const compRam = componentes.find((c) => String(c.coluna || "").toLowerCase() === "ram_percent");
-
-        // Consulta chamado no Jira para servidores em alerta
         let chamado = null;
         if (status !== "normal") {
             const alvo = metricasEmAlerta[0] || { recurso: "CPU", coluna: "cpu_percent" };
@@ -418,24 +406,15 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
             status,
             desde,
             ultimaColeta: ultimoPonto ? ultimoPonto.hora : null,
-            limites: {
-                cpu: { atencao: compCpu?.atencao ?? 70, critico: compCpu?.critico ?? 85 },
-                ram: { atencao: compRam?.atencao ?? 70, critico: compRam?.critico ?? 85 },
-                rede: { atencao: 70, critico: 85 }
-            },
+            metricasDisponiveis: metricasConfiguradas,
+            limites,
             chamado,
             metricasEmAlerta,
             historico
         };
     }));
 
-    return {
-        horaAtualizacao,
-        servidores: resultado
-    };
+    return { horaAtualizacao, servidores: resultado };
 }
 
-module.exports = {
-    obterAlertasServidores,
-    abrirOuObterChamadoJira
-};
+module.exports = { obterAlertasServidores, abrirOuObterChamadoJira };

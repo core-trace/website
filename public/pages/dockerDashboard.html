@@ -64,7 +64,7 @@
                     <div class="docker-titulo-com-icone"><img src="../assets/icons/docker.svg" alt="">
                         <h1>Docker</h1>
                     </div>
-                    <p>Monitoramento e investigação dos contêineres do servidor selecionado.</p>
+                    <p>Acompanhe o desempenho e investigue ocorrências dos contêineres do servidor.</p>
                 </div>
             </div>
 
@@ -92,13 +92,13 @@
                 <article class="docker-card docker-kpi">
                     <h2>Falhas de execução</h2>
                     <div class="docker-kpi-valor" id="kpi-falhas">—</div>
-                    <p>Encerramentos com código de erro ou OOM identificados na data</p><small
+                    <p>Encerramentos com erro identificados no período</p><small
                         id="kpi-falhas-nota">—</small>
                 </article>
                 <article class="docker-card docker-kpi">
                     <h2>Reinicializações</h2>
                     <div class="docker-kpi-valor" id="kpi-reinicios">—</div>
-                    <p>Reinícios ocorridos no período analisado</p><small id="kpi-reinicios-nota">—</small>
+                    <p>Reinícios identificados no período</p><small id="kpi-reinicios-nota">—</small>
                 </article>
                 <article class="docker-card docker-kpi">
                     <h2>Erros nos logs</h2>
@@ -116,8 +116,7 @@
                     <p id="kpi-pico-descricao">—</p><small id="kpi-pico-nota">—</small>
                 </article>
             </section>
-            <p class="docker-escopo">Indicadores no escopo de todo o servidor, mesmo com um contêiner selecionado.
-                Valores não disponíveis aparecem como “—”.</p>
+            <p class="docker-escopo">Os indicadores mostram dados de todo o servidor, mesmo após selecionar um contêiner.</p>
 
             <section class="docker-card docker-lista" aria-labelledby="docker-lista-titulo">
                 <div class="docker-secao-topo">
@@ -137,9 +136,9 @@
                         <thead>
                             <tr>
                                 <th scope="col">Contêiner</th>
-                                <th scope="col">Último estado observado</th>
-                                <th scope="col">Falhas identificadas na data</th>
-                                <th scope="col">Reinícios acumulados</th>
+                                <th scope="col">Último estado</th>
+                                <th scope="col">Falhas no período</th>
+                                <th scope="col">Total de reinícios</th>
                                 <th scope="col">Logs ERROR</th>
                             </tr>
                         </thead>
@@ -150,8 +149,7 @@
                         </tbody>
                     </table>
                 </div>
-                <p class="docker-nota-tabela" id="docker-nota-tabela">Estado da última observação não representa
-                    necessariamente o estado atual do servidor.</p>
+                <p class="docker-nota-tabela" id="docker-nota-tabela">Os estados exibidos correspondem à última coleta disponível.</p>
             </section>
 
             <section class="docker-card docker-detalhe" aria-labelledby="docker-detalhe-titulo">
@@ -169,20 +167,18 @@
             <div class="docker-desempenho-titulo">
                 <div>
                     <h2 id="docker-desempenho-titulo">Desempenho</h2>
-                    <p>Resumo das medições agregadas · média, mínimo e máximo quando disponíveis</p>
-                </div><span class="docker-tag neutra">Séries de coleta não incluídas neste arquivo</span>
+                    <p>Menor, média e maior utilização registrada nas coletas disponíveis.</p>
+                </div><span class="docker-tag neutra">Histórico resumido</span>
             </div>
             <section class="docker-graficos" id="docker-graficos" aria-label="Métricas do contêiner"></section>
-            <p class="docker-escopo docker-aviso-medicoes">As faixas exibem valores estatísticos da coleta, não uma
-                evolução temporal. Os gráficos de linha, taxas por segundo e marcadores de evento dependem dos lotes com
-                timestamp individual.</p>
+            <p class="docker-escopo docker-aviso-medicoes">As faixas mostram os valores observados no período. A evolução ao longo do tempo estará disponível quando houver mais detalhes das coletas.</p>
 
             <section class="docker-card docker-registros" aria-labelledby="docker-logs-titulo">
                 <div class="docker-secao-topo">
                     <div>
                         <h2 id="docker-logs-titulo">Logs do contêiner</h2>
-                        <p id="docker-logs-descricao">Contagens agregadas de mensagens</p>
-                    </div><span class="docker-tag neutra">Resumo Gold</span>
+                        <p id="docker-logs-descricao">Mensagens registradas por nível</p>
+                    </div>
                 </div>
                 <div id="docker-logs-conteudo" class="docker-registros-conteudo">Selecione um contêiner.</div>
             </section>
@@ -190,8 +186,8 @@
                 <div class="docker-secao-topo">
                     <div>
                         <h2 id="docker-eventos-titulo">Eventos do contêiner</h2>
-                        <p>Eventos Docker agrupados por ação, sem horário individual</p>
-                    </div><span class="docker-tag neutra">Resumo Gold</span>
+                        <p>Eventos registrados durante a coleta</p>
+                    </div>
                 </div>
                 <div id="docker-eventos-conteudo" class="docker-registros-conteudo">Selecione um contêiner.</div>
             </section>

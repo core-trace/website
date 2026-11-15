@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/docker.css">
     <script src="../scripts/navbarDashboard.js" defer></script>
-    <script src="../scripts/dockerDados.js" defer></script>
+    <script src="../scripts/vendor/chart.umd.js" defer></script>
     <script src="../scripts/dockerDashboard.js" defer></script>
 </head>
 
@@ -77,11 +77,9 @@
                     </select></label>
                 <div class="docker-campo docker-periodos"><span>Período de análise</span>
                     <div class="docker-botoes-periodo" role="group" aria-label="Período de análise">
-                        <button type="button" disabled title="Exige capturas com data e hora por amostra">Últimos 30
-                            minutos</button>
-                        <button type="button" disabled title="Exige capturas com data e hora por amostra">Última
-                            hora</button>
-                        <button type="button" class="ativo" aria-pressed="true">Resumo do dia</button>
+                        <button type="button" data-periodo="1" aria-pressed="false">Dia mais recente</button>
+                        <button type="button" data-periodo="7" aria-pressed="false">7 dias</button>
+                        <button type="button" data-periodo="30" class="ativo" aria-pressed="true">30 dias</button>
                     </div>
                 </div>
             </section>
@@ -138,7 +136,7 @@
                                 <th scope="col">Contêiner</th>
                                 <th scope="col">Último estado</th>
                                 <th scope="col">Falhas no período</th>
-                                <th scope="col">Total de reinícios</th>
+                                <th scope="col">Reinícios entre resumos</th>
                                 <th scope="col">Logs ERROR</th>
                             </tr>
                         </thead>
@@ -167,26 +165,47 @@
             <div class="docker-desempenho-titulo">
                 <div>
                     <h2 id="docker-desempenho-titulo">Desempenho</h2>
-                    <p>Menor, média e maior utilização registrada nas coletas disponíveis.</p>
-                </div><span class="docker-tag neutra">Histórico resumido</span>
+                    <p>Evolução diária com médias, picos e contadores dos resumos disponíveis.</p>
+                </div><span class="docker-tag neutra">Evolução diária</span>
             </div>
             <section class="docker-graficos" id="docker-graficos" aria-label="Métricas do contêiner"></section>
-            <p class="docker-escopo docker-aviso-medicoes">As faixas mostram os valores observados no período. A evolução ao longo do tempo estará disponível quando houver mais detalhes das coletas.</p>
+            <p class="docker-escopo docker-aviso-medicoes">Cada ponto representa um dia com resumo disponível. Dias sem coleta não são tratados como zero; gráficos de contadores mostram valores acumulados, não consumo diário.</p>
 
             <section class="docker-card docker-registros" aria-labelledby="docker-logs-titulo">
                 <div class="docker-secao-topo">
                     <div>
                         <h2 id="docker-logs-titulo">Logs do contêiner</h2>
-                        <p id="docker-logs-descricao">Mensagens registradas por nível</p>
+                        <p id="docker-logs-descricao">Selecione um contêiner para investigar seus registros</p>
                     </div>
+                    <button type="button" id="docker-logs-recolher" class="docker-botao-suave docker-recolher"
+                        aria-expanded="true" aria-controls="docker-logs-painel">⌃ &nbsp; Recolher painel</button>
                 </div>
-                <div id="docker-logs-conteudo" class="docker-registros-conteudo">Selecione um contêiner.</div>
+                <div id="docker-logs-painel">
+                    <div class="docker-logs-filtros">
+                        <label class="docker-logs-filtro"><span class="docker-visualmente-oculto">Nível dos logs</span>
+                            <select id="docker-logs-nivel" aria-label="Filtrar logs por nível">
+                                <option value="">Todos os níveis</option>
+                                <option value="error">ERROR</option>
+                                <option value="warn">WARN</option>
+                                <option value="info">INFO</option>
+                                <option value="unknown">Não classificado</option>
+                            </select>
+                        </label>
+                        <label class="docker-logs-filtro docker-logs-pesquisa"><span class="docker-visualmente-oculto">Pesquisar nos logs</span>
+                            <input id="docker-logs-busca" type="search" placeholder="Pesquisar nos registros"
+                                aria-label="Pesquisar nos registros de logs">
+                        </label>
+                        <button type="button" id="docker-logs-ordem" class="docker-botao-suave docker-logs-ordem"
+                            aria-pressed="true">↓ &nbsp; Datas mais recentes</button>
+                    </div>
+                    <div id="docker-logs-conteudo" class="docker-registros-conteudo" aria-live="polite">Selecione um contêiner.</div>
+                </div>
             </section>
             <section class="docker-card docker-registros" aria-labelledby="docker-eventos-titulo">
                 <div class="docker-secao-topo">
                     <div>
                         <h2 id="docker-eventos-titulo">Eventos do contêiner</h2>
-                        <p>Eventos registrados durante a coleta</p>
+                        <p>Eventos do dia mais recente disponível</p>
                     </div>
                 </div>
                 <div id="docker-eventos-conteudo" class="docker-registros-conteudo">Selecione um contêiner.</div>

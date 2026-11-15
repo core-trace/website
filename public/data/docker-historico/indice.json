@@ -1,0 +1,11 @@
+{
+  "demonstracao": false,
+  "anonimizado": true,
+  "arquivos": [
+    "data=2026-10-28/resumo.json",
+    "data=2026-10-30/resumo.json",
+    "data=2026-11-02/resumo.json",
+    "data=2026-11-06/resumo.json",
+    "data=2026-11-08/resumo.json"
+  ]
+}

@@ -1,0 +1,108 @@
+{
+    "schema_version": 1,
+    "tipo_documento": "resumo_diario",
+    "endereco_mac": "CC:47:40:F1:C4:D5",
+    "data": "2026-10-28",
+    "resumos": {
+        "inicio": "2026-10-28T16:08:06.280455388Z",
+        "fim": "2026-10-28T18:13:10.768594226Z",
+        "metodo_media": "aritmetica_das_amostras_validas",
+        "processos": [],
+        "containers": [],
+        "eventos": [],
+        "logs": [
+            {
+                "container_id": "f0f70cdddb2c5f573965a600a34ebeddbac4ccf44b17a0b8263b5ce06873a770",
+                "nome": "testedb",
+                "total": {
+                    "metrica": null,
+                    "unidade": "mensagens",
+                    "tipo": "eventos_intervalo",
+                    "amostras_validas": 100,
+                    "amostras_invalidas": 0,
+                    "total_observado": 100
+                },
+                "niveis": {
+                    "unknown": {
+                        "metrica": null,
+                        "unidade": "mensagens",
+                        "tipo": "eventos_intervalo",
+                        "amostras_validas": 100,
+                        "amostras_invalidas": 0,
+                        "total_observado": 100
+                    }
+                }
+            },
+            {
+                "container_id": "ab4e9c82925a9dac24c4d4fb5f16b3b99a0879f2da26d287412a8275defd74db",
+                "nome": "redis-server",
+                "total": {
+                    "metrica": null,
+                    "unidade": "mensagens",
+                    "tipo": "eventos_intervalo",
+                    "amostras_validas": 74,
+                    "amostras_invalidas": 0,
+                    "total_observado": 74
+                },
+                "niveis": {
+                    "unknown": {
+                        "metrica": null,
+                        "unidade": "mensagens",
+                        "tipo": "eventos_intervalo",
+                        "amostras_validas": 74,
+                        "amostras_invalidas": 0,
+                        "total_observado": 74
+                    }
+                }
+            },
+            {
+                "container_id": "798582fa6ee2e278fc2d6885e551c02bc3d8462c9a7a11b63575eb94fb6ff2ba",
+                "nome": "redis-gui",
+                "total": {
+                    "metrica": null,
+                    "unidade": "mensagens",
+                    "tipo": "eventos_intervalo",
+                    "amostras_validas": 9,
+                    "amostras_invalidas": 0,
+                    "total_observado": 9
+                },
+                "niveis": {
+                    "unknown": {
+                        "metrica": null,
+                        "unidade": "mensagens",
+                        "tipo": "eventos_intervalo",
+                        "amostras_validas": 9,
+                        "amostras_invalidas": 0,
+                        "total_observado": 9
+                    }
+                }
+            }
+        ]
+    },
+    "lotes_atuais": [
+        {
+            "lote_id": "918bd7047e792baa326ac8ca8820ba4abac3b680cadb90295550021563cfc4eb",
+            "chave": "client/lotes/maquina=CC:47:40:F1:C4:D5/data=2026-10-28/lote=918bd7047e792baa326ac8ca8820ba4abac3b680cadb90295550021563cfc4eb/capturas.json",
+            "origem": {
+                "chave": "trusted/docker/logs/logs_20261109T000212225147Z_534682d8.csv",
+                "conteudo_sha256": "c33084e72f3e19d94e61a112aa2541ca07b75048a600e5f3c9b99c552c5b53c4"
+            }
+        },
+        {
+            "lote_id": "9c8851873d35aebf2eec286a75784c801c1c4e12fc7e02edd9e780f922241703",
+            "chave": "client/lotes/maquina=CC:47:40:F1:C4:D5/data=2026-10-28/lote=9c8851873d35aebf2eec286a75784c801c1c4e12fc7e02edd9e780f922241703/capturas.json",
+            "origem": {
+                "chave": "trusted/docker/logs/logs_20261109T000752505016Z_98955f3f.csv",
+                "conteudo_sha256": "02f9ebd9bd2416e12046bcaf3eaa552a3a1a21d62f387b19e3e96cff1cea129f"
+            }
+        },
+        {
+            "lote_id": "ad17f6404b524b6520f7ddb5c8d5685cc14c9a86e385ca0681c8a5446dc3f521",
+            "chave": "client/lotes/maquina=CC:47:40:F1:C4:D5/data=2026-10-28/lote=ad17f6404b524b6520f7ddb5c8d5685cc14c9a86e385ca0681c8a5446dc3f521/capturas.json",
+            "origem": {
+                "chave": "trusted/docker/logs/logs_20261109T000543612603Z_7bb2e9bf.csv",
+                "conteudo_sha256": "c33084e72f3e19d94e61a112aa2541ca07b75048a600e5f3c9b99c552c5b53c4"
+            }
+        }
+    ]
+}

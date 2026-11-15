@@ -1,0 +1,655 @@
+/* Dashboard de investigação de Docker.
+ * Lê vários resumos diários diretamente, seguindo public/data/docker-historico/indice.json.
+ * Cada ponto nos gráficos Chart.js corresponde a UM DIA, não a um minuto.
+ * Para conectar ao Node/S3 depois, basta trocar o endereço do índice ou a
+ * função carregarHistorico(); nenhuma credencial AWS fica no navegador.
+ */
+(function () {
+    "use strict";
+
+    // Funções locais: não precisamos importar dockerDados.js para ler o JSON.
+    // Não convertemos null em zero, pois a ausência da métrica não significa 0%.
+    const D = (() => {
+        const numero = (valor) => typeof valor === "number" && Number.isFinite(valor) ? valor : null;
+        const total = (medida) => numero(medida?.total_observado);
+
+        function instante(valor) {
+            if (!valor) return null;
+            const normalizado = String(valor).trim().replace(" ", "T")
+                .replace(/\.(\d{3})\d+(?=Z|[+-]\d\d:\d\d$)/, ".$1");
+            const data = new Date(normalizado);
+            return Number.isNaN(data.getTime()) ? null : data;
+        }
+        function diaSaoPaulo(data) {
+            if (!(data instanceof Date) || Number.isNaN(data.getTime())) return null;
+            const partes = new Intl.DateTimeFormat("en-US", {
+                timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit"
+            }).formatToParts(data);
+            const campo = (tipo) => partes.find((parte) => parte.type === tipo)?.value;
+            return `${campo("year")}-${campo("month")}-${campo("day")}`;
+        }
+        function falhouNaData(container, data) {
+            const ocorreu = diaSaoPaulo(instante(container?.finished_at)) === data;
+            const codigo = numero(container?.exit_code);
+            const oom = container?.oom_killed === true || String(container?.oom_killed).toLowerCase() === "true";
+            return Boolean(ocorreu && ((codigo !== null && codigo !== 0) || oom));
+        }
+        function estado(container) {
+            const status = String(container?.status || "unknown").toLowerCase();
+            const codigo = numero(container?.exit_code);
+            if (status === "running") return { rotulo: "Executando", classe: "" };
+            if (status === "created") return { rotulo: "Criado · não iniciado", classe: "aviso" };
+            if (status === "restarting") return { rotulo: "Reiniciando", classe: "aviso" };
+            if (status === "paused") return { rotulo: "Pausado", classe: "aviso" };
+            if (status === "exited" && codigo !== null && codigo !== 0) return { rotulo: `Encerrado · saída ${codigo}`, classe: "erro" };
+            if (status === "exited") return { rotulo: "Encerrado", classe: "parado" };
+            if (status === "dead") return { rotulo: "Inativo", classe: "erro" };
+            return { rotulo: "Não identificado", classe: "parado" };
+        }
+        function resumoLog(log) {
+            if (!log) return { total: null, erros: null, niveis: [], incompleto: true };
+            const niveis = Object.entries(log.niveis || {}).map(([nome, medida]) => ({ nome, quantidade: total(medida) || 0 }));
+            const desconhecidos = niveis.some(({ nome, quantidade }) => quantidade > 0 && !/^(error|err|warn|warning|info|debug|trace|fatal)$/i.test(nome));
+            const erros = niveis.filter(({ nome }) => /^(error|err)$/i.test(nome)).reduce((soma, item) => soma + item.quantidade, 0);
+            // Mesmo com níveis UNKNOWN podemos confirmar as mensagens marcadas
+            // ERROR. Se não houve ERROR explícito e há UNKNOWN, o zero seria
+            // enganoso: nesses casos continuamos mostrando "—".
+            return {
+                total: total(log.total),
+                erros: desconhecidos && erros === 0 ? null : erros,
+                niveis,
+                incompleto: desconhecidos
+            };
+        }
+        function validar(documento) {
+            if (!documento || documento.tipo_documento !== "resumo_diario" ||
+                !/^\d{4}-\d{2}-\d{2}$/.test(documento.data || "") ||
+                !Array.isArray(documento.resumos?.containers)) {
+                throw new Error("Esperado um resumo_diario com data e resumos.containers[].");
+            }
+            return {
+                data: documento.data,
+                mac: documento.endereco_mac,
+                containers: documento.resumos.containers,
+                logs: documento.resumos.logs || [],
+                eventos: documento.resumos.eventos || []
+            };
+        }
+        return { numero, total, instante, falhouNaData, estado, resumoLog, validar };
+    })();
+
+    const $ = (id) => document.getElementById(id);
+    const formatoNumero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
+    const formatoData = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
+    let historico = [];
+    let historicoAtivo = [];
+    let demonstracao = false;
+    let anonimizado = false;
+    let periodoDias = 30;
+    let graficosAtivos = [];
+    let dados = null;
+    let indicadores = null;
+    let selecionadoId = null;
+    let tipoPico = "cpu";
+    let logsMaisRecentes = true;
+
+    function n(valor, unidade = "") {
+        return D.numero(valor) === null ? "—" : `${formatoNumero.format(valor)}${unidade}`;
+    }
+    function mb(valor) {
+        return D.numero(valor) === null ? "—" : n(valor / (1024 * 1024), " MB");
+    }
+    function hora(valor) {
+        const data = D.instante(valor);
+        return data ? formatoData.format(data) + " BRT" : "—";
+    }
+    function encontrar(containerId, lista) {
+        return lista.find((item) => item.container_id === containerId);
+    }
+    function adicionarTexto(pai, tag, texto, classe) {
+        const elemento = document.createElement(tag);
+        if (classe) elemento.className = classe;
+        elemento.textContent = texto;
+        pai.appendChild(elemento);
+        return elemento;
+    }
+
+    // O índice é apenas uma lista de caminhos. Em produção, o Node pode
+    // devolver essa mesma lista após consultar as datas disponíveis no S3.
+    async function carregarHistorico() {
+        const fonte = document.body.dataset.fonteHistorico || "../data/docker-historico/indice.json";
+        const resposta = await fetch(fonte, { cache: "no-store" });
+        if (!resposta.ok) throw new Error(`HTTP ${resposta.status} ao buscar ${fonte}`);
+        const indice = await resposta.json();
+        if (!Array.isArray(indice.arquivos) || !indice.arquivos.length) {
+            throw new Error("O índice do histórico precisa conter uma lista de arquivos.");
+        }
+
+        // Resolve os caminhos em relação ao índice, não à URL do HTML.
+        const documentos = await Promise.all(indice.arquivos.map(async (caminho) => {
+            const url = new URL(caminho, resposta.url);
+            const resultado = await fetch(url, { cache: "no-store" });
+            if (!resultado.ok) throw new Error(`HTTP ${resultado.status} ao buscar ${url.pathname}`);
+            return D.validar(await resultado.json());
+        }));
+        const mac = documentos[0].mac;
+        if (documentos.some((doc) => doc.mac !== mac)) {
+            throw new Error("O histórico contém resumos de servidores diferentes. Separe os arquivos por máquina.");
+        }
+
+        // Se houver duas versões do mesmo dia, a última listada prevalece.
+        // Nunca contamos duas vezes o mesmo resumo diário.
+        historico = [...new Map(documentos.map((doc) => [doc.data, doc])).values()]
+            .sort((a, b) => a.data.localeCompare(b.data));
+        demonstracao = indice.demonstracao === true;
+        anonimizado = indice.anonimizado === true;
+    }
+
+    function filtrarPeriodo(lista, dias) {
+        if (!lista.length) return [];
+        // Âncora na última data realmente disponível, não no dia de hoje:
+        // isso permite testar o histórico mesmo com arquivos antigos.
+        const dataFinal = Date.parse(lista.at(-1).data + "T00:00:00Z");
+        const dataInicial = new Date(dataFinal - (dias - 1) * 86400000).toISOString().slice(0, 10);
+        return lista.filter((doc) => doc.data >= dataInicial);
+    }
+
+    function containerNoDia(doc, referencia) {
+        // Nome é o identificador estável da aplicação: IDs Docker podem mudar
+        // quando um contêiner é recriado, e nosso histórico deve continuar.
+        return doc.containers.find((c) => referencia.nome && c.nome === referencia.nome)
+            || doc.containers.find((c) => c.container_id === referencia.container_id);
+    }
+
+    function reiniciosDetectados(lista, referencia) {
+        let anterior = null;
+        let idAnterior = null;
+        let diferencas = 0;
+        let comparacoes = 0;
+        for (const doc of lista) {
+            const atual = containerNoDia(doc, referencia);
+            const contador = D.numero(atual?.reinicios?.total?.ultimo_valor);
+            if (contador === null) continue;
+            if (anterior !== null && atual.container_id === idAnterior && contador >= anterior) {
+                diferencas += contador - anterior;
+                comparacoes++;
+            }
+            anterior = contador;
+            idAnterior = atual.container_id;
+        }
+        return comparacoes ? diferencas : null;
+    }
+
+    function contarFalhas(lista, referencia) {
+        return lista.reduce((soma, doc) => {
+            const c = containerNoDia(doc, referencia);
+            return soma + (c && D.falhouNaData(c, doc.data) ? 1 : 0);
+        }, 0);
+    }
+
+    function contarErros(lista, referencia) {
+        let resultado = 0;
+        let houveLog = false;
+        let desconhecidos = false;
+        for (const doc of lista) {
+            // Os arquivos Gold de dias anteriores podem trazer somente LOGS,
+            // sem resumos.containers. A relação é feita pelo nome e ID do log.
+            const log = doc.logs.find((l) => (referencia.nome && l.nome === referencia.nome)
+                || l.container_id === referencia.container_id);
+            if (!log) continue;
+            houveLog = true;
+            const resumo = D.resumoLog(log);
+            desconhecidos ||= resumo.incompleto;
+            if (resumo.erros !== null) resultado += resumo.erros;
+        }
+        return houveLog && (!desconhecidos || resultado > 0) ? resultado : null;
+    }
+
+    function criarPontosDiarios(lista, referencia, ler) {
+        return lista.map((doc) => {
+            const c = containerNoDia(doc, referencia);
+            // Sem dados nesse dia: y=null, nunca 0 artificial.
+            return { x: Date.parse(doc.data + "T12:00:00Z"), y: c ? D.numero(ler(c)) : null };
+        });
+    }
+
+    function calcularIndicadores() {
+        const registros = historicoAtivo.flatMap((doc) => doc.containers.map((c) => ({ container: c, data: doc.data })));
+        const falhasConhecidas = registros.filter(({ container, data }) => D.falhouNaData(container, data)).length;
+        const registrosLog = historicoAtivo.flatMap((doc) => doc.logs.map(D.resumoLog));
+        const errosConfirmados = registrosLog.reduce((soma, log) => soma + (log.erros ?? 0), 0);
+        const algumSemNivel = registrosLog.some((log) => log.incompleto);
+        const errosLogs = registrosLog.length && (!algumSemNivel || errosConfirmados > 0)
+            ? errosConfirmados : null;
+        const picos = (tipo) => registros.map(({ container, data }) => ({
+            container, data,
+            valor: D.numero(tipo === "cpu" ? container.cpu?.uso?.maximo : container.memoria?.uso?.maximo)
+        })).filter((item) => item.valor !== null).sort((a, b) => b.valor - a.valor);
+
+        // O primeiro resumo de um período não informa quantos reinícios houve
+        // antes dele; somamos apenas aumentos observáveis entre dois resumos.
+        const nomes = new Map(registros.map(({ container }) => [container.nome || container.container_id, container]));
+        const contagens = [...nomes.values()].map((c) => reiniciosDetectados(historicoAtivo, c)).filter((v) => v !== null);
+        return {
+            falhasConhecidas,
+            reiniciosNoPeriodo: contagens.length ? contagens.reduce((soma, v) => soma + v, 0) : null,
+            errosLogs,
+            logsSemNivel: registrosLog.reduce((soma, log) => soma + log.niveis
+                .filter((nivel) => nivel.nome.toLowerCase() === "unknown")
+                .reduce((parcial, nivel) => parcial + nivel.quantidade, 0), 0),
+            picoCpu: picos("cpu")[0] || null,
+            picoRam: picos("ram")[0] || null
+        };
+    }
+
+    function renderizarContexto() {
+        // Um MAC mascarado identifica a amostra de desenvolvimento, não um servidor real.
+        const nomeServidor = dados.mac && dados.mac !== "00:00:00:00:00:00"
+            ? `Servidor · ${dados.mac}` : "Servidor de demonstração";
+        $("docker-servidor").replaceChildren(new Option(nomeServidor, dados.mac || ""));
+        const primeiro = historicoAtivo[0]?.data.split("-").reverse().join("/") || "—";
+        const ultimo = historicoAtivo.at(-1)?.data.split("-").reverse().join("/") || "—";
+        const diasComMetricas = historicoAtivo.filter((doc) => doc.containers.length > 0).length;
+        $("docker-periodo-info").textContent = `${demonstracao ? "Dados simulados · " : anonimizado ? "Resumos reais anonimizados · " : ""}` +
+            `${historicoAtivo.length} dia(s) com resumo (${primeiro} a ${ultimo}); ` +
+            `métricas de contêineres em ${diasComMetricas} dia(s). ` +
+            "Datas sem medições não são tratadas como zero.";
+        $("docker-total-containers").textContent = `(${dados.containers.length})`;
+    }
+
+    function renderizarKpis() {
+        $("kpi-falhas").textContent = n(indicadores.falhasConhecidas);
+        $("kpi-falhas-nota").textContent = "Considera falhas com horário de encerramento disponível.";
+        $("kpi-reinicios").textContent = n(indicadores.reiniciosNoPeriodo);
+        $("kpi-reinicios-nota").textContent = "Aumentos detectados entre contadores de dias diferentes; o primeiro dia não tem referência anterior.";
+        $("kpi-erros").textContent = n(indicadores.errosLogs);
+        $("kpi-erros-nota").textContent = indicadores.logsSemNivel > 0
+            ? `${n(indicadores.logsSemNivel)} mensagem(ns) sem nível classificado; ERROR mostra apenas as confirmadas.`
+            : "Total de mensagens classificadas como ERROR.";
+        const pico = tipoPico === "ram" ? indicadores.picoRam : indicadores.picoCpu;
+        $("kpi-pico").textContent = pico ? n(pico.valor, "%") : "—";
+        $("kpi-pico-descricao").textContent = pico ? `${pico.container.nome || pico.container.container_id.slice(0, 12)} · ${tipoPico.toUpperCase()} · ${pico.data.split("-").reverse().join("/")}` : "Nenhuma medição válida para esta métrica.";
+        $("kpi-pico-nota").textContent = "Horário exato do pico não disponível.";
+        document.querySelectorAll("[data-pico]").forEach((botao) => {
+            const ativo = botao.dataset.pico === tipoPico;
+            botao.classList.toggle("ativo", ativo);
+            botao.setAttribute("aria-pressed", String(ativo));
+        });
+    }
+
+    function renderizarLista() {
+        const busca = $("docker-busca").value.toLocaleLowerCase("pt-BR").trim();
+        const encontrados = dados.containers.filter((c) => `${c.nome} ${c.imagem} ${c.container_id}`.toLocaleLowerCase("pt-BR").includes(busca));
+        const corpo = $("docker-linhas");
+        corpo.replaceChildren();
+        for (const container of encontrados) {
+            const tr = document.createElement("tr");
+            const ativo = container.container_id === selecionadoId;
+            tr.classList.toggle("selecionado", ativo);
+            const nomeTd = document.createElement("td");
+            const botao = adicionarTexto(nomeTd, "button", "", "docker-container-escolha");
+            botao.type = "button";
+            botao.setAttribute("aria-label", `Investigar contêiner ${container.nome || container.container_id.slice(0, 12)}`);
+            botao.setAttribute("aria-pressed", String(ativo));
+            adicionarTexto(botao, "span", container.nome || "Sem nome", "docker-container-nome");
+            // IDs reais ficam abreviados; IDs fictícios devem mostrar o sufixo,
+            // senão os nove exemplos aparecem com o mesmo prefixo na tabela.
+            const idVisivel = container.container_id.startsWith("demo-container-")
+                ? container.container_id : container.container_id.slice(0, 12);
+            adicionarTexto(botao, "span", idVisivel, "docker-container-id");
+            tr.appendChild(nomeTd);
+            const tdStatus = document.createElement("td");
+            const situacao = D.estado(container);
+            adicionarTexto(tdStatus, "span", situacao.rotulo, `docker-estado ${situacao.classe}`);
+            tr.appendChild(tdStatus);
+            adicionarTexto(tr, "td", n(contarFalhas(historicoAtivo, container)));
+            adicionarTexto(tr, "td", n(reiniciosDetectados(historicoAtivo, container)));
+            adicionarTexto(tr, "td", n(contarErros(historicoAtivo, container)));
+            tr.addEventListener("click", () => selecionar(container.container_id));
+            corpo.appendChild(tr);
+        }
+        if (!encontrados.length) {
+            const tr = document.createElement("tr");
+            const td = adicionarTexto(tr, "td", "Nenhum contêiner corresponde à busca.", "docker-nenhum");
+            td.colSpan = 5;
+            corpo.appendChild(tr);
+        }
+        $("docker-selecao-descricao").textContent = selecionadoId
+            ? `Investigando ${dados.containers.find((c) => c.container_id === selecionadoId)?.nome || "contêiner"}.`
+            : "Selecione um contêiner para investigar suas métricas e registros.";
+        $("docker-limpar").disabled = !selecionadoId;
+    }
+
+    function atributo(pai, titulo, valor) {
+        const div = document.createElement("div");
+        div.className = "docker-atributo";
+        adicionarTexto(div, "dt", titulo);
+        adicionarTexto(div, "dd", valor);
+        pai.appendChild(div);
+    }
+
+    function renderizarDetalhe(container) {
+        const s = D.estado(container);
+        $("docker-detalhe-titulo").textContent = container.nome || "Contêiner sem nome";
+        $("docker-detalhe-id").textContent = `ID ${container.container_id} · Última observação: ${hora(container.ultima_observacao)}`;
+        $("docker-detalhe-estado").textContent = s.rotulo;
+        $("docker-detalhe-estado").className = `docker-estado ${s.classe}`;
+        const campos = $("docker-detalhe-campos");
+        campos.replaceChildren();
+        atributo(campos, "CPU média / pico", `${n(container.cpu?.uso?.media, "%")} / ${n(container.cpu?.uso?.maximo, "%")}`);
+        atributo(campos, "RAM média / pico", `${n(container.memoria?.uso?.media, "%")} / ${n(container.memoria?.uso?.maximo, "%")}`);
+        atributo(campos, "Memória usada · média", mb(container.memoria?.utilizada?.media));
+        atributo(campos, "Limite de memória Docker", mb(container.memoria?.limite?.ultimo_valor));
+        atributo(campos, "Imagem", container.imagem || "—");
+        atributo(campos, "Healthcheck", container.health_status || "Não informado");
+        atributo(campos, "Reinícios desde a criação", n(container.reinicios?.total?.ultimo_valor));
+        atributo(campos, "Código de saída", container.status === "exited" ? n(container.exit_code) : "Não aplicável");
+        atributo(campos, "OOM detectado", String(container.oom_killed).toLowerCase() === "true" ? "Sim" : "Não");
+        atributo(campos, "PID(s) · média", n(container.pids?.atuais?.media));
+        atributo(campos, "Amostras observadas", n(container.amostras_observadas));
+        atributo(campos, "Início da execução", hora(container.started_at));
+    }
+
+    function criarGraficoVazio(pai, nota) {
+        const vazio = adicionarTexto(pai, "div", "", "docker-grafico-sem-serie");
+        adicionarTexto(vazio, "strong", "Sem medições disponíveis");
+        adicionarTexto(vazio, "span", nota || "Não há medições suficientes para este gráfico.");
+    }
+
+    function grafico(titulo, subtitulo, destaque, referencia, series, unidade, porcentagem = false) {
+        const artigo = adicionarTexto($("docker-graficos"), "article", "", "docker-card docker-grafico-card");
+        const topo = adicionarTexto(artigo, "div", "", "docker-grafico-topo");
+        const texto = adicionarTexto(topo, "div", "");
+        adicionarTexto(texto, "h3", titulo);
+        adicionarTexto(texto, "p", subtitulo);
+        adicionarTexto(topo, "span", destaque, "docker-grafico-destaque");
+
+        // O x é uma data numérica: distâncias entre 28/10 e 30/10, por exemplo,
+        // são proporcionais aos dias de diferença. Não inventamos datas nem zeros.
+        const conjuntos = series.map((serie, indice) => ({
+            label: serie.nome,
+            data: criarPontosDiarios(historicoAtivo, referencia, serie.ler),
+            borderColor: indice === 0 ? "#346b89" : "#cf2920",
+            backgroundColor: indice === 0 ? "#346b89" : "#cf2920",
+            tension: 0.25,
+            borderWidth: 2.5,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            spanGaps: false
+        }));
+        if (!conjuntos.some((serie) => serie.data.some((ponto) => ponto.y !== null))) {
+            criarGraficoVazio(artigo, "Nenhum resumo do período contém essa métrica.");
+            return artigo;
+        }
+        if (!window.Chart) {
+            criarGraficoVazio(artigo, "A biblioteca Chart.js não foi carregada.");
+            return artigo;
+        }
+
+        const area = adicionarTexto(artigo, "div", "", "docker-grafico-area");
+        const canvas = document.createElement("canvas");
+        canvas.setAttribute("role", "img");
+        canvas.setAttribute("aria-label", `Gráfico histórico: ${titulo} do contêiner ${referencia.nome}`);
+        area.appendChild(canvas);
+        const formatarDia = (milissegundos) => new Date(milissegundos).toLocaleDateString("pt-BR", {
+            timeZone: "UTC", day: "2-digit", month: "2-digit"
+        });
+        const chart = new window.Chart(canvas, {
+            type: "line",
+            data: { datasets: conjuntos },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                parsing: false,
+                interaction: { mode: "nearest", intersect: false },
+                plugins: {
+                    legend: { display: conjuntos.length > 1, position: "bottom", labels: { boxWidth: 16, color: "#555056", font: { size: 13 } } },
+                    tooltip: {
+                        callbacks: {
+                            title: (itens) => itens.length ? formatarDia(itens[0].parsed.x) : "",
+                            label: (item) => `${item.dataset.label}: ${n(item.parsed.y, unidade)}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: "linear",
+                        grid: { color: "#f0eeeb" },
+                        ticks: { color: "#706b6d", maxTicksLimit: 6, callback: (valor) => formatarDia(valor) }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: porcentagem ? 100 : undefined,
+                        grid: { color: "#f0eeeb" },
+                        ticks: { color: "#706b6d", callback: (valor) => `${formatoNumero.format(valor)}${unidade}` }
+                    }
+                }
+            }
+        });
+        graficosAtivos.push(chart);
+        const diasMedidos = conjuntos.reduce((datas, serie) => {
+            serie.data.filter((ponto) => ponto.y !== null).forEach((ponto) => datas.add(ponto.x));
+            return datas;
+        }, new Set()).size;
+        if (diasMedidos === 1) {
+            adicionarTexto(artigo, "p", "Esta métrica está disponível em somente um dia. Os outros resumos não contêm leituras dela.", "docker-grafico-observacao");
+        }
+        return artigo;
+    }
+
+    function renderizarGraficos(c) {
+        $("docker-desempenho-titulo").textContent = `Desempenho — ${c.nome || c.container_id.slice(0, 12)}`;
+        // Chart.js mantém instâncias associadas aos canvas; destrua-as antes de
+        // redesenhar quando mudar o contêiner ou o filtro de período.
+        graficosAtivos.forEach((chart) => chart.destroy());
+        graficosAtivos = [];
+        $("docker-graficos").replaceChildren();
+        const emMb = (bytes) => bytes === null || bytes === undefined ? null : bytes / (1024 * 1024);
+        const emSegundos = (nanos) => nanos === null || nanos === undefined ? null : nanos / 1e9;
+        grafico("Utilização de CPU", "Média e pico registrados em cada dia", n(c.cpu?.uso?.maximo, "%") + " pico recente", c, [
+            { nome: "Média diária", ler: (v) => v.cpu?.uso?.media },
+            { nome: "Pico diário", ler: (v) => v.cpu?.uso?.maximo }
+        ], "%", true);
+        grafico("Utilização de RAM", "Média e pico registrados em cada dia", n(c.memoria?.uso?.maximo, "%") + " pico recente", c, [
+            { nome: "Média diária", ler: (v) => v.memoria?.uso?.media },
+            { nome: "Pico diário", ler: (v) => v.memoria?.uso?.maximo }
+        ], "%", true);
+        grafico("Rede", "Contadores acumulados na última leitura diária", "MB", c, [
+            { nome: "Recebidos", ler: (v) => emMb(v.rede?.recebidos?.ultimo_valor) },
+            { nome: "Enviados", ler: (v) => emMb(v.rede?.enviados?.ultimo_valor) }
+        ], " MB");
+        grafico("I/O de disco", "Contadores acumulados na última leitura diária", "MB", c, [
+            { nome: "Leitura", ler: (v) => emMb(v.disco?.leitura_acumulada?.ultimo_valor) },
+            { nome: "Escrita", ler: (v) => emMb(v.disco?.escrita_acumulada?.ultimo_valor) }
+        ], " MB");
+        grafico("PIDs / Threads", "Média e máximo registrados em cada dia", n(c.pids?.atuais?.media) + " média recente", c, [
+            { nome: "Média diária", ler: (v) => v.pids?.atuais?.media },
+            { nome: "Pico diário", ler: (v) => v.pids?.atuais?.maximo }
+        ], "");
+        const throttled = D.numero(c.cpu?.tempo_throttled?.ultimo_valor);
+        grafico("CPU Throttling", "Contador acumulado de tempo limitado", throttled === null ? "—" : n(throttled / 1e9, " s"), c, [
+            { nome: "Tempo acumulado", ler: (v) => emSegundos(v.cpu?.tempo_throttled?.ultimo_valor) }
+        ], " s");
+    }
+
+    function renderizarLogs(c) {
+        $("docker-logs-descricao").textContent = `${c.nome} · registros do período selecionado · datas sem horários individuais`;
+        const painel = $("docker-logs-conteudo");
+        painel.replaceChildren();
+
+        // O Gold atual guarda QUANTIDADES por dia e nível, não mensagens.
+        // Mantemos a aparência do console do Figma, mas cada linha é marcada
+        // claramente como RESUMO, para não inventar timestamp nem texto.
+        const registros = historicoAtivo.flatMap((doc) => {
+            const log = doc.logs.find((item) => (c.nome && item.nome === c.nome)
+                || item.container_id === c.container_id);
+            if (!log) return [];
+            return D.resumoLog(log).niveis.map((nivel) => ({
+                data: doc.data,
+                nivel: nivel.nome.toLowerCase(),
+                quantidade: nivel.quantidade
+            }));
+        });
+
+        const filtroNivel = $("docker-logs-nivel")?.value || "";
+        const busca = ($("docker-logs-busca")?.value || "").toLocaleLowerCase("pt-BR").trim();
+        const visiveis = registros.filter((registro) => {
+            const nivel = registro.nivel === "err" ? "error" : registro.nivel;
+            if (filtroNivel && nivel !== filtroNivel) return false;
+            const texto = `${registro.data} ${registro.data.split("-").reverse().join("/")} ${nivel} ${registro.quantidade}`;
+            return texto.toLocaleLowerCase("pt-BR").includes(busca);
+        }).sort((a, b) => {
+            const diferenca = a.data.localeCompare(b.data);
+            return logsMaisRecentes ? -diferenca : diferenca;
+        });
+
+        const consoleLogs = adicionarTexto(painel, "div", "", "docker-console");
+        const cabecalho = adicionarTexto(consoleLogs, "div", "", "docker-console-cabecalho");
+        adicionarTexto(cabecalho, "span", `registros diários · ${c.nome || "contêiner"}`);
+        adicionarTexto(cabecalho, "span", "RESUMOS · sem mensagens individuais");
+
+        if (!visiveis.length) {
+            adicionarTexto(consoleLogs, "p", registros.length
+                ? "Nenhum registro corresponde aos filtros selecionados."
+                : "Não há resumos de logs disponíveis para este contêiner no período.", "docker-console-vazio");
+        }
+        for (const registro of visiveis) {
+            const linha = adicionarTexto(consoleLogs, "div", "", "docker-console-linha");
+            adicionarTexto(linha, "time", registro.data.split("-").reverse().join("/"), "docker-console-data");
+            const classe = /^(error|err|fatal)$/.test(registro.nivel) ? "erro"
+                : /^(warn|warning)$/.test(registro.nivel) ? "aviso"
+                : registro.nivel === "info" ? "info" : "desconhecido";
+            adicionarTexto(linha, "span", registro.nivel === "unknown"
+                ? "UNKNOWN" : registro.nivel.toUpperCase(), `docker-console-nivel ${classe}`);
+            adicionarTexto(linha, "span", `${n(registro.quantidade)} mensagem(ns) contabilizada(s) · conteúdo não disponível`, "docker-console-mensagem");
+        }
+
+        adicionarTexto(painel, "p", "Este painel mantém o formato de consulta de logs. Por enquanto, os JSONs enviados informam apenas totais por dia e nível; para exibir cada mensagem e horário como no protótipo, precisaremos dos logs detalhados da captura.", "docker-console-nota");
+    }
+
+    function renderizarEventos(c) {
+        const painel = $("docker-eventos-conteudo");
+        painel.replaceChildren();
+        const eventos = historicoAtivo.flatMap((doc) => {
+            const evento = doc.eventos.find((item) => (c.nome && item.nome === c.nome)
+                || item.container_id === c.container_id);
+            if (!evento) return [];
+            return Object.entries(evento.acoes || {}).map(([acao, medida]) => ({
+                data: doc.data, acao, quantidade: D.total(medida)
+            }));
+        });
+        if (!eventos.length) {
+            adicionarTexto(painel, "p", "Não há registros de eventos disponíveis para este contêiner.", "docker-nenhum");
+            return;
+        }
+        const lista = adicionarTexto(painel, "div", "", "docker-eventos-tabela");
+        for (const evento of eventos.sort((a, b) => b.data.localeCompare(a.data))) {
+            const linha = adicionarTexto(lista, "div", "", "docker-evento-linha");
+            adicionarTexto(linha, "span", `${evento.data.split("-").reverse().join("/")} · horário indisponível`, "docker-evento-data");
+            adicionarTexto(linha, "span", evento.acao, "docker-evento-acao");
+            adicionarTexto(linha, "span", `${n(evento.quantidade)} ocorrência(s) dessa ação no resumo diário`, "docker-evento-descricao");
+        }
+        adicionarTexto(painel, "p", "As ações estão agrupadas por dia; os horários e a ordem de cada evento não vêm nos resumos enviados.", "docker-console-nota");
+    }
+
+    function limparDetalhe() {
+        graficosAtivos.forEach((chart) => chart.destroy());
+        graficosAtivos = [];
+        $("docker-detalhe-titulo").textContent = "Detalhes do contêiner";
+        $("docker-detalhe-id").textContent = "Selecione um contêiner na tabela";
+        $("docker-detalhe-estado").textContent = "—";
+        $("docker-detalhe-estado").className = "docker-estado parado";
+        $("docker-detalhe-campos").replaceChildren();
+        $("docker-desempenho-titulo").textContent = "Desempenho";
+        $("docker-graficos").replaceChildren();
+        $("docker-logs-conteudo").textContent = "Selecione um contêiner.";
+        $("docker-eventos-conteudo").textContent = "Selecione um contêiner.";
+    }
+
+    function selecionar(id) {
+        selecionadoId = id;
+        renderizarLista();
+        const container = dados.containers.find((c) => c.container_id === id);
+        if (!container) { limparDetalhe(); return; }
+        renderizarDetalhe(container);
+        renderizarGraficos(container);
+        renderizarLogs(container);
+        renderizarEventos(container);
+    }
+
+    function atualizarPeriodo() {
+        historicoAtivo = filtrarPeriodo(historico, periodoDias);
+        dados = historicoAtivo.at(-1);
+        if (!dados) throw new Error("Não há resumos disponíveis nesse período.");
+        indicadores = calcularIndicadores();
+        renderizarContexto();
+        renderizarKpis();
+        document.querySelectorAll("[data-periodo]").forEach((botao) => {
+            const ativo = Number(botao.dataset.periodo) === periodoDias;
+            botao.classList.toggle("ativo", ativo);
+            botao.setAttribute("aria-pressed", String(ativo));
+        });
+        // Preserva a seleção ao mudar de período se o contêiner ainda existir.
+        const anterior = historico.findLast((doc) => doc.containers.some((c) => c.container_id === selecionadoId))
+            ?.containers.find((c) => c.container_id === selecionadoId);
+        const candidato = anterior ? containerNoDia(dados, anterior) : null;
+        const inicial = candidato || dados.containers.find((c) => c.nome === "api-java") || dados.containers[0];
+        selecionar(inicial?.container_id || null);
+    }
+
+    async function iniciar() {
+        try {
+            await carregarHistorico();
+            atualizarPeriodo();
+        } catch (erro) {
+            $("docker-feedback").hidden = false;
+            $("docker-feedback").textContent = `Não foi possível carregar o histórico: ${erro.message}`;
+            $("docker-linhas").replaceChildren();
+            const linha = adicionarTexto($("docker-linhas"), "tr", "");
+            const celula = adicionarTexto(linha, "td", "Nenhum dado carregado. Confira o arquivo JSON e o servidor HTTP.");
+            celula.colSpan = 5;
+            console.error("CoreTrace Docker:", erro);
+        }
+    }
+
+    // São funções puras que também podem ser verificadas pelos testes Node,
+    // sem depender de um navegador nem de credenciais da AWS.
+    if (typeof module !== "undefined" && module.exports) {
+        module.exports = {
+            validar: D.validar, resumoLog: D.resumoLog, filtrarPeriodo,
+            containerNoDia, reiniciosDetectados, contarFalhas, contarErros,
+            criarPontosDiarios
+        };
+    }
+    if (typeof document === "undefined") return;
+
+    $("docker-busca").addEventListener("input", () => { if (dados) renderizarLista(); });
+    $("docker-limpar").addEventListener("click", () => selecionar(null));
+    const atualizarLogsSelecionado = () => {
+        const c = dados?.containers.find((item) => item.container_id === selecionadoId);
+        if (c) renderizarLogs(c);
+    };
+    $("docker-logs-nivel")?.addEventListener("change", atualizarLogsSelecionado);
+    $("docker-logs-busca")?.addEventListener("input", atualizarLogsSelecionado);
+    $("docker-logs-ordem")?.addEventListener("click", () => {
+        logsMaisRecentes = !logsMaisRecentes;
+        $("docker-logs-ordem").textContent = logsMaisRecentes ? "↓  Datas mais recentes" : "↑  Datas mais antigas";
+        $("docker-logs-ordem").setAttribute("aria-pressed", String(logsMaisRecentes));
+        atualizarLogsSelecionado();
+    });
+    $("docker-logs-recolher")?.addEventListener("click", () => {
+        const painel = $("docker-logs-painel");
+        painel.hidden = !painel.hidden;
+        $("docker-logs-recolher").textContent = painel.hidden ? "⌄  Expandir painel" : "⌃  Recolher painel";
+        $("docker-logs-recolher").setAttribute("aria-expanded", String(!painel.hidden));
+    });
+    document.querySelectorAll("[data-periodo]").forEach((botao) => botao.addEventListener("click", () => {
+        periodoDias = Number(botao.dataset.periodo);
+        if (historico.length) atualizarPeriodo();
+    }));
+    document.querySelectorAll("[data-pico]").forEach((botao) => botao.addEventListener("click", () => {
+        tipoPico = botao.dataset.pico;
+        if (dados) renderizarKpis();
+    }));
+    iniciar();
+})();

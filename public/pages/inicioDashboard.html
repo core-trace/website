@@ -4,24 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreTrace - Visão geral</title>
+    <title>CoreTrace - Geral</title>
     <link rel="stylesheet" href="../css/fonts.css">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
-    <link rel="stylesheet" href="../css/inicioDashboard.css">
-    <link rel="stylesheet" href="../css/detalheServidor.css">
+    <link rel="stylesheet" href="../css/geralDashboard.css">
     <script src="../scripts/vendor/chart.umd.js" defer></script>
     <script src="../scripts/navbarDashboard.js" defer></script>
-    <script src="../scripts/cenario/cenario-coretrace-7dias.js" defer></script>
-    <script src="../scripts/cenario/detalhamento-servidor.js" defer></script>
-    <script src="../scripts/monitoramentoMock.js" defer></script>
-    <script src="../scripts/dashboardDados.js" defer></script>
-    <script src="../scripts/dashboardSimulacao.js" defer></script>
-    <script src="../scripts/dashboardAlertasMock.js" defer></script>
-    <script src="../data/dashboard-resumo.js" defer></script>
-    <script src="../scripts/dashboardCenario.js" defer></script>
-    <script src="../scripts/dashboardGraficos.js" defer></script>
-    <script src="../scripts/detalheServidor.js" defer></script>
+    <script src="../scripts/geralMock.js" defer></script>
     <script src="../scripts/inicioDashboard.js" defer></script>
 </head>
 
@@ -46,7 +36,7 @@
     <div class="dashboard-menu-fundo" aria-hidden="true"></div>
 
     <div class="dashboard-conteudo">
-        <header class="dashboard-navbar visao-navbar">
+        <header class="dashboard-navbar">
             <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu"
                 aria-controls="menu-dashboard" aria-expanded="false">
                 <span aria-hidden="true"></span>
@@ -68,7 +58,7 @@
                 <div class="dashboard-conta">
                     <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
                         aria-controls="menu-conta" aria-expanded="false">
-                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12" height="12">
+                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
                     </button>
                     <div class="dashboard-menu-conta" id="menu-conta" hidden>
                         <p class="dashboard-conta-email"></p>
@@ -78,121 +68,143 @@
             </div>
         </header>
 
-        <main class="principal" id="conteudo-principal" tabindex="-1">
-            <section class="visao-cabecalho" aria-labelledby="titulo-visao">
+        <main class="geral-principal" id="conteudo-principal" tabindex="-1">
+            <section class="geral-titulo-linha">
                 <div>
-                    <h1 id="titulo-visao">Visão geral dos servidores</h1>
-                    <p id="visao-resumo"></p>
+                    <h1>Visão geral</h1>
+                    <p>Acompanhamento da saúde do ambiente</p>
                 </div>
-                <div class="visao-filtros">
-                    <span class="visao-select-campo"><select class="visao-select" id="filtro-perfil" aria-label="Filtrar por perfil">
-                        <option value="">Todos os perfis</option>
-                    </select></span>
-                    <span class="visao-select-campo"><select class="visao-select" id="filtro-periodo" aria-label="Período dos gráficos">
-                        <option value="30">Últimos 30 minutos</option>
-                        <option value="60">Última hora</option>
-                        <option value="360">Últimas 6 horas</option>
-                        <option value="720">Últimas 12 horas</option>
-                        <option value="1440" selected>Últimas 24 horas</option>
-                        <option value="10080">Últimos 7 dias</option>
-                    </select></span>
+                <div class="geral-titulo-acoes">
+                    <span class="geral-select-campo">
+                        <select id="filtro-perfil" aria-label="Filtrar por perfil">
+                            <option value="">Todos perfis</option>
+                            <option value="Financeiro">Financeiro</option>
+                            <option value="Carrinho">Carrinho</option>
+                            <option value="Catálogo">Catálogo</option>
+                        </select>
+                    </span>
+                    <button class="geral-exportar" type="button" id="botao-exportar">
+                        <img src="../assets/icons/icone-exportar.svg" alt="" width="15" height="15">
+                        Exportar relatório
+                    </button>
                 </div>
             </section>
 
-            <section class="visao-indicadores" aria-label="Indicadores dos servidores">
-                <article class="visao-card visao-indicador">
-                    <h2 title="Servidores cuja maior severidade no período foi atenção">Servidores em atenção no período</h2>
-                    <p class="visao-valor visao-atencao" id="indicador-atencao">—</p>
-                    
+            <p class="geral-estado-atual">
+                <strong id="estado-titulo">Estado às 20h30</strong>
+                <span>· 27 nov 2026</span>
+            </p>
+
+            <section class="geral-indicadores" aria-label="Situação atual">
+                <button class="geral-kpi" type="button">
+                    <span class="geral-kpi-cabecalho">
+                        <span class="geral-kpi-titulo"><span class="geral-sinal geral-sinal-normal"></span>Cobertura da coleta</span>
+                        <img src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16">
+                    </span>
+                    <span class="geral-kpi-valor" id="indicador-cobertura">—</span>
+                    <span class="geral-kpi-legenda">Servidores com leitura recente</span>
+                </button>
+                <button class="geral-kpi" type="button">
+                    <span class="geral-kpi-cabecalho">
+                        <span class="geral-kpi-titulo"><span class="geral-sinal geral-sinal-critico"></span>Servidores críticos</span>
+                        <img src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16">
+                    </span>
+                    <span class="geral-kpi-valor" id="indicador-criticos">—</span>
+                    <span class="geral-kpi-legenda" id="indicador-criticos-legenda"></span>
+                </button>
+                <button class="geral-kpi" type="button">
+                    <span class="geral-kpi-cabecalho">
+                        <span class="geral-kpi-titulo"><span class="geral-sinal geral-sinal-atencao"></span>Em atenção</span>
+                        <img src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16">
+                    </span>
+                    <span class="geral-kpi-valor" id="indicador-atencao">—</span>
+                    <span class="geral-kpi-legenda" id="indicador-atencao-legenda"></span>
+                </button>
+                <button class="geral-kpi" type="button">
+                    <span class="geral-kpi-cabecalho">
+                        <span class="geral-kpi-titulo"><span class="geral-sinal geral-sinal-sem-dados"></span>Sem dados recentes</span>
+                        <img src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16">
+                    </span>
+                    <span class="geral-kpi-valor" id="indicador-sem-dados">—</span>
+                    <span class="geral-kpi-legenda" id="indicador-sem-dados-legenda"></span>
+                </button>
+            </section>
+
+            <section class="geral-resumo-linha">
+                <article class="geral-resumo-ia">
+                    <span class="geral-etiqueta-ia">RESUMO DA SITUAÇÃO</span>
+                    <h2 id="resumo-titulo"></h2>
+                    <p id="resumo-motivo"></p>
+                    <div class="geral-resumo-comparacao" id="resumo-comparacao"></div>
+                    <p class="geral-resumo-cobertura" id="resumo-cobertura"></p>
                 </article>
-                <article class="visao-card visao-indicador">
-                    <h2 title="Servidores que atingiram estado crítico no período, contados uma única vez">Servidores críticos no período</h2>
-                    <p class="visao-valor visao-critico" id="indicador-criticos">—</p>
-                    
-                </article>
-                <article class="visao-card visao-indicador">
-                    <h2 title="Incidentes por componente que ocorreram no período, incluindo os encerrados">Alertas no período</h2>
-                    <p class="visao-valor" id="indicador-alertas">—</p>
-                    <p class="visao-legenda visao-alertas-legenda" id="legenda-alertas"><span class="visao-critico" id="alertas-criticos">— críticos</span><span aria-hidden="true">·</span><span class="visao-atencao" id="alertas-atencao">— atenção</span></p>
-                </article>
-                <article class="visao-card visao-indicador">
-                    <h2>Previsão de armazenamento</h2>
-                    <p class="visao-valor visao-atencao" id="indicador-previsao">—</p>
-                    <p class="visao-legenda" id="legenda-previsao">Aguardando a lista de servidores</p>
+                <article class="geral-acoes">
+                    <h2>Ações recomendadas</h2>
+                    <p>Em ordem de prioridade.</p>
+                    <ol id="lista-acoes"></ol>
                 </article>
             </section>
 
-            <p class="visao-sr-only" id="graficos-periodo" role="status" aria-live="polite"></p>
-            <section class="visao-graficos" aria-label="Histórico de alertas da infraestrutura">
-                <article class="visao-card visao-grafico-card">
-                    <h2 id="titulo-evolucao">Evolução dos servidores em alerta</h2>
-                    
-                    <p class="visao-sr-only" id="evolucao-granularidade"></p>
-                    <div class="visao-grafico-area">
-                        <canvas id="grafico-evolucao" role="img" aria-labelledby="titulo-evolucao" aria-describedby="evolucao-resumo"></canvas>
-                        <p class="visao-grafico-status" id="evolucao-status" role="status" hidden></p>
+            <section class="geral-saude-perfil">
+                <h2>Saúde por perfil</h2>
+                <p>Compare a proporção afetada, a duração dos críticos e a cobertura da coleta.</p>
+                <div class="geral-legenda-estados">
+                    <span><i class="geral-sinal geral-sinal-critico"></i>Crítico</span>
+                    <span><i class="geral-sinal geral-sinal-atencao"></i>Atenção</span>
+                    <span><i class="geral-sinal geral-sinal-normal"></i>Normal</span>
+                    <span><i class="geral-sinal geral-sinal-sem-dados"></i>Sem dados recentes</span>
+                </div>
+                <div class="geral-tabela-cabecalho">
+                    <span>Perfil</span>
+                    <span>Afetados</span>
+                    <span>Distribuição dos estados</span>
+                    <span>Crítico mais antigo</span>
+                    <span></span>
+                </div>
+                <div id="lista-perfis"></div>
+                <p class="geral-tabela-nota">Afetados = críticos + em atenção. O total inclui máquinas sem dados recentes.</p>
+            </section>
+
+            <section class="geral-evolucao-riscos">
+                <article class="geral-card-evolucao">
+                    <h2>Evolução dos servidores afetados</h2>
+                    <p>Histórico · 19h–20h30 BRT · críticos e em atenção</p>
+                    <div class="geral-grafico-legenda">
+                        <span class="geral-legenda-critico">● Críticos</span>
+                        <span class="geral-legenda-atencao">● Em atenção</span>
                     </div>
-                    <p class="visao-sr-only" id="evolucao-resumo"></p>
-                </article>
-                <article class="visao-card visao-grafico-card">
-                    <h2 id="titulo-recursos">Servidores com alertas por recurso</h2>
-                    <p class="visao-legenda">Maior severidade no período</p>
-                    
-                    <div class="visao-grafico-area">
-                        <canvas id="grafico-recursos" role="img" aria-labelledby="titulo-recursos" aria-describedby="recursos-resumo"></canvas>
-                        <p class="visao-grafico-status" id="recursos-status" role="status" hidden></p>
+                    <div class="geral-grafico-area">
+                        <canvas id="grafico-evolucao" role="img" aria-label="Evolução dos servidores afetados"></canvas>
                     </div>
-                    <p class="visao-sr-only" id="recursos-resumo"></p>
+                    <p id="evolucao-legenda-texto"></p>
+                    <div class="geral-acoes-grafico">
+                        <button type="button">Ver histórico em Alertas →</button>
+                        <button type="button" id="botao-pergunta-evolucao">
+                            <img src="../assets/icons/icone-spark.svg" alt="" width="15" height="15">
+                            Perguntar sobre a evolução
+                        </button>
+                    </div>
+                </article>
+                <article class="geral-card-riscos">
+                    <h2>Riscos em acompanhamento</h2>
+                    <p>Sinais que merecem atenção.</p>
+                    <div id="lista-riscos"></div>
+                    <p class="geral-riscos-nota">Abra um risco para ver o histórico e os critérios.</p>
                 </article>
             </section>
-
-            <section class="visao-card visao-servidores" aria-labelledby="titulo-servidores">
-                <div class="visao-tabela-cabecalho">
-                    <h2 id="titulo-servidores">Servidores</h2>
-                    <label class="visao-busca-servidores">
-                        <span class="dashboard-lupa" aria-hidden="true"></span>
-                        <input type="search" id="busca-servidores" aria-label="Buscar servidor, perfil ou MAC"
-                            placeholder="Buscar servidor, perfil ou MAC..." aria-controls="lista-servidores">
-                    </label>
-                    <span class="visao-select-campo"><select class="visao-select visao-select-situacao" id="filtro-situacao" aria-label="Filtrar por situação">
-                        <option value="">Todas as situações</option>
-                        <option value="critico">Crítico</option>
-                        <option value="atencao">Atenção</option>
-                        <option value="normal">Normal</option>
-                    </select></span>
-                </div>
-                <div class="visao-tabela-scroll" role="region" aria-label="Lista de servidores" tabindex="0">
-                    <table class="visao-tabela">
-                        <thead>
-                            <tr>
-                                <th scope="col">Servidor</th><th scope="col">Perfil</th><th scope="col">Situação</th>
-                                <th scope="col">CPU</th><th scope="col">RAM</th><th scope="col">Disco</th>
-                                <th scope="col">Docker</th><th scope="col">Última coleta</th><th scope="col"><span class="visao-sr-only">Ações</span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-servidores"></tbody>
-                    </table>
-                </div>
-                <p class="visao-vazio" id="servidores-vazio" role="status" hidden>Nenhum servidor encontrado. Tente outro termo ou altere os filtros.</p>
-            </section>
-
-
         </main>
-
-        <dialog class="servidor-painel" id="detalhes-servidor" aria-labelledby="detalhes-titulo" aria-describedby="detalhes-perfil">
-            <header class="servidor-cabecalho">
-                <div class="servidor-titulo-linha">
-                    <h2 id="detalhes-titulo"></h2>
-                    <span class="servidor-status" id="detalhes-status"></span>
-                    <form method="dialog"><button class="servidor-fechar" aria-label="Fechar detalhes do servidor" autofocus>Fechar <span aria-hidden="true">×</span></button></form>
-                </div>
-                <p id="detalhes-perfil"></p>
-                <p id="detalhes-coleta"></p>
-            </header>
-            <div class="servidor-corpo" id="detalhes-conteudo"></div>
-
-        </dialog>
     </div>
+
+    <button class="assistente-botao" type="button" id="botao-assistente" aria-expanded="false"
+        aria-controls="painel-assistente">
+        <img src="../assets/icons/icone-spark-branco.svg" alt="" width="15" height="15">
+        Assistente
+    </button>
+    <aside class="assistente-painel" id="painel-assistente" aria-label="Assistente" hidden>
+        <h2>Perguntas</h2>
+        <ul class="assistente-perguntas" id="assistente-perguntas"></ul>
+        <div class="assistente-resposta" id="assistente-resposta" hidden></div>
+    </aside>
 </body>
 
 </html>

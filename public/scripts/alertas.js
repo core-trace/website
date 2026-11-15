@@ -1,30 +1,11 @@
 /* =========================================================
    CoreTrace - Alertas de servidores
-   Página de alertas por perfil de servidor.
-
-   Organização do arquivo:
-   1) Configuração
-   2) Dados fictícios
-   3) Serviço (única função que muda quando houver API real)
-   4) Estado
-   5) Funções de cálculo
-   6) Funções de tela
-   7) Eventos
+   Página de alertas por perfil de servidor (dados reais S3 + MySQL + Jira).
    ========================================================= */
 
-
-/* =========================================================
-   1) CONFIGURAÇÃO
-   ========================================================= */
-
-const LIMITE_ATENCAO = 70;
-const LIMITE_CRITICO = 85;
-
-/* Hora usada como referência para calcular quanto tempo o servidor está no estado atual. */
-const HORA_ATUALIZACAO = '20:30';
-
-/* Grade de tempo compartilhada pelas séries do gráfico. */
-const TEMPO_LINHA = ['19:30', '19:45', '20:00', '20:10', '20:20', '20:30'];
+let LIMITE_ATENCAO = 70;
+let LIMITE_CRITICO = 85;
+let HORA_ATUALIZACAO = '--:--';
 
 const METRICAS_GRAFICO = [
     { id: 'cpu', rotulo: 'CPU' },
@@ -53,342 +34,35 @@ const COR_SITUACAO = {
     semdados: '#8a8f9c'
 };
 
-
 /* =========================================================
-   2) DADOS FICTÍCIOS
+   SERVIÇO (API REAL)
    ========================================================= */
 
-/* Monta a série de pontos de uma métrica a partir dos valores do período.
-   Valores null marcam a lacuna de quem parou de enviar dados. */
-const montarSerie = (valores) => TEMPO_LINHA.map((hora, indice) => ({
-    hora,
-    valor: valores[indice] === undefined ? null : valores[indice]
-}));
-
-const SERVIDORES_FICTICIOS = [
-    /* ---------- Perfil Financeiro ---------- */
-    {
-        id: 'srv-pay-01',
-        nome: 'srv-pay-01',
-        perfil: 'Financeiro',
-        status: 'critico',
-        desde: '19:24',
-        metricasEmAlerta: [{ metrica: 'cpu', valor: 92 }],
-        historico: {
-            cpu: montarSerie([52, 58, 63, 71, 84, 92]),
-            ram: montarSerie([48, 50, 52, 55, 58, 60]),
-            rede: montarSerie([22, 25, 28, 31, 35, 38])
-        }
-    },
-    {
-        id: 'srv-pay-02',
-        nome: 'srv-pay-02',
-        perfil: 'Financeiro',
-        status: 'critico',
-        desde: '20:02',
-        metricasEmAlerta: [{ metrica: 'ram', valor: 88 }],
-        historico: {
-            cpu: montarSerie([40, 44, 49, 53, 57, 60]),
-            ram: montarSerie([55, 58, 62, 70, 80, 88]),
-            rede: montarSerie([30, 32, 34, 36, 40, 44])
-        }
-    },
-    {
-        id: 'srv-pay-03',
-        nome: 'srv-pay-03',
-        perfil: 'Financeiro',
-        status: 'atencao',
-        desde: '20:15',
-        metricasEmAlerta: [{ metrica: 'cpu', valor: 78 }],
-        historico: {
-            cpu: montarSerie([45, 48, 52, 60, 68, 78]),
-            ram: montarSerie([42, 44, 47, 50, 54, 57]),
-            rede: montarSerie([18, 20, 22, 25, 27, 30])
-        }
-    },
-    {
-        id: 'srv-pay-04',
-        nome: 'srv-pay-04',
-        perfil: 'Financeiro',
-        status: 'atencao',
-        desde: '20:18',
-        metricasEmAlerta: [{ metrica: 'ram', valor: 74 }],
-        historico: {
-            cpu: montarSerie([38, 40, 43, 48, 52, 55]),
-            ram: montarSerie([50, 52, 55, 60, 68, 74]),
-            rede: montarSerie([25, 27, 30, 33, 36, 38])
-        }
-    },
-    {
-        id: 'srv-pay-05',
-        nome: 'srv-pay-05',
-        perfil: 'Financeiro',
-        status: 'normal',
-        desde: '20:25',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([30, 32, 34, 35, 36, 38]),
-            ram: montarSerie([35, 36, 38, 39, 40, 41]),
-            rede: montarSerie([12, 13, 14, 15, 16, 17])
-        }
-    },
-    {
-        id: 'srv-pay-06',
-        nome: 'srv-pay-06',
-        perfil: 'Financeiro',
-        status: 'semdados',
-        desde: '20:10',
-        ultimaColeta: '20:10',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([52, 58, 63, 66, null, null]),
-            ram: montarSerie([48, 50, 52, 55, null, null]),
-            rede: montarSerie([22, 25, 28, 31, null, null])
-        }
-    },
-
-    /* ---------- Perfil Banco de Dados ---------- */
-    {
-        id: 'srv-db-01',
-        nome: 'srv-db-01',
-        perfil: 'Banco de Dados',
-        status: 'critico',
-        desde: '20:06',
-        metricasEmAlerta: [{ metrica: 'ram', valor: 88 }, { metrica: 'cpu', valor: 90 }],
-        historico: {
-            cpu: montarSerie([62, 66, 72, 80, 87, 90]),
-            ram: montarSerie([60, 64, 70, 78, 85, 88]),
-            rede: montarSerie([40, 45, 50, 55, 60, 66])
-        }
-    },
-    {
-        id: 'srv-db-02',
-        nome: 'srv-db-02',
-        perfil: 'Banco de Dados',
-        status: 'atencao',
-        desde: '20:12',
-        metricasEmAlerta: [{ metrica: 'cpu', valor: 73 }],
-        historico: {
-            cpu: montarSerie([44, 48, 54, 60, 68, 73]),
-            ram: montarSerie([58, 60, 63, 66, 70, 72]),
-            rede: montarSerie([35, 38, 42, 46, 50, 52])
-        }
-    },
-    {
-        id: 'srv-db-03',
-        nome: 'srv-db-03',
-        perfil: 'Banco de Dados',
-        status: 'normal',
-        desde: '20:24',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([32, 33, 35, 36, 37, 39]),
-            ram: montarSerie([40, 41, 43, 44, 46, 47]),
-            rede: montarSerie([20, 21, 22, 23, 24, 26])
-        }
-    },
-    {
-        id: 'srv-db-04',
-        nome: 'srv-db-04',
-        perfil: 'Banco de Dados',
-        status: 'semdados',
-        desde: '20:20',
-        ultimaColeta: '20:20',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([45, 48, 52, 55, 58, null]),
-            ram: montarSerie([50, 52, 54, 57, 60, null]),
-            rede: montarSerie([30, 32, 34, 36, 38, null])
-        }
-    },
-
-    /* ---------- Perfil API de Pedidos ---------- */
-    {
-        id: 'srv-api-01',
-        nome: 'srv-api-01',
-        perfil: 'API de Pedidos',
-        status: 'atencao',
-        desde: '20:20',
-        metricasEmAlerta: [{ metrica: 'cpu', valor: 78 }],
-        historico: {
-            cpu: montarSerie([50, 54, 60, 66, 72, 78]),
-            ram: montarSerie([36, 38, 40, 43, 46, 49]),
-            rede: montarSerie([24, 27, 30, 34, 38, 42])
-        }
-    },
-    {
-        id: 'srv-api-02',
-        nome: 'srv-api-02',
-        perfil: 'API de Pedidos',
-        status: 'atencao',
-        desde: '20:24',
-        metricasEmAlerta: [{ metrica: 'rede', valor: 76 }],
-        historico: {
-            cpu: montarSerie([42, 44, 47, 51, 55, 58]),
-            ram: montarSerie([33, 35, 37, 39, 42, 44]),
-            rede: montarSerie([40, 45, 52, 60, 68, 76])
-        }
-    },
-    {
-        id: 'srv-api-03',
-        nome: 'srv-api-03',
-        perfil: 'API de Pedidos',
-        status: 'critico',
-        desde: '19:58',
-        metricasEmAlerta: [{ metrica: 'cpu', valor: 91 }],
-        historico: {
-            cpu: montarSerie([55, 60, 68, 76, 85, 91]),
-            ram: montarSerie([48, 51, 55, 60, 66, 71]),
-            rede: montarSerie([28, 31, 35, 40, 46, 52])
-        }
-    },
-    {
-        id: 'srv-api-04',
-        nome: 'srv-api-04',
-        perfil: 'API de Pedidos',
-        status: 'semdados',
-        desde: '20:00',
-        ultimaColeta: '20:00',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([44, 47, 50, null, null, null]),
-            ram: montarSerie([33, 35, 37, null, null, null]),
-            rede: montarSerie([24, 27, 30, null, null, null])
-        }
-    },
-
-    /* ---------- Perfil Meteorologia ---------- */
-    {
-        id: 'srv-fis-01',
-        nome: 'srv-fis-01',
-        perfil: 'Meteorologia',
-        status: 'atencao',
-        desde: '19:45',
-        metricasEmAlerta: [{ metrica: 'disco', valor: 84 }],
-        historico: {
-            cpu: montarSerie([30, 34, 40, 46, 52, 58]),
-            ram: montarSerie([35, 38, 42, 48, 54, 60]),
-            rede: montarSerie([20, 24, 28, 33, 38, 44])
-        }
-    },
-    {
-        id: 'srv-fis-02',
-        nome: 'srv-fis-02',
-        perfil: 'Meteorologia',
-        status: 'critico',
-        desde: '20:04',
-        metricasEmAlerta: [{ metrica: 'cpu', valor: 87 }],
-        historico: {
-            cpu: montarSerie([48, 54, 62, 70, 80, 87]),
-            ram: montarSerie([40, 43, 47, 52, 58, 63]),
-            rede: montarSerie([22, 25, 29, 34, 39, 45])
-        }
-    },
-    {
-        id: 'srv-fis-03',
-        nome: 'srv-fis-03',
-        perfil: 'Meteorologia',
-        status: 'normal',
-        desde: '20:26',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([28, 30, 31, 33, 34, 36]),
-            ram: montarSerie([32, 33, 35, 36, 37, 39]),
-            rede: montarSerie([15, 16, 17, 18, 19, 20])
-        }
-    },
-    {
-        id: 'srv-fis-04',
-        nome: 'srv-fis-04',
-        perfil: 'Meteorologia',
-        status: 'semdados',
-        desde: '20:20',
-        ultimaColeta: '20:20',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([44, 46, 45, 47, 46, null]),
-            ram: montarSerie([39, 40, 41, 40, 40, null]),
-            rede: montarSerie([21, 22, 23, 22, 22, null])
-        }
-    },
-
-    /* ---------- Perfil Notas Fiscais ---------- */
-    {
-        id: 'srv-nf-01',
-        nome: 'srv-nf-01',
-        perfil: 'Notas Fiscais',
-        status: 'semdados',
-        desde: '19:45',
-        ultimaColeta: '19:45',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([40, 42, null, null, null, null]),
-            ram: montarSerie([33, 35, null, null, null, null]),
-            rede: montarSerie([19, 21, null, null, null, null])
-        }
-    },
-    {
-        id: 'srv-nf-02',
-        nome: 'srv-nf-02',
-        perfil: 'Notas Fiscais',
-        status: 'normal',
-        desde: '20:25',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([26, 27, 28, 29, 30, 31]),
-            ram: montarSerie([30, 31, 32, 33, 34, 35]),
-            rede: montarSerie([14, 15, 16, 17, 18, 19])
-        }
-    },
-
-    /* ---------- Perfil Portal Corporativo ---------- */
-    {
-        id: 'srv-por-01',
-        nome: 'srv-por-01',
-        perfil: 'Portal Corporativo',
-        status: 'normal',
-        desde: '20:20',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([24, 25, 26, 27, 28, 29]),
-            ram: montarSerie([28, 29, 30, 31, 32, 33]),
-            rede: montarSerie([12, 13, 13, 14, 15, 16])
-        }
-    },
-    {
-        id: 'srv-por-02',
-        nome: 'srv-por-02',
-        perfil: 'Portal Corporativo',
-        status: 'semdados',
-        desde: '20:10',
-        ultimaColeta: '20:10',
-        metricasEmAlerta: [],
-        historico: {
-            cpu: montarSerie([31, 32, 33, 32, null, null]),
-            ram: montarSerie([27, 28, 29, 28, null, null]),
-            rede: montarSerie([16, 17, 17, 16, null, null])
-        }
-    }
-];
-
-
-/* =========================================================
-   3) SERVIÇO
-   ========================================================= */
-
-/*
- * Única função que precise mudar quando os dados vierem do backend.
- * O resto da página só conhece o array devolvido aqui.
- */
 async function obterServidoresEmAlerta() {
-    // Hoje: dados fictícios.
-    // No futuro: return await fetch('/api/alertas/servidores').then((resposta) => resposta.json());
-    return SERVIDORES_FICTICIOS;
+    const idEmpresa = Number(sessionStorage.ID_EMPRESA);
+    const idUsuario = Number(sessionStorage.ID_USUARIO);
+
+    if (!idEmpresa || !idUsuario) {
+        throw new Error('Sessão de empresa ou usuário ausente.');
+    }
+
+    const params = new URLSearchParams({
+        idEmpresa: String(idEmpresa),
+        idUsuario: String(idUsuario)
+    });
+
+    const resposta = await fetch(`/alertas/servidores?${params.toString()}`);
+    if (!resposta.ok) {
+        throw new Error(`Erro HTTP ${resposta.status} ao buscar alertas.`);
+    }
+
+    const dados = await resposta.json();
+    HORA_ATUALIZACAO = dados.horaAtualizacao || HORA_ATUALIZACAO;
+    return dados.servidores || [];
 }
 
-
 /* =========================================================
-   4) ESTADO
+   ESTADO
    ========================================================= */
 
 const estado = {
@@ -398,49 +72,56 @@ const estado = {
     servidores: []
 };
 
-
 /* =========================================================
-   5) FUNÇÕES DE CÁLCULO
+   FUNÇÕES DE CÁLCULO
    ========================================================= */
 
 function minutosDaHora(hora) {
+    if (!hora || !hora.includes(':')) return 0;
     const partes = hora.split(':').map(Number);
     return partes[0] * 60 + partes[1];
 }
 
 function minutosEmAlerta(servidor) {
-    return Math.max(0, minutosDaHora(HORA_ATUALIZACAO) - minutosDaHora(servidor.desde));
+    const ref = minutosDaHora(HORA_ATUALIZACAO);
+    const ini = minutosDaHora(servidor.desde);
+    return ref >= ini ? ref - ini : (24 * 60 - ini) + ref;
 }
 
-/* Horário da última coleta recebida do servidor. */
 function ultimaColetaDe(servidor) {
-    return servidor.ultimaColeta || servidor.desde;
+    return servidor.ultimaColeta || servidor.desde || '--:--';
 }
 
-/* Quantos minutos o servidor está sem enviar dados. */
 function minutosSemDados(servidor) {
-    return Math.max(0, minutosDaHora(HORA_ATUALIZACAO) - minutosDaHora(ultimaColetaDe(servidor)));
+    if (!servidor.ultimaColeta) return 0;
+    const ref = minutosDaHora(HORA_ATUALIZACAO);
+    const ult = minutosDaHora(servidor.ultimaColeta);
+    return ref >= ult ? ref - ult : (24 * 60 - ult) + ref;
 }
 
 function formatarDuracao(minutos) {
     if (minutos < 60) {
         return `${minutos} min`;
     }
-
     const horas = Math.floor(minutos / 60);
     const resto = minutos % 60;
     return resto ? `${horas}h ${resto}min` : `${horas}h`;
 }
 
+function limitesAtuais() {
+    const selecionados = servidoresSelecionados();
+    const base = selecionados[0] || servidoresDoPerfil(estado.perfilAtual)[0];
+    const faixa = base?.limites?.[estado.metricaAtual];
+    return {
+        atencao: faixa?.atencao ?? LIMITE_ATENCAO,
+        critico: faixa?.critico ?? LIMITE_CRITICO
+    };
+}
+
 function nivelDoValor(valor) {
-    if (valor >= LIMITE_CRITICO) {
-        return 'critico';
-    }
-
-    if (valor >= LIMITE_ATENCAO) {
-        return 'atencao';
-    }
-
+    const { atencao, critico } = limitesAtuais();
+    if (valor >= critico) return 'critico';
+    if (valor >= atencao) return 'atencao';
     return 'normal';
 }
 
@@ -448,11 +129,9 @@ function servidoresDoPerfil(perfil, servidores = estado.servidores) {
     if (!perfil || perfil === 'todos') {
         return servidores;
     }
-
     return servidores.filter((servidor) => servidor.perfil === perfil);
 }
 
-/* Crítico, atenção e falta de dados contam como alerta. */
 function servidoresEmAlerta(servidores) {
     return servidores.filter((servidor) => (
         servidor.status === 'critico'
@@ -465,21 +144,10 @@ function contarSituacao(servidores, situacao) {
     return servidores.filter((servidor) => servidor.status === situacao).length;
 }
 
-function contarCriticos(servidores) {
-    return contarSituacao(servidores, 'critico');
-}
-
-function contarAtencao(servidores) {
-    return contarSituacao(servidores, 'atencao');
-}
-
-function contarNormais(servidores) {
-    return contarSituacao(servidores, 'normal');
-}
-
-function contarSemDados(servidores) {
-    return contarSituacao(servidores, 'semdados');
-}
+function contarCriticos(servidores) { return contarSituacao(servidores, 'critico'); }
+function contarAtencao(servidores) { return contarSituacao(servidores, 'atencao'); }
+function contarNormais(servidores) { return contarSituacao(servidores, 'normal'); }
+function contarSemDados(servidores) { return contarSituacao(servidores, 'semdados'); }
 
 function contarEmAlerta(servidores) {
     return contarCriticos(servidores) + contarAtencao(servidores) + contarSemDados(servidores);
@@ -487,37 +155,28 @@ function contarEmAlerta(servidores) {
 
 function maiorTempoEmCritico(servidores) {
     const criticos = servidores.filter((servidor) => servidor.status === 'critico');
-
     if (!criticos.length) {
         return { servidor: null, minutos: 0 };
     }
-
     const maior = criticos.reduce((primeiro, segundo) => (
         minutosEmAlerta(primeiro) >= minutosEmAlerta(segundo) ? primeiro : segundo
     ));
-
     return { servidor: maior, minutos: minutosEmAlerta(maior) };
 }
 
 function tempoMedioEmAlerta(servidores) {
     const emAlerta = servidoresEmAlerta(servidores);
-
-    if (!emAlerta.length) {
-        return 0;
-    }
-
+    if (!emAlerta.length) return 0;
     const total = emAlerta.reduce((soma, servidor) => soma + minutosEmAlerta(servidor), 0);
     return Math.round(total / emAlerta.length);
 }
 
 function ordenarPorCriticidade(servidores) {
     const peso = { critico: 0, atencao: 1, semdados: 2, normal: 3 };
-
     return [...servidores].sort((primeiro, segundo) => {
         if (peso[primeiro.status] !== peso[segundo.status]) {
             return peso[primeiro.status] - peso[segundo.status];
         }
-
         return minutosEmAlerta(segundo) - minutosEmAlerta(primeiro);
     });
 }
@@ -527,22 +186,10 @@ function perfisExistentes() {
 }
 
 function corDoPerfil(servidores) {
-    if (contarCriticos(servidores)) {
-        return 'critico';
-    }
-
-    if (contarAtencao(servidores)) {
-        return 'atencao';
-    }
-
-    if (contarSemDados(servidores)) {
-        return 'semdados';
-    }
-
-    if (contarNormais(servidores)) {
-        return 'normal';
-    }
-
+    if (contarCriticos(servidores)) return 'critico';
+    if (contarAtencao(servidores)) return 'atencao';
+    if (contarSemDados(servidores)) return 'semdados';
+    if (contarNormais(servidores)) return 'normal';
     return 'semdados';
 }
 
@@ -552,14 +199,12 @@ function servidoresSelecionados() {
         .filter(Boolean);
 }
 
-/* Último ponto com valor recebido (ignora a lacuna de quem parou de enviar dados). */
 function ultimoPontoRecebido(serie) {
     for (let indice = serie.length - 1; indice >= 0; indice -= 1) {
         if (serie[indice].valor !== null) {
             return serie[indice];
         }
     }
-
     return null;
 }
 
@@ -580,44 +225,33 @@ function descricaoDoServidor(servidor) {
     if (servidor.status === 'critico') {
         return `desde ${servidor.desde} · ${duracao} em alerta crítico`;
     }
-
     if (servidor.status === 'atencao') {
         return `desde ${servidor.desde} · ${duracao} em atenção`;
     }
-
     if (servidor.status === 'semdados') {
-        return `último dado ${ultimaColetaDe(servidor)} · sem dados há ${minutosSemDados(servidor)} min`;
+        return servidor.ultimaColeta
+            ? `último dado ${ultimaColetaDe(servidor)} · sem dados há ${minutosSemDados(servidor)} min`
+            : 'nenhuma coleta registrada hoje';
     }
-
-    return `última coleta (${duracao})`;
+    return `última coleta às ${ultimaColetaDe(servidor)}`;
 }
 
-
 /* =========================================================
-   6) FUNÇÕES DE TELA
+   FUNÇÕES DE TELA
    ========================================================= */
 
 function criarElemento(tag, classe, texto) {
     const elemento = document.createElement(tag);
-
-    if (classe) {
-        elemento.className = classe;
-    }
-
-    if (texto !== undefined) {
-        elemento.textContent = texto;
-    }
-
+    if (classe) elemento.className = classe;
+    if (texto !== undefined) elemento.textContent = texto;
     return elemento;
 }
 
 function criarSvg(tag, atributos = {}) {
     const elemento = document.createElementNS('http://www.w3.org/2000/svg', tag);
-
     Object.entries(atributos).forEach(([chave, valor]) => {
         elemento.setAttribute(chave, String(valor));
     });
-
     return elemento;
 }
 
@@ -634,24 +268,9 @@ function desenharCards() {
     const maior = maiorTempoEmCritico(escopo);
 
     const cartoes = [
-        {
-            rotulo: 'Críticos',
-            valor: String(contarCriticos(escopo)),
-            cor: 'critico',
-            legenda: 'servidores'
-        },
-        {
-            rotulo: 'Atenção',
-            valor: String(contarAtencao(escopo)),
-            cor: 'atencao',
-            legenda: 'servidores em atenção'
-        },
-        {
-            rotulo: 'Sem envio de dados',
-            valor: String(contarSemDados(escopo)),
-            cor: 'semdados',
-            legenda: 'servidores sem coleta'
-        },
+        { rotulo: 'Críticos', valor: String(contarCriticos(escopo)), cor: 'critico', legenda: 'servidores' },
+        { rotulo: 'Atenção', valor: String(contarAtencao(escopo)), cor: 'atencao', legenda: 'servidores em atenção' },
+        { rotulo: 'Sem envio de dados', valor: String(contarSemDados(escopo)), cor: 'semdados', legenda: 'servidores sem coleta' },
         emPerfil
             ? {
                 rotulo: 'Maior tempo em crítico',
@@ -665,19 +284,13 @@ function desenharCards() {
                 cor: 'critico',
                 legenda: 'por servidor em alerta'
             },
-        {
-            rotulo: 'Normal',
-            valor: String(contarNormais(escopo)),
-            cor: 'normal',
-            legenda: 'servidores'
-        }
+        { rotulo: 'Normal', valor: String(contarNormais(escopo)), cor: 'normal', legenda: 'servidores' }
     ];
 
     container.innerHTML = '';
 
     cartoes.forEach((cartao) => {
         const bloco = criarElemento('article', 'alertas-cartao');
-
         const rotulo = criarElemento('h2', 'alertas-cartao-rotulo');
         rotulo.append(criarElemento('span', `alertas-ponto ${cartao.cor}`));
         rotulo.append(criarElemento('span', '', cartao.rotulo));
@@ -687,7 +300,6 @@ function desenharCards() {
             criarElemento('p', `alertas-cartao-valor ${cartao.cor}`, cartao.valor),
             criarElemento('p', 'alertas-cartao-legenda', cartao.legenda)
         );
-
         container.append(bloco);
     });
 }
@@ -707,7 +319,6 @@ function criarChip(perfil, rotulo, contagem, ativo, cor = 'critico', esmaecido =
         criarElemento('span', 'alertas-chip-conta', String(contagem))
     );
 
-    /* Perfil sem servidores em alerta: esmaecido e não selecionável. */
     if (esmaecido) {
         chip.disabled = true;
         chip.setAttribute('aria-disabled', 'true');
@@ -751,7 +362,7 @@ function criarLinhaServidor(servidor) {
     const blocoServidor = criarElemento('div', 'alertas-servidor');
     blocoServidor.append(
         criarElemento('span', 'alertas-servidor-nome', servidor.nome),
-        criarElemento('span', 'alertas-servidor-perfil', servidor.perfil)
+        criarElemento('span', 'alertas-servidor-perfil', `${servidor.perfil} · ${servidor.mac}`)
     );
     celulaServidor.append(blocoServidor);
 
@@ -765,8 +376,9 @@ function criarLinhaServidor(servidor) {
     if (servidor.metricasEmAlerta.length) {
         servidor.metricasEmAlerta.forEach((metrica) => {
             const chip = criarElemento('span', 'alertas-metrica');
-            chip.append(criarElemento('span', `alertas-ponto ${nivelDoValor(metrica.valor)}`));
-            chip.append(criarElemento('span', '', `${ROTULO_METRICA[metrica.metrica] || metrica.metrica}: ${metrica.valor}%`));
+            const nivel = metrica.nivel || nivelDoValor(metrica.valor);
+            chip.append(criarElemento('span', `alertas-ponto ${nivel}`));
+            chip.append(criarElemento('span', '', `${ROTULO_METRICA[metrica.metrica] || metrica.nome || metrica.metrica}: ${metrica.valor}${metrica.unidade || '%'}`));
             metricas.append(chip);
         });
     } else {
@@ -777,8 +389,15 @@ function criarLinhaServidor(servidor) {
 
     const celulaAcoes = criarElemento('td', 'alertas-acoes');
 
-    const botaoChamado = criarElemento('a', 'alertas-botao-chamado', 'Acessar o chamado');
-    botaoChamado.href = '#';
+    const rotuloChamado = servidor.chamado?.chave
+        ? `Chamado ${servidor.chamado.chave}`
+        : 'Acessar o chamado';
+    const botaoChamado = criarElemento('a', 'alertas-botao-chamado', rotuloChamado);
+    botaoChamado.href = servidor.chamado?.url || '#';
+    if (servidor.chamado?.url) {
+        botaoChamado.target = '_blank';
+        botaoChamado.rel = 'noopener noreferrer';
+    }
     botaoChamado.dataset.chamado = servidor.id;
 
     const botaoPerfil = criarElemento('button', 'alertas-link-perfil', 'Ver perfil');
@@ -796,7 +415,6 @@ function desenharLista() {
     const vazio = document.getElementById('alertas-vazio');
     corpo.innerHTML = '';
 
-    /* A lista da visão geral mostra somente servidores em alerta (crítico, atenção ou sem dados). */
     const escopo = servidoresDoPerfil(estado.perfilAtual);
     const visiveis = servidoresEmAlerta(escopo);
 
@@ -884,6 +502,7 @@ function desenharGrafico() {
     area.innerHTML = '';
 
     const servidores = servidoresSelecionados();
+    const { atencao: limiteAtencao, critico: limiteCritico } = limitesAtuais();
 
     desenharAvisoSemDados();
 
@@ -907,7 +526,7 @@ function desenharGrafico() {
         const indice = Math.max(0, tempos.indexOf(hora));
         return margem.esquerda + (indice / Math.max(1, tempos.length - 1)) * areaLargura;
     };
-    const posY = (valor) => margem.topo + areaAltura - (valor / 100) * areaAltura;
+    const posY = (valor) => margem.topo + areaAltura - (Math.min(100, Math.max(0, valor)) / 100) * areaAltura;
 
     const svg = criarSvg('svg', {
         viewBox: `0 0 ${largura} ${altura}`,
@@ -916,23 +535,21 @@ function desenharGrafico() {
         'aria-label': `Evolução de ${rotuloMetricaAtual()} dos servidores selecionados no perfil ${estado.perfilAtual}`
     });
 
-    /* Faixas de severidade */
     svg.append(criarSvg('rect', {
         x: margem.esquerda,
         y: posY(100),
         width: areaLargura,
-        height: posY(LIMITE_CRITICO) - posY(100),
+        height: posY(limiteCritico) - posY(100),
         fill: 'rgba(204, 3, 1, 0.08)'
     }));
     svg.append(criarSvg('rect', {
         x: margem.esquerda,
-        y: posY(LIMITE_CRITICO),
+        y: posY(limiteCritico),
         width: areaLargura,
-        height: posY(LIMITE_ATENCAO) - posY(LIMITE_CRITICO),
+        height: posY(limiteAtencao) - posY(limiteCritico),
         fill: 'rgba(226, 137, 27, 0.10)'
     }));
 
-    /* Grade e rótulos do eixo vertical */
     [0, 20, 40, 60, 80, 100].forEach((valor) => {
         svg.append(criarSvg('line', {
             x1: margem.esquerda,
@@ -949,10 +566,9 @@ function desenharGrafico() {
         }));
     });
 
-    /* Linhas dos limites de atenção e crítico */
     [
-        { limite: LIMITE_CRITICO, nivel: 'critico', texto: `Crítico: ${LIMITE_CRITICO}%` },
-        { limite: LIMITE_ATENCAO, nivel: 'atencao', texto: `Atenção: ${LIMITE_ATENCAO}%` }
+        { limite: limiteCritico, nivel: 'critico', texto: `Crítico: ${limiteCritico}%` },
+        { limite: limiteAtencao, nivel: 'atencao', texto: `Atenção: ${limiteAtencao}%` }
     ].forEach((faixa) => {
         svg.append(criarSvg('line', {
             x1: margem.esquerda,
@@ -971,7 +587,6 @@ function desenharGrafico() {
         }));
     });
 
-    /* Rótulos do eixo horizontal */
     tempos.forEach((hora) => {
         svg.append(criarSvgTexto(posX(hora), margem.topo + areaAltura + 28, hora, {
             'text-anchor': 'middle',
@@ -985,38 +600,23 @@ function desenharGrafico() {
         'font-size': 13
     }));
 
-    /* Períodos sem dados: faixa cinza tracejada da última coleta até agora. */
     servidores.forEach((servidor) => {
-        if (servidor.status !== 'semdados') {
-            return;
-        }
-
+        if (servidor.status !== 'semdados') return;
         const serie = servidor.historico[estado.metricaAtual] || [];
         const ultimo = ultimoPontoRecebido(serie);
-
-        if (!ultimo) {
-            return;
-        }
-
-        desenharFaixaSemDados(svg, ultimo, posX, posY, margem, areaLargura);
+        if (!ultimo) return;
+        desenharFaixaSemDados(svg, ultimo, posX, posY, tempos);
     });
 
-    /* Uma linha por servidor selecionado */
     servidores.forEach((servidor) => {
         const serie = servidor.historico[estado.metricaAtual] || [];
-
-        if (!serie.length) {
-            return;
-        }
+        if (!serie.length) return;
 
         for (let indice = 0; indice < serie.length - 1; indice += 1) {
             const inicio = serie[indice];
             const fim = serie[indice + 1];
 
-            /* A linha para no último ponto recebido: a lacuna não é ligada. */
-            if (inicio.valor === null || fim.valor === null) {
-                continue;
-            }
+            if (inicio.valor === null || fim.valor === null) continue;
 
             const nivel = nivelDoValor(Math.max(inicio.valor, fim.valor));
 
@@ -1032,9 +632,7 @@ function desenharGrafico() {
         }
 
         serie.forEach((ponto) => {
-            if (ponto.valor === null) {
-                return;
-            }
+            if (ponto.valor === null) return;
 
             svg.append(criarSvg('circle', {
                 cx: posX(ponto.hora),
@@ -1046,7 +644,7 @@ function desenharGrafico() {
             }));
         });
 
-        const primeiroCritico = serie.find((ponto) => ponto.valor !== null && ponto.valor >= LIMITE_CRITICO);
+        const primeiroCritico = serie.find((ponto) => ponto.valor !== null && ponto.valor >= limiteCritico);
 
         if (primeiroCritico) {
             const x = posX(primeiroCritico.hora);
@@ -1062,7 +660,7 @@ function desenharGrafico() {
                 stroke: COR_SITUACAO.critico,
                 'stroke-width': 1.5
             }));
-            svg.append(criarSvgTexto(x, y - 17, `${primeiroCritico.valor}%`, {
+            svg.append(criarSvgTexto(x, y - 17, `${Math.round(primeiroCritico.valor)}%`, {
                 'text-anchor': 'middle',
                 fill: COR_SITUACAO.critico,
                 'font-size': 12,
@@ -1071,12 +669,8 @@ function desenharGrafico() {
         }
 
         const ultimo = ultimoPontoRecebido(serie);
+        if (!ultimo) return;
 
-        if (!ultimo) {
-            return;
-        }
-
-        /* Servidor sem envio de dados: marcador cinza no último ponto recebido. */
         if (servidor.status === 'semdados') {
             desenharMarcadorParada(svg, ultimo, posX, posY, margem, areaLargura);
             return;
@@ -1092,7 +686,7 @@ function desenharGrafico() {
             rx: 12,
             fill: COR_SITUACAO[nivel]
         }));
-        svg.append(criarSvgTexto(posX(ultimo.hora) + 41, posY(ultimo.valor) + 5, `${ultimo.valor}%`, {
+        svg.append(criarSvgTexto(posX(ultimo.hora) + 41, posY(ultimo.valor) + 5, `${Math.round(ultimo.valor)}%`, {
             'text-anchor': 'middle',
             fill: '#ffffff',
             'font-size': 12,
@@ -1103,16 +697,16 @@ function desenharGrafico() {
     area.append(svg);
 }
 
-/* Faixa cinza tracejada indicando o período sem dados (última coleta até agora). */
-function desenharFaixaSemDados(svg, ponto, posX, posY, margem, areaLargura) {
+function desenharFaixaSemDados(svg, ponto, posX, posY, tempos) {
     const x = posX(ponto.hora);
     const topo = posY(100);
     const base = posY(0);
-    const fimX = posX(HORA_ATUALIZACAO);
+    const ultimoTempo = tempos[tempos.length - 1] || ponto.hora;
+    const fimX = posX(ultimoTempo);
     const largura = Math.max(0, fimX - x);
 
     svg.append(criarSvg('rect', {
-        x: x,
+        x,
         y: topo,
         width: largura,
         height: base - topo,
@@ -1132,7 +726,6 @@ function desenharFaixaSemDados(svg, ponto, posX, posY, margem, areaLargura) {
     }
 }
 
-/* Marcador cinza no último ponto recebido, com o momento da parada. */
 function desenharMarcadorParada(svg, ponto, posX, posY, margem, areaLargura) {
     const x = posX(ponto.hora);
     const y = posY(ponto.valor);
@@ -1146,7 +739,6 @@ function desenharMarcadorParada(svg, ponto, posX, posY, margem, areaLargura) {
         'stroke-width': 2
     }));
 
-    /* O rótulo fica para dentro do gráfico para não estourar a área do SVG. */
     const paraEsquerda = x > margem.esquerda + areaLargura / 2;
 
     svg.append(criarSvgTexto(paraEsquerda ? x - 10 : x + 10, y - 16, `Parou de enviar dados às ${ponto.hora}`, {
@@ -1157,7 +749,6 @@ function desenharMarcadorParada(svg, ponto, posX, posY, margem, areaLargura) {
     }));
 }
 
-/* Aviso de falta de dados logo abaixo do gráfico. */
 function desenharAvisoSemDados() {
     const aviso = document.getElementById('alertas-grafico-aviso');
     const semDados = servidoresSelecionados().filter((servidor) => servidor.status === 'semdados');
@@ -1166,9 +757,9 @@ function desenharAvisoSemDados() {
     aviso.hidden = semDados.length === 0;
 
     semDados.forEach((servidor) => {
-        const texto = semDados.length > 1
+        const texto = servidor.ultimaColeta
             ? `${servidor.nome} · Sem dados há ${minutosSemDados(servidor)} min · última coleta ${ultimaColetaDe(servidor)}`
-            : `Sem dados há ${minutosSemDados(servidor)} min · última coleta ${ultimaColetaDe(servidor)}`;
+            : `${servidor.nome} · Nenhuma coleta registrada hoje`;
 
         aviso.append(criarElemento('span', 'alertas-grafico-aviso-item', texto));
     });
@@ -1180,7 +771,6 @@ function atualizarAbas() {
     });
 }
 
-/* Limpa o conteúdo da seção do perfil quando a visão geral está ativa. */
 function limparSecaoPerfil() {
     document.getElementById('alertas-legend').innerHTML = '';
     document.getElementById('alertas-grafico-area').innerHTML = '';
@@ -1196,7 +786,6 @@ function limparSecaoPerfil() {
 function atualizarTudo() {
     const emPerfil = estado.perfilAtual !== 'todos';
 
-    /* Visão geral e seção do perfil se alternam conforme o perfil atual. */
     document.getElementById('alertas-painel-geral').hidden = emPerfil;
     document.getElementById('alertas-painel-perfil').hidden = !emPerfil;
     document.getElementById('alertas-painel-grafico').hidden = !emPerfil;
@@ -1218,7 +807,6 @@ function atualizarTudo() {
     desenharLista();
     atualizarAbas();
 
-    /* Gráfico e lista lateral do perfil só existem com um perfil selecionado. */
     if (emPerfil) {
         desenharLateral();
         desenharLegenda();
@@ -1228,9 +816,8 @@ function atualizarTudo() {
     }
 }
 
-
 /* =========================================================
-   7) EVENTOS
+   EVENTOS
    ========================================================= */
 
 function trocarPerfil(perfil, servidorPreferido = null) {
@@ -1240,7 +827,6 @@ function trocarPerfil(perfil, servidorPreferido = null) {
 
     estado.perfilAtual = perfil;
 
-    /* Na visão geral não há gráfico: nenhuma seleção é mantida. */
     if (perfil === 'todos') {
         estado.servidoresSelecionados = [];
         atualizarTudo();
@@ -1268,24 +854,55 @@ function alternarSelecao(id) {
     desenharGrafico();
 }
 
+async function tratarCliqueChamado(link, servidor) {
+    if (servidor.chamado?.url) {
+        window.open(servidor.chamado.url, '_blank', 'noopener,noreferrer');
+        return;
+    }
+
+    const textoOriginal = link.textContent;
+    link.textContent = 'Buscando chamado...';
+
+    try {
+        const resp = await fetch('/alertas/chamado', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mac: servidor.mac,
+                nomeServidor: servidor.nome,
+                perfil: servidor.perfil,
+                metricaPrincipal: servidor.metricasEmAlerta[0] || null,
+                nivel: servidor.status
+            })
+        });
+
+        const dados = await resp.json();
+        if (dados.url) {
+            servidor.chamado = dados;
+            link.href = dados.url;
+            link.textContent = `Chamado ${dados.chave}`;
+            window.open(dados.url, '_blank', 'noopener,noreferrer');
+        } else {
+            link.textContent = textoOriginal;
+            alert('Integração com o Jira ainda não configurada no servidor (.env).');
+        }
+    } catch (erro) {
+        console.error(erro);
+        link.textContent = textoOriginal;
+        alert('Não foi possível acessar ou abrir o chamado no Jira.');
+    }
+}
+
 function iniciarEventos() {
     document.getElementById('alertas-chips').addEventListener('click', (evento) => {
         const chip = evento.target.closest('.alertas-chip');
-
-        if (!chip) {
-            return;
-        }
-
+        if (!chip) return;
         trocarPerfil(chip.dataset.perfil);
     });
 
     document.getElementById('alertas-abas').addEventListener('click', (evento) => {
         const aba = evento.target.closest('[data-metrica]');
-
-        if (!aba) {
-            return;
-        }
-
+        if (!aba) return;
         estado.metricaAtual = aba.dataset.metrica;
         atualizarAbas();
         desenharLateral();
@@ -1295,41 +912,41 @@ function iniciarEventos() {
 
     document.getElementById('alertas-lateral-lista').addEventListener('click', (evento) => {
         const botao = evento.target.closest('[data-servidor]');
-
-        if (!botao) {
-            return;
-        }
-
+        if (!botao) return;
         alternarSelecao(botao.dataset.servidor);
     });
 
     document.getElementById('alertas-lista').addEventListener('click', (evento) => {
         const chamado = evento.target.closest('[data-chamado]');
-
         if (chamado) {
             evento.preventDefault();
+            const servidor = estado.servidores.find((item) => item.id === chamado.dataset.chamado);
+            if (servidor) tratarCliqueChamado(chamado, servidor);
             return;
         }
 
         const verPerfil = evento.target.closest('[data-ver-perfil]');
-
-        if (!verPerfil) {
-            return;
-        }
+        if (!verPerfil) return;
 
         const servidor = estado.servidores.find((item) => item.id === verPerfil.dataset.verPerfil);
-
         if (servidor) {
             trocarPerfil(servidor.perfil, servidor.id);
         }
     });
 
-    document.getElementById('alertas-atualizar').addEventListener('click', (evento) => {
+    document.getElementById('alertas-atualizar').addEventListener('click', async (evento) => {
         const botao = evento.currentTarget;
         botao.classList.remove('girando');
         void botao.offsetWidth;
         botao.classList.add('girando');
-        atualizarTudo();
+
+        try {
+            estado.servidores = await obterServidoresEmAlerta();
+            document.getElementById('alertas-hora-atualizacao').textContent = HORA_ATUALIZACAO;
+            atualizarTudo();
+        } catch (erro) {
+            console.error(erro);
+        }
     });
 }
 
@@ -1342,7 +959,6 @@ async function iniciar() {
 
 iniciar().catch((erro) => {
     console.error(erro);
-
     const vazio = document.getElementById('alertas-vazio');
     vazio.hidden = false;
     vazio.textContent = 'Não foi possível carregar os alertas de servidores.';

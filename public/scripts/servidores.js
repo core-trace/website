@@ -46,20 +46,21 @@ let servidoresCarregados = [];
 function renderizarServidores(servidores) {
 
     tabelaServidores.innerHTML = '';
-    servidoresAtivos.innerHTML = servidores.length;
+    servidoresTotais.innerHTML = servidores.length;
 
     for (let i = 0; i < servidores.length; i++) {
         tabelaServidores.innerHTML += `
             <tr>
                 <td>${servidores[i].nome}</td>
                 <td>${servidores[i].nome_perfil}</td>
-                <td>bucket</td>
-                <td>bucket</td>
-                <td>bucket</td>
-                <td>bucket</td>
-                <td>bucket</td>
-                <td>bucket</td>
-                <td>bucket</td>
+                <td>?</td>
+                <td>?</td>
+                <td>?</td>
+                <td>?</td>
+                <td>?</td>
+                <td>?</td>
+                <td>?</td>
+                <td><button class="visao-detalhes-botao">Detalhes <img src="../assets/icons/seta_vermelha.svg" alt width="11" height="11"></button></td>
             </tr>
         `;
     }

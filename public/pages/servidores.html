@@ -85,27 +85,42 @@
                 <h1 class="titulo-visao-geral">Visão geral dos servidores</h1>
                 <p class="texto-visao-geral">Localize as prioridades atuais e siga para a investigação.</p>
             </div>
+            <span class="visao-select-campo">
+                        <select class="visao-select" id="filtro-perfil-servidor" aria-label="Filtrar por perfil">
+                            <option value="">Todos os perfis</option>
+                        </select>
+                    </span>
 
             <div class="KPIs">
                 <div class="KPI">
                     <h3 class="titulo-KPI">Servidores reportando</h3>
-                    <h1 class="qtd-servidores" id="servidoresAtivos">0</h1>
-                    <p class="descricao-KPI">reportados</p>
+                    <h1 class="dado-principal-KPI" id="servidoresAtivos%">?%</h1>
+                    <p class="descricao-KPI"><span id="servidoresAtivos">?</span>/<span id="servidoresTotais"></span> dos servidores estão reportando.</p>
                 </div>
                 <div class="KPI">
-                    <h3 class="titulo-KPI">Servidores críticos</h3>
-                    <h1 class="qtd-servidores" id="servidores-criticos">0</h1>
-                    <p class="descricao-KPI">em estado crítico</p>
+                    <h3 class="titulo-KPI">Componente mais crítico</h3>
+                    <h1 class="dado-principal-KPI" id="componenteMaisCritico">?</h1>
+                    <p class="descricao-KPI">Está com crítico em <span id="componenteMaisCritico%NosServidores">?</span>% dos servidores.</p>
                 </div>
                 <div class="KPI">
-                    <h3 class="titulo-KPI">Servidores em atenção</h3>
-                    <h1 class="qtd-servidores" id="servidores-atencao">0</h1>
-                    <p class="descricao-KPI">em estado de atenção</p>
+                    <h3 class="titulo-KPI">Componente mais alertante</h3>
+                    <h1 class="dado-principal-KPI" id="componenteMaisAlertante">?</h1>
+                    <p class="descricao-KPI">Está com alerta em <span id="componenteMaisAlertante%NosServidores">?</span>% dos servidores.</p>
                 </div>
                 <div class="KPI">
                     <h3 class="titulo-KPI">Servidores estáveis</h3>
-                    <h1 class="qtd-servidores" id="servidores-estaveis">0</h1>
-                    <p class="descricao-KPI">em estado normal</p>
+                    <h1 class="dado-principal-KPI"><span id="%servidoresEstaveis">?</span>%</h1>
+                    <p class="descricao-KPI"><span id="ServidoresEstaveis">?</span> Servidores estão estáveis</p>
+                </div>
+                <div class="KPI">
+                    <h3 class="titulo-KPI">Servidores atenção</h3>
+                    <h1 class="dado-principal-KPI"><span id="%servidoresAtencao">?</span>%</h1>
+                    <p class="descricao-KPI"><span id="ServidoresAtencao">?</span> Servidores estão estáveis</p>
+                </div>
+                <div class="KPI">
+                    <h3 class="titulo-KPI">Servidores críticoss</h3>
+                    <h1 class="dado-principal-KPI"><span id="%servidoresCriticos">?</span>%</h1>
+                    <p class="descricao-KPI"><span id="servidoresCriticos">?</span> Servidores estão críticos</p>
                 </div>
             </div>
 
@@ -118,11 +133,6 @@
                         <input type="search" id="busca-servidores-componentes" aria-label="Buscar servidor, perfil ou MAC"
                             placeholder="Buscar servidor, perfil ou MAC..." aria-controls="lista-servidores">
                     </label>
-                    <span class="visao-select-campo">
-                        <select class="visao-select" id="filtro-perfil-servidor" aria-label="Filtrar por perfil">
-                            <option value="">Todos os perfis</option>
-                        </select>
-                    </span>
                     <span class="visao-select-campo"><select class="visao-select visao-select-situacao"
                             id="filtro-situacao" aria-label="Filtrar por situação">
                             <option value="">Todas as situações</option>

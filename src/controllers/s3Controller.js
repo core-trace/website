@@ -1,0 +1,58 @@
+
+const s3Model = require("../models/s3Model");
+
+async function listarArquivos(req, res) {
+
+    try {
+
+        const arquivos = await s3Model.listarArquivosS3();
+
+        return res.status(200).json(arquivos);
+
+    } catch (erro) {
+
+        console.error(erro);
+
+        return res.status(500).json({
+            erro: "Erro ao listar arquivos do S3"
+        });
+
+    }
+}
+
+async function buscarConteudo(req, res) {
+
+    const nomeArquivo = req.query.arquivo;
+
+    if (!nomeArquivo || !nomeArquivo.startsWith("raw/")) {
+
+        return res.status(400).json({
+            erro: "Nome do arquivo inválido"
+        });
+
+    }
+
+    try {
+
+        const conteudo = await s3Model.buscarConteudoS3(nomeArquivo);
+
+        return res.status(200).json({
+            arquivo: nomeArquivo,
+            conteudo: conteudo
+        });
+
+    } catch (erro) {
+
+        console.error(erro);
+
+        return res.status(500).json({
+            erro: "Erro ao buscar conteúdo do arquivo S3"
+        });
+
+    }
+}
+
+module.exports = {
+    listarArquivos,
+    buscarConteudo
+};

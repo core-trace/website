@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste AWS S3</title>
+</head>
+<body>
+    <h1>Teste de conexão AWS S3</h1>
+    <button id="botao-listar-arquivos">Listar arquivos</button>
+    <h2>Arquivos encontrados:</h2>
+    <select id="arquivos-s3">
+        <option value="">Selecione um arquivo</option>
+    </select>
+    <button id="botao-buscar-dados">Buscar conteúdo CSV</button>
+    <h2>Resultado:</h2>
+    <!--O "<pre>" é muito útil para testes e depuração, pois permite visualizar objetos JSON e respostas da API de maneira organizada.-->
+    <pre id="resultado">Aguardando consulta...</pre>
+    <script>
+
+        // Elementos HTML
+        const arquivosS3 = document.querySelector("#arquivos-s3");
+        const resultado = document.querySelector("#resultado");
+        const botaoListarArquivos = document.querySelector("#botao-listar-arquivos");
+        const botaoBuscarDados = document.querySelector("#botao-buscar-dados");
+
+        // Armazenamento dos dados
+        let arquivosCarregados = [];
+        let dadosCSV = [];
+
+        // Busca os arquivos disponíveis no S3
+        async function ListarArquivosS3() {
+            try {
+                const resposta = await fetch("/s3Routes/arquivos");
+                if (!resposta.ok) {
+                    throw new Error("Erro ao consultar arquivos do S3");
+                }
+                const arquivos = await resposta.json();
+                return arquivos;
+            } catch (erro) {
+                console.error(erro);
+                return [];
+            }
+        }
+
+        // Renderiza os arquivos no select
+        function RenderizarArquivos(arquivos) {
+            arquivosS3.innerHTML = '<option value="">Selecione um arquivo</option>';
+            for (let i = 0; i < arquivos.length; i++) {
+                const opcao = document.createElement("option");
+                opcao.value = arquivos[i].Key;
+                opcao.textContent = arquivos[i].Key.split("/").pop();
+                arquivosS3.appendChild(opcao);
+            }
+        }
+
+
+        // Busca o conteúdo do CSV selecionado
+        async function BuscarDadosS3() {
+            const arquivoSelecionado = arquivosS3.value;
+            if (arquivoSelecionado == '') {
+                resultado.textContent = "Selecione um arquivo primeiro.";
+                return;
+            }
+            try {
+                const resposta = await fetch(
+                    `/s3Routes/conteudo?arquivo=${encodeURIComponent(arquivoSelecionado)}`
+                );
+                if (!resposta.ok) {
+                    throw new Error("Erro ao consultar conteúdo do CSV");
+                }
+                const respostaS3 = await resposta.json();
+                const dados = ConverterCSV(respostaS3.conteudo);
+                return dados;
+            } catch (erro) {
+                console.error(erro);
+                resultado.textContent = erro.message;
+                return [];
+            }
+        }
+
+
+        // Converte o conteúdo CSV em objetos JavaScript (No final, ela é inutil, só estou fazendo ela para trazer para json)
+        function ConverterCSV(conteudo) {
+            if (!conteudo || !conteudo.trim()) {
+                return [];
+            }
+            const linhas = conteudo.trim().split(/\r?\n/);
+            const delimitador = linhas[0].includes(";") ? ";" : ",";
+            const cabecalho = SepararColunas(linhas[0], delimitador);
+            let dados = [];
+            for (let i = 1; i < linhas.length; i++) {
+                if (linhas[i].trim() == '') {
+                    continue;
+                }
+                const valores = SepararColunas(linhas[i], delimitador);
+                let objeto = {};
+                for (let j = 0; j < cabecalho.length; j++) {
+                    objeto[cabecalho[j]] = valores[j] ?? "";
+                }
+                dados.push(objeto);
+            }
+            return dados;
+        }
+
+
+        // Separa as colunas respeitando valores entre aspas
+        function SepararColunas(linha, delimitador) {
+            let colunas = [];
+            let valor = "";
+            let dentroAspas = false;
+            for (let i = 0; i < linha.length; i++) {
+                const caractere = linha[i];
+                if (caractere == '"') {
+                    if (dentroAspas && linha[i + 1] == '"') {
+                        valor += '"';
+                        i++;
+                    } else {
+                        dentroAspas = !dentroAspas;
+                    }
+                } else if (caractere == delimitador && !dentroAspas) {
+                    colunas.push(valor);
+                    valor = "";
+                } else {
+                    valor += caractere;
+                }
+            }
+            colunas.push(valor);
+            return colunas;
+        }
+
+
+        // Renderiza os dados encontrados no CSV
+        function RenderizarDados(dados) {
+            resultado.textContent = JSON.stringify(dados, null, 2);
+        }
+
+
+        // Executa a busca dos arquivos
+        botaoListarArquivos.addEventListener("click", function () {
+            ListarArquivosS3().then(arquivos => {
+                arquivosCarregados = arquivos;
+                RenderizarArquivos(arquivosCarregados);
+                resultado.textContent = `${arquivosCarregados.length} arquivos encontrados.`;
+            });
+        });
+
+
+        // Executa a busca do conteúdo CSV
+        botaoBuscarDados.addEventListener("click", function () {
+            BuscarDadosS3().then(dados => {
+                dadosCSV = dados;
+                RenderizarDados(dadosCSV);
+                console.log("Dados recebidos do S3:", dadosCSV);
+            });
+        });
+    </script>
+</body>
+</html>

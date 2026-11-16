@@ -337,10 +337,17 @@
         return referencias;
     }
 
-    function calcularIndicadores() {
-        const registros = historicoAtivo.flatMap((doc) => doc.containers.map((c) => ({ container: c, data: doc.data })));
+    function calcularIndicadores(referencia = null) {
+        const registros = historicoAtivo.flatMap((doc) => {
+            const containers = referencia ? [containerNoDia(doc, referencia)].filter(Boolean) : doc.containers;
+            return containers.map((c) => ({ container: c, data: doc.data }));
+        });
         const falhasConhecidas = registros.filter(({ container, data }) => D.falhouNaData(container, data)).length;
-        const registrosLog = historicoAtivo.flatMap((doc) => doc.logs.map(D.resumoLog));
+        const registrosLog = historicoAtivo.flatMap((doc) => {
+            const logs = referencia ? [doc.logs.find((l) => (referencia.nome && l.nome === referencia.nome)
+                || l.container_id === referencia.container_id)].filter(Boolean) : doc.logs;
+            return logs.map(D.resumoLog);
+        });
         const errosConfirmados = registrosLog.reduce((soma, log) => soma + (log.erros ?? 0), 0);
         const algumSemNivel = registrosLog.some((log) => log.incompleto);
         const errosLogs = registrosLog.length && (!algumSemNivel || errosConfirmados > 0)
@@ -381,7 +388,6 @@
         $("docker-total-containers").textContent = `(${dados.containers.length})`;
         $("docker-ultima-coleta").textContent = `Último resumo · ${ultimo}`;
         $("docker-origem-dados").textContent = `${demonstracao ? "Dados demonstrativos" : anonimizado ? "Dados anonimizados" : "Resumos diários"} · ${dados.containers.length} contêineres monitorados`;
-        $("docker-escopo-servidor").textContent = `Servidor inteiro, mesmo com um contêiner selecionado · ${dados.containers.length} monitorados · OOM e término do mesmo encerramento contam como uma falha.`;
     }
 
     function renderizarKpis() {
@@ -442,7 +448,7 @@
             corpo.appendChild(tr);
         }
         $("docker-selecao-descricao").textContent = selecionadoId
-            ? `Investigando ${dados.containers.find((c) => c.container_id === selecionadoId)?.nome || "contêiner"} · KPIs permanecem no escopo de todo o servidor.`
+            ? `Investigando ${dados.containers.find((c) => c.container_id === selecionadoId)?.nome || "contêiner"} · KPIs do contêiner selecionado.`
             : "Selecione um contêiner para investigar suas métricas e registros.";
         $("docker-limpar").disabled = !selecionadoId;
     }
@@ -737,9 +743,15 @@
     }
 
     function selecionar(id) {
-        selecionadoId = id;
-        renderizarLista();
         const container = dados.containers.find((c) => c.container_id === id);
+        selecionadoId = container?.container_id || null;
+        indicadores = calcularIndicadores(container);
+        renderizarKpis();
+        $("docker-escopo-servidor").textContent = (container
+            ? `Contêiner selecionado: ${container.nome || container.container_id.slice(0, 12)}`
+            : `Servidor inteiro · ${dados.containers.length} monitorados`) +
+            " · Período selecionado · OOM e término do mesmo encerramento contam como uma falha.";
+        renderizarLista();
         if (!container) { limparDetalhe(); return; }
         renderizarDetalhe(container);
         renderizarGraficos(container);
@@ -751,9 +763,7 @@
         historicoAtivo = filtrarPeriodo(historico, periodoDias);
         dados = historicoAtivo.at(-1);
         if (!dados) throw new Error("Não há resumos disponíveis nesse período.");
-        indicadores = calcularIndicadores();
         renderizarContexto();
-        renderizarKpis();
         document.querySelectorAll("[data-periodo]").forEach((botao) => {
             const ativo = Number(botao.dataset.periodo) === periodoDias;
             botao.classList.toggle("ativo", ativo);
@@ -763,8 +773,7 @@
         const anterior = historico.findLast((doc) => doc.containers.some((c) => c.container_id === selecionadoId))
             ?.containers.find((c) => c.container_id === selecionadoId);
         const candidato = anterior ? containerNoDia(dados, anterior) : null;
-        const inicial = candidato || dados.containers.find((c) => c.nome === "api-java") || dados.containers[0];
-        selecionar(inicial?.container_id || null);
+        selecionar(candidato?.container_id || null);
     }
 
     async function iniciar() {

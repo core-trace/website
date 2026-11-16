@@ -96,36 +96,6 @@
             <p class="docker-periodo-info" id="docker-periodo-info" role="status">Preparando resumo...</p>
             <div class="docker-feedback" id="docker-feedback" role="alert" hidden></div>
 
-            <section class="docker-kpis" aria-label="Indicadores da análise">
-                <article class="docker-card docker-kpi">
-                    <h2>Falhas de execução</h2>
-                    <div class="docker-kpi-valor" id="kpi-falhas">—</div>
-                    <p>Encerramentos por erro ou OOM no período</p><small
-                        id="kpi-falhas-nota">—</small>
-                </article>
-                <article class="docker-card docker-kpi">
-                    <h2>Reinicializações</h2>
-                    <div class="docker-kpi-valor" id="kpi-reinicios">—</div>
-                    <p>Reinícios identificados no período</p><small id="kpi-reinicios-nota">—</small>
-                </article>
-                <article class="docker-card docker-kpi">
-                    <h2>Erros nos logs</h2>
-                    <div class="docker-kpi-valor" id="kpi-erros">—</div>
-                    <p>Mensagens com nível ERROR no período</p><small id="kpi-erros-nota">—</small>
-                </article>
-                <article class="docker-card docker-kpi docker-kpi-pico">
-                    <div class="docker-kpi-topo">
-                        <h2>Pico de utilização</h2>
-                        <div class="docker-pico-alternancia" role="group" aria-label="Métrica do pico"><button
-                                class="ativo" type="button" data-pico="cpu" aria-pressed="true">CPU</button><button
-                                type="button" data-pico="ram" aria-pressed="false">RAM</button></div>
-                    </div>
-                    <div class="docker-kpi-valor" id="kpi-pico">—</div>
-                    <p id="kpi-pico-descricao">—</p><small id="kpi-pico-nota">—</small>
-                </article>
-            </section>
-            <p class="docker-escopo" id="docker-escopo-servidor">Servidor inteiro, mesmo com um contêiner selecionado.</p>
-
             <section class="docker-card docker-lista" aria-labelledby="docker-lista-titulo">
                 <div class="docker-secao-topo">
                     <div>
@@ -172,6 +142,36 @@
                     <div>As informações aparecerão aqui.</div>
                 </dl>
             </section>
+
+            <section class="docker-kpis" aria-label="Indicadores da análise" aria-describedby="docker-escopo-servidor">
+                <article class="docker-card docker-kpi docker-kpi-falhas">
+                    <h2>Falhas de execução</h2>
+                    <div class="docker-kpi-valor" id="kpi-falhas">—</div>
+                    <p>Encerramentos por erro ou OOM no período</p><small
+                        id="kpi-falhas-nota">—</small>
+                </article>
+                <article class="docker-card docker-kpi docker-kpi-reinicios">
+                    <h2>Reinicializações</h2>
+                    <div class="docker-kpi-valor" id="kpi-reinicios">—</div>
+                    <p>Reinícios identificados no período</p><small id="kpi-reinicios-nota">—</small>
+                </article>
+                <article class="docker-card docker-kpi docker-kpi-erros">
+                    <h2>Erros nos logs</h2>
+                    <div class="docker-kpi-valor" id="kpi-erros">—</div>
+                    <p>Mensagens com nível ERROR no período</p><small id="kpi-erros-nota">—</small>
+                </article>
+                <article class="docker-card docker-kpi docker-kpi-pico docker-kpi-utilizacao">
+                    <div class="docker-kpi-topo">
+                        <h2>Pico de utilização</h2>
+                        <div class="docker-pico-alternancia" role="group" aria-label="Métrica do pico"><button
+                                class="ativo" type="button" data-pico="cpu" aria-pressed="true">CPU</button><button
+                                type="button" data-pico="ram" aria-pressed="false">RAM</button></div>
+                    </div>
+                    <div class="docker-kpi-valor" id="kpi-pico">—</div>
+                    <p id="kpi-pico-descricao">—</p><small id="kpi-pico-nota">—</small>
+                </article>
+            </section>
+            <p class="docker-escopo" id="docker-escopo-servidor" role="status">Servidor inteiro · selecione um contêiner para filtrar os indicadores.</p>
 
             <div class="docker-desempenho-titulo">
                 <div>

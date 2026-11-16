@@ -75,7 +75,7 @@
                 eventos: documento.resumos.eventos || []
             };
         }
-        return { numero, total, instante, falhouNaData, estado, resumoLog, validar };
+        return { numero, total, instante, diaSaoPaulo, falhouNaData, estado, resumoLog, validar };
     })();
 
     const $ = (id) => document.getElementById(id);
@@ -211,6 +211,130 @@
             // Sem dados nesse dia: y=null, nunca 0 artificial.
             return { x: Date.parse(doc.data + "T12:00:00Z"), y: c ? D.numero(ler(c)) : null };
         });
+    }
+
+    function calcularMediaHistorica(lista, referencia, lerMedida) {
+        // O histórico normalizado tem um resumo por data. Filtramos antes de
+        // excluir o último dia: um resumo recente sem medição não é referência.
+        const diasValidos = lista.flatMap((doc) => {
+            const container = containerNoDia(doc, referencia);
+            const medida = container ? lerMedida(container) : null;
+            const media = D.numero(medida?.media);
+            const amostras = D.numero(medida?.amostras_validas);
+            if (media === null || amostras === null || amostras <= 0) return [];
+            return [{ data: doc.data, media, amostras }];
+        }).sort((a, b) => a.data.localeCompare(b.data));
+        if (diasValidos.length < 4) return null;
+
+        const maisRecente = diasValidos.pop();
+        // Ponderação por amostras válidas: dias com mais leituras têm mais peso.
+        // Zero medido é válido; dias ausentes e null nunca recebem peso artificial.
+        const amostras = diasValidos.reduce((soma, dia) => soma + dia.amostras, 0);
+        const somaPonderada = diasValidos.reduce((soma, dia) => soma + dia.media * dia.amostras, 0);
+        const valor = somaPonderada / amostras;
+        if (!Number.isFinite(valor)) return null;
+        return { valor, dias: diasValidos.length, amostras, dataExcluida: maisRecente.data };
+    }
+
+    function criarDatasetReferencia(lista, mediaHistorica) {
+        if (!mediaHistorica) return null;
+        return {
+            label: "Média histórica",
+            referenciaHistorica: true,
+            // São pontos de uma comparação constante, não medições interpoladas.
+            // As séries observadas continuam preservando suas lacunas com null.
+            data: lista.map((doc) => ({
+                x: Date.parse(doc.data + "T12:00:00Z"), y: mediaHistorica.valor
+            })),
+            borderColor: "#888888",
+            backgroundColor: "#888888",
+            borderDash: [6, 6],
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 0,
+            tension: 0,
+            fill: false
+        };
+    }
+
+    function leiturasContinuas(anterior, atual, dataAnterior, dataAtual) {
+        // O nome pode sobreviver à recriação; contadores só podem ser subtraídos
+        // entre leituras do MESMO ID Docker em datas consecutivas.
+        if (!anterior?.container_id || anterior.container_id !== atual?.container_id) return false;
+        if (Date.parse(dataAtual + "T00:00:00Z") - Date.parse(dataAnterior + "T00:00:00Z") !== 86400000) return false;
+
+        // Um reinício pode zerar e depois superar o contador antigo. A simples
+        // comparação numérica não detecta isso: verificamos também o ciclo de vida.
+        const reiniciosAntes = anterior.reinicios?.total?.ultimo_valor;
+        const reiniciosDepois = atual.reinicios?.total?.ultimo_valor;
+        if (reiniciosAntes !== undefined || reiniciosDepois !== undefined) {
+            if (D.numero(reiniciosAntes) === null || reiniciosAntes < 0 || reiniciosAntes !== reiniciosDepois) return false;
+        }
+        if (anterior.started_at != null || atual.started_at != null) {
+            const inicioAntes = D.instante(anterior.started_at);
+            const inicioDepois = D.instante(atual.started_at);
+            if (!inicioAntes || !inicioDepois || inicioAntes.getTime() !== inicioDepois.getTime()) return false;
+        }
+        if (anterior.ultima_observacao != null || atual.ultima_observacao != null) {
+            const antes = D.instante(anterior.ultima_observacao);
+            const depois = D.instante(atual.ultima_observacao);
+            if (!antes || !depois || depois <= antes || D.diaSaoPaulo(antes) !== dataAnterior || D.diaSaoPaulo(depois) !== dataAtual) return false;
+        }
+        return true;
+    }
+
+    function criarPontosIntervalos(lista, referencia, lerContador, divisor = 1) {
+        const leituraValida = (medida) => D.numero(medida?.ultimo_valor) !== null
+            && medida.ultimo_valor >= 0 && D.numero(medida.amostras_validas) > 0
+            && (medida.ultimo_status === undefined || medida.ultimo_status === "ok");
+        return lista.map((doc, indice) => {
+            const ponto = { x: Date.parse(doc.data + "T12:00:00Z"), y: null };
+            const docAnterior = lista[indice - 1];
+            if (!docAnterior || !Number.isFinite(divisor) || divisor <= 0) return ponto;
+            const atual = containerNoDia(doc, referencia);
+            const anterior = containerNoDia(docAnterior, referencia);
+            if (!leiturasContinuas(anterior, atual, docAnterior.data, doc.data)) return ponto;
+            const medidaAtual = lerContador(atual);
+            const medidaAnterior = lerContador(anterior);
+            if (!leituraValida(medidaAtual) || !leituraValida(medidaAnterior)) return ponto;
+            const diferenca = medidaAtual.ultimo_valor - medidaAnterior.ultimo_valor;
+            // Queda do contador indica reset, não consumo negativo nem zero.
+            // O primeiro dia do filtro fica sem delta: não buscamos fora dele.
+            if (diferenca < 0 || !Number.isFinite(diferenca / divisor)) return ponto;
+            return { ...ponto, y: diferenca / divisor, inicio: docAnterior.data, fim: doc.data };
+        });
+    }
+
+    function calcularMediaIntervalos(pontos) {
+        // Volumes por intervalo têm peso igual, não peso por número de coletas.
+        // Excluímos o dia final do filtro, mesmo quando seu delta é indisponível.
+        const anteriores = pontos.filter((ponto) => ponto.x < pontos.at(-1).x
+            && D.numero(ponto.y) !== null && ponto.y >= 0);
+        if (anteriores.length < 3) return null;
+        const valor = anteriores.reduce((soma, ponto) => soma + ponto.y, 0) / anteriores.length;
+        return Number.isFinite(valor) ? { valor, intervalos: anteriores.length } : null;
+    }
+
+    function criarReferenciasIntervalos(lista, series, incluirZero = false) {
+        const referencias = series.flatMap((serie) => {
+            const media = calcularMediaIntervalos(serie.pontos);
+            if (!media) return [];
+            return [{
+                ...criarDatasetReferencia(lista, media),
+                label: `Média histórica · ${serie.nome}`,
+                borderColor: serie.corReferencia || "#888888",
+                backgroundColor: serie.corReferencia || "#888888",
+                borderDash: [2, 5], borderWidth: 1.5,
+                intervalos: media.intervalos
+            }];
+        });
+        if (incluirZero) referencias.push({
+            ...criarDatasetReferencia(lista, { valor: 0 }),
+            label: "Referência · zero segundo", referenciaHistorica: false,
+            referenciaComparativa: true, borderColor: "#a6abb1", backgroundColor: "#a6abb1",
+            borderDash: [2, 5], borderWidth: 1.5
+        });
+        return referencias;
     }
 
     function calcularIndicadores() {
@@ -362,7 +486,7 @@
         adicionarTexto(vazio, "span", nota || "Não há medições suficientes para este gráfico.");
     }
 
-    function grafico(titulo, subtitulo, destaque, referencia, series, unidade, porcentagem = false) {
+    function grafico(titulo, subtitulo, destaque, referencia, series, unidade, porcentagem = false, lerMedidaReferencia = null, opcoes = {}) {
         const artigo = adicionarTexto($("docker-graficos"), "article", "", "docker-card docker-grafico-card");
         const topo = adicionarTexto(artigo, "div", "", "docker-grafico-topo");
         const texto = adicionarTexto(topo, "div", "");
@@ -374,7 +498,7 @@
         // são proporcionais aos dias de diferença. Não inventamos datas nem zeros.
         const conjuntos = series.map((serie, indice) => ({
             label: serie.nome,
-            data: criarPontosDiarios(historicoAtivo, referencia, serie.ler),
+            data: serie.pontos || criarPontosDiarios(historicoAtivo, referencia, serie.ler),
             borderColor: serie.cor || (indice === 0 ? "#d00000" : "#e49b26"),
             backgroundColor: serie.cor || (indice === 0 ? "#d00000" : "#e49b26"),
             borderDash: serie.tracejada ? [6, 4] : [],
@@ -384,8 +508,19 @@
             pointHoverRadius: 6,
             spanGaps: false
         }));
-        if (!conjuntos.some((serie) => serie.data.some((ponto) => ponto.y !== null))) {
-            criarGraficoVazio(artigo, "Nenhum resumo do período contém essa métrica.");
+        const temMedicoes = conjuntos.some((serie) => serie.data.some((ponto) => ponto.y !== null));
+        if (lerMedidaReferencia) {
+            const mediaHistorica = calcularMediaHistorica(historicoAtivo, referencia, lerMedidaReferencia);
+            const datasetReferencia = criarDatasetReferencia(historicoAtivo, mediaHistorica);
+            if (datasetReferencia) conjuntos.push(datasetReferencia);
+            adicionarTexto(artigo, "p", mediaHistorica
+                ? `Média histórica: ${n(mediaHistorica.valor, unidade)} · ponderada por ${n(mediaHistorica.amostras)} amostras em ${mediaHistorica.dias} dias anteriores, excluindo ${mediaHistorica.dataExcluida.split("-").reverse().join("/")}. Referência de comparação, sem limite de alerta.`
+                : "Histórico insuficiente para calcular a média de referência.", "docker-grafico-observacao");
+        }
+        conjuntos.push(...(opcoes.referencias || []));
+        if (opcoes.nota) adicionarTexto(artigo, "p", opcoes.nota, "docker-grafico-observacao");
+        if (!temMedicoes) {
+            criarGraficoVazio(artigo, opcoes.intervalos ? "Sem pares de leituras válidas e contínuas no período. Ausência de dados não significa consumo zero." : "Nenhum resumo do período contém essa métrica.");
             return artigo;
         }
         if (!window.Chart) {
@@ -413,8 +548,12 @@
                     legend: { display: true, position: "bottom", align: "start", labels: { boxWidth: 14, boxHeight: 2, color: "#555056", font: { size: 11 }, padding: 16 } },
                     tooltip: {
                         callbacks: {
-                            title: (itens) => itens.length ? formatarDia(itens[0].parsed.x) : "",
-                            label: (item) => `${item.dataset.label}: ${n(item.parsed.y, unidade)}`
+                            title: (itens) => {
+                                if (!itens.length) return "";
+                                const ponto = itens[0].raw;
+                                return ponto?.inicio ? `${ponto.inicio.split("-").reverse().join("/")} → ${ponto.fim.split("-").reverse().join("/")}` : formatarDia(itens[0].parsed.x);
+                            },
+                            label: (item) => `${item.dataset.label}: ${n(item.parsed.y, unidade)}${item.dataset.referenciaHistorica || item.dataset.referenciaComparativa ? " (referência de comparação)" : ""}`
                         }
                     }
                 },
@@ -434,14 +573,31 @@
             }
         });
         graficosAtivos.push(chart);
-        const diasMedidos = conjuntos.reduce((datas, serie) => {
+        const diasMedidos = conjuntos.filter((serie) => !serie.referenciaHistorica && !serie.referenciaComparativa).reduce((datas, serie) => {
             serie.data.filter((ponto) => ponto.y !== null).forEach((ponto) => datas.add(ponto.x));
             return datas;
         }, new Set()).size;
         if (diasMedidos === 1) {
-            adicionarTexto(artigo, "p", "Esta métrica está disponível em somente um dia. Os outros resumos não contêm leituras dela.", "docker-grafico-observacao");
+            adicionarTexto(artigo, "p", opcoes.intervalos ? "Somente um intervalo válido no período." : "Esta métrica está disponível em somente um dia. Os outros resumos não contêm leituras dela.", "docker-grafico-observacao");
         }
         return artigo;
+    }
+
+    function graficoContadores(titulo, container, series, unidade, divisor, incluirZero = false) {
+        const intervalos = series.map((serie) => ({
+            ...serie, pontos: criarPontosIntervalos(historicoAtivo, container, serie.ler, divisor)
+        }));
+        const referencias = criarReferenciasIntervalos(historicoAtivo, intervalos, incluirZero);
+        const historicas = referencias.filter((serie) => serie.referenciaHistorica);
+        const nota = historicas.map((serie) => `${serie.label}: ${n(serie.data[0].y, unidade)} (${serie.intervalos} intervalos anteriores)`).join(" · ");
+        const insuficientes = intervalos.filter((serie) => !calcularMediaIntervalos(serie.pontos)).map((serie) => serie.nome);
+        const destaque = intervalos.map((serie) => n(serie.pontos.at(-1)?.y, unidade)).join(" / ") + " · último intervalo";
+        grafico(titulo, "Diferenças entre leituras de dias consecutivos", destaque, container,
+            intervalos, unidade, false, null, {
+                intervalos: true, referencias,
+                nota: [nota ? nota + "." : "", insuficientes.length ? `Histórico insuficiente para referência: ${insuficientes.join(", ")}.` : "",
+                    "Comparação por intervalo; exclui a última data do período. Lacunas e reinícios não são considerados zero."].filter(Boolean).join(" ")
+            });
     }
 
     function renderizarGraficos(c) {
@@ -452,32 +608,30 @@
         graficosAtivos.forEach((chart) => chart.destroy());
         graficosAtivos = [];
         $("docker-graficos").replaceChildren();
-        const emMb = (bytes) => bytes === null || bytes === undefined ? null : bytes / (1024 * 1024);
-        const emSegundos = (nanos) => nanos === null || nanos === undefined ? null : nanos / 1e9;
+        document.querySelector(".docker-aviso-medicoes").textContent = "CPU, RAM e PIDs mostram medições diárias. Rede, disco e throttling mostram diferenças entre leituras de dias consecutivos, dentro do período. O primeiro dia e intervalos sem continuidade ficam sem valor. Referências são comparativas, sem limites de alerta.";
         grafico("Utilização de CPU (%)", "Média e pico registrados em cada dia", n(c.cpu?.uso?.media, "%") + " média", c, [
             { nome: "Média diária", ler: (v) => v.cpu?.uso?.media },
             { nome: "Pico diário", ler: (v) => v.cpu?.uso?.maximo }
-        ], "%", true);
-        grafico("Utilização de Memória (MB)", `Memória média · limite Docker: ${mb(c.memoria?.limite?.ultimo_valor)}`, mb(c.memoria?.utilizada?.media), c, [
-            { nome: "Média diária", ler: (v) => emMb(v.memoria?.utilizada?.media) },
-            { nome: "Limite Docker", tracejada: true, ler: (v) => emMb(v.memoria?.limite?.ultimo_valor) }
-        ], " MB");
-        grafico("Tráfego de Rede (MB)", "Contadores acumulados na última leitura diária", "MB acumulados", c, [
-            { nome: "RX · recebidos", cor: "#346b9f", ler: (v) => emMb(v.rede?.recebidos?.ultimo_valor) },
-            { nome: "TX · enviados", cor: "#8663a6", ler: (v) => emMb(v.rede?.enviados?.ultimo_valor) }
-        ], " MB");
-        grafico("I/O de Disco (MB)", "Contadores acumulados na última leitura diária", "MB acumulados", c, [
-            { nome: "Leitura", cor: "#346b9f", ler: (v) => emMb(v.disco?.leitura_acumulada?.ultimo_valor) },
-            { nome: "Escrita", cor: "#8663a6", ler: (v) => emMb(v.disco?.escrita_acumulada?.ultimo_valor) }
-        ], " MB");
+        ], "%", true, (v) => v.cpu?.uso);
+        grafico("Utilização de RAM (%)", "Média e pico registrados em cada dia", n(c.memoria?.uso?.media, "%") + " média", c, [
+            { nome: "Média diária", ler: (v) => v.memoria?.uso?.media },
+            { nome: "Pico diário", ler: (v) => v.memoria?.uso?.maximo }
+        ], "%", true, (v) => v.memoria?.uso);
+        graficoContadores("Tráfego de Rede (MB por intervalo)", c, [
+            { nome: "RX · recebidos", cor: "#346b9f", corReferencia: "#8197a9", ler: (v) => v.rede?.recebidos },
+            { nome: "TX · enviados", cor: "#8663a6", corReferencia: "#a395af", ler: (v) => v.rede?.enviados }
+        ], " MB", 1024 * 1024);
+        graficoContadores("I/O de Disco (MB por intervalo)", c, [
+            { nome: "Leitura", cor: "#346b9f", corReferencia: "#8197a9", ler: (v) => v.disco?.leitura_acumulada },
+            { nome: "Escrita", cor: "#8663a6", corReferencia: "#a395af", ler: (v) => v.disco?.escrita_acumulada }
+        ], " MB", 1024 * 1024);
         grafico("PIDs / Threads (quantidade)", "Média e máximo registrados em cada dia", n(c.pids?.atuais?.media) + " média", c, [
             { nome: "Média diária", ler: (v) => v.pids?.atuais?.media },
             { nome: "Pico diário", ler: (v) => v.pids?.atuais?.maximo }
-        ], "");
-        const throttled = D.numero(c.cpu?.tempo_throttled?.ultimo_valor);
-        grafico("CPU Throttling", "Contador acumulado de tempo limitado", throttled === null ? "—" : n(throttled / 1e9, " s"), c, [
-            { nome: "Tempo acumulado", ler: (v) => emSegundos(v.cpu?.tempo_throttled?.ultimo_valor) }
-        ], " s");
+        ], "", false, (v) => v.pids?.atuais);
+        graficoContadores("CPU Throttling (s por intervalo)", c, [
+            { nome: "Tempo limitado", ler: (v) => v.cpu?.tempo_throttled }
+        ], " s", 1e9, true);
     }
 
     function renderizarLogs(c) {
@@ -634,7 +788,8 @@
         module.exports = {
             validar: D.validar, resumoLog: D.resumoLog, filtrarPeriodo,
             containerNoDia, reiniciosDetectados, contarFalhas, contarErros,
-            criarPontosDiarios
+            criarPontosDiarios, calcularMediaHistorica, criarDatasetReferencia,
+            leiturasContinuas, criarPontosIntervalos, calcularMediaIntervalos, criarReferenciasIntervalos
         };
     }
     if (typeof document === "undefined") return;

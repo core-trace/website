@@ -265,7 +265,108 @@
                     </article>
                 </section>
 
+                <!-- Todos os processos (esqueleto) -->
+                <section class="todos-processos" aria-label="Todos os processos">
+                    <article class="card">
+                        <header class="card-cabecalho">
+                            <h2 class="card-titulo">Todos os processos</h2>
+                            <div class="card-acoes">
+                                <label class="filtro-rotulo busca-rotulo" for="busca-todos-processos">Buscar</label>
+                                <div class="filtro-select filtro-select--busca">
+                                    <input type="search" id="busca-todos-processos" name="busca"
+                                        aria-label="Buscar nome ou PID" placeholder="--">
+                                </div>
+                                <label class="filtro-rotulo ordenacao-rotulo" for="filtro-status-todos">Status</label>
+                                <div class="filtro-select">
+                                    <select id="filtro-status-todos" name="status" aria-label="Filtrar por status">
+                                        <option value="" selected disabled hidden>--</option>
+                                    </select>
+                                </div>
+                                <label class="filtro-rotulo ordenacao-rotulo" for="ordenacao-todos">Ordenar</label>
+                                <div class="filtro-select">
+                                    <select id="ordenacao-todos" name="ordenacao" aria-label="Ordenar processos">
+                                        <option value="cpu-desc" selected>CPU ↓</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="tabela-scroll" role="region" aria-label="Tabela de todos os processos">
+                            <table class="tabela-todos">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Nome do processo</th>
+                                        <th scope="col">PID</th>
+                                        <th scope="col">Usuário</th>
+                                        <th scope="col">CPU (%)</th>
+                                        <th scope="col">Memória RSS</th>
+                                        <th scope="col">Threads</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Criação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-todos" aria-live="polite">
+                                    <!-- Linhas injetadas dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="paginacao" id="paginacao-todos">
+                            <span class="paginacao-info" id="paginacao-info">Exibindo 1–6 de -- processos</span>
+                            <span class="paginacao-por-pagina" id="paginacao-por-pagina">-- por página</span>
+                            <nav class="paginacao-controles" id="paginacao-controles" aria-label="Paginação">
+                                <!-- Controles injetados dinamicamente -->
+                            </nav>
+                        </div>
+                    </article>
+                </section>
+
+                <!-- Recorrência de anormalidades (esqueleto) -->
+                <section class="recorrencia-anormalidades" aria-label="Recorrência de anormalidades">
+                    <article class="card">
+                        <header class="card-cabecalho">
+                            <h2 class="card-titulo">Recorrência de anormalidades</h2>
+                            <div class="card-acoes">
+                                <label class="filtro-rotulo ordenacao-rotulo" for="ordenacao-recorrencia">Ordenar</label>
+                                <div class="filtro-select">
+                                    <select id="ordenacao-recorrencia" name="ordenacao" aria-label="Ordenar por ocorrências">
+                                        <option value="ocorrencias-desc" selected>ocorrências ↓</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="tabela-scroll" role="region" aria-label="Tabela de recorrência de anormalidades">
+                            <table class="tabela-recorrencia">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Processo / PID</th>
+                                        <th scope="col">Ocorrências</th>
+                                        <th scope="col">Tipo de anormalidade</th>
+                                        <th scope="col">Última ocorrência</th>
+                                        <th scope="col">Duração média</th>
+                                        <th scope="col">Frequência</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-recorrencia" aria-live="polite">
+                                    <!-- Linhas injetadas dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="recorrencia-nota" id="recorrencia-nota">
+                            A duração média considera apenas ocorrências encerradas.
+                        </p>
+                    </article>
+                </section>
+
             </div>
+
+            <!-- Rodapé geral da página -->
+            <footer class="rodape-pagina" id="rodape-pagina">
+                <p class="rodape-texto">Dados fictícios para demonstração · snapshots de processos coletados com psutil · horário local UTC-3</p>
+            </footer>
+
+        </main>
+    </div>
+</body>
+</html>
 
         </main>
     </div>

@@ -817,6 +817,184 @@ img, svg { display: block; max-width: 100%; }
   font-weight: 800;
 }
 
+/* ---------- Tabela: Todos os processos ---------- */
+.todos-processos {
+  margin-top: var(--espaco-xl);
+}
+
+.tabela-todos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fonte-campo);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabela-todos th {
+  padding: var(--espaco-s) var(--espaco-m);
+  background: var(--cor-surface-muted);
+  color: var(--cor-texto-menor);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: var(--fonte-rotulo);
+  border-bottom: var(--borda-s);
+}
+
+.tabela-todos td {
+  padding: var(--espaco-m);
+  border-bottom: var(--borda-s);
+  color: var(--cor-texto);
+}
+
+.tabela-todos tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabela-todos tbody tr:hover {
+  background: var(--cor-surface-hover);
+}
+
+.linha-ativa {
+  border-left: 4px solid var(--cor-coral);
+  background: var(--cor-coral-suave);
+}
+
+.linha-ativa td {
+  border-bottom-color: var(--cor-coral);
+}
+
+/* ---------- Tabela: Recorrência de anormalidades ---------- */
+.recorrencia-anormalidades {
+  margin-top: var(--espaco-xl);
+}
+
+.tabela-recorrencia {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fonte-campo);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabela-recorrencia th {
+  padding: var(--espaco-s) var(--espaco-m);
+  background: var(--cor-surface-muted);
+  color: var(--cor-texto-menor);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: var(--fonte-rotulo);
+  border-bottom: var(--borda-s);
+}
+
+.tabela-recorrencia td {
+  padding: var(--espaco-m);
+  border-bottom: var(--borda-s);
+  color: var(--cor-texto);
+}
+
+.tabela-recorrencia tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabela-recorrencia tbody tr:hover {
+  background: var(--cor-surface-hover);
+}
+
+.frequencia-indicadores {
+  display: flex;
+  gap: var(--espaco-xs);
+}
+
+.frequencia-bolinha {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.frequencia-bolinha--ativa {
+  background: var(--cor-coral);
+}
+
+.frequencia-bolinha--inativa {
+  background: var(--cor-borda);
+}
+
+.recorrencia-nota {
+  margin-top: var(--espaco-s);
+  padding: 0 var(--espaco-xl) var(--espaco-xl);
+  font-size: var(--fonte-rotulo);
+  color: var(--cor-texto-suave);
+}
+
+/* ---------- Paginação ---------- */
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-m);
+  padding: var(--espaco-m) var(--espaco-xl);
+  border-top: var(--borda-s);
+  flex-wrap: wrap;
+  font-size: var(--fonte-rotulo);
+  color: var(--cor-texto-suave);
+}
+
+.paginacao-info,
+.paginacao-por-pagina {
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.paginacao-controles {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-xs);
+}
+
+.paginacao-controles button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: var(--borda-s);
+  border-radius: var(--raio-s);
+  background: var(--cor-card);
+  color: var(--cor-texto);
+  font-size: var(--fonte-campo);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.paginacao-controles button:hover {
+  border-color: var(--cor-borda-strong);
+  background: var(--cor-surface-hover);
+}
+
+.paginacao-controles button:focus-visible {
+  outline: 2px solid var(--cor-coral);
+  outline-offset: 2px;
+}
+
+.paginacao-controles .paginacao-ponto {
+  color: var(--cor-texto-suave);
+}
+
+/* ---------- Rodapé geral da página ---------- */
+.rodape-pagina {
+  margin-top: var(--espaco-2xl);
+  padding: var(--espaco-xl) var(--espaco-xl) var(--espaco-2xl);
+  border-top: var(--borda-s);
+}
+
+.rodape-texto {
+  margin: 0;
+  font-size: var(--fonte-rotulo);
+  color: var(--cor-texto-suave);
+  text-align: center;
+}
+
 /* ---------- Responsividade (apenas da página) ---------- */
 @media (max-width: 900px) {
   .processos-cabecalho {
@@ -846,6 +1024,22 @@ img, svg { display: block; max-width: 100%; }
   .filtros-eventos .filtro-campo { min-width: unset; width: 100%; }
   .janela-investigacao { flex-direction: column; align-items: flex-start; gap: var(--espaco-xs); }
   .evento-item { grid-template-columns: 56px 1fr auto; gap: var(--espaco-s); padding: var(--espaco-xs) 0; }
+
+  .todos-processos .card-acoes,
+  .recorrencia-anormalidades .card-acoes {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--espaco-m);
+  }
+  .todos-processos .card-acoes .filtro-select,
+  .recorrencia-anormalidades .card-acoes .filtro-select {
+    width: 100%;
+  }
+  .paginacao {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--espaco-m);
+  }
 }
 
 @media (max-width: 600px) {
@@ -869,4 +1063,20 @@ img, svg { display: block; max-width: 100%; }
   .filtros-eventos .filtro-campo { min-width: unset; width: 100%; }
   .janela-investigacao { flex-direction: column; align-items: flex-start; gap: var(--espaco-xs); }
   .evento-item { grid-template-columns: 56px 1fr auto; gap: var(--espaco-s); padding: var(--espaco-xs) 0; }
+
+  .todos-processos .card-acoes,
+  .recorrencia-anormalidades .card-acoes {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--espaco-m);
+  }
+  .todos-processos .card-acoes .filtro-select,
+  .recorrencia-anormalidades .card-acoes .filtro-select {
+    width: 100%;
+  }
+  .paginacao {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--espaco-m);
+  }
 }

@@ -86,6 +86,18 @@
     color: var(--ct-muted);
 }
 
+.geral-chip-evento {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background-color: var(--ct-line);
+    color: var(--ct-muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: default;
+}
+
 /* KPIs */
 
 .geral-indicadores {
@@ -378,6 +390,26 @@
 .geral-perfil-duracao span {
     font-size: 15px;
     color: var(--ct-muted);
+}
+
+.geral-sinal-pagamento {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-left: 6px;
+    border-radius: 4px;
+    vertical-align: middle;
+    background-color: var(--ct-green);
+}
+
+.geral-sinal-pagamento-incidente {
+    background-color: var(--ct-amber);
+    animation: geral-pulso-pagamento 1.6s ease-in-out infinite;
+}
+
+@keyframes geral-pulso-pagamento {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
 }
 
 .geral-perfil-distribuicao {

@@ -27,6 +27,18 @@
         texto("indicador-sem-dados-legenda", indicadores.semDadosLegenda);
     }
 
+    function mostrarSinaisExternos(sinaisExternos) {
+        const chip = document.getElementById("chip-proximo-evento");
+        const proximoFeriado = sinaisExternos?.proximoFeriado;
+        if (!proximoFeriado) {
+            chip.hidden = true;
+            return;
+        }
+        chip.hidden = false;
+        chip.textContent = `Evento em ${proximoFeriado.diasRestantes} ${proximoFeriado.diasRestantes === 1 ? "dia" : "dias"}`;
+        chip.title = `${proximoFeriado.nome} — fique de olho nos perfis de criticidade alta.`;
+    }
+
     // Recalcula cobertura/indicadores/perfis olhando so pro perfil escolhido, a partir
     // do resumo que ja temos guardado - o filtro nao busca nada novo no servidor, so
     // reaproveita a divisao por perfil que a rota /geral/resumo ja manda pronta.
@@ -55,7 +67,8 @@
             // incompleta. Null aqui sinaliza pra renderizarResumo esconder a secao em
             // vez de reaproveitar o resumo.resumo/resumo.acoes do agregado.
             resumo: null,
-            acoes: null
+            acoes: null,
+            sinaisExternos: resumo.sinaisExternos
         };
     }
 
@@ -71,7 +84,8 @@
     function renderizarResumo(resumo) {
         mostrarCabecalho(resumo.estado);
         mostrarIndicadores(resumo.cobertura, resumo.indicadores);
-        mostrarPerfis(resumo.perfis);
+        mostrarPerfis(resumo.perfis, resumo.sinaisExternos);
+        mostrarSinaisExternos(resumo.sinaisExternos);
 
         alternarSecaoResumo(resumo.resumo !== null);
         if (resumo.resumo !== null) {
@@ -138,16 +152,17 @@
         return `<span class="geral-barra-segmento ${classe}" style="width:${largura}%"></span>`;
     }
 
-    function mostrarPerfis(perfis) {
+    function mostrarPerfis(perfis, sinaisExternos) {
         const lista = document.getElementById("lista-perfis");
         lista.replaceChildren(...perfis.map(perfil => {
             const linha = document.createElement("div");
             linha.className = "geral-linha-perfil";
             const total = perfil.distribuicao.critico + perfil.distribuicao.atencao
                 + perfil.distribuicao.normal + perfil.distribuicao.semDados;
+            const mostraSinalPagamento = perfil.nome === "Financeiro" && sinaisExternos?.statusPagamento;
             linha.innerHTML = `
                 <span class="geral-perfil-nome">
-                    <strong>${perfil.nome}</strong>
+                    <strong>${perfil.nome}${mostraSinalPagamento ? '<span class="geral-sinal-pagamento" tabindex="0"></span>' : ""}</strong>
                     <span>${perfil.sinal}</span>
                 </span>
                 <span class="geral-perfil-afetados">
@@ -170,6 +185,14 @@
                 <span class="geral-perfil-chev">
                     <img src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16">
                 </span>`;
+
+            if (mostraSinalPagamento) {
+                const sinal = linha.querySelector(".geral-sinal-pagamento");
+                const { operacional, descricao } = sinaisExternos.statusPagamento;
+                sinal.classList.toggle("geral-sinal-pagamento-incidente", !operacional);
+                sinal.title = descricao;
+            }
+
             return linha;
         }));
     }

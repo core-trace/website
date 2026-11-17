@@ -84,6 +84,21 @@ async function listarServidoresPorEmpresa(idEmpresa, idUsuario) {
     }));
 }
 
+// Usada pelo job de agregacao da dashboard Geral (ver resumoGeralService), que roda
+// em segundo plano, sem usuario logado - por isso nao tem o filtro de permissao que
+// listarServidoresPorEmpresa precisa aplicar para uma requisicao de um usuario real.
+function listarServidoresParaMonitoramento(idEmpresa) {
+    const instrucaoSql = `
+        SELECT s.endereco_mac, s.nome, p.id_perfil_servidor, p.nome AS nome_perfil
+        FROM servidores s
+        INNER JOIN perfil_servidor p ON p.id_perfil_servidor = s.fk_perfil_servidor
+        WHERE p.fk_empresa = ?
+        ORDER BY p.nome ASC, s.nome ASC;
+    `;
+
+    return database.executar(instrucaoSql, [idEmpresa]);
+}
+
 function listarPerfisPorEmpresa(idEmpresa) {
     const instrucaoSql = `
         SELECT p.id_perfil_servidor, p.nome, p.descricao,
@@ -230,6 +245,6 @@ function atualizarPerfil(idPerfil, dados) {
 
 module.exports = {
     buscarPerfil, buscarPorMac, cadastrar, ativar,
-    listarServidoresPorEmpresa, listarPerfisPorEmpresa, listarMetricas, buscarProprietario,
+    listarServidoresPorEmpresa, listarServidoresParaMonitoramento, listarPerfisPorEmpresa, listarMetricas, buscarProprietario,
     listarMembrosDisponiveis, criarPerfil, obterPerfil, atualizarPerfil
 };

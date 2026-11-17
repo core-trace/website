@@ -1,20 +1,84 @@
 (() => {
+    // Divisao temporaria e intencional: "estado", "cobertura", "indicadores" e "perfis"
+    // ja vem de dados reais (rota /geral/resumo, ver src/routes/geralRoutes.js). Os
+    // demais campos (resumo, acoes, evolucao, evolucaoLegenda, riscos, perguntasProntas)
+    // continuam vindo do mock porque dependem de hipoteses ainda nao implementadas
+    // (resumo investigativo, assistente, previsao de tendencia) - nao e uma lacuna
+    // esquecida, e so o que esta dentro do escopo de "implementar o calculo de
+    // proporcao afetada por perfil" por enquanto.
     const dado = geralMock;
+
+    // Guarda o ultimo resumo (real ou, se a rota falhar, mocado) para o filtro de
+    // perfil conseguir recalcular a tela na hora, sem precisar buscar de novo no
+    // servidor - afinal a rota /geral/resumo ja devolve a divisao por perfil pronta.
+    let ultimoResumo = null;
 
     const texto = (id, valor) => { document.getElementById(id).textContent = valor; };
 
-    function mostrarCabecalho() {
-        document.getElementById("estado-titulo").textContent = dado.estado.titulo;
+    function mostrarCabecalho(estado) {
+        document.getElementById("estado-titulo").textContent = estado.titulo;
     }
 
-    function mostrarIndicadores() {
-        texto("indicador-cobertura", `${dado.cobertura.avaliados}/${dado.cobertura.esperados}`);
-        texto("indicador-criticos", dado.indicadores.criticos);
-        texto("indicador-criticos-legenda", dado.indicadores.criticosLegenda);
-        texto("indicador-atencao", dado.indicadores.atencao);
-        texto("indicador-atencao-legenda", dado.indicadores.atencaoLegenda);
-        texto("indicador-sem-dados", dado.indicadores.semDadosRecentes);
-        texto("indicador-sem-dados-legenda", dado.indicadores.semDadosLegenda);
+    function mostrarIndicadores(cobertura, indicadores) {
+        texto("indicador-cobertura", `${cobertura.avaliados}/${cobertura.esperados}`);
+        texto("indicador-criticos", indicadores.criticos);
+        texto("indicador-criticos-legenda", indicadores.criticosLegenda);
+        texto("indicador-atencao", indicadores.atencao);
+        texto("indicador-atencao-legenda", indicadores.atencaoLegenda);
+        texto("indicador-sem-dados", indicadores.semDadosRecentes);
+        texto("indicador-sem-dados-legenda", indicadores.semDadosLegenda);
+    }
+
+    // Recalcula cobertura/indicadores/perfis olhando so pro perfil escolhido, a partir
+    // do resumo que ja temos guardado - o filtro nao busca nada novo no servidor, so
+    // reaproveita a divisao por perfil que a rota /geral/resumo ja manda pronta.
+    function filtrarPorPerfil(resumo, nomePerfil) {
+        if (!nomePerfil) return resumo; // "Todos perfis": mostra o resumo inteiro
+
+        const perfil = resumo.perfis.find(item => item.nome === nomePerfil);
+        if (!perfil) return resumo; // perfil sem nenhum servidor nesse resumo - nao deveria acontecer
+
+        const distribuicao = perfil.distribuicao;
+        const avaliados = distribuicao.critico + distribuicao.atencao + distribuicao.normal;
+        const esperados = avaliados + distribuicao.semDados;
+
+        return {
+            estado: resumo.estado,
+            cobertura: { avaliados, esperados },
+            indicadores: {
+                criticos: distribuicao.critico, criticosLegenda: "",
+                atencao: distribuicao.atencao, atencaoLegenda: "",
+                semDadosRecentes: distribuicao.semDados, semDadosLegenda: ""
+            },
+            perfis: [perfil]
+        };
+    }
+
+    function renderizarResumo(resumo) {
+        mostrarCabecalho(resumo.estado);
+        mostrarIndicadores(resumo.cobertura, resumo.indicadores);
+        mostrarPerfis(resumo.perfis);
+    }
+
+    function configurarFiltroPerfil() {
+        document.getElementById("filtro-perfil").addEventListener("change", function (evento) {
+            if (ultimoResumo) renderizarResumo(filtrarPorPerfil(ultimoResumo, evento.target.value));
+        });
+    }
+
+    // Busca os dados reais na rota /geral/resumo. Se a rota falhar por qualquer motivo,
+    // cai de volta no mock desses mesmos campos, so para a tela nunca ficar vazia.
+    async function carregarDadosReais() {
+        try {
+            const resposta = await fetch("/geral/resumo");
+            if (!resposta.ok) throw new Error("Não foi possível carregar o resumo geral.");
+            ultimoResumo = await resposta.json();
+        } catch (erro) {
+            console.error("Erro ao carregar o resumo geral, usando dados mocados:", erro.message);
+            ultimoResumo = { estado: dado.estado, cobertura: dado.cobertura, indicadores: dado.indicadores, perfis: dado.perfis };
+        }
+        const perfilEscolhido = document.getElementById("filtro-perfil").value;
+        renderizarResumo(filtrarPorPerfil(ultimoResumo, perfilEscolhido));
     }
 
     function mostrarResumo() {
@@ -51,9 +115,9 @@
         return `<span class="geral-barra-segmento ${classe}" style="width:${largura}%"></span>`;
     }
 
-    function mostrarPerfis() {
+    function mostrarPerfis(perfis) {
         const lista = document.getElementById("lista-perfis");
-        lista.replaceChildren(...dado.perfis.map(perfil => {
+        lista.replaceChildren(...perfis.map(perfil => {
             const linha = document.createElement("div");
             linha.className = "geral-linha-perfil";
             const total = perfil.distribuicao.critico + perfil.distribuicao.atencao
@@ -169,11 +233,10 @@
         });
     }
 
-    mostrarCabecalho();
-    mostrarIndicadores();
+    configurarFiltroPerfil();
+    carregarDadosReais();
     mostrarResumo();
     mostrarAcoes();
-    mostrarPerfis();
     mostrarRiscos();
     mostrarGraficoEvolucao();
     configurarExportar();

@@ -1,3 +1,5 @@
+// Servidores{
+
 let teste = document.querySelector("#lista-servidores-componentes");
 
 async function ListarServidoresComponentes() {
@@ -47,6 +49,7 @@ function renderizarServidores(servidores) {
 
     tabelaServidores.innerHTML = '';
     servidoresTotais.innerHTML = servidores.length;
+    servidoresTotaisTabela.innerHTML = servidores.length;
 
     for (let i = 0; i < servidores.length; i++) {
         tabelaServidores.innerHTML += `
@@ -60,10 +63,18 @@ function renderizarServidores(servidores) {
                 <td>?</td>
                 <td>?</td>
                 <td>?</td>
-                <td><button class="visao-detalhes-botao">Detalhes <img src="../assets/icons/seta_vermelha.svg" alt width="11" height="11"></button></td>
+                <td><button class="visao-detalhes-botao" onclick="abrirDetalhes('${servidores[i].nome}', '${servidores[i].nome_perfil}')">Detalhes <img src="../assets/icons/seta_vermelha.svg" alt width="11" height="11"></button></td>
             </tr>
         `;
     }
+}
+
+function abrirDetalhes(nome, nomePerfil) {
+
+    sessionStorage.setItem('nomeServidor', nome);
+    sessionStorage.setItem('nomePerfil', nomePerfil);
+
+    window.location.href = 'servidor.html';
 }
 
 function buscarServidor() {
@@ -99,22 +110,31 @@ function carregarPerfis(servidores) {
     let perfisAdicionados = [];
 
     for (let i = 0; i < servidores.length; i++) {
+
         let perfilExiste = false;
+
         for (let j = 0; j < perfisAdicionados.length; j++) {
+
             if (perfisAdicionados[j] == servidores[i].id_perfil_servidor) {
                 perfilExiste = true;
             }
+
         }
 
         if (!perfilExiste) {
+
             perfisAdicionados.push(servidores[i].id_perfil_servidor);
+
             filtroPerfil.innerHTML += `
                 <option value="${servidores[i].id_perfil_servidor}">
                     ${servidores[i].nome_perfil}
                 </option>
             `;
+
         }
+
     }
+
 }
 
 function filtrarServidores() {
@@ -149,4 +169,4 @@ ListarServidoresComponentes().then(servidores => {
     renderizarServidores(servidoresCarregados);
 });
 
-//
+// }

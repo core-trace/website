@@ -1,0 +1,18 @@
+[title="Servidores"] {
+    color: #cc0301;
+    background-color: #fcede8;
+}
+
+.visao-geral{
+    display: flex;
+    flex-direction: column;
+    gap: 2%;
+}
+
+.campo-selecionar-e-voltar{
+    padding-top: 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}

@@ -10,61 +10,23 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/processo.css">
-    <script src="../scripts/navbarDashboard.js" defer></script>
 </head>
 
 <body class="dashboard-page">
     <a class="dashboard-pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
 
-    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
-        <div class="dashboard-menu-cabecalho">
-            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
-                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
-            </a>
-            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu">
-                <span aria-hidden="true">×</span>
-            </button>
-        </div>
-
-        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
-            <p class="dashboard-acesso-feedback" role="status"></p>
-        </nav>
-    </aside>
-
-    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
-
     <div class="dashboard-conteudo">
         <header class="dashboard-navbar">
-            <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu" aria-controls="menu-dashboard" aria-expanded="false">
-                <span aria-hidden="true"></span>
-                <span aria-hidden="true"></span>
-                <span aria-hidden="true"></span>
-            </button>
-
             <div class="dashboard-usuario">
                 <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
-                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path fill="none" stroke="currentColor" stroke-width="2" d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 </button>
-                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
-                <div class="dashboard-usuario-dados">
-                    <span class="dashboard-usuario-nome"></span>
-                    <span class="dashboard-usuario-cargo"></span>
-                </div>
-                <div class="dashboard-conta">
-                    <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta" aria-controls="menu-conta" aria-expanded="false">
-                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12" height="12">
-                    </button>
-                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
-                        <p class="dashboard-conta-email"></p>
-                        <button class="dashboard-sair" type="button">Sair</button>
-                    </div>
-                </div>
             </div>
         </header>
 
         <main class="principal" id="conteudo-principal" tabindex="-1">
 
-            <!-- Cabeçalho da página (trilha, título, subtítulo, status, timestamp) -->
+            <!-- Cabeçalho da página (trilha, título, subtítulo, status, timestamp placeholder) -->
             <section class="processos-cabecalho" aria-label="Identificação da página">
                 <div class="processos-marca">
                     <span class="processos-trilha">MONITORAMENTO / PROCESSOS</span>
@@ -76,24 +38,20 @@
                         <span class="processos-status-dot" aria-hidden="true"></span>
                         <span class="processos-status-texto">Monitoramento ativo</span>
                     </div>
-                    <time class="processos-atualizado">Atualizado em 11 nov 2026, às 14:30:00</time>
+                    <time class="processos-atualizado" id="processos-atualizado">--</time>
                     <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
                         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path fill="none" stroke="currentColor" stroke-width="2" d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                     </button>
                 </div>
             </section>
 
-            <!-- Barra de filtros -->
+            <!-- Barra de filtros estrutural (sem opções mocadas) -->
             <form class="processos-filtros" id="filtros" aria-label="Filtros de processo">
                 <div class="filtro-campo">
                     <label class="filtro-rotulo" for="filtro-servidor">Servidor</label>
                     <div class="filtro-select">
-                        <svg class="filtro-icone" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="2" y="7" width="20" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="6" y1="7" x2="6" y2="7" stroke="currentColor" stroke-width="1.8"/></svg>
                         <select id="filtro-servidor" name="servidor" aria-label="Servidor">
-                            <option value="pay-api-04" selected>pay-api-04</option>
-                            <option value="pay-api-01">pay-api-01</option>
-                            <option value="pay-api-02">pay-api-02</option>
-                            <option value="pay-api-03">pay-api-03</option>
+                            <option value="" selected disabled hidden>--</option>
                         </select>
                     </div>
                 </div>
@@ -101,11 +59,8 @@
                 <div class="filtro-campo">
                     <label class="filtro-rotulo" for="filtro-periodo">Período de análise</label>
                     <div class="filtro-select">
-                        <svg class="filtro-icone" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline fill="none" stroke="currentColor" stroke-width="2" points="12 6 12 12 16 14"/></svg>
                         <select id="filtro-periodo" name="periodo" aria-label="Período de análise">
-                            <option value="ultima-hora" selected>Última hora</option>
-                            <option value="ultimas-24h">Últimas 24h</option>
-                            <option value="ultimos-7d">Últimos 7 dias</option>
+                            <option value="" selected disabled hidden>--</option>
                         </select>
                     </div>
                 </div>
@@ -113,28 +68,22 @@
                 <div class="filtro-campo filtro-campo--busca">
                     <label class="filtro-rotulo" for="filtro-processo">Investigar processo</label>
                     <div class="filtro-select">
-                        <svg class="filtro-icone" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2"/></svg>
-                        <input type="search" id="filtro-processo" name="processo" value="java · PID 4012"
-                            aria-label="Investigar processo" list="processos-list" placeholder="java · PID 4012">
-                        <datalist id="processos-list">
-                            <option value="java · PID 4012">
-                            <option value="node · PID 5122">
-                            <option value="python · PID 3301">
-                        </datalist>
+                        <input type="search" id="filtro-processo" name="processo"
+                            aria-label="Investigar processo" placeholder="--">
                     </div>
                 </div>
 
                 <div class="filtro-campo filtro-campo--intervalo">
                     <label class="filtro-rotulo" for="filtro-intervalo">Intervalo</label>
                     <div class="filtro-select filtro-select--texto">
-                        <span id="filtro-intervalo">11 nov 2026 · 13:30–14:30</span>
+                        <span id="filtro-intervalo">--</span>
                     </div>
                 </div>
             </form>
 
-            <!-- Conteúdo principal (preenchido nas etapas 2 a 4) -->
-            <div class="processos-conteudo" id="conteudo-processos">
-                <!-- Estrutura de conteúdo preenchida nas etapas 2 a 4 (KPIs, gráficos, tabelas) -->
+            <!-- Container de conteúdo (preenchido nas etapas 2 a 4) -->
+            <div class="processos-conteudo" id="conteudo-processos" aria-label="Conteúdo do dashboard de processos">
+                <!-- Estrutura preenchida nas etapas 2 a 4 (KPIs, gráficos, tabelas) -->
             </div>
 
         </main>

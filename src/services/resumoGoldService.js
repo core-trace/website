@@ -10,8 +10,8 @@ const NOME_BUCKET = process.env.BUCKET_DADOS_GOLD;
 
 // Converte a data/hora atual para os campos separados (ano, mes, dia, hora, minuto)
 // de um fuso horario especifico. Serve de base para as duas funcoes abaixo.
-function camposDoRelogio(fusoHorario, opcoes) {
-    const partes = new Intl.DateTimeFormat("en-CA", { timeZone: fusoHorario, ...opcoes }).formatToParts(new Date());
+function camposDoRelogio(fusoHorario, opcoes, data = new Date()) {
+    const partes = new Intl.DateTimeFormat("en-CA", { timeZone: fusoHorario, ...opcoes }).formatToParts(data);
     const campos = {};
     for (const parte of partes) campos[parte.type] = parte.value;
     return campos;

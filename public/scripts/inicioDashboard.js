@@ -49,17 +49,35 @@
                 semDadosRecentes: distribuicao.semDados, semDadosLegenda: ""
             },
             perfis: [perfil],
-            resumo: resumo.resumo,
-            acoes: resumo.acoes
+            // Com um unico perfil selecionado nao ha o que comparar - resumo/acoes sao
+            // calculados priorizando ENTRE perfis, e mostrar o resultado global (de um
+            // perfil que pode nem ser o filtrado) seria informacao errada, nao so
+            // incompleta. Null aqui sinaliza pra renderizarResumo esconder a secao em
+            // vez de reaproveitar o resumo.resumo/resumo.acoes do agregado.
+            resumo: null,
+            acoes: null
         };
+    }
+
+    function alternarSecaoResumo(mostrar) {
+        // Nao da pra usar o atributo "hidden" aqui: .geral-resumo-linha ja tem
+        // "display: grid" proprio (geralDashboard.css), que empata em especificidade
+        // com a regra nativa [hidden]{display:none} do navegador - e CSS de autor
+        // sempre vence CSS do agente do usuario, entao "hidden" ficaria sem efeito
+        // visual nenhum (confirmado testando ao vivo). style.display direto resolve.
+        document.querySelector(".geral-resumo-linha").style.display = mostrar ? "" : "none";
     }
 
     function renderizarResumo(resumo) {
         mostrarCabecalho(resumo.estado);
         mostrarIndicadores(resumo.cobertura, resumo.indicadores);
         mostrarPerfis(resumo.perfis);
-        mostrarResumo(resumo.resumo);
-        mostrarAcoes(resumo.acoes);
+
+        alternarSecaoResumo(resumo.resumo !== null);
+        if (resumo.resumo !== null) {
+            mostrarResumo(resumo.resumo);
+            mostrarAcoes(resumo.acoes);
+        }
     }
 
     function configurarFiltroPerfil() {

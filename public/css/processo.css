@@ -29,6 +29,7 @@
   --cor-ambar-texto: #92400E;
   --cor-verde: #16A34A;
   --cor-verde-suave: #F0FDF4;
+  --cor-verde-texto: #14532d;
   --cor-azul: #2563EB;
   --cor-azul-suave: #EFF6FF;
 
@@ -254,15 +255,7 @@ img, svg { display: block; max-width: 100%; }
   pointer-events: none;
 }
 
-/* ---------- Área de conteúdo (sem sidebar: ocupa o container inteiro) ---------- */
-.dashboard-conteudo {
-  margin-left: 0;
-}
-
-.dashboard-navbar {
-  margin-left: 0;
-}
-
+/* ---------- Área de conteúdo ---------- */
 .processos-conteudo {
   padding: var(--espaco-xl);
 }

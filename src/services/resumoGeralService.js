@@ -1,11 +1,11 @@
 // Monta o resumo da dashboard Geral (ver public/scripts/inicioDashboard.js) a partir
 // dos resumos diarios reais que o pipeline Python deixa no S3, um por servidor.
 //
-// So cobre os campos "estado", "cobertura", "indicadores" e "perfis". Os outros campos
-// que a dashboard usa (resumo, acoes, evolucao, evolucaoLegenda, riscos,
+// Cobre os campos "estado", "cobertura", "indicadores", "perfis", "resumo" e "acoes".
+// Os demais campos que a dashboard usa (evolucao, evolucaoLegenda, riscos e
 // perguntasProntas) continuam vindo do mock (public/scripts/geralMock.js) porque
-// dependem de hipoteses ainda nao implementadas (resumo investigativo, assistente,
-// previsao de tendencia) - isso e intencional, nao uma lacuna esquecida.
+// dependem de hipoteses ainda nao implementadas (assistente, previsao de tendencia) -
+// isso e intencional, nao uma lacuna esquecida.
 const servidorModel = require("../models/servidorModel");
 const resumoGoldService = require("./resumoGoldService");
 
@@ -175,14 +175,19 @@ function calcularDuracaoDoPerfil(servidoresAfetados) {
         // Nenhuma leitura tinha tempo_no_estado utilizavel - por exemplo, quando a
         // severidade veio so da regra de OOM (ram_oom_kills nao tem limite configurado
         // em nenhum perfil, entao nunca gera tempo_no_estado). Nao inventamos um numero.
-        return { duracao: "—", referencia: "Nenhum dado de duração disponível", categorias: [] };
+        return { duracao: "—", referencia: "Nenhum dado de duração disponível", categorias: [], maisAntigo: null };
     }
 
     return {
         duracao: formatarDuracaoDesde(maisAntigo),
         referencia: `Desde ${formatarHorarioDeInstante(maisAntigo)}`,
-        categorias: [...categorias]
+        categorias: [...categorias],
+        maisAntigo
     };
+}
+
+function temOomAtivo(servidoresAfetados) {
+    return servidoresAfetados.some(servidor => servidor.resumo?.resumos?.ram?.oom?.total_observado > 0);
 }
 
 function montarPerfil(nome, servidoresDoPerfil) {
@@ -193,7 +198,9 @@ function montarPerfil(nome, servidoresDoPerfil) {
     const normais = total - criticos.length - atencao.length - semDados.length;
     const afetados = criticos.length + atencao.length;
 
-    const { duracao, referencia, categorias } = calcularDuracaoDoPerfil([...criticos, ...atencao]);
+    const servidoresAfetados = [...criticos, ...atencao];
+    const { duracao, referencia, categorias, maisAntigo } = calcularDuracaoDoPerfil(servidoresAfetados);
+    const temOom = temOomAtivo(servidoresAfetados);
 
     let sinal = "Nenhum sinal de risco no momento";
     if (afetados > 0) sinal = categorias.length > 0 ? juntarComE(categorias) : "Severidade do dia";
@@ -206,13 +213,160 @@ function montarPerfil(nome, servidoresDoPerfil) {
         distribuicao: { critico: criticos.length, atencao: atencao.length, normal: normais, semDados: semDados.length },
         descricao: montarDescricaoPerfil(criticos.length, atencao.length, normais, semDados.length),
         duracao,
-        referencia
+        referencia,
+        maisAntigo,
+        criticidadeNegocio: servidoresDoPerfil[0]?.criticidade_negocio ?? 0,
+        temOom
     };
 }
 
 function montarPerfis(servidores) {
     const nomesPerfis = [...new Set(servidores.map(servidor => servidor.nome_perfil))];
     return nomesPerfis.map(nome => montarPerfil(nome, servidores.filter(servidor => servidor.nome_perfil === nome)));
+}
+
+function proporcaoAfetada(perfil) {
+    const distribuicao = perfil.distribuicao;
+    const total = distribuicao.critico + distribuicao.atencao + distribuicao.normal + distribuicao.semDados;
+    return total > 0 ? (distribuicao.critico + distribuicao.atencao) / total : 0;
+}
+
+const CRITERIOS_PRIORIDADE = [
+    {
+        nome: "criticidade",
+        motivo: "Prioridade de negócio mais alta entre os perfis com ocorrência, mesmo com proporção parecida.",
+        comparar: (a, b) => Number(b.criticidadeNegocio ?? 0) - Number(a.criticidadeNegocio ?? 0),
+        ehRelevante: perfil => Number(perfil.criticidadeNegocio ?? 0) > 0
+    },
+    {
+        nome: "duracao",
+        motivo: "Situação crítica em aberto há mais tempo que os demais perfis afetados.",
+        comparar: (a, b) => {
+            if (!a.maisAntigo) return b.maisAntigo ? 1 : 0;
+            if (!b.maisAntigo) return -1;
+            return new Date(a.maisAntigo).getTime() - new Date(b.maisAntigo).getTime();
+        },
+        ehRelevante: perfil => Boolean(perfil.maisAntigo)
+    },
+    {
+        nome: "proporcao",
+        motivo: "Maior proporção de servidores afetados e crítico mais antigo.",
+        comparar: (a, b) => proporcaoAfetada(b) - proporcaoAfetada(a),
+        ehRelevante: perfil => proporcaoAfetada(perfil) > 0
+    }
+];
+
+function perfisAfetadosOrdenados(perfis) {
+    return perfis
+        .filter(perfil => perfil.distribuicao.critico + perfil.distribuicao.atencao > 0)
+        .slice()
+        .sort(function (a, b) {
+            for (const criterio of CRITERIOS_PRIORIDADE) {
+                const diferenca = criterio.comparar(a, b);
+                if (diferenca !== 0) return diferenca;
+            }
+            return 0;
+        });
+}
+
+function criterioDecisivo(ordenados) {
+    const vencedor = ordenados[0];
+    if (ordenados.length > 1) {
+        for (const criterio of CRITERIOS_PRIORIDADE) {
+            if (criterio.comparar(vencedor, ordenados[1]) !== 0) return criterio;
+        }
+    }
+    return CRITERIOS_PRIORIDADE.find(criterio => criterio.ehRelevante(vencedor))
+        ?? CRITERIOS_PRIORIDADE[CRITERIOS_PRIORIDADE.length - 1];
+}
+
+// Ao contrario de criterioDecisivo (que para no primeiro criterio que ja diferencia o
+// vencedor do 2o colocado - o suficiente pro motivo curto do card de resumo), esta
+// devolve TODOS os criterios relevantes pro perfil vencedor, mesmo os que nao foram
+// precisos pra decidir o desempate. Existe pra alimentar a resposta completa da
+// pergunta pronta "Por que o Financeiro e a prioridade?" do assistente (hipotese D,
+// ainda nao implementada) - o card de resumo continua enxuto, so com o motivo
+// decisivo; aqui e onde entra "tambem esta em maior proporcao" mesmo quando isso nao
+// foi o que decidiu o ranking contra o 2o colocado.
+function todosCriteriosRelevantes(perfil) {
+    return CRITERIOS_PRIORIDADE.filter(criterio => criterio.ehRelevante(perfil)).map(criterio => criterio.motivo);
+}
+
+function montarResumo(perfis, cobertura) {
+    const ordenados = perfisAfetadosOrdenados(perfis);
+    if (ordenados.length === 0) {
+        // Decisao atual: nao montar aqui um "tudo estável, mas X normalizou às Yh".
+        // Isso depende de ler client/lotes/.../capturas.json (mesmo trabalho da
+        // evolucao real do grafico) - nao e esquecimento.
+        return {
+            titulo: "Nenhum perfil com servidores afetados no momento",
+            motivo: "Não há servidores em crítico ou atenção entre os perfis avaliados.",
+            comparacao: [],
+            cobertura: `Entre os ${cobertura.esperados} servidores, ${cobertura.avaliados} puderam ser avaliados`
+        };
+    }
+
+    const perfilPrioridade = ordenados[0];
+    const motivoPrincipal = criterioDecisivo(ordenados).motivo;
+    const motivo = perfilPrioridade.temOom === true
+        ? `${motivoPrincipal} Também registrou evento de falta de memória (OOM) hoje.`
+        : motivoPrincipal;
+    return {
+        titulo: `${perfilPrioridade.nome} exige atenção primeiro`,
+        motivo,
+        comparacao: ordenados.slice(0, 2).map(perfil => ({
+            perfil: perfil.nome,
+            afetados: perfil.afetados,
+            duracao: `Crítico há ${perfil.duracao}`
+        })),
+        cobertura: `Entre os ${cobertura.esperados} servidores, ${cobertura.avaliados} puderam ser avaliados`
+    };
+}
+
+function nomesAfetadosDoPerfil(nomePerfil, servidores) {
+    return servidores
+        .filter(servidor => servidor.nome_perfil === nomePerfil && !servidor.semDados
+            && servidor.resumo && (servidor.resumo.severidade === "critico" || servidor.resumo.severidade === "atencao"))
+        .map(servidor => servidor.nome);
+}
+
+function montarAcoes(servidores, perfis) {
+    const ordenados = perfisAfetadosOrdenados(perfis);
+    const acoes = [];
+
+    if (ordenados.length > 0) {
+        const perfilPrioridade = ordenados[0];
+        const nomes = nomesAfetadosDoPerfil(perfilPrioridade.nome, servidores);
+        if (nomes.length > 0) {
+            acoes.push({
+                titulo: `Investigar o ${perfilPrioridade.nome}`,
+                destino: `Alertas · ${juntarComE(nomes)}`
+            });
+        }
+    }
+
+    for (const servidor of servidores.filter(item => item.semDados)) {
+        const fim = servidor.resumo && servidor.resumo.resumos && servidor.resumo.resumos.fim;
+        acoes.push({
+            titulo: `Verificar a coleta de ${servidor.nome}`,
+            destino: fim
+                ? `Servidores · última leitura às ${formatarHorarioDeInstante(interpretarInstante(fim))}`
+                : "Servidores · sem leitura registrada"
+        });
+    }
+
+    if (ordenados.length > 1) {
+        const segundoPerfil = ordenados[1];
+        const nomes = nomesAfetadosDoPerfil(segundoPerfil.nome, servidores);
+        if (nomes.length > 0) {
+            acoes.push({
+                titulo: `Comparar o pico do ${segundoPerfil.nome}`,
+                destino: `Servidores · ${juntarComE(nomes)}`
+            });
+        }
+    }
+
+    return acoes;
 }
 
 // Monta um resumo vazio, usado quando ainda nao conseguimos buscar nenhum dado real
@@ -227,7 +381,9 @@ function resumoSemDados() {
             atencao: 0, atencaoLegenda: "Sem dados",
             semDadosRecentes: 0, semDadosLegenda: "Ainda não temos dados do resumo diário."
         },
-        perfis: []
+        perfis: [],
+        resumo: montarResumo([], { avaliados: 0, esperados: 0 }),
+        acoes: []
     };
 }
 
@@ -248,11 +404,16 @@ async function construirResumoGeral() {
         }
     }));
 
+    const perfis = montarPerfis(servidores);
+    const cobertura = montarCobertura(servidores, servidoresDaEmpresa.length);
+
     return {
         estado: montarEstado(),
-        cobertura: montarCobertura(servidores, servidoresDaEmpresa.length),
+        cobertura,
         indicadores: montarIndicadores(servidores),
-        perfis: montarPerfis(servidores)
+        perfis,
+        resumo: montarResumo(perfis, cobertura),
+        acoes: montarAcoes(servidores, perfis)
     };
 }
 

@@ -89,7 +89,7 @@ async function listarServidoresPorEmpresa(idEmpresa, idUsuario) {
 // listarServidoresPorEmpresa precisa aplicar para uma requisicao de um usuario real.
 function listarServidoresParaMonitoramento(idEmpresa) {
     const instrucaoSql = `
-        SELECT s.endereco_mac, s.nome, p.id_perfil_servidor, p.nome AS nome_perfil
+        SELECT s.endereco_mac, s.nome, p.id_perfil_servidor, p.nome AS nome_perfil, p.criticidade_negocio
         FROM servidores s
         INNER JOIN perfil_servidor p ON p.id_perfil_servidor = s.fk_perfil_servidor
         WHERE p.fk_empresa = ?

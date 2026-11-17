@@ -1,11 +1,9 @@
 (() => {
-    // Divisao temporaria e intencional: "estado", "cobertura", "indicadores" e "perfis"
-    // ja vem de dados reais (rota /geral/resumo, ver src/routes/geralRoutes.js). Os
-    // demais campos (resumo, acoes, evolucao, evolucaoLegenda, riscos, perguntasProntas)
-    // continuam vindo do mock porque dependem de hipoteses ainda nao implementadas
-    // (resumo investigativo, assistente, previsao de tendencia) - nao e uma lacuna
-    // esquecida, e so o que esta dentro do escopo de "implementar o calculo de
-    // proporcao afetada por perfil" por enquanto.
+    // Divisao temporaria e intencional: "estado", "cobertura", "indicadores", "perfis",
+    // "resumo" e "acoes" ja vem de dados reais (rota /geral/resumo, ver
+    // src/routes/geralRoutes.js). Os demais campos (evolucao, evolucaoLegenda, riscos,
+    // perguntasProntas) continuam vindo do mock porque dependem de hipoteses ainda nao
+    // implementadas (assistente, previsao de tendencia) - nao e uma lacuna esquecida.
     const dado = geralMock;
 
     // Guarda o ultimo resumo (real ou, se a rota falhar, mocado) para o filtro de
@@ -50,7 +48,9 @@
                 atencao: distribuicao.atencao, atencaoLegenda: "",
                 semDadosRecentes: distribuicao.semDados, semDadosLegenda: ""
             },
-            perfis: [perfil]
+            perfis: [perfil],
+            resumo: resumo.resumo,
+            acoes: resumo.acoes
         };
     }
 
@@ -58,6 +58,8 @@
         mostrarCabecalho(resumo.estado);
         mostrarIndicadores(resumo.cobertura, resumo.indicadores);
         mostrarPerfis(resumo.perfis);
+        mostrarResumo(resumo.resumo);
+        mostrarAcoes(resumo.acoes);
     }
 
     function configurarFiltroPerfil() {
@@ -75,19 +77,22 @@
             ultimoResumo = await resposta.json();
         } catch (erro) {
             console.error("Erro ao carregar o resumo geral, usando dados mocados:", erro.message);
-            ultimoResumo = { estado: dado.estado, cobertura: dado.cobertura, indicadores: dado.indicadores, perfis: dado.perfis };
+            ultimoResumo = {
+                estado: dado.estado, cobertura: dado.cobertura, indicadores: dado.indicadores, perfis: dado.perfis,
+                resumo: dado.resumo, acoes: dado.acoes
+            };
         }
         const perfilEscolhido = document.getElementById("filtro-perfil").value;
         renderizarResumo(filtrarPorPerfil(ultimoResumo, perfilEscolhido));
     }
 
-    function mostrarResumo() {
-        texto("resumo-titulo", dado.resumo.titulo);
-        texto("resumo-motivo", dado.resumo.motivo);
-        texto("resumo-cobertura", dado.resumo.cobertura);
+    function mostrarResumo(resumo) {
+        texto("resumo-titulo", resumo.titulo);
+        texto("resumo-motivo", resumo.motivo);
+        texto("resumo-cobertura", resumo.cobertura);
 
         const comparacao = document.getElementById("resumo-comparacao");
-        comparacao.replaceChildren(...dado.resumo.comparacao.map(item => {
+        comparacao.replaceChildren(...resumo.comparacao.map(item => {
             const bloco = document.createElement("div");
             bloco.className = "geral-comparacao-item";
             bloco.innerHTML = `<strong>${item.perfil}</strong><span class="geral-comparacao-afetados">${item.afetados}</span><span>${item.duracao}</span>`;
@@ -95,9 +100,9 @@
         }));
     }
 
-    function mostrarAcoes() {
+    function mostrarAcoes(acoes) {
         const lista = document.getElementById("lista-acoes");
-        lista.replaceChildren(...dado.acoes.map((acao, indice) => {
+        lista.replaceChildren(...acoes.map((acao, indice) => {
             const item = document.createElement("li");
             item.innerHTML = `
                 <span class="geral-acao-numero">${indice + 1}</span>
@@ -235,8 +240,6 @@
 
     configurarFiltroPerfil();
     carregarDadosReais();
-    mostrarResumo();
-    mostrarAcoes();
     mostrarRiscos();
     mostrarGraficoEvolucao();
     configurarExportar();

@@ -1,6 +1,6 @@
 /* Dashboard de investigação de Docker.
  * Lê vários resumos diários diretamente, seguindo public/data/docker-historico/indice.json.
- * Cada ponto nos gráficos Chart.js corresponde a UM DIA, não a um minuto.
+ * O filtro de 24h usa resumos horários; os demais usam resumos diários.
  * Para conectar ao Node/S3 depois, basta trocar o endereço do índice ou a
  * função carregarHistorico(); nenhuma credencial AWS fica no navegador.
  */
@@ -69,6 +69,7 @@
             }
             return {
                 data: documento.data,
+                intervalo: documento.granularidade === "hora" ? documento.intervalo : null,
                 mac: documento.endereco_mac,
                 containers: documento.resumos.containers,
                 logs: documento.resumos.logs || [],
@@ -82,6 +83,7 @@
     const formatoNumero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
     const formatoData = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
     let historico = [];
+    let historicoHorario = [];
     let historicoAtivo = [];
     let demonstracao = false;
     let anonimizado = false;
@@ -145,6 +147,40 @@
         anonimizado = indice.anonimizado === true;
     }
 
+    async function carregarHistoricoHorario() {
+        const resposta = await fetch("../data/docker-horario/indice.json", { cache: "no-store" });
+        if (!resposta.ok) throw new Error("Não foi possível carregar o índice horário.");
+        const indice = await resposta.json();
+        const documentos = await Promise.all(indice.arquivos.map(async (arquivo) => {
+            const resultado = await fetch(new URL(arquivo, resposta.url), { cache: "no-store" });
+            if (!resultado.ok) throw new Error("Não foi possível carregar um resumo horário.");
+            const doc = D.validar(await resultado.json());
+            if (!doc.intervalo || !D.instante(doc.intervalo.inicio) || !D.instante(doc.intervalo.fim)
+                || Date.parse(doc.intervalo.fim) - Date.parse(doc.intervalo.inicio) !== 3600000) {
+                throw new Error("Resumo horário sem intervalo válido de uma hora.");
+            }
+            return doc;
+        }));
+        if (documentos.some((doc) => doc.mac !== historico[0]?.mac)) throw new Error("Histórico horário de outro servidor.");
+        historicoHorario = [...new Map(documentos.map((doc) => [doc.intervalo.fim, doc])).values()]
+            .sort((a, b) => Date.parse(a.intervalo.fim) - Date.parse(b.intervalo.fim));
+    }
+
+    function instanteResumo(doc) {
+        return Date.parse(doc.intervalo?.fim || doc.data + "T12:00:00Z");
+    }
+
+    function filtrar24Horas(lista, fim = instanteResumo(lista.at(-1) || {})) {
+        return lista.filter((doc) => instanteResumo(doc) > fim - 86400000 && instanteResumo(doc) <= fim);
+    }
+
+    function falhouNoResumo(container, doc) {
+        if (!D.falhouNaData(container, doc.data)) return false;
+        if (!doc.intervalo) return true;
+        const fim = D.instante(container.finished_at)?.getTime();
+        return fim > Date.parse(doc.intervalo.inicio) && fim <= Date.parse(doc.intervalo.fim);
+    }
+
     function filtrarPeriodo(lista, dias) {
         if (!lista.length) return [];
         // Âncora na última data realmente disponível, não no dia de hoje:
@@ -183,7 +219,7 @@
     function contarFalhas(lista, referencia) {
         return lista.reduce((soma, doc) => {
             const c = containerNoDia(doc, referencia);
-            return soma + (c && D.falhouNaData(c, doc.data) ? 1 : 0);
+            return soma + (c && falhouNoResumo(c, doc) ? 1 : 0);
         }, 0);
     }
 
@@ -209,7 +245,7 @@
         return lista.map((doc) => {
             const c = containerNoDia(doc, referencia);
             // Sem dados nesse dia: y=null, nunca 0 artificial.
-            return { x: Date.parse(doc.data + "T12:00:00Z"), y: c ? D.numero(ler(c)) : null };
+            return { x: instanteResumo(doc), y: c ? D.numero(ler(c)) : null };
         });
     }
 
@@ -222,7 +258,7 @@
             const media = D.numero(medida?.media);
             const amostras = D.numero(medida?.amostras_validas);
             if (media === null || amostras === null || amostras <= 0) return [];
-            return [{ data: doc.data, media, amostras }];
+            return [{ data: doc.intervalo?.fim || doc.data, media, amostras }];
         }).sort((a, b) => a.data.localeCompare(b.data));
         if (diasValidos.length < 4) return null;
 
@@ -244,7 +280,7 @@
             // São pontos de uma comparação constante, não medições interpoladas.
             // As séries observadas continuam preservando suas lacunas com null.
             data: lista.map((doc) => ({
-                x: Date.parse(doc.data + "T12:00:00Z"), y: mediaHistorica.valor
+                x: instanteResumo(doc), y: mediaHistorica.valor
             })),
             borderColor: "#888888",
             backgroundColor: "#888888",
@@ -257,11 +293,13 @@
         };
     }
 
-    function leiturasContinuas(anterior, atual, dataAnterior, dataAtual) {
+    function leiturasContinuas(anterior, atual, dataAnterior, dataAtual, intervaloAnterior = null, intervaloAtual = null) {
         // O nome pode sobreviver à recriação; contadores só podem ser subtraídos
         // entre leituras do MESMO ID Docker em datas consecutivas.
         if (!anterior?.container_id || anterior.container_id !== atual?.container_id) return false;
-        if (Date.parse(dataAtual + "T00:00:00Z") - Date.parse(dataAnterior + "T00:00:00Z") !== 86400000) return false;
+        if (intervaloAtual || intervaloAnterior) {
+            if (!intervaloAtual || !intervaloAnterior || Date.parse(intervaloAtual.fim) - Date.parse(intervaloAnterior.fim) !== 3600000) return false;
+        } else if (Date.parse(dataAtual + "T00:00:00Z") - Date.parse(dataAnterior + "T00:00:00Z") !== 86400000) return false;
 
         // Um reinício pode zerar e depois superar o contador antigo. A simples
         // comparação numérica não detecta isso: verificamos também o ciclo de vida.
@@ -288,12 +326,12 @@
             && medida.ultimo_valor >= 0 && D.numero(medida.amostras_validas) > 0
             && (medida.ultimo_status === undefined || medida.ultimo_status === "ok");
         return lista.map((doc, indice) => {
-            const ponto = { x: Date.parse(doc.data + "T12:00:00Z"), y: null };
+            const ponto = { x: instanteResumo(doc), y: null };
             const docAnterior = lista[indice - 1];
             if (!docAnterior || !Number.isFinite(divisor) || divisor <= 0) return ponto;
             const atual = containerNoDia(doc, referencia);
             const anterior = containerNoDia(docAnterior, referencia);
-            if (!leiturasContinuas(anterior, atual, docAnterior.data, doc.data)) return ponto;
+            if (!leiturasContinuas(anterior, atual, docAnterior.data, doc.data, docAnterior.intervalo, doc.intervalo)) return ponto;
             const medidaAtual = lerContador(atual);
             const medidaAnterior = lerContador(anterior);
             if (!leituraValida(medidaAtual) || !leituraValida(medidaAnterior)) return ponto;
@@ -301,7 +339,7 @@
             // Queda do contador indica reset, não consumo negativo nem zero.
             // O primeiro dia do filtro fica sem delta: não buscamos fora dele.
             if (diferenca < 0 || !Number.isFinite(diferenca / divisor)) return ponto;
-            return { ...ponto, y: diferenca / divisor, inicio: docAnterior.data, fim: doc.data };
+            return { ...ponto, y: diferenca / divisor, inicio: docAnterior.intervalo?.fim || docAnterior.data, fim: doc.intervalo?.fim || doc.data };
         });
     }
 
@@ -340,9 +378,9 @@
     function calcularIndicadores(referencia = null) {
         const registros = historicoAtivo.flatMap((doc) => {
             const containers = referencia ? [containerNoDia(doc, referencia)].filter(Boolean) : doc.containers;
-            return containers.map((c) => ({ container: c, data: doc.data }));
+            return containers.map((c) => ({ container: c, data: doc.data, doc }));
         });
-        const falhasConhecidas = registros.filter(({ container, data }) => D.falhouNaData(container, data)).length;
+        const falhasConhecidas = registros.filter(({ container, doc }) => falhouNoResumo(container, doc)).length;
         const registrosLog = historicoAtivo.flatMap((doc) => {
             const logs = referencia ? [doc.logs.find((l) => (referencia.nome && l.nome === referencia.nome)
                 || l.container_id === referencia.container_id)].filter(Boolean) : doc.logs;
@@ -352,8 +390,8 @@
         const algumSemNivel = registrosLog.some((log) => log.incompleto);
         const errosLogs = registrosLog.length && (!algumSemNivel || errosConfirmados > 0)
             ? errosConfirmados : null;
-        const picos = (tipo) => registros.map(({ container, data }) => ({
-            container, data,
+        const picos = (tipo) => registros.map(({ container, data, doc }) => ({
+            container, data, intervalo: doc.intervalo,
             valor: D.numero(tipo === "cpu" ? container.cpu?.uso?.maximo : container.memoria?.uso?.maximo)
         })).filter((item) => item.valor !== null).sort((a, b) => b.valor - a.valor);
 
@@ -388,20 +426,25 @@
         $("docker-total-containers").textContent = `(${dados.containers.length})`;
         $("docker-ultima-coleta").textContent = `Último resumo · ${ultimo}`;
         $("docker-origem-dados").textContent = `${demonstracao ? "Dados demonstrativos" : anonimizado ? "Dados anonimizados" : "Resumos diários"} · ${dados.containers.length} contêineres monitorados`;
+        if (periodoDias === 1) {
+            $("docker-periodo-info").textContent = `Dados simulados · últimas 24 horas da simulação: ${hora(historicoAtivo[0].intervalo.inicio)} a ${hora(dados.intervalo.fim)} · ${historicoAtivo.length} resumos horários. Sem atualização em tempo real.`;
+            $("docker-ultima-coleta").textContent = `Último resumo · ${hora(dados.intervalo.fim)}`;
+            $("docker-origem-dados").textContent = `Dados horários simulados · ${dados.containers.length} contêineres monitorados`;
+        }
     }
 
     function renderizarKpis() {
         $("kpi-falhas").textContent = n(indicadores.falhasConhecidas);
         $("kpi-falhas-nota").textContent = "Considera falhas com horário de encerramento disponível.";
         $("kpi-reinicios").textContent = n(indicadores.reiniciosNoPeriodo);
-        $("kpi-reinicios-nota").textContent = "Aumentos detectados entre contadores de dias diferentes; o primeiro dia não tem referência anterior.";
+        $("kpi-reinicios-nota").textContent = "Aumentos detectados entre resumos; o primeiro resumo não tem referência anterior.";
         $("kpi-erros").textContent = n(indicadores.errosLogs);
         $("kpi-erros-nota").textContent = indicadores.logsSemNivel > 0
             ? `${n(indicadores.logsSemNivel)} mensagem(ns) sem nível classificado; ERROR mostra apenas as confirmadas.`
             : "Total de mensagens classificadas como ERROR.";
         const pico = tipoPico === "ram" ? indicadores.picoRam : indicadores.picoCpu;
         $("kpi-pico").textContent = pico ? n(pico.valor, "%") : "—";
-        $("kpi-pico-descricao").textContent = pico ? `${pico.container.nome || pico.container.container_id.slice(0, 12)} · ${tipoPico.toUpperCase()} · ${pico.data.split("-").reverse().join("/")}` : "Nenhuma medição válida para esta métrica.";
+        $("kpi-pico-descricao").textContent = pico ? `${pico.container.nome || pico.container.container_id.slice(0, 12)} · ${tipoPico.toUpperCase()} · ${pico.intervalo ? hora(pico.intervalo.fim) + " (fim do resumo)" : pico.data.split("-").reverse().join("/")}` : "Nenhuma medição válida para esta métrica.";
         $("kpi-pico-nota").textContent = "Horário exato do pico não disponível.";
         document.querySelectorAll("[data-pico]").forEach((botao) => {
             const ativo = botao.dataset.pico === tipoPico;
@@ -493,6 +536,10 @@
     }
 
     function grafico(titulo, subtitulo, destaque, referencia, series, unidade, porcentagem = false, lerMedidaReferencia = null, opcoes = {}) {
+        if (periodoDias === 1) {
+            subtitulo = subtitulo.replaceAll("cada dia", "cada hora").replaceAll("dias consecutivos", "horas consecutivas");
+            series = series.map((serie) => ({ ...serie, nome: serie.nome.replace("diária", "horária").replace("diário", "horário") }));
+        }
         const artigo = adicionarTexto($("docker-graficos"), "article", "", "docker-card docker-grafico-card");
         const topo = adicionarTexto(artigo, "div", "", "docker-grafico-topo");
         const texto = adicionarTexto(topo, "div", "");
@@ -520,7 +567,7 @@
             const datasetReferencia = criarDatasetReferencia(historicoAtivo, mediaHistorica);
             if (datasetReferencia) conjuntos.push(datasetReferencia);
             adicionarTexto(artigo, "p", mediaHistorica
-                ? `Média histórica: ${n(mediaHistorica.valor, unidade)} · ponderada por ${n(mediaHistorica.amostras)} amostras em ${mediaHistorica.dias} dias anteriores, excluindo ${mediaHistorica.dataExcluida.split("-").reverse().join("/")}. Referência de comparação, sem limite de alerta.`
+                ? `Média histórica: ${n(mediaHistorica.valor, unidade)} · ponderada por ${n(mediaHistorica.amostras)} amostras em ${mediaHistorica.dias} ${periodoDias === 1 ? "horas" : "dias"} anteriores, excluindo ${periodoDias === 1 ? hora(mediaHistorica.dataExcluida) : mediaHistorica.dataExcluida.split("-").reverse().join("/")}. Referência de comparação, sem limite de alerta.`
                 : "Histórico insuficiente para calcular a média de referência.", "docker-grafico-observacao");
         }
         conjuntos.push(...(opcoes.referencias || []));
@@ -539,9 +586,21 @@
         canvas.setAttribute("role", "img");
         canvas.setAttribute("aria-label", `Gráfico histórico: ${titulo} do contêiner ${referencia.nome}`);
         area.appendChild(canvas);
-        const formatarDia = (milissegundos) => new Date(milissegundos).toLocaleDateString("pt-BR", {
+        const formatarDia = (milissegundos) => periodoDias === 1 ? new Date(milissegundos).toLocaleString("pt-BR", {
+            timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+        }) : new Date(milissegundos).toLocaleDateString("pt-BR", {
             timeZone: "UTC", day: "2-digit", month: "2-digit"
         });
+        const horario = periodoDias === 1;
+        const fimEixo = instanteResumo(historicoAtivo.at(-1));
+        const inicioEixo = horario ? fimEixo - 86400000 : instanteResumo(historicoAtivo[0]);
+        // Evita o arredondamento decimal de timestamps da escala linear.
+        // Em 24h, as cinco marcas são os limites e intervalos exatos de 6h.
+        const passoEixo = horario ? 6 * 3600000
+            : Math.max(1, Math.ceil((fimEixo - inicioEixo) / 86400000 / 4)) * 86400000;
+        const marcasEixo = [];
+        for (let instante = inicioEixo; instante < fimEixo; instante += passoEixo) marcasEixo.push(instante);
+        marcasEixo.push(fimEixo);
         const chart = new window.Chart(canvas, {
             type: "line",
             data: { datasets: conjuntos },
@@ -557,7 +616,7 @@
                             title: (itens) => {
                                 if (!itens.length) return "";
                                 const ponto = itens[0].raw;
-                                return ponto?.inicio ? `${ponto.inicio.split("-").reverse().join("/")} → ${ponto.fim.split("-").reverse().join("/")}` : formatarDia(itens[0].parsed.x);
+                                return ponto?.inicio ? (periodoDias === 1 ? `${hora(ponto.inicio)} → ${hora(ponto.fim)}` : `${ponto.inicio.split("-").reverse().join("/")} → ${ponto.fim.split("-").reverse().join("/")}`) : formatarDia(itens[0].parsed.x);
                             },
                             label: (item) => `${item.dataset.label}: ${n(item.parsed.y, unidade)}${item.dataset.referenciaHistorica || item.dataset.referenciaComparativa ? " (referência de comparação)" : ""}`
                         }
@@ -566,8 +625,20 @@
                 scales: {
                     x: {
                         type: "linear",
+                        min: inicioEixo,
+                        max: fimEixo,
+                        afterBuildTicks: (escala) => {
+                            escala.ticks = marcasEixo.map((value) => ({ value }));
+                        },
                         grid: { display: false },
-                        ticks: { color: "#706b6d", maxTicksLimit: 6, callback: (valor) => formatarDia(valor) }
+                        title: { display: true, text: horario ? "Tempo · horário de Brasília" : "Data", color: "#706b6d" },
+                        ticks: {
+                            color: "#706b6d", autoSkip: false, maxRotation: 0,
+                            callback: (valor) => horario ? [
+                                new Date(valor).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit" }),
+                                new Date(valor).toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" })
+                            ] : formatarDia(valor)
+                        }
                     },
                     y: {
                         beginAtZero: true,
@@ -584,7 +655,7 @@
             return datas;
         }, new Set()).size;
         if (diasMedidos === 1) {
-            adicionarTexto(artigo, "p", opcoes.intervalos ? "Somente um intervalo válido no período." : "Esta métrica está disponível em somente um dia. Os outros resumos não contêm leituras dela.", "docker-grafico-observacao");
+            adicionarTexto(artigo, "p", "Somente um resumo ou intervalo válido para esta métrica no período.", "docker-grafico-observacao");
         }
         return artigo;
     }
@@ -608,13 +679,14 @@
 
     function renderizarGraficos(c) {
         $("docker-desempenho-titulo").textContent = `Desempenho — ${c.nome || c.container_id.slice(0, 12)}`;
-        $("docker-desempenho-descricao").textContent = `Histórico de ${c.nome || "contêiner"} · período compartilhado · resumos diários`;
+        $("docker-desempenho-descricao").textContent = `Histórico de ${c.nome || "contêiner"} · período compartilhado · resumos ${periodoDias === 1 ? "horários simulados · BRT" : "diários"}`;
         // Chart.js mantém instâncias associadas aos canvas; destrua-as antes de
         // redesenhar quando mudar o contêiner ou o filtro de período.
         graficosAtivos.forEach((chart) => chart.destroy());
         graficosAtivos = [];
         $("docker-graficos").replaceChildren();
         document.querySelector(".docker-aviso-medicoes").textContent = "CPU, RAM e PIDs mostram medições diárias. Rede, disco e throttling mostram diferenças entre leituras de dias consecutivos, dentro do período. O primeiro dia e intervalos sem continuidade ficam sem valor. Referências são comparativas, sem limites de alerta.";
+        if (periodoDias === 1) document.querySelector(".docker-aviso-medicoes").textContent = "Dados simulados: cada ponto resume uma hora. Rede, disco e throttling mostram diferenças entre leituras horárias consecutivas. A primeira leitura, lacunas e reinícios ficam sem valor; não são tratados como zero. Horários em BRT.";
         grafico("Utilização de CPU (%)", "Média e pico registrados em cada dia", n(c.cpu?.uso?.media, "%") + " média", c, [
             { nome: "Média diária", ler: (v) => v.cpu?.uso?.media },
             { nome: "Pico diário", ler: (v) => v.cpu?.uso?.maximo }
@@ -641,7 +713,7 @@
     }
 
     function renderizarLogs(c) {
-        $("docker-logs-descricao").textContent = `${c.nome} · registros do período selecionado · datas sem horários individuais`;
+        $("docker-logs-descricao").textContent = `${c.nome} · registros do período selecionado · resumos ${periodoDias === 1 ? "horários" : "diários"}`;
         const painel = $("docker-logs-conteudo");
         painel.replaceChildren();
 
@@ -653,7 +725,7 @@
                 || item.container_id === c.container_id);
             if (!log) return [];
             return D.resumoLog(log).niveis.map((nivel) => ({
-                data: doc.data,
+                data: doc.intervalo?.fim || doc.data,
                 nivel: nivel.nome.toLowerCase(),
                 quantidade: nivel.quantidade
             }));
@@ -673,7 +745,7 @@
 
         const consoleLogs = adicionarTexto(painel, "div", "", "docker-console");
         const cabecalho = adicionarTexto(consoleLogs, "div", "", "docker-console-cabecalho");
-        adicionarTexto(cabecalho, "span", `registros diários · ${c.nome || "contêiner"}`);
+        adicionarTexto(cabecalho, "span", `registros ${periodoDias === 1 ? "horários" : "diários"} · ${c.nome || "contêiner"}`);
         adicionarTexto(cabecalho, "span", "RESUMOS · sem mensagens individuais");
 
         if (!visiveis.length) {
@@ -683,7 +755,7 @@
         }
         for (const registro of visiveis) {
             const linha = adicionarTexto(consoleLogs, "div", "", "docker-console-linha");
-            adicionarTexto(linha, "time", registro.data.split("-").reverse().join("/"), "docker-console-data");
+            adicionarTexto(linha, "time", periodoDias === 1 ? hora(registro.data) : registro.data.split("-").reverse().join("/"), "docker-console-data");
             const classe = /^(error|err|fatal)$/.test(registro.nivel) ? "erro"
                 : /^(warn|warning)$/.test(registro.nivel) ? "aviso"
                 : registro.nivel === "info" ? "info" : "desconhecido";
@@ -692,7 +764,7 @@
             adicionarTexto(linha, "span", `${n(registro.quantidade)} mensagem(ns) contabilizada(s) · conteúdo não disponível`, "docker-console-mensagem");
         }
 
-        adicionarTexto(painel, "p", "Os resumos disponíveis contêm totais por dia e nível, sem mensagens individuais. Um registro ERROR não significa que o contêiner parou.", "docker-console-nota");
+        adicionarTexto(painel, "p", "Os resumos disponíveis contêm totais por intervalo e nível, sem mensagens individuais. O horário indica o fim do resumo, não o instante de cada mensagem. Um registro ERROR não significa que o contêiner parou.", "docker-console-nota");
     }
 
     function renderizarEventos(c) {
@@ -760,7 +832,9 @@
     }
 
     function atualizarPeriodo() {
-        historicoAtivo = filtrarPeriodo(historico, periodoDias);
+        historicoAtivo = periodoDias === 1
+            ? filtrar24Horas(historicoHorario)
+            : filtrarPeriodo(historico, periodoDias);
         dados = historicoAtivo.at(-1);
         if (!dados) throw new Error("Não há resumos disponíveis nesse período.");
         renderizarContexto();
@@ -779,6 +853,7 @@
     async function iniciar() {
         try {
             await carregarHistorico();
+            await carregarHistoricoHorario();
             atualizarPeriodo();
         } catch (erro) {
             $("docker-feedback").hidden = false;
@@ -795,7 +870,7 @@
     // sem depender de um navegador nem de credenciais da AWS.
     if (typeof module !== "undefined" && module.exports) {
         module.exports = {
-            validar: D.validar, resumoLog: D.resumoLog, filtrarPeriodo,
+            validar: D.validar, resumoLog: D.resumoLog, filtrarPeriodo, filtrar24Horas,
             containerNoDia, reiniciosDetectados, contarFalhas, contarErros,
             criarPontosDiarios, calcularMediaHistorica, criarDatasetReferencia,
             leiturasContinuas, criarPontosIntervalos, calcularMediaIntervalos, criarReferenciasIntervalos

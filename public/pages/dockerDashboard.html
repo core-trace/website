@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="../css/docker.css">
     <script src="../scripts/navbarDashboard.js" defer></script>
     <script src="../scripts/vendor/chart.umd.js" defer></script>
+    <script src="../scripts/dockerAnalise.js" defer></script>
     <script src="../scripts/dockerDashboard.js" defer></script>
 </head>
 
@@ -193,6 +194,17 @@
                         aria-expanded="true" aria-controls="docker-logs-painel">⌃ &nbsp; Recolher painel</button>
                 </div>
                 <div id="docker-logs-painel">
+                    <form id="docker-logs-periodo" class="docker-logs-periodo" aria-label="Período exclusivo dos logs">
+                        <label class="docker-logs-filtro docker-logs-data">Início
+                            <input type="datetime-local" id="docker-logs-inicio" step="60" title="Horário de Brasília (UTC−03:00)">
+                        </label>
+                        <label class="docker-logs-filtro docker-logs-data">Fim
+                            <input type="datetime-local" id="docker-logs-fim" step="60" title="Horário de Brasília (UTC−03:00); inclui todo o minuto selecionado">
+                        </label>
+                        <button type="submit" class="docker-botao-suave">Filtrar logs</button>
+                        <button type="button" id="docker-logs-ultimas24h" class="docker-botao-suave ativo" aria-pressed="true">Últimas 24 horas</button>
+                    </form>
+                    <p id="docker-logs-periodo-erro" class="docker-logs-erro" role="alert" hidden></p>
                     <div class="docker-logs-filtros">
                         <label class="docker-logs-filtro"><span class="docker-visualmente-oculto">Nível dos logs</span>
                             <select id="docker-logs-nivel" aria-label="Filtrar logs por nível">
@@ -200,6 +212,9 @@
                                 <option value="error">ERROR</option>
                                 <option value="warn">WARN</option>
                                 <option value="info">INFO</option>
+                                <option value="debug">DEBUG</option>
+                                <option value="trace">TRACE</option>
+                                <option value="fatal">FATAL</option>
                                 <option value="unknown">Não classificado</option>
                             </select>
                         </label>
@@ -208,7 +223,8 @@
                                 aria-label="Pesquisar nos registros de logs">
                         </label>
                         <button type="button" id="docker-logs-ordem" class="docker-botao-suave docker-logs-ordem"
-                            aria-pressed="true">↓ &nbsp; Mais recentes primeiro</button>
+                             aria-pressed="true">↓ &nbsp; Mais recentes primeiro</button>
+                        <button type="button" id="docker-logs-download" class="docker-botao-suave docker-logs-ordem" disabled>↓ &nbsp; Baixar logs</button>
                     </div>
                     <div id="docker-logs-conteudo" class="docker-registros-conteudo" aria-live="polite">Selecione um contêiner.</div>
                 </div>

@@ -50,25 +50,50 @@ com uma única opção ficam desabilitados; não se inventam perfis/servidores.
 
 ## Logs e eventos individuais opcionais
 
-Os arquivos atuais fornecem contagens agregadas, sem mensagens originais. Os
-painéis mostram a limitação em vez de gerar texto ou timestamps. O adaptador
-também aceita registros individuais, quando disponibilizados na mesma fonte:
+### Filtro exclusivo dos logs
+
+O formulário **Início / Fim / Filtrar logs** atua somente nas mensagens do
+container selecionado, usando todo o histórico carregado. Alterar o período dos
+gráficos não altera os limites aplicados aos logs. Datas são interpretadas em
+Brasília (UTC−03:00), independentemente do fuso do navegador; o início inclui
+o segundo zero e o fim inclui todo o minuto escolhido (até 59,999 segundos).
+É possível deixar uma ou ambas as datas vazias para não limitar esse extremo.
+**Últimas 24 horas** é selecionado por padrão e preenche as datas automaticamente.
+Em fontes simuladas, usa o último log disponível do container como âncora; em
+fontes reais, usa o horário atual. Aplicar datas personalizadas desativa o botão;
+clicá-lo restaura as últimas 24 horas. Deixar ambas as datas vazias e aplicar
+permite consultar o histórico completo. Nível, busca e ordenação continuam
+funcionando em conjunto. Datas invertidas são rejeitadas, mantendo o último
+filtro válido. O terminal renderiza a mensagem original como texto, inclusive
+quebras de linha, sem interpretar HTML.
+
+**Baixar logs** exporta apenas as mensagens exibidas, na ordenação atual, em
+arquivo `.log` UTF-8. Cada registro inclui o timestamp original (preservando a precisão e o fuso), nível e
+mensagem original. Sem mensagens ou sem seleção, o botão fica desabilitado.
+
+Os JSONs locais seguem o contrato de logs do arquivo de referência `resumo (6).json`:
+`logs` na raiz contém registros individuais; `resumos.logs` mantém os totais por
+container e nível. As métricas dos containers são preservadas. Exemplo de registro
+no array `logs` (na raiz):
 
 ```json
 {
+  "timestamp": "2026-11-17T14:19:04.331-03:00",
   "container_id": "id-do-container",
   "nome": "nome-do-container",
-  "registros": [
-    {
-      "timestamp": "2026-11-17T14:19:04.331-03:00",
-      "nivel": "ERROR",
-      "mensagem": "Texto original fornecido pela fonte"
-    }
-  ]
+  "nivel": "ERROR",
+  "mensagem": "Texto original fornecido pela fonte",
+  "id_captura": "identificador-unico-da-captura"
 }
 ```
 
-Esse grupo fica em `resumos.logs`. Em `resumos.eventos`, cada registro usa
+O nível informado é respeitado: texto contendo “Erro” com nível `UNKNOWN` não
+é automaticamente contado como ERROR. Mensagens `null` mantêm o registro, sem
+inventar conteúdo. `id_captura` evita duplicações entre documentos; a precisão
+original dos timestamps é mantida na exportação.
+
+Para compatibilidade, grupos com `registros` em `resumos.logs` ainda são lidos
+quando não houver logs individuais na raiz. Em `resumos.eventos`, cada registro usa
 `timestamp`, `tipo` e `descricao`, com `id` opcional. Também são aceitos registros
 diretos com `container_id` em vez de grupos. É suporte opcional do front-end,
 não uma indicação de que o backend atual já fornece esses campos.
@@ -82,8 +107,15 @@ nos gráficos, com horário, tipo e descrição ao passar o mouse.
 
 Os dados locais continuam simulados, como declarados nos índices; nenhum JSON
 foi substituído pelo exemplo do Figma. Resumos horários não suprem os 30 minutos,
-leituras instantâneas ou registros individuais de logs/eventos. A fonte incluída
+leituras instantâneas ou registros individuais de eventos. A fonte incluída
 tem um servidor e não informa o perfil. “Sem dados” nesses casos é intencional.
+
+As mensagens locais são simuladas e identificadas por `[SIMULADO]`. Para gerar
+ou sincronizar os logs, execute `node scripts/atualizar-logs-docker-simulados.js`.
+O script atualiza os 12 resumos diários e os 48 horários usados pela dashboard,
+recalcula `resumos.logs` a partir das mensagens e reutiliza as mesmas capturas
+nas janelas sobrepostas. O gerador horário também executa essa sincronização.
+O JSON real de referência e o arquivo de exemplo anonimizado não são alterados.
 
 ## Verificação
 

@@ -63,3 +63,4 @@ for (let i = 0; i < 48; i++) {
 }
 fs.writeFileSync(path.join(destino, "indice.json"), JSON.stringify({ demonstracao: true, arquivos }, null, 2) + "\n");
 console.log(`${arquivos.length} resumos horários simulados gerados.`);
+require("./atualizar-logs-docker-simulados.js").atualizarLogs();

@@ -796,6 +796,47 @@
     margin-top: 18px;
 }
 
+.docker-logs-periodo {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.docker-logs-data {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    color: #6c666a;
+    font-size: 13px;
+}
+
+.docker-logs-data input {
+    width: 100%;
+    min-width: 0;
+}
+
+.docker-logs-periodo button {
+    min-height: 41px;
+}
+
+.docker-logs-periodo button.ativo {
+    background: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+    color: #fff;
+}
+
+.docker-logs-erro {
+    margin-top: 8px;
+    color: #bd1910;
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    .docker-logs-data { width: 100%; }
+}
+
 .docker-logs-filtro select,
 .docker-logs-filtro input {
     min-height: 41px;
@@ -888,6 +929,7 @@
 }
 
 .docker-console-mensagem {
+    white-space: pre-wrap;
     color: #e0dee1;
 }
 

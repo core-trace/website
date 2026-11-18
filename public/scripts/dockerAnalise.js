@@ -35,17 +35,18 @@
     }
     function registros(lista, tipo, c) {
         // Registros individuais são opcionais. Contagens agregadas não viram mensagens/eventos.
-        const encontrados = lista.flatMap((doc) => (doc[tipo] || []).flatMap((grupo) => {
+        const encontrados = lista.flatMap((doc) => (tipo === "logs" && Array.isArray(doc.logsIndividuais) && doc.logsIndividuais.length
+            ? doc.logsIndividuais : doc[tipo] || []).flatMap((grupo) => {
             if (!pertence(grupo, c)) return [];
             return (Array.isArray(grupo.registros) ? grupo.registros : [grupo]).flatMap((r) => {
                 const timestamp = instante(r.timestamp);
                 if (!Number.isFinite(timestamp)) return [];
-                if (tipo === "logs" && typeof r.mensagem !== "string") return [];
+                if (tipo === "logs" && typeof r.mensagem !== "string" && r.mensagem !== null) return [];
                 if (tipo === "eventos" && typeof r.tipo !== "string") return [];
-                return [{ ...r, timestamp }];
+                return [{ ...r, timestampOriginal: r.timestamp, timestamp }];
             });
         }));
-        return [...new Map(encontrados.map((r) => [r.id || JSON.stringify([r.timestamp, r.nivel, r.tipo, r.mensagem, r.descricao]), r])).values()]
+        return [...new Map(encontrados.map((r) => [r.id_captura || r.id || JSON.stringify([r.timestampOriginal, r.nivel, r.tipo, r.mensagem, r.descricao]), r])).values()]
             .sort((a, b) => a.timestamp - b.timestamp);
     }
     function falhas(lista, inicio, fim, c = null) {
@@ -153,7 +154,35 @@
         const divisoes = fim - inicio >= 86400000 ? 4 : 5;
         return Array.from({ length: divisoes + 1 }, (_, i) => inicio + (fim - inicio) * i / divisoes);
     }
-    const api = { numero, instante, intervalo, container, janela, cobertura, registros, falhas, reinicios, indicadores, pontos, taxas, eixo };
+    function periodoLogs(inicio, fim) {
+        function converter(valor) {
+            if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(valor)) throw new Error("Informe uma data e hora válidas.");
+            const t = Date.parse(valor + ":00-03:00");
+            if (!Number.isFinite(t) || new Date(t - 10800000).toISOString().slice(0, 16) !== valor) throw new Error("Informe uma data e hora válidas.");
+            return t;
+        }
+        const a = inicio ? converter(inicio) : null;
+        const b = fim ? converter(fim) + 59999 : null;
+        if (a !== null && b !== null && a > b) throw new Error("O início deve ser anterior ou igual ao fim.");
+        return { inicio: a, fim: b };
+    }
+
+    function ultimas24HorasLogs(registros, demonstracao = false, agora = Date.now()) {
+        const fim = demonstracao && registros.length
+            ? registros.reduce((ultimo, r) => Math.max(ultimo, r.timestamp), -Infinity) : agora;
+        return { inicio: fim - 86400000, fim };
+    }
+
+    function filtrarLogs(lista, { inicio = null, fim = null, nivel = "", busca = "", maisRecentes = true } = {}) {
+        const termo = busca.toLocaleLowerCase("pt-BR").trim();
+        return lista.filter((r) => {
+            const n = String(r.nivel || "unknown").toLowerCase().trim().replace(/^err$/, "error").replace(/^warning$/, "warn");
+            return (inicio === null || r.timestamp >= inicio) && (fim === null || r.timestamp <= fim)
+                && (!nivel || nivel === n) && (!termo || (r.mensagem ?? "").toLocaleLowerCase("pt-BR").includes(termo));
+        }).sort((a, b) => maisRecentes ? b.timestamp - a.timestamp : a.timestamp - b.timestamp);
+    }
+
+    const api = { numero, instante, intervalo, container, janela, cobertura, registros, falhas, reinicios, indicadores, pontos, taxas, eixo, periodoLogs, filtrarLogs, ultimas24HorasLogs };
     if (typeof module !== "undefined" && module.exports) module.exports = api;
     else raiz.CoreTraceDockerAnalise = api;
 })(typeof window !== "undefined" ? window : globalThis);

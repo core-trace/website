@@ -6,6 +6,7 @@
  */
 (function () {
     "use strict";
+    const A = typeof module !== "undefined" && module.exports ? require("./dockerAnalise.js") : window.CoreTraceDockerAnalise;
 
     // Funções locais: não precisamos importar dockerDados.js para ler o JSON.
     // Não convertemos null em zero, pois a ausência da métrica não significa 0%.
@@ -73,6 +74,7 @@
                 mac: documento.endereco_mac,
                 containers: documento.resumos.containers,
                 logs: documento.resumos.logs || [],
+                logsIndividuais: Array.isArray(documento.logs) ? documento.logs : [],
                 eventos: documento.resumos.eventos || []
             };
         }
@@ -94,6 +96,9 @@
     let selecionadoId = null;
     let tipoPico = "cpu";
     let logsMaisRecentes = true;
+    let logsPeriodo = { inicio: null, fim: null };
+    let logsUltimas24h = true;
+    let logsExibidos = [];
 
     function n(valor, unidade = "") {
         return D.numero(valor) === null ? "—" : `${formatoNumero.format(valor)}${unidade}`;
@@ -711,58 +716,58 @@
     }
 
     function renderizarLogs(c) {
-        $("docker-logs-descricao").textContent = `Histórico do período · ${c.nome}`;
         const painel = $("docker-logs-conteudo");
         painel.replaceChildren();
 
-        // O Gold atual guarda QUANTIDADES por dia e nível, não mensagens.
-        // Mantemos a aparência do console do Figma, mas cada linha é marcada
-        // claramente como RESUMO, para não inventar timestamp nem texto.
-        const registros = historicoAtivo.flatMap((doc) => {
-            const log = doc.logs.find((item) => (c.nome && item.nome === c.nome)
-                || item.container_id === c.container_id);
-            if (!log) return [];
-            return D.resumoLog(log).niveis.map((nivel) => ({
-                data: doc.intervalo?.fim || doc.data,
-                nivel: nivel.nome.toLowerCase(),
-                quantidade: nivel.quantidade
-            }));
-        });
+        // Usa todo o histórico carregado; o filtro dos gráficos não limita os logs.
+        // Registros originais são opcionais. Contagens não viram mensagens fictícias.
+        const registros = A.registros([...historico, ...historicoHorario], "logs", c).map((r) => ({
+            ...r, nivel: String(r.nivel || "unknown").toLowerCase().trim().replace(/^err$/, "error").replace(/^warning$/, "warn")
+        }));
+        if (logsUltimas24h) {
+            logsPeriodo = A.ultimas24HorasLogs(registros, demonstracao);
+            const formatarCampo = (timestamp) => {
+                const partes = new Intl.DateTimeFormat("en-CA", {
+                    timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+                    hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+                }).formatToParts(new Date(timestamp));
+                const valor = (tipo) => partes.find((p) => p.type === tipo).value;
+                return `${valor("year")}-${valor("month")}-${valor("day")}T${valor("hour")}:${valor("minute")}`;
+            };
+            $("docker-logs-inicio").value = formatarCampo(logsPeriodo.inicio);
+            $("docker-logs-fim").value = formatarCampo(logsPeriodo.fim);
+        }
+        $("docker-logs-ultimas24h").classList.toggle("ativo", logsUltimas24h);
+        $("docker-logs-ultimas24h").setAttribute("aria-pressed", String(logsUltimas24h));
+        $("docker-logs-descricao").textContent = logsUltimas24h ? "Últimas 24 horas"
+            : logsPeriodo.inicio === null && logsPeriodo.fim === null ? "Histórico completo" : "Período selecionado";
 
         const filtroNivel = $("docker-logs-nivel")?.value || "";
         const busca = ($("docker-logs-busca")?.value || "").toLocaleLowerCase("pt-BR").trim();
-        const visiveis = registros.filter((registro) => {
-            const nivel = registro.nivel === "err" ? "error" : registro.nivel;
-            if (filtroNivel && nivel !== filtroNivel) return false;
-            const texto = `${registro.data} ${registro.data.split("-").reverse().join("/")} ${nivel} ${registro.quantidade}`;
-            return texto.toLocaleLowerCase("pt-BR").includes(busca);
-        }).sort((a, b) => {
-            const diferenca = a.data.localeCompare(b.data);
-            return logsMaisRecentes ? -diferenca : diferenca;
-        });
+        const visiveis = A.filtrarLogs(registros, { ...logsPeriodo, nivel: filtroNivel, busca, maisRecentes: logsMaisRecentes });
+        logsExibidos = visiveis;
+        $("docker-logs-download").disabled = !visiveis.length;
 
         const consoleLogs = adicionarTexto(painel, "div", "", "docker-console");
         const cabecalho = adicionarTexto(consoleLogs, "div", "", "docker-console-cabecalho");
-        adicionarTexto(cabecalho, "span", `Logs · ${c.nome || "contêiner"}`);
-        adicionarTexto(cabecalho, "span", "Resumos por nível");
-
-        if (!visiveis.length) {
-            adicionarTexto(consoleLogs, "p", registros.length
-                ? "Nenhum registro corresponde aos filtros selecionados."
-                : "Não há resumos de logs disponíveis para este contêiner no período.", "docker-console-vazio");
-        }
+        adicionarTexto(cabecalho, "span", `stdout / stderr · ${c.nome || "contêiner"}`);
         for (const registro of visiveis) {
             const linha = adicionarTexto(consoleLogs, "div", "", "docker-console-linha");
-            adicionarTexto(linha, "time", periodoDias === 1 ? hora(registro.data) : registro.data.split("-").reverse().join("/"), "docker-console-data");
+            const data = new Date(registro.timestamp);
+            const tempo = adicionarTexto(linha, "time", data.toLocaleString("pt-BR", {
+                timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric",
+                hour: "2-digit", minute: "2-digit", second: "2-digit", fractionalSecondDigits: 3
+            }), "docker-console-data");
+            tempo.dateTime = data.toISOString();
+            tempo.title = `${data.toISOString()} · exibido em Brasília`;
             const classe = /^(error|err|fatal)$/.test(registro.nivel) ? "erro"
                 : /^(warn|warning)$/.test(registro.nivel) ? "aviso"
                 : registro.nivel === "info" ? "info" : "desconhecido";
             adicionarTexto(linha, "span", registro.nivel === "unknown"
                 ? "UNKNOWN" : registro.nivel.toUpperCase(), `docker-console-nivel ${classe}`);
-            adicionarTexto(linha, "span", `${n(registro.quantidade)} mensagem(ns) contabilizada(s) · conteúdo não disponível`, "docker-console-mensagem");
+            adicionarTexto(linha, "span", registro.mensagem ?? "", "docker-console-mensagem");
         }
 
-        adicionarTexto(painel, "p", "Os resumos disponíveis contêm totais por intervalo e nível, sem mensagens individuais. O horário indica o fim do resumo, não o instante de cada mensagem. Um registro ERROR não significa que o contêiner parou.", "docker-console-nota");
     }
 
     function renderizarEventos(c) {
@@ -792,6 +797,8 @@
     }
 
     function limparDetalhe() {
+        logsExibidos = [];
+        $("docker-logs-download").disabled = true;
         graficosAtivos.forEach((chart) => chart.destroy());
         graficosAtivos = [];
         $("docker-detalhe-titulo").textContent = "Detalhes do contêiner";
@@ -889,6 +896,48 @@
         const c = dados?.containers.find((item) => item.container_id === selecionadoId);
         if (c) renderizarLogs(c);
     };
+    $("docker-logs-download").addEventListener("click", () => {
+        const c = dados?.containers.find((item) => item.container_id === selecionadoId);
+        if (!c || !logsExibidos.length) return;
+        const texto = logsExibidos.map((r) => `${r.timestampOriginal || new Date(r.timestamp).toISOString()} ${r.nivel.toUpperCase()} ${r.mensagem ?? ""}`).join("\n") + "\n";
+        const url = URL.createObjectURL(new Blob([texto], { type: "text/plain;charset=utf-8" }));
+        const link = document.createElement("a");
+        link.href = url;
+        const nome = (c.nome || c.container_id).replace(/[^\p{L}\p{N}_-]/gu, "_");
+        link.download = `docker-${nome}.log`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    $("docker-logs-periodo").addEventListener("submit", (evento) => {
+        evento.preventDefault();
+        const erro = $("docker-logs-periodo-erro");
+        try {
+            logsPeriodo = A.periodoLogs($("docker-logs-inicio").value, $("docker-logs-fim").value);
+            logsUltimas24h = false;
+            $("docker-logs-ultimas24h").classList.remove("ativo");
+            $("docker-logs-ultimas24h").setAttribute("aria-pressed", "false");
+            erro.hidden = true;
+            atualizarLogsSelecionado();
+        } catch (e) {
+            erro.textContent = e.message;
+            erro.hidden = false;
+            $("docker-logs-fim").setAttribute("aria-invalid", "true");
+        }
+    });
+    $("docker-logs-periodo").addEventListener("input", () => {
+        $("docker-logs-periodo-erro").hidden = true;
+        $("docker-logs-fim").removeAttribute("aria-invalid");
+    });
+    $("docker-logs-ultimas24h").addEventListener("click", () => {
+        $("docker-logs-periodo-erro").hidden = true;
+        $("docker-logs-fim").removeAttribute("aria-invalid");
+        logsUltimas24h = true;
+        $("docker-logs-ultimas24h").classList.add("ativo");
+        $("docker-logs-ultimas24h").setAttribute("aria-pressed", "true");
+        atualizarLogsSelecionado();
+    });
     $("docker-logs-nivel")?.addEventListener("change", atualizarLogsSelecionado);
     $("docker-logs-busca")?.addEventListener("input", atualizarLogsSelecionado);
     $("docker-logs-ordem")?.addEventListener("click", () => {

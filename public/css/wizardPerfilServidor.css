@@ -192,7 +192,8 @@ body.wizard-perfil-aberto {
 }
 
 .wizard-campo input,
-.wizard-campo textarea {
+.wizard-campo textarea,
+.wizard-campo select {
     display: block;
     width: 100%;
     min-width: 0;

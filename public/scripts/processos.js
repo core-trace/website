@@ -72,8 +72,7 @@
     }
 
     function badgeStatus(status) {
-        const s = status || "Normal";
-        return s; // estilização via CSS existente (ajuste classes se necessário)
+        return status || "Normal";
     }
 
     function preencherSelect(select, itens, getValue, getLabel, placeholder = "--") {
@@ -99,8 +98,6 @@
         const inicio = new Date(fim);
         const horas = { "ultima-hora": 1, "ultimas-6h": 6, "ultimas-24h": 24 }[id] || 1;
         inicio.setHours(inicio.getHours() - horas);
-        // Para testes com dados históricos do gold-client, ajuste manualmente se necessário:
-        // inicio = new Date("2026-11-02T10:00:00"); fim = new Date("2026-11-02T10:00:10");
         return { inicio: inicio.toISOString(), fim: fim.toISOString() };
     }
 
@@ -112,27 +109,53 @@
         setText("processos-atualizado", `Atualizado: ${fmtDataHora(state.fim)}`);
     }
 
+    async function carregarServidores() {
+        try {
+            const dados = await api("servidores");
+            const sel = $("filtro-servidor");
+            if (!sel) return;
+            sel.innerHTML = '<option value="" selected disabled hidden>--</option>';
+            (dados.servidores || []).forEach((s) => {
+                const opt = document.createElement("option");
+                opt.value = s.mac;
+                opt.textContent = `${s.nome || s.mac} (${s.mac})`;
+                sel.appendChild(opt);
+            });
+            sel.disabled = !(dados.servidores && dados.servidores.length > 0);
+            if (dados.servidores && dados.servidores.length > 0) {
+                state.mac = dados.servidores[0].mac;
+                sel.value = state.mac;
+            } else {
+                state.mac = null;
+            }
+        } catch (e) {
+            console.error("Erro ao carregar servidores:", e);
+        }
+    }
+
     async function carregarContexto() {
-        // Busca contexto por servidor; se nenhum selecionado, tenta sem mac para obter estrutura
-        const data = await api("contexto", state.mac ? {} : { mac: undefined }).catch(async () => {
-            // fallback: requer mac em algumas situações; tenta obter servidores de outra forma
-            return { servidores: [], periodos: [], limites: null };
+        if (!state.mac) {
+            const selPeriodo = $("filtro-periodo");
+            if (selPeriodo) {
+                selPeriodo.innerHTML = '<option value="" selected disabled hidden>--</option>';
+                selPeriodo.disabled = true;
+            }
+            setText("processos-atualizado", "--");
+            const elIntervalo = $("filtro-intervalo");
+            if (elIntervalo) elIntervalo.textContent = "--";
+            state.limites = state.limites || { cpu: { atencao: 60, critico: 80 }, rssGb: { atencao: 2, critico: 2.5 } };
+            return;
+        }
+
+        const data = await api("contexto").catch(async () => {
+            return { periodos: [], limites: null };
         });
 
         state.limites = data.limites || state.limites;
 
-        const selServidor = $("filtro-servidor");
-        preencherSelect(selServidor, data.servidores || [], (s) => s.mac || s.endereco_mac || s.id, (s) => s.hostname || s.nome || s.mac || s.endereco_mac || "Servidor");
-
         const selPeriodo = $("filtro-periodo");
         preencherSelect(selPeriodo, data.periodos || [], (p) => p.id, (p) => p.label || p.id);
 
-        // Seleciona primeiro servidor se houver
-        if (!state.mac && (data.servidores || []).length > 0) {
-            state.mac = (data.servidores[0].mac || data.servidores[0].endereco_mac);
-            if (selServidor) selServidor.value = state.mac;
-        }
-        // Período padrão
         if (!state.inicio || !state.fim) {
             const periodoId = (data.periodos && data.periodos[0] && data.periodos[0].id) || "ultima-hora";
             const intervalo = periodoParaIntervalo(periodoId);
@@ -231,10 +254,7 @@
                 plugins: { legend: { display: false } },
                 scales: {
                     x: { ticks: { maxTicksLimit: 6 } },
-                    y: {
-                        beginAtZero: true,
-                        suggestedMax: tipo === "cpu" ? 100 : undefined
-                    }
+                    y: { beginAtZero: true, suggestedMax: tipo === "cpu" ? 100 : undefined }
                 }
             }
         });
@@ -404,33 +424,49 @@
 
     function bindEventos() {
         const selServidor = $("filtro-servidor");
-        if (selServidor) selServidor.addEventListener("change", () => {
-            state.mac = selServidor.value || null;
-            state.pid = null;
-            state.processoNome = null;
-            carregarContexto().then(carregarTudo).catch(console.error);
-        });
+        if (selServidor) {
+            selServidor.addEventListener("change", () => {
+                state.mac = selServidor.value || null;
+                state.pid = null;
+                state.processoNome = null;
+                carregarContexto().then(carregarTudo).catch(console.error);
+            });
+        }
 
         const selPeriodo = $("filtro-periodo");
-        if (selPeriodo) selPeriodo.addEventListener("change", () => {
-            const intervalo = periodoParaIntervalo(selPeriodo.value);
-            state.inicio = intervalo.inicio;
-            state.fim = intervalo.fim;
-            atualizarIntervaloUI();
-            carregarTudo();
-        });
+        if (selPeriodo) {
+            selPeriodo.addEventListener("change", () => {
+                if (!selPeriodo.value) return;
+                const intervalo = periodoParaIntervalo(selPeriodo.value);
+                state.inicio = intervalo.inicio;
+                state.fim = intervalo.fim;
+                atualizarIntervaloUI();
+                carregarTudo();
+            });
+        }
 
         const busca = $("busca-todos-processos");
-        if (busca) busca.addEventListener("change", () => {
-            state.pagina = 1;
-            api("todos", { pagina: 1, porPagina: state.porPagina, busca: busca.value })
-                .then(aplicarTodos).catch(console.error);
-        });
+        if (busca) {
+            busca.addEventListener("input", () => {
+                clearTimeout(window._debounceTodos);
+                window._debounceTodos = setTimeout(() => {
+                    state.pagina = 1;
+                    api("todos", {
+                        pagina: 1,
+                        porPagina: state.porPagina,
+                        busca: busca.value
+                    })
+                        .then(aplicarTodos)
+                        .catch(console.error);
+                }, 300);
+            });
+        }
     }
 
     async function init() {
         try {
             bindEventos();
+            await carregarServidores();
             await carregarContexto();
             await carregarTudo();
         } catch (e) {

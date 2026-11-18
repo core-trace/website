@@ -751,6 +751,23 @@ function obterRecorrencia(filtros) {
         });
 }
 
+function listarServidores(filtros) {
+    const empresa = Number(filtros.empresa);
+    const usuario = Number(filtros.usuario);
+    if (!Number.isSafeInteger(empresa) || !Number.isSafeInteger(usuario)) {
+        return Promise.resolve({ servidores: [] });
+    }
+    return servidorModel.listarServidoresPorEmpresa(empresa, usuario)
+        .then(function (servidores) {
+            return {
+                servidores: servidores.map((s) => ({
+                    mac: s.endereco_mac,
+                    nome: s.nome || s.endereco_mac
+                }))
+            };
+        });
+}
+
 module.exports = {
     obterContexto,
     obterKpis,
@@ -759,6 +776,7 @@ module.exports = {
     obterEventos,
     listarTodos,
     obterRecorrencia,
+    listarServidores,
     _internos: {
         carregarAmostras,
         normalizarAmostraProcesso,

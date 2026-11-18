@@ -1,8 +1,8 @@
 // Monta o resumo da dashboard Geral (ver public/scripts/inicioDashboard.js) a partir
 // dos resumos diarios reais que o pipeline Python deixa no S3, um por servidor.
 //
-// Cobre os campos "estado", "cobertura", "indicadores", "perfis", "resumo" e "acoes".
-// Os demais campos que a dashboard usa (evolucao, evolucaoLegenda, riscos e
+// Cobre os campos "estado", "cobertura", "indicadores", "perfis", "resumo", "acoes"
+// e "evolucao". Os demais campos que a dashboard usa (evolucaoLegenda, riscos e
 // perguntasProntas) continuam vindo do mock (public/scripts/geralMock.js) porque
 // dependem de hipoteses ainda nao implementadas (assistente, previsao de tendencia) -
 // isso e intencional, nao uma lacuna esquecida.
@@ -226,6 +226,40 @@ function montarPerfis(servidores) {
     return nomesPerfis.map(nome => montarPerfil(nome, servidores.filter(servidor => servidor.nome_perfil === nome)));
 }
 
+// a gold agora manda resumo.evolucao (lista de {instante, estado} por servidor, ja
+// classificado em baldes de 5 min - ver resumos_gold.AcumuladorEvolucao). mas nem
+// todo servidor tem leitura exatamente no mesmo balde que os outros, entao primeiro
+// preciso achar todos os instantes que apareceram em QUALQUER servidor, pra montar
+// um eixo de tempo so, compartilhado
+function construirEixoDeHorarios(servidores) {
+    const instantes = new Set();
+    for (const servidor of servidores) {
+        for (const ponto of servidor.resumo?.evolucao ?? []) instantes.add(ponto.instante);
+    }
+    return [...instantes].sort();
+}
+
+// pra cada servidor, se ele nao tem leitura num balde que outro servidor tem, uso
+// "normal" como padrao (nao e "sem dados", e so que naquele balde nao achei nada
+// fora do normal pra registrar - se um dia isso virar problema a gente revisita)
+function montarEvolucao(servidores) {
+    const instantes = construirEixoDeHorarios(servidores);
+    const horarios = instantes.map(instante => formatarHorarioDeInstante(new Date(instante)));
+
+    const porServidor = servidores
+        .filter(servidor => (servidor.resumo?.evolucao ?? []).length > 0)
+        .map(servidor => {
+            const estadoPorInstante = new Map(servidor.resumo.evolucao.map(ponto => [ponto.instante, ponto.estado]));
+            return {
+                nome: servidor.nome,
+                nome_perfil: servidor.nome_perfil,
+                estados: instantes.map(instante => estadoPorInstante.get(instante) ?? "normal")
+            };
+        });
+
+    return { horarios, porServidor };
+}
+
 function proporcaoAfetada(perfil) {
     const distribuicao = perfil.distribuicao;
     const total = distribuicao.critico + distribuicao.atencao + distribuicao.normal + distribuicao.semDados;
@@ -392,7 +426,8 @@ function resumoSemDados() {
         perfis: [],
         resumo: montarResumo([], { avaliados: 0, esperados: 0 }),
         acoes: [],
-        sinaisExternos: sinaisExternosService.obterSinaisExternos()
+        sinaisExternos: sinaisExternosService.obterSinaisExternos(),
+        evolucao: { horarios: [], porServidor: [] }
     };
 }
 
@@ -423,7 +458,8 @@ async function construirResumoGeral() {
         perfis,
         resumo: montarResumo(perfis, cobertura),
         acoes: montarAcoes(servidores, perfis),
-        sinaisExternos: sinaisExternosService.obterSinaisExternos()
+        sinaisExternos: sinaisExternosService.obterSinaisExternos(),
+        evolucao: montarEvolucao(servidores)
     };
 }
 

@@ -1,29 +1,116 @@
 (() => {
+    // Divisao temporaria e intencional: "estado", "cobertura", "indicadores", "perfis",
+    // "resumo" e "acoes" ja vem de dados reais (rota /geral/resumo, ver
+    // src/routes/geralRoutes.js). Os demais campos (evolucao, evolucaoLegenda, riscos,
+    // perguntasProntas) continuam vindo do mock porque dependem de hipoteses ainda nao
+    // implementadas (assistente, previsao de tendencia) - nao e uma lacuna esquecida.
     const dado = geralMock;
+
+    // Guarda o ultimo resumo (real ou, se a rota falhar, mocado) para o filtro de
+    // perfil conseguir recalcular a tela na hora, sem precisar buscar de novo no
+    // servidor - afinal a rota /geral/resumo ja devolve a divisao por perfil pronta.
+    let ultimoResumo = null;
 
     const texto = (id, valor) => { document.getElementById(id).textContent = valor; };
 
-    function mostrarCabecalho() {
-        document.getElementById("estado-titulo").textContent = dado.estado.titulo;
+    function mostrarCabecalho(estado) {
+        document.getElementById("estado-titulo").textContent = estado.titulo;
     }
 
-    function mostrarIndicadores() {
-        texto("indicador-cobertura", `${dado.cobertura.avaliados}/${dado.cobertura.esperados}`);
-        texto("indicador-criticos", dado.indicadores.criticos);
-        texto("indicador-criticos-legenda", dado.indicadores.criticosLegenda);
-        texto("indicador-atencao", dado.indicadores.atencao);
-        texto("indicador-atencao-legenda", dado.indicadores.atencaoLegenda);
-        texto("indicador-sem-dados", dado.indicadores.semDadosRecentes);
-        texto("indicador-sem-dados-legenda", dado.indicadores.semDadosLegenda);
+    function mostrarIndicadores(cobertura, indicadores) {
+        texto("indicador-cobertura", `${cobertura.avaliados}/${cobertura.esperados}`);
+        texto("indicador-criticos", indicadores.criticos);
+        texto("indicador-criticos-legenda", indicadores.criticosLegenda);
+        texto("indicador-atencao", indicadores.atencao);
+        texto("indicador-atencao-legenda", indicadores.atencaoLegenda);
+        texto("indicador-sem-dados", indicadores.semDadosRecentes);
+        texto("indicador-sem-dados-legenda", indicadores.semDadosLegenda);
     }
 
-    function mostrarResumo() {
-        texto("resumo-titulo", dado.resumo.titulo);
-        texto("resumo-motivo", dado.resumo.motivo);
-        texto("resumo-cobertura", dado.resumo.cobertura);
+    // Recalcula cobertura/indicadores/perfis olhando so pro perfil escolhido, a partir
+    // do resumo que ja temos guardado - o filtro nao busca nada novo no servidor, so
+    // reaproveita a divisao por perfil que a rota /geral/resumo ja manda pronta.
+    function filtrarPorPerfil(resumo, nomePerfil) {
+        if (!nomePerfil) return resumo; // "Todos perfis": mostra o resumo inteiro
+
+        const perfil = resumo.perfis.find(item => item.nome === nomePerfil);
+        if (!perfil) return resumo; // perfil sem nenhum servidor nesse resumo - nao deveria acontecer
+
+        const distribuicao = perfil.distribuicao;
+        const avaliados = distribuicao.critico + distribuicao.atencao + distribuicao.normal;
+        const esperados = avaliados + distribuicao.semDados;
+
+        return {
+            estado: resumo.estado,
+            cobertura: { avaliados, esperados },
+            indicadores: {
+                criticos: distribuicao.critico, criticosLegenda: "",
+                atencao: distribuicao.atencao, atencaoLegenda: "",
+                semDadosRecentes: distribuicao.semDados, semDadosLegenda: ""
+            },
+            perfis: [perfil],
+            // Com um unico perfil selecionado nao ha o que comparar - resumo/acoes sao
+            // calculados priorizando ENTRE perfis, e mostrar o resultado global (de um
+            // perfil que pode nem ser o filtrado) seria informacao errada, nao so
+            // incompleta. Null aqui sinaliza pra renderizarResumo esconder a secao em
+            // vez de reaproveitar o resumo.resumo/resumo.acoes do agregado.
+            resumo: null,
+            acoes: null
+        };
+    }
+
+    function alternarSecaoResumo(mostrar) {
+        // Nao da pra usar o atributo "hidden" aqui: .geral-resumo-linha ja tem
+        // "display: grid" proprio (geralDashboard.css), que empata em especificidade
+        // com a regra nativa [hidden]{display:none} do navegador - e CSS de autor
+        // sempre vence CSS do agente do usuario, entao "hidden" ficaria sem efeito
+        // visual nenhum (confirmado testando ao vivo). style.display direto resolve.
+        document.querySelector(".geral-resumo-linha").style.display = mostrar ? "" : "none";
+    }
+
+    function renderizarResumo(resumo) {
+        mostrarCabecalho(resumo.estado);
+        mostrarIndicadores(resumo.cobertura, resumo.indicadores);
+        mostrarPerfis(resumo.perfis);
+
+        alternarSecaoResumo(resumo.resumo !== null);
+        if (resumo.resumo !== null) {
+            mostrarResumo(resumo.resumo);
+            mostrarAcoes(resumo.acoes);
+        }
+    }
+
+    function configurarFiltroPerfil() {
+        document.getElementById("filtro-perfil").addEventListener("change", function (evento) {
+            if (ultimoResumo) renderizarResumo(filtrarPorPerfil(ultimoResumo, evento.target.value));
+        });
+    }
+
+    // Busca os dados reais na rota /geral/resumo. Se a rota falhar por qualquer motivo,
+    // cai de volta no mock desses mesmos campos, so para a tela nunca ficar vazia.
+    async function carregarDadosReais() {
+        try {
+            const resposta = await fetch("/geral/resumo");
+            if (!resposta.ok) throw new Error("Não foi possível carregar o resumo geral.");
+            ultimoResumo = await resposta.json();
+        } catch (erro) {
+            console.error("Erro ao carregar o resumo geral, usando dados mocados:", erro.message);
+            ultimoResumo = {
+                estado: dado.estado, cobertura: dado.cobertura, indicadores: dado.indicadores, perfis: dado.perfis,
+                resumo: dado.resumo, acoes: dado.acoes
+            };
+        }
+        const perfilEscolhido = document.getElementById("filtro-perfil").value;
+        renderizarResumo(filtrarPorPerfil(ultimoResumo, perfilEscolhido));
+    }
+
+    function mostrarResumo(resumo) {
+        texto("resumo-titulo", resumo.titulo);
+        texto("resumo-motivo", resumo.motivo);
+        texto("resumo-cobertura", resumo.cobertura);
 
         const comparacao = document.getElementById("resumo-comparacao");
-        comparacao.replaceChildren(...dado.resumo.comparacao.map(item => {
+        comparacao.replaceChildren(...resumo.comparacao.map(item => {
             const bloco = document.createElement("div");
             bloco.className = "geral-comparacao-item";
             bloco.innerHTML = `<strong>${item.perfil}</strong><span class="geral-comparacao-afetados">${item.afetados}</span><span>${item.duracao}</span>`;
@@ -31,9 +118,9 @@
         }));
     }
 
-    function mostrarAcoes() {
+    function mostrarAcoes(acoes) {
         const lista = document.getElementById("lista-acoes");
-        lista.replaceChildren(...dado.acoes.map((acao, indice) => {
+        lista.replaceChildren(...acoes.map((acao, indice) => {
             const item = document.createElement("li");
             item.innerHTML = `
                 <span class="geral-acao-numero">${indice + 1}</span>
@@ -51,9 +138,9 @@
         return `<span class="geral-barra-segmento ${classe}" style="width:${largura}%"></span>`;
     }
 
-    function mostrarPerfis() {
+    function mostrarPerfis(perfis) {
         const lista = document.getElementById("lista-perfis");
-        lista.replaceChildren(...dado.perfis.map(perfil => {
+        lista.replaceChildren(...perfis.map(perfil => {
             const linha = document.createElement("div");
             linha.className = "geral-linha-perfil";
             const total = perfil.distribuicao.critico + perfil.distribuicao.atencao
@@ -169,11 +256,8 @@
         });
     }
 
-    mostrarCabecalho();
-    mostrarIndicadores();
-    mostrarResumo();
-    mostrarAcoes();
-    mostrarPerfis();
+    configurarFiltroPerfil();
+    carregarDadosReais();
     mostrarRiscos();
     mostrarGraficoEvolucao();
     configurarExportar();

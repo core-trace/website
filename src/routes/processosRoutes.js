@@ -9,5 +9,6 @@ router.get("/variacao", processosController.obterVariacao);
 router.get("/eventos", processosController.obterEventos);
 router.get("/todos", processosController.listarTodos);
 router.get("/recorrencia", processosController.obterRecorrencia);
+router.get("/servidores", processosController.listarServidores);
 
 module.exports = router;

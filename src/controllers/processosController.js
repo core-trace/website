@@ -77,6 +77,17 @@ function obterRecorrencia(req, res) {
         });
 }
 
+function listarServidores(req, res) {
+    return processosService.listarServidores(req.query)
+        .then(function (dados) {
+            return res.json(dados);
+        })
+        .catch(function (erro) {
+            console.error("Erro ao listar servidores:", erro.message);
+            return res.status(500).json({ mensagem: "Não foi possível carregar os servidores." });
+        });
+}
+
 module.exports = {
     obterContexto,
     obterKpis,
@@ -84,5 +95,6 @@ module.exports = {
     obterVariacao,
     obterEventos,
     listarTodos,
-    obterRecorrencia
+    obterRecorrencia,
+    listarServidores
 };

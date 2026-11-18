@@ -84,7 +84,7 @@ function juntarComE(itens) {
 function montarEstado() {
     const campos = resumoGoldService.camposDoRelogio("America/Sao_Paulo", {
         year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false
-    });
+    }, resumoGoldService.agoraOuReferenciaDemo());
     const mes = MESES_ABREVIADOS[Number(campos.month) - 1];
     return {
         titulo: `Estado às ${campos.hour}h${campos.minute}`,
@@ -292,8 +292,15 @@ function todosCriteriosRelevantes(perfil) {
     return CRITERIOS_PRIORIDADE.filter(criterio => criterio.ehRelevante(perfil)).map(criterio => criterio.motivo);
 }
 
+function montarAvisoSemDados(perfis) {
+    const afetados = perfis.filter(perfil => perfil.distribuicao.semDados > 0);
+    if (afetados.length === 0) return "";
+    return ` ${juntarComE(afetados.map(perfil => perfil.nome))} com servidor sem dados recentes.`;
+}
+
 function montarResumo(perfis, cobertura) {
     const ordenados = perfisAfetadosOrdenados(perfis);
+    const avisoSemDados = montarAvisoSemDados(perfis);
     if (ordenados.length === 0) {
         // Decisao atual: nao montar aqui um "tudo estável, mas X normalizou às Yh".
         // Isso depende de ler client/lotes/.../capturas.json (mesmo trabalho da
@@ -302,7 +309,7 @@ function montarResumo(perfis, cobertura) {
             titulo: "Nenhum perfil com servidores afetados no momento",
             motivo: "Não há servidores em crítico ou atenção entre os perfis avaliados.",
             comparacao: [],
-            cobertura: `Entre os ${cobertura.esperados} servidores, ${cobertura.avaliados} puderam ser avaliados`
+            cobertura: `Entre os ${cobertura.esperados} servidores, ${cobertura.avaliados} puderam ser avaliados.${avisoSemDados}`
         };
     }
 
@@ -319,7 +326,7 @@ function montarResumo(perfis, cobertura) {
             afetados: perfil.afetados,
             duracao: `Crítico há ${perfil.duracao}`
         })),
-        cobertura: `Entre os ${cobertura.esperados} servidores, ${cobertura.avaliados} puderam ser avaliados`
+        cobertura: `Entre os ${cobertura.esperados} servidores, ${cobertura.avaliados} puderam ser avaliados.${avisoSemDados}`
     };
 }
 

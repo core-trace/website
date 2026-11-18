@@ -84,6 +84,21 @@ async function listarServidoresPorEmpresa(idEmpresa, idUsuario) {
     }));
 }
 
+// Usada pelo job de agregacao da dashboard Geral (ver resumoGeralService), que roda
+// em segundo plano, sem usuario logado - por isso nao tem o filtro de permissao que
+// listarServidoresPorEmpresa precisa aplicar para uma requisicao de um usuario real.
+function listarServidoresParaMonitoramento(idEmpresa) {
+    const instrucaoSql = `
+        SELECT s.endereco_mac, s.nome, p.id_perfil_servidor, p.nome AS nome_perfil, p.criticidade_negocio
+        FROM servidores s
+        INNER JOIN perfil_servidor p ON p.id_perfil_servidor = s.fk_perfil_servidor
+        WHERE p.fk_empresa = ?
+        ORDER BY p.nome ASC, s.nome ASC;
+    `;
+
+    return database.executar(instrucaoSql, [idEmpresa]);
+}
+
 function listarPerfisPorEmpresa(idEmpresa) {
     const instrucaoSql = `
         SELECT p.id_perfil_servidor, p.nome, p.descricao,
@@ -144,12 +159,12 @@ function criarPerfil(dados) {
     return database.transacao(async function (executar) {
         const sqlPerfil = `
             INSERT INTO perfil_servidor
-                (nome, descricao, sistema_operacional, monitorar_docker, token_perfil_servidor, fk_empresa)
-            VALUES (?, ?, ?, ?, ?, ?);
+                (nome, descricao, sistema_operacional, monitorar_docker, criticidade_negocio, token_perfil_servidor, fk_empresa)
+            VALUES (?, ?, ?, ?, ?, ?, ?);
         `;
         const resultado = await executar(sqlPerfil, [
             dados.nome.trim(), dados.descricao.trim(), dados.sistemaOperacional,
-            dados.monitorarDocker, token, dados.empresa
+            dados.monitorarDocker, dados.criticidadeNegocio ?? 0, token, dados.empresa
         ]);
         const idPerfil = resultado.insertId;
 
@@ -178,7 +193,7 @@ function criarPerfil(dados) {
 
 function obterPerfil(idPerfil, idEmpresa) {
     const instrucaoSql = `
-        SELECT id_perfil_servidor, nome, descricao, sistema_operacional, monitorar_docker
+        SELECT id_perfil_servidor, nome, descricao, sistema_operacional, monitorar_docker, criticidade_negocio
         FROM perfil_servidor
         WHERE id_perfil_servidor = ? AND fk_empresa = ?;
     `;
@@ -208,10 +223,10 @@ function atualizarPerfil(idPerfil, dados) {
 
         await executar(`
             UPDATE perfil_servidor
-            SET nome = ?, descricao = ?, sistema_operacional = ?, monitorar_docker = ?
+            SET nome = ?, descricao = ?, sistema_operacional = ?, monitorar_docker = ?, criticidade_negocio = ?
             WHERE id_perfil_servidor = ? AND fk_empresa = ?;
         `, [dados.nome.trim(), dados.descricao.trim(), dados.sistemaOperacional,
-            dados.monitorarDocker, idPerfil, dados.empresa]);
+            dados.monitorarDocker, dados.criticidadeNegocio ?? 0, idPerfil, dados.empresa]);
 
         // Substitui a seleção e seus limites dentro da mesma transação.
         await executar("DELETE FROM componentes_perfil WHERE fk_perfil_servidor = ?", [idPerfil]);
@@ -230,6 +245,6 @@ function atualizarPerfil(idPerfil, dados) {
 
 module.exports = {
     buscarPerfil, buscarPorMac, cadastrar, ativar,
-    listarServidoresPorEmpresa, listarPerfisPorEmpresa, listarMetricas, buscarProprietario,
+    listarServidoresPorEmpresa, listarServidoresParaMonitoramento, listarPerfisPorEmpresa, listarMetricas, buscarProprietario,
     listarMembrosDisponiveis, criarPerfil, obterPerfil, atualizarPerfil
 };

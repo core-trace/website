@@ -1170,3 +1170,24 @@
     outline: 2px solid #b91c16;
     outline-offset: 3px;
 }
+
+/* Ícones compartilhados com os demais dashboards. */
+.docker-recolher,
+.docker-logs-ordem {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.docker-seta-botao {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transform: rotate(90deg);
+}
+
+#docker-logs-recolher[aria-expanded="true"] .docker-seta-botao,
+#docker-logs-ordem[aria-pressed="false"] .docker-seta-botao {
+    transform: rotate(-90deg);
+}

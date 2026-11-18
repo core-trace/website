@@ -29,7 +29,6 @@
         <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
             <p class="dashboard-acesso-feedback" role="status"></p>
         </nav>
-        <div class="docker-menu-rodape"><span class="docker-ponto-online"></span> Monitoramento de contêineres</div>
     </aside>
     <div class="dashboard-menu-fundo" aria-hidden="true"></div>
 
@@ -191,7 +190,7 @@
                         <p id="docker-logs-descricao">Selecione um contêiner para investigar seus registros</p>
                     </div>
                     <button type="button" id="docker-logs-recolher" class="docker-botao-suave docker-recolher"
-                        aria-expanded="true" aria-controls="docker-logs-painel">⌃ &nbsp; Recolher painel</button>
+                        aria-expanded="true" aria-controls="docker-logs-painel"><img class="docker-seta-botao" src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16"><span>Recolher painel</span></button>
                 </div>
                 <div id="docker-logs-painel">
                     <form id="docker-logs-periodo" class="docker-logs-periodo" aria-label="Período exclusivo dos logs">
@@ -223,8 +222,8 @@
                                 aria-label="Pesquisar nos registros de logs">
                         </label>
                         <button type="button" id="docker-logs-ordem" class="docker-botao-suave docker-logs-ordem"
-                             aria-pressed="true">↓ &nbsp; Mais recentes primeiro</button>
-                        <button type="button" id="docker-logs-download" class="docker-botao-suave docker-logs-ordem" disabled>↓ &nbsp; Baixar logs</button>
+                             aria-pressed="true"><img class="docker-seta-botao" src="../assets/icons/seta_vermelha.svg" alt="" width="16" height="16"><span>Mais recentes primeiro</span></button>
+                        <button type="button" id="docker-logs-download" class="docker-botao-suave docker-logs-ordem" disabled><img class="docker-seta-botao" src="../assets/icons/seta_vermelha.svg" alt="" width="16" height="16"><span>Baixar logs</span></button>
                     </div>
                     <div id="docker-logs-conteudo" class="docker-registros-conteudo" aria-live="polite">Selecione um contêiner.</div>
                 </div>

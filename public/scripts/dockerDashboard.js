@@ -942,14 +942,14 @@
     $("docker-logs-busca")?.addEventListener("input", atualizarLogsSelecionado);
     $("docker-logs-ordem")?.addEventListener("click", () => {
         logsMaisRecentes = !logsMaisRecentes;
-        $("docker-logs-ordem").textContent = logsMaisRecentes ? "↓  Mais recentes primeiro" : "↑  Mais antigos primeiro";
+        $("docker-logs-ordem").querySelector("span").textContent = logsMaisRecentes ? "Mais recentes primeiro" : "Mais antigos primeiro";
         $("docker-logs-ordem").setAttribute("aria-pressed", String(logsMaisRecentes));
         atualizarLogsSelecionado();
     });
     $("docker-logs-recolher")?.addEventListener("click", () => {
         const painel = $("docker-logs-painel");
         painel.hidden = !painel.hidden;
-        $("docker-logs-recolher").textContent = painel.hidden ? "⌄  Expandir painel" : "⌃  Recolher painel";
+        $("docker-logs-recolher").querySelector("span").textContent = painel.hidden ? "Expandir painel" : "Recolher painel";
         $("docker-logs-recolher").setAttribute("aria-expanded", String(!painel.hidden));
     });
     document.querySelectorAll("[data-periodo]").forEach((botao) => botao.addEventListener("click", () => {

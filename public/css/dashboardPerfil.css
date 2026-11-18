@@ -1,0 +1,497 @@
+/* Parte 1: estrutura da página, cabeçalho, período e indicadores. */
+.pagina-perfis {
+    --perfis-fundo: #f7f7f3;
+    --perfis-superficie: #ffffff;
+    --perfis-borda: #e4e4e7;
+    --perfis-texto: #29262c;
+    --perfis-texto-secundario: #79757e;
+    background-color: var(--perfis-fundo);
+    color: var(--perfis-texto);
+}
+
+.pagina-perfis .principal {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding: 40px 32px;
+}
+
+.pagina-perfis .caminho-navegacao {
+    margin-bottom: 12px;
+    color: var(--perfis-texto-secundario);
+    font-size: 12px;
+}
+
+.pagina-perfis .cabecalho-pagina {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.pagina-perfis .cabecalho-pagina h1 {
+    font-size: clamp(22px, 2vw, 30px);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.pagina-perfis .cabecalho-pagina p {
+    margin-top: 4px;
+    color: var(--perfis-texto-secundario);
+    font-size: 13px;
+}
+
+.pagina-perfis .periodo {
+    flex-shrink: 0;
+}
+
+.pagina-perfis .periodo select:focus,
+.pagina-perfis .periodo select:focus-visible,
+.pagina-perfis .seletor-perfil select:focus,
+.pagina-perfis .seletor-perfil select:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.pagina-perfis .periodo select {
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1px solid var(--perfis-borda);
+    border-radius: 6px;
+    background-color: var(--perfis-superficie);
+    color: var(--perfis-texto);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.pagina-perfis .indicadores {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.pagina-perfis .indicador {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    min-height: 96px;
+    padding: 18px 16px;
+    border: 1px solid var(--perfis-borda);
+    border-radius: 7px;
+    background-color: var(--perfis-superficie);
+}
+
+.pagina-perfis .icone-indicador {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.pagina-perfis .indicador > div {
+    min-width: 0;
+}
+
+.pagina-perfis .indicador strong {
+    display: block;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.pagina-perfis .indicador .nome-perfil {
+    font-size: 24px;
+}
+
+.pagina-perfis .indicador p {
+    margin-top: 5px;
+    color: var(--perfis-texto-secundario);
+    font-size: 12px;
+}
+
+.pagina-perfis .vermelho {
+    color: var(--cor-vermelho);
+}
+
+/* Parte 2: painéis e espaços reservados aos gráficos do Chart.js. */
+.pagina-perfis .grade-paineis {
+    display: grid;
+    grid-template-columns: minmax(0, 1.13fr) minmax(0, 1fr);
+    gap: 16px;
+}
+
+.pagina-perfis .painel {
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--perfis-borda);
+    border-radius: 8px;
+    background-color: var(--perfis-superficie);
+}
+
+.pagina-perfis .painel h2 {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.pagina-perfis .cabecalho-painel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pagina-perfis .cabecalho-painel p {
+    margin-top: 4px;
+    color: var(--perfis-texto-secundario);
+    font-size: 11px;
+}
+
+.pagina-perfis .seletor-perfil {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 10px;
+    border: 1px solid var(--perfis-borda);
+    border-radius: 6px;
+    background-color: var(--perfis-superficie);
+    color: var(--perfis-texto-secundario);
+    font-size: 10px;
+}
+
+.pagina-perfis .seletor-perfil select {
+    min-width: 90px;
+    min-height: 32px;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 6px;
+    background-color: transparent;
+    color: var(--perfis-texto);
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.pagina-perfis .grafico-barras,
+.pagina-perfis .lista-criticos {
+    position: relative;
+    height: 180px;
+    margin-top: 20px;
+}
+
+.pagina-perfis .grafico-barras canvas,
+.pagina-perfis .lista-criticos canvas {
+    display: block;
+    max-width: 100%;
+}
+
+.pagina-perfis .criticos h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagina-perfis .criticos h2 img {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.pagina-perfis .limites {
+    grid-column: 1 / -1;
+}
+
+/* Parte 3: tabela de servidores e cartões de limites. */
+.pagina-perfis .situacao table {
+    width: 100%;
+    margin-top: 16px;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+    table-layout: fixed;
+    text-align: left;
+    font-size: 12px;
+}
+
+.pagina-perfis .situacao th {
+    padding: 6px 10px;
+    color: var(--perfis-texto-secundario);
+    font-size: 11px;
+    font-weight: 400;
+}
+
+.pagina-perfis .situacao td {
+    padding: 9px 10px;
+    overflow-wrap: anywhere;
+}
+
+.pagina-perfis .situacao th:not(:first-child),
+.pagina-perfis .situacao td:not(:first-child) {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.pagina-perfis .situacao tbody tr:nth-child(even) {
+    background-color: var(--perfis-fundo);
+}
+
+.pagina-perfis .situacao td:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.pagina-perfis .situacao td:last-child {
+    border-radius: 0 4px 4px 0;
+    color: var(--perfis-texto-secundario);
+}
+
+.pagina-perfis .situacao td:nth-child(2) {
+    color: #138c62;
+}
+
+.pagina-perfis .situacao td.tem-inativos {
+    color: var(--cor-vermelho);
+}
+
+.pagina-perfis #dashboard-feedback {
+    margin-bottom: 16px;
+    color: var(--perfis-texto-secundario);
+    font-size: 13px;
+}
+
+.pagina-perfis .limites {
+    padding-bottom: 28px;
+}
+
+.pagina-perfis .limites .seletor-perfil {
+    border-radius: 20px;
+}
+
+.pagina-perfis .metricas {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    max-width: 840px;
+    margin-top: 16px;
+}
+
+.pagina-perfis .componente-limites {
+    min-width: 0;
+    border: 1px solid var(--perfis-borda);
+    border-radius: 14px;
+    background-color: #eaeae5;
+}
+
+.pagina-perfis .componente-limites summary {
+    padding: 12px 10px;
+    cursor: pointer;
+}
+
+.pagina-perfis .componente-limites summary span {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.pagina-perfis .componente-limites summary small {
+    display: block;
+    margin-top: 5px;
+    color: var(--perfis-texto-secundario);
+    font-size: 9px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.pagina-perfis .componente-limites[open] {
+    grid-column: 1 / -1;
+}
+
+.pagina-perfis .componente-limites[open] summary {
+    border-bottom: 1px solid var(--perfis-borda);
+}
+
+.pagina-perfis .aviso-limites {
+    margin-top: 12px;
+    color: var(--perfis-texto-secundario);
+    font-size: 11px;
+}
+
+.pagina-perfis .tabela-limites-area {
+    padding: 12px;
+    overflow-x: auto;
+}
+
+.pagina-perfis .tabela-limites {
+    width: 100%;
+    min-width: 320px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 12px;
+}
+
+.pagina-perfis .tabela-limites caption {
+    margin-bottom: 10px;
+    text-align: left;
+    font-weight: 500;
+}
+
+.pagina-perfis .tabela-limites th,
+.pagina-perfis .tabela-limites td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--perfis-borda);
+}
+
+.pagina-perfis .tabela-limites th {
+    font-weight: 500;
+}
+
+.pagina-perfis .tabela-limites td:nth-child(2) {
+    color: #8b5b00;
+}
+
+.pagina-perfis .tabela-limites td:nth-child(3) {
+    color: var(--cor-vermelho);
+}
+
+@media (max-width: 1100px) {
+    .pagina-perfis .indicadores {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pagina-perfis .grade-paineis {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .pagina-perfis .principal {
+        padding: 24px 16px;
+    }
+
+    .pagina-perfis .cabecalho-pagina {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .pagina-perfis .indicadores {
+        gap: 12px;
+    }
+
+    .pagina-perfis .indicador {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .pagina-perfis .indicador .nome-perfil {
+        font-size: 20px;
+    }
+
+    .pagina-perfis .painel {
+        padding: 16px;
+    }
+
+    .pagina-perfis .metricas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pagina-perfis .periodo,
+    .pagina-perfis .periodo select {
+        width: 100%;
+    }
+
+    .pagina-perfis .situacao th,
+    .pagina-perfis .situacao td {
+        padding-inline: 6px;
+    }
+}
+
+@media (max-width: 360px) {
+    .pagina-perfis .indicadores,
+    .pagina-perfis .metricas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.pagina-perfis .painel.servidores {
+    grid-column: auto;
+}
+
+.pagina-perfis .prejuizo h2 {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pagina-perfis .prejuizo-novo {
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: #fff0ed;
+    color: #cc0301;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.pagina-perfis .prejuizo-lista {
+    list-style: none;
+    padding: 0;
+    margin: 18px 0 0;
+}
+
+.pagina-perfis .prejuizo-item + .prejuizo-item {
+    margin-top: 16px;
+}
+
+.pagina-perfis .prejuizo-resumo {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 12px;
+}
+
+.pagina-perfis .prejuizo-nome {
+    overflow-wrap: anywhere;
+}
+
+.pagina-perfis .prejuizo-valor {
+    white-space: nowrap;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.pagina-perfis .prejuizo-trilho {
+    height: 6px;
+    margin-top: 7px;
+    background: #f1f0ed;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.pagina-perfis .prejuizo-barra {
+    height: 100%;
+    width: 0;
+    background: #cc0301;
+    border-radius: inherit;
+}
+
+.pagina-perfis .prejuizo-detalhe {
+    margin-top: 6px;
+    color: var(--perfis-texto-secundario);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.pagina-perfis .prejuizo-nota {
+    margin-top: 18px;
+    padding-top: 10px;
+    border-top: 1px solid var(--perfis-borda);
+    color: var(--perfis-texto-secundario);
+    font-size: 10px;
+    line-height: 1.5;
+}

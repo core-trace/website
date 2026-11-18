@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreTrace | Perfis de servidores</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/dashboardPerfil.css">
+    <script src="../scripts/vendor/chart.umd.js" defer></script>
+    <script src="../scripts/dashboardPerfil.js" defer></script>
+    <script src="../scripts/navbarDashboard.js" defer></script>
+</head>
+<body class="dashboard-page dashboard-legivel pagina-perfis">
+    <a class="dashboard-pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+
+    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
+        <div class="dashboard-menu-cabecalho">
+            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
+            <p class="dashboard-acesso-feedback" role="status"></p>
+        </nav>
+    </aside>
+
+    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
+
+    <div class="dashboard-conteudo">
+        <header class="dashboard-navbar visao-navbar">
+            <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu"
+                aria-controls="menu-dashboard" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <div class="dashboard-usuario">
+                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
+                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
+                </button>
+
+                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
+
+                <div class="dashboard-usuario-dados">
+                    <span class="dashboard-usuario-nome"></span>
+                    <span class="dashboard-usuario-cargo"></span>
+                </div>
+                <div class="dashboard-conta">
+                    <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
+                        aria-controls="menu-conta" aria-expanded="false">
+                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12" height="12">
+                    </button>
+                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <p class="dashboard-conta-email"></p>
+                        <button class="dashboard-sair" type="button">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="principal" id="conteudo-principal" tabindex="-1">
+            <p class="caminho-navegacao">Dashboard / Análise por perfil</p>
+            <div class="cabecalho-pagina"><div><h1>Visão dos perfis de servidores</h1><p>Panorama completo dos seus perfis, servidores e containers.</p></div></div>
+            <p id="dashboard-feedback" role="status" aria-live="polite">Carregando dados...</p>
+            <section class="indicadores" aria-label="Resumo dos perfis">
+                <article class="indicador"><img class="icone-indicador" src="../assets/images/dashboard-perfil-critico.png" alt="" width="34" height="34"><div><strong class="vermelho nome-perfil" id="indicador-perfil-critico">—</strong><p>Perfil com mais servidores críticos</p></div></article>
+                <article class="indicador"><img class="icone-indicador" src="../assets/images/dashboard-servidores-inativos.png" alt="" width="34" height="34"><div><strong class="vermelho" id="indicador-servidores-inativos">—</strong><p>servidores inativos</p></div></article>
+                <article class="indicador"><img class="icone-indicador sucesso" src="../assets/images/dashboard-perfis-ativos.png" alt="" width="34" height="34"><div><strong id="indicador-perfis-ativos">—</strong><p>Perfis ativos</p></div></article>
+                <article class="indicador"><img class="icone-indicador" src="../assets/images/dashboard-perfis-configurados.png" alt="" width="34" height="34"><div><strong id="indicador-perfis-configurados">—</strong><p>Perfis configurados</p></div></article>
+            </section>
+            <div class="grade-paineis">
+                <section class="painel criticos"><h2><img src="../assets/images/Alerta — triângulo contornado.png" alt="" width="18" height="18"> Perfis com maior % de servidores críticos</h2><div class="lista-criticos"><canvas id="grafico-perfis-criticos" role="img" aria-label="Aguardando dados do dashboard">Aguardando dados do dashboard.</canvas></div></section>
+                <section class="painel situacao">
+                    <div class="cabecalho-painel">
+                        <div><h2>Status dos servidores por perfil</h2><p id="descricao-historico-status">Status no momento escolhido</p></div>
+                        <label class="seletor-perfil">Histórico:
+                            <select id="historico-status" aria-label="Período do histórico de status">
+                                <option value="30">Há 30 minutos</option>
+                                <option value="60">Há 1 hora</option>
+                                <option value="420">Há 7 horas</option>
+                                <option value="1440">Há 24 horas</option>
+                            </select>
+                        </label>
+                    </div>
+                    <table><thead><tr><th>Perfil</th><th>Ativos</th><th>Inativos</th></tr></thead><tbody id="status-perfis"></tbody></table></section>
+                <section class="painel servidores"><h2>Servidores por perfil</h2><div class="grafico-barras"><canvas id="grafico-servidores-perfil" role="img" aria-label="Aguardando dados do dashboard">Aguardando dados do dashboard.</canvas></div></section>
+                <section class="painel prejuizo" aria-labelledby="titulo-prejuizo">
+                    <div class="cabecalho-painel">
+                        <div>
+                            <h2 id="titulo-prejuizo">Prejuízo estimado por perfil</h2>
+                            <p>Tempo em estado crítico × custo por hora do perfil</p>
+                        </div>
+                    </div>
+                    <ul class="prejuizo-lista" id="prejuizo-perfis" aria-live="polite"></ul>
+                </section>
+                <template id="linha-prejuizo">
+                    <li class="prejuizo-item">
+                        <div class="prejuizo-resumo"><span class="prejuizo-nome"></span><strong class="prejuizo-valor">—</strong></div>
+                        <div class="prejuizo-trilho" hidden><div class="prejuizo-barra"></div></div>
+                        <p class="prejuizo-detalhe">Aguardando tempo crítico e custo por hora.</p>
+                    </li>
+                </template>
+                <section class="painel limites">
+                    <div class="cabecalho-painel">
+                        <div><h2>Limites por perfil</h2><p>Métricas monitoradas nos componentes presentes neste perfil</p></div>
+                        <label class="seletor-perfil">Perfil: <select id="perfil-limites" aria-label="Perfil dos limites" disabled></select></label>
+                    </div>
+                    <div class="metricas" id="limites-componentes">
+                        <details class="componente-limites" id="componente-cpu" hidden>
+                            <summary><span>CPU</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de CPU</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody id="metricas-cpu"></tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="componente-limites" id="componente-ram" hidden>
+                            <summary><span>RAM</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de RAM</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody id="metricas-ram"></tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="componente-limites" id="componente-rede" hidden>
+                            <summary><span>Rede</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de Rede</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody id="metricas-rede"></tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="componente-limites" id="componente-swap" hidden>
+                            <summary><span>Swap</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de Swap</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody id="metricas-swap"></tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="componente-limites" id="componente-disco" hidden>
+                            <summary><span>Disco</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de Disco</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody id="metricas-disco"></tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="componente-limites" id="componente-carga" hidden>
+                            <summary><span>Carga</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de Carga</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody id="metricas-carga"></tbody>
+                                </table>
+                            </div>
+                        </details>
+                        <details class="componente-limites" id="componente-outros" hidden>
+                            <summary><span>Outros</span><small>Ver métricas e limites</small></summary>
+                            <div class="tabela-limites-area">
+                                <table class="tabela-limites">
+                                    <caption>Métricas de Outros</caption>
+                                    <thead><tr><th scope="col">Métrica</th><th scope="col">Atenção</th><th scope="col">Crítico</th></tr></thead>
+                                    <tbody id="metricas-outros"></tbody>
+                                </table>
+                            </div>
+                        </details>
+                    </div>
+                    <p id="limites-vazios" class="aviso-limites" hidden>Nenhuma métrica cadastrada neste perfil.</p>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

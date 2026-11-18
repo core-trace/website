@@ -416,5 +416,82 @@
 }
 
 .pagina-perfis .painel.servidores {
-    grid-column: 1 / -1;
+    grid-column: auto;
+}
+
+.pagina-perfis .prejuizo h2 {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pagina-perfis .prejuizo-novo {
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: #fff0ed;
+    color: #cc0301;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.pagina-perfis .prejuizo-lista {
+    list-style: none;
+    padding: 0;
+    margin: 18px 0 0;
+}
+
+.pagina-perfis .prejuizo-item + .prejuizo-item {
+    margin-top: 16px;
+}
+
+.pagina-perfis .prejuizo-resumo {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 12px;
+}
+
+.pagina-perfis .prejuizo-nome {
+    overflow-wrap: anywhere;
+}
+
+.pagina-perfis .prejuizo-valor {
+    white-space: nowrap;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.pagina-perfis .prejuizo-trilho {
+    height: 6px;
+    margin-top: 7px;
+    background: #f1f0ed;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.pagina-perfis .prejuizo-barra {
+    height: 100%;
+    width: 0;
+    background: #cc0301;
+    border-radius: inherit;
+}
+
+.pagina-perfis .prejuizo-detalhe {
+    margin-top: 6px;
+    color: var(--perfis-texto-secundario);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.pagina-perfis .prejuizo-nota {
+    margin-top: 18px;
+    padding-top: 10px;
+    border-top: 1px solid var(--perfis-borda);
+    color: var(--perfis-texto-secundario);
+    font-size: 10px;
+    line-height: 1.5;
 }

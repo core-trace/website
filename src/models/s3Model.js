@@ -9,10 +9,9 @@ const s3 = new S3Client({
     region: process.env.AWS_REGION
 });
 
-const BUCKET = "bucket-coretrace-servidores";
 const PASTA = "client/";
 
-async function listarArquivosS3() {
+async function listarArquivosS3(BUCKET) {
 
     const resposta = await s3.send(
         new ListObjectsV2Command({

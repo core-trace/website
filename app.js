@@ -44,6 +44,7 @@ app.use("/agente", agenteRouter);
 app.use("/servidor", servidorRouter);
 app.use("/contato", contatoRouter);
 app.use("/empresa", empresaRouter);
+app.use("/s3Routes", s3Routes);
 
 app.listen(PORTA_APP, function () {
     console.log(`Servidor rodando: http://${HOST_APP}:${PORTA_APP}`);

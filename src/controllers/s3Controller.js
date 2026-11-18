@@ -1,11 +1,13 @@
 
 const s3Model = require("../models/s3Model");
 
+const BUCKET = process.env.BUCKET_DADOS_GOLD;
+
 async function listarArquivos(req, res) {
 
     try {
 
-        const arquivos = await s3Model.listarArquivosS3();
+        const arquivos = await s3Model.listarArquivosS3(BUCKET);
 
         return res.status(200).json(arquivos);
 

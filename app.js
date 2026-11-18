@@ -22,6 +22,7 @@ const agenteRouter = require("./src/routes/agenteRoutes");
 const servidorRouter = require("./src/routes/servidorRoutes");
 const contatoRouter = require("./src/routes/contatoRoutes");
 const empresaRouter = require("./src/routes/empresaRoutes");
+const processosRouter = require("./src/routes/processosRoutes");
 const alertaRouter = require("./src/routes/alertaRoutes");
 const geralRouter = require("./src/routes/geralRoutes");
 const resumoGeralService = require("./src/services/resumoGeralService");
@@ -45,6 +46,14 @@ app.use("/servidor", servidorRouter);
 app.use("/contato", contatoRouter);
 app.use("/empresa", empresaRouter);
 app.use("/s3Routes", s3Routes);
+app.use("/processos", processosRouter);
+app.use("/alertas", alertaRouter);
+app.use("/geral", geralRouter);
+
+// Mantem o resumo da dashboard Geral atualizado em segundo plano, em vez de buscar
+// no S3 a cada requisicao (ver comentario no topo de resumoGeralService.js).
+resumoGeralService.iniciar();
+sinaisExternosService.iniciar();
 
 app.listen(PORTA_APP, function () {
     console.log(`Servidor rodando: http://${HOST_APP}:${PORTA_APP}`);

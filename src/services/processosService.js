@@ -236,6 +236,280 @@ function pico(pontos) {
     return melhor;
 }
 
+function parseTs(ts) {
+    const d = new Date(ts);
+    const t = d.getTime();
+    return Number.isFinite(t) ? t : null;
+}
+
+function fmtHora(ts) {
+    const d = new Date(ts);
+    if (!Number.isFinite(d.getTime())) return String(ts || "");
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function fmtHoraMin(ts) {
+    const d = new Date(ts);
+    if (!Number.isFinite(d.getTime())) return String(ts || "");
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fmtDuracao(ms) {
+    if (ms == null || !Number.isFinite(ms) || ms < 0) return null;
+    const totalSeg = Math.round(ms / 1000);
+    const min = Math.floor(totalSeg / 60);
+    const seg = totalSeg % 60;
+    if (min > 0) return `${min} min ${seg} s`;
+    return `${seg} s`;
+}
+
+function estadoCpu(cpu, limites) {
+    const l = (limites && limites.cpu) || LIMIARES_PADRAO.cpu;
+    if (cpu == null) return "Normal";
+    if (l.critico != null && cpu >= l.critico) return "Crítico";
+    if (l.atencao != null && cpu >= l.atencao) return "Atenção";
+    return "Normal";
+}
+
+function estadoRss(rssGb, limites) {
+    const l = (limites && limites.rssGb) || LIMIARES_PADRAO.rssGb;
+    if (rssGb == null) return "Normal";
+    if (l.critico != null && rssGb >= l.critico) return "Crítico";
+    if (l.atencao != null && rssGb >= l.atencao) return "Atenção";
+    return "Normal";
+}
+
+function agruparSeriesPorProcesso(amostras) {
+    const mapa = new Map();
+    for (const a of amostras) {
+        const chave = chaveProcesso(a);
+        if (!mapa.has(chave)) mapa.set(chave, []);
+        mapa.get(chave).push(a);
+    }
+    for (const serie of mapa.values()) {
+        serie.sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
+    }
+    return mapa;
+}
+
+function estimarIntervaloMs(series) {
+    for (const serie of series.values()) {
+        for (let i = 1; i < serie.length; i++) {
+            const diff = parseTs(serie[i].timestamp) - parseTs(serie[i - 1].timestamp);
+            if (Number.isFinite(diff) && diff > 0) return diff;
+        }
+    }
+    return 60000; // fallback 60s
+}
+
+function frequenciaNivel(ocorrencias) {
+    if (ocorrencias <= 1) return 1;
+    if (ocorrencias === 2) return 2;
+    if (ocorrencias <= 4) return 3;
+    if (ocorrencias <= 7) return 4;
+    return 5;
+}
+
+function severidadeRank(s) {
+    if (s === "Crítico") return 2;
+    if (s === "Atenção") return 1;
+    return 0;
+}
+
+function analisarProcessos(amostras, limites, filtros) {
+    const series = agruparSeriesPorProcesso(amostras);
+    const eventos = [];
+    const incidentes = []; // { processo, pid, tipo, inicioMs, fimMs|null, ultimaMs }
+
+    const fimJanelaMs = parseTs(filtros.fim) || parseTs(filtros.dataFim);
+    const intervaloMs = estimarIntervaloMs(series);
+
+    for (const serie of series.values()) {
+        if (serie.length === 0) continue;
+        const proc = serie[0];
+        const nome = proc.nome;
+        const pid = proc.pid;
+
+        let cpuAnt = "Normal";
+        let rssAnt = "Normal";
+        let primeiroLimite = false;
+
+        const aberto = {
+            cpu: null, // { inicioMs, ultimaMs }
+            rss: null
+        };
+
+        function abrirIncidente(tipo, tsMs) {
+            if (!aberto[tipo]) aberto[tipo] = { inicioMs: tsMs, ultimaMs: tsMs };
+            else aberto[tipo].ultimaMs = tsMs;
+        }
+
+        function fecharIncidente(tipo, tsFimMs) {
+            if (aberto[tipo]) {
+                incidentes.push({
+                    processo: nome,
+                    pid,
+                    tipo: tipo === "cpu" ? "CPU elevada" : "Memória elevada",
+                    inicioMs: aberto[tipo].inicioMs,
+                    fimMs: tsFimMs,
+                    ultimaMs: tsFimMs
+                });
+                aberto[tipo] = null;
+            }
+        }
+
+        function atualizarIncidente(tipo, estadoAtual, tsMs) {
+            if (estadoAtual === "Normal") {
+                fecharIncidente(tipo, tsMs);
+            } else {
+                abrirIncidente(tipo, tsMs);
+            }
+        }
+
+        for (let i = 0; i < serie.length; i++) {
+            const s = serie[i];
+            const ts = s.timestamp;
+            const tsMs = parseTs(ts);
+            const cpuEstado = estadoCpu(s.cpu, limites);
+            const rssEstado = estadoRss(s.rssGb, limites);
+            const geral = classificar(s.cpu, s.rssGb, limites);
+
+            if (i === 0) {
+                eventos.push({
+                    horario: fmtHora(ts),
+                    timestamp: ts,
+                    processo: nome,
+                    pid,
+                    titulo: "Processo iniciado",
+                    descricao: "Processo observado na janela de análise.",
+                    severidade: "Informativo"
+                });
+            }
+
+            // CPU
+            if (cpuEstado === "Atenção" && cpuAnt === "Normal") {
+                const antes = serie[i - 1] ? serie[i - 1].cpu : null;
+                eventos.push({
+                    horario: fmtHora(ts),
+                    timestamp: ts,
+                    processo: nome,
+                    pid,
+                    titulo: "CPU em atenção",
+                    descricao: `${antes ?? "-"}% → ${s.cpu ?? "-"}% · limite atenção: ${limites.cpu.atencao}%`,
+                    severidade: "Atenção"
+                });
+            }
+            if (cpuEstado === "Crítico" && severidadeRank(cpuAnt) < severidadeRank("Crítico")) {
+                const antes = serie[i - 1] ? serie[i - 1].cpu : null;
+                eventos.push({
+                    horario: fmtHora(ts),
+                    timestamp: ts,
+                    processo: nome,
+                    pid,
+                    titulo: "CPU ultrapassou limite crítico",
+                    descricao: `${antes ?? "-"}% → ${s.cpu ?? "-"}% · limite crítico: ${limites.cpu.critico}%`,
+                    severidade: "Crítico"
+                });
+            }
+
+            // Memória/RSS
+            if (rssEstado !== "Normal" && rssAnt === "Normal") {
+                const antes = serie[i - 1] ? serie[i - 1].rssGb : null;
+                const fmtGb = (v) => (v == null ? "-" : Number(v).toFixed(2).replace(".", ","));
+                const limite = rssEstado === "Crítico" ? limites.rssGb.critico : limites.rssGb.atencao;
+                eventos.push({
+                    horario: fmtHora(ts),
+                    timestamp: ts,
+                    processo: nome,
+                    pid,
+                    titulo: "Aumento de memória",
+                    descricao: `${fmtGb(antes)} → ${fmtGb(s.rssGb)} GB · limite ${rssEstado === "Crítico" ? "crítico" : "atenção"}: ${fmtGb(limite)} GB`,
+                    severidade: rssEstado
+                });
+            }
+
+            // Primeiro limite excedido (geral)
+            if (!primeiroLimite && geral !== "Normal" && i > 0) {
+                primeiroLimite = true;
+                const motivoCpu = cpuEstado !== "Normal";
+                const antes = motivoCpu ? serie[i - 1].cpu : serie[i - 1].rssGb;
+                const atual = motivoCpu ? s.cpu : s.rssGb;
+                const limite = motivoCpu
+                    ? (cpuEstado === "Crítico" ? limites.cpu.critico : limites.cpu.atencao)
+                    : (rssEstado === "Crítico" ? limites.rssGb.critico : limites.rssGb.atencao);
+                const unidade = motivoCpu ? "%" : " GB";
+                const fmt = (v) => {
+                    if (v == null) return "-";
+                    return motivoCpu ? Number(v).toFixed(0) : Number(v).toFixed(2).replace(".", ",");
+                };
+                eventos.push({
+                    horario: fmtHora(ts),
+                    timestamp: ts,
+                    processo: nome,
+                    pid,
+                    titulo: "Primeiro limite excedido",
+                    descricao: `${fmt(antes)}${unidade} → ${fmt(atual)}${unidade} · limite ${geral === "Crítico" ? "crítico" : "atenção"}: ${fmt(limite)}${unidade}`,
+                    severidade: geral
+                });
+            }
+
+            // Incidentes para recorrência
+            atualizarIncidente("cpu", cpuEstado, tsMs);
+            atualizarIncidente("rss", rssEstado, tsMs);
+
+            cpuAnt = cpuEstado;
+            rssAnt = rssEstado;
+        }
+
+        // Encerramento de processo (heurística): última observação bem antes do fim da janela
+        const ultimo = serie[serie.length - 1];
+        const ultimoMs = parseTs(ultimo.timestamp);
+        if (Number.isFinite(fimJanelaMs) && Number.isFinite(ultimoMs) && fimJanelaMs - ultimoMs > intervaloMs * 2) {
+            eventos.push({
+                horario: fmtHora(ultimo.timestamp),
+                timestamp: ultimo.timestamp,
+                processo: nome,
+                pid,
+                titulo: "Processo encerrado",
+                descricao: "Processo não observado nas amostras seguintes da janela.",
+                severidade: "Informativo"
+            });
+            fecharIncidente("cpu", ultimoMs);
+            fecharIncidente("rss", ultimoMs);
+        } else {
+            // Incidentes ainda abertos ao final da janela: contam ocorrência/última, mas não duração média
+            for (const tipo of ["cpu", "rss"]) {
+                if (aberto[tipo]) {
+                    incidentes.push({
+                        processo: nome,
+                        pid,
+                        tipo: tipo === "cpu" ? "CPU elevada" : "Memória elevada",
+                        inicioMs: aberto[tipo].inicioMs,
+                        fimMs: null,
+                        ultimaMs: aberto[tipo].ultimaMs
+                    });
+                }
+            }
+        }
+    }
+
+    eventos.sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
+
+    const relevantes = eventos.filter((e) => e.severidade !== "Informativo");
+    let janelaInvestigacao = null;
+    if (relevantes.length > 0) {
+        janelaInvestigacao = {
+            inicio: fmtHoraMin(relevantes[0].timestamp),
+            fim: fmtHoraMin(relevantes[relevantes.length - 1].timestamp),
+            label: `${fmtHoraMin(relevantes[0].timestamp)}–${fmtHoraMin(relevantes[relevantes.length - 1].timestamp)}`
+        };
+    }
+
+    return { eventos, incidentes, janelaInvestigacao };
+}
+
 function obterContexto(filtros) {
     return resolverLimites(filtros).then(function (limites) {
         return {
@@ -379,9 +653,19 @@ function obterVariacao(filtros) {
 }
 
 function obterEventos(filtros) {
-    // Próximo passo: detectar transições comparando amostras consecutivas por processo
-    // (início/fim, cruzou atenção/crítico de CPU/RSS) e montar janelaInvestigacao.
-    return Promise.resolve({ janelaInvestigacao: null, eventos: [] });
+    return Promise.all([carregarAmostras(filtros), resolverLimites(filtros)])
+        .then(function ([amostras, limites]) {
+            const { eventos, janelaInvestigacao } = analisarProcessos(amostras, limites, filtros);
+            const lista = eventos.map((e) => ({
+                horario: e.horario,
+                processo: e.processo,
+                pid: e.pid,
+                titulo: e.titulo,
+                descricao: e.descricao,
+                severidade: e.severidade
+            }));
+            return { janelaInvestigacao, eventos: lista };
+        });
 }
 
 function listarTodos(filtros) {
@@ -420,9 +704,51 @@ function listarTodos(filtros) {
 }
 
 function obterRecorrencia(filtros) {
-    // Próximo passo: agrupar eventos por (processo/pid, tipo), ocorrências,
-    // última ocorrência, duração média (apenas encerradas) e frequência 1-5.
-    return Promise.resolve({ itens: [] });
+    return Promise.all([carregarAmostras(filtros), resolverLimites(filtros)])
+        .then(function ([amostras, limites]) {
+            const { incidentes } = analisarProcessos(amostras, limites, filtros);
+            const grupos = new Map();
+
+            for (const inc of incidentes) {
+                const chave = `${inc.processo}|${inc.pid}|${inc.tipo}`;
+                if (!grupos.has(chave)) {
+                    grupos.set(chave, {
+                        processo: inc.processo,
+                        pid: inc.pid,
+                        tipo: inc.tipo,
+                        ocorrencias: 0,
+                        ultimaMs: null,
+                        duracoes: []
+                    });
+                }
+                const g = grupos.get(chave);
+                g.ocorrencias += 1;
+                if (g.ultimaMs == null || inc.ultimaMs > g.ultimaMs) g.ultimaMs = inc.ultimaMs;
+                if (inc.fimMs != null && inc.inicioMs != null) {
+                    g.duracoes.push(inc.fimMs - inc.inicioMs);
+                }
+            }
+
+            const itens = Array.from(grupos.values()).map((g) => {
+                let duracaoMedia = null;
+                if (g.duracoes.length > 0) {
+                    const soma = g.duracoes.reduce((a, b) => a + b, 0);
+                    duracaoMedia = fmtDuracao(soma / g.duracoes.length);
+                }
+                return {
+                    processo: g.processo,
+                    pid: g.pid,
+                    tipo: g.tipo,
+                    ocorrencias: g.ocorrencias,
+                    ultimaOcorrencia: g.ultimaMs != null ? fmtHora(g.ultimaMs) : null,
+                    duracaoMedia,
+                    frequencia: frequenciaNivel(g.ocorrencias)
+                };
+            });
+
+            itens.sort((a, b) => b.ocorrencias - a.ocorrencias);
+            return { itens };
+        });
 }
 
 module.exports = {
@@ -438,6 +764,7 @@ module.exports = {
         normalizarAmostraProcesso,
         classificar,
         resolverLimites,
-        extrairLimite
+        extrairLimite,
+        analisarProcessos
     }
 };

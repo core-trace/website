@@ -93,7 +93,7 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: 24px;
-    margin: 14px 0 24px;
+    margin: 14px 0 20px;
 }
 
 .docker-titulo-com-icone {
@@ -140,7 +140,7 @@
 
 .docker-controles {
     display: grid;
-    grid-template-columns: minmax(130px, .85fr) minmax(180px, 1.05fr) minmax(310px, 1.8fr) minmax(190px, 1.15fr);
+    grid-template-columns: minmax(130px, .8fr) minmax(180px, 1fr) minmax(310px, 2.1fr) minmax(190px, 1.15fr);
     gap: 16px;
     align-items: end;
 }
@@ -148,9 +148,12 @@
 .docker-atualizacao {
     display: grid;
     gap: 5px;
-    align-self: center;
-    color: #777073;
-    font-size: 11px;
+    align-self: end;
+    padding-bottom: 5px;
+    color: #554e52;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
 }
 
 .docker-contexto-resultado {
@@ -222,7 +225,7 @@
 }
 
 .docker-kpis {
-    margin-top: 16px;
+    margin: 16px 0 24px;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
@@ -245,47 +248,67 @@
     border-top: 3px solid var(--docker-kpi-acento);
 }
 
-/* Falhas e erros seguem o nível crítico já usado no dashboard. */
 .docker-kpi-falhas,
 .docker-kpi-erros {
     --docker-kpi-acento: var(--cor-primaria);
     --docker-kpi-valor: var(--cor-primaria);
 }
 
-/* O âmbar de aviso destaca reinicializações sem competir com a marca. */
 .docker-kpi-reinicios {
     --docker-kpi-acento: #ae7921;
     --docker-kpi-valor: #ae7921;
 }
 
-.docker-kpi h2 {
+.docker-resumo-topo {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-top: 20px;
+}
+
+.docker-resumo-topo h2 {
+    font-size: clamp(20px, 1.5vw, 22px);
+    font-weight: 650;
+}
+
+.docker-containers-badge {
+    padding: 5px 12px;
+    border: 1px solid #e4e0dd;
+    border-radius: 999px;
+    background: #eeece9;
+    color: #514a4e;
     font-size: 14px;
     font-weight: 600;
-    color: #716a6e;
+    line-height: 1.5;
+}
+
+.docker-kpi h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #514a4e;
+    line-height: 1.35;
 }
 
 .docker-kpi-valor {
-    margin: 8px 0 7px;
-    font-weight: 750;
-    font-size: clamp(28px, 2.5vw, 36px);
+    margin: 10px 0 8px;
+    font-weight: 700;
+    font-size: clamp(36px, 2.5vw, 40px);
     line-height: 1.1;
     letter-spacing: -.04em;
     color: var(--docker-kpi-valor);
 }
 
-.docker-kpi p {
-    color: #696368;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
+.docker-kpi p,
 .docker-kpi small {
     display: block;
-    margin-top: 3px;
-    padding-top: 0;
-    color: #706a6e;
-    font-size: 11px;
-    line-height: 1.5;
+    margin: 0;
+    color: #554e52;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
 }
 
 .docker-kpi-topo {
@@ -295,18 +318,17 @@
     gap: 8px;
 }
 
-.docker-kpi-pico {
-    position: relative;
+.docker-kpi-medida {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 8px;
 }
 
-.docker-kpi-pico .docker-pico-alternancia {
-    position: absolute;
-    top: 51px;
-    right: 20px;
-}
-
-.docker-kpi-pico .docker-kpi-valor {
-    padding-right: 92px;
+.docker-kpi-medida .docker-kpi-valor {
+    margin: 0;
 }
 
 .docker-pico-alternancia {
@@ -336,6 +358,7 @@
 }
 
 .docker-lista {
+    margin-top: 20px;
     padding: 19px 18px 15px;
 }
 
@@ -447,7 +470,7 @@
 
 .docker-tabela td {
     padding: 11px 12px;
-    border-bottom: 1px solid #f2f0ed;
+    border-bottom: 0;
     color: #464145;
     font-size: 14px;
 }
@@ -521,6 +544,10 @@
 
 .docker-estado.parado {
     color: #7a7478;
+}
+
+.docker-estado[hidden] {
+    display: none;
 }
 
 .docker-nota-tabela {
@@ -626,7 +653,7 @@
 .docker-grafico-area {
     position: relative;
     height: 245px;
-    margin-top: 18px;
+    margin-top: 12px;
 }
 
 .docker-grafico-observacao {
@@ -741,7 +768,9 @@
 
 /* Os logs seguem a área de investigação do Figma: filtros e console textual.
    O JSON Gold ainda traz apenas contagens por dia, sem mensagens individuais. */
-.docker-visualmente-oculto {
+.docker-visualmente-oculto,
+.docker-grafico-topo p,
+.docker-grafico-observacao {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -800,7 +829,7 @@
 }
 
 .docker-console {
-    min-height: 238px;
+    min-height: 280px;
     max-height: 430px;
     overflow: auto;
     padding: 18px 20px;
@@ -847,7 +876,15 @@
 }
 
 .docker-console-nivel.info {
-    color: #80c5e1;
+    color: #b7d1c6;
+}
+
+.docker-console-linha:has(.docker-console-nivel.erro) :is(.docker-console-data, .docker-console-mensagem) {
+    color: #ff7773;
+}
+
+.docker-console-linha:has(.docker-console-nivel.aviso) :is(.docker-console-data, .docker-console-mensagem) {
+    color: #f3bb56;
 }
 
 .docker-console-mensagem {
@@ -875,7 +912,7 @@
     display: grid;
     grid-template-columns: minmax(160px, 210px) minmax(100px, 160px) minmax(0, 1fr);
     gap: 16px;
-    padding: 14px 12px;
+    padding: 12px;
     border-bottom: 1px solid #e9e6e3;
     align-items: center;
     font-size: 14px;

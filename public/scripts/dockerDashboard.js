@@ -414,38 +414,36 @@
     function renderizarContexto() {
         // Um MAC mascarado identifica a amostra de desenvolvimento, não um servidor real.
         const nomeServidor = dados.mac && dados.mac !== "00:00:00:00:00:00"
-            ? `Servidor · ${dados.mac}` : "Servidor de demonstração";
+            ? `Servidor · ${dados.mac}` : "Servidor selecionado";
         $("docker-servidor").replaceChildren(new Option(nomeServidor, dados.mac || ""));
         const primeiro = historicoAtivo[0]?.data.split("-").reverse().join("/") || "—";
         const ultimo = historicoAtivo.at(-1)?.data.split("-").reverse().join("/") || "—";
         const diasComMetricas = historicoAtivo.filter((doc) => doc.containers.length > 0).length;
-        $("docker-periodo-info").textContent = `${demonstracao ? "Dados simulados · " : anonimizado ? "Resumos reais anonimizados · " : ""}` +
+        $("docker-periodo-info").textContent =
             `${historicoAtivo.length} dia(s) com resumo (${primeiro} a ${ultimo}); ` +
             `métricas de contêineres em ${diasComMetricas} dia(s). ` +
             "Datas sem medições não são tratadas como zero.";
         $("docker-total-containers").textContent = `(${dados.containers.length})`;
-        $("docker-ultima-coleta").textContent = `Último resumo · ${ultimo}`;
-        $("docker-origem-dados").textContent = `${demonstracao ? "Dados demonstrativos" : anonimizado ? "Dados anonimizados" : "Resumos diários"} · ${dados.containers.length} contêineres monitorados`;
+        $("docker-ultima-coleta").textContent = `Dados até ${ultimo}`;
         if (periodoDias === 1) {
-            $("docker-periodo-info").textContent = `Dados simulados · últimas 24 horas da simulação: ${hora(historicoAtivo[0].intervalo.inicio)} a ${hora(dados.intervalo.fim)} · ${historicoAtivo.length} resumos horários. Sem atualização em tempo real.`;
-            $("docker-ultima-coleta").textContent = `Último resumo · ${hora(dados.intervalo.fim)}`;
-            $("docker-origem-dados").textContent = `Dados horários simulados · ${dados.containers.length} contêineres monitorados`;
+            $("docker-periodo-info").textContent = `Últimas 24 horas: ${hora(historicoAtivo[0].intervalo.inicio)} a ${hora(dados.intervalo.fim)} · ${historicoAtivo.length} resumos horários. Sem atualização em tempo real.`;
+            $("docker-ultima-coleta").textContent = `Dados até ${hora(dados.intervalo.fim)}`;
         }
     }
 
     function renderizarKpis() {
         $("kpi-falhas").textContent = n(indicadores.falhasConhecidas);
-        $("kpi-falhas-nota").textContent = "Considera falhas com horário de encerramento disponível.";
+        $("kpi-falhas-nota").textContent = "Erros ou falta de memória (OOM)";
         $("kpi-reinicios").textContent = n(indicadores.reiniciosNoPeriodo);
-        $("kpi-reinicios-nota").textContent = "Aumentos detectados entre resumos; o primeiro resumo não tem referência anterior.";
+        $("kpi-reinicios-nota").textContent = "Reinícios detectados no período";
         $("kpi-erros").textContent = n(indicadores.errosLogs);
-        $("kpi-erros-nota").textContent = indicadores.logsSemNivel > 0
+        $("kpi-erros-nota").textContent = "Mensagens de nível ERROR";
+        $("kpi-erros-nota").title = indicadores.logsSemNivel > 0
             ? `${n(indicadores.logsSemNivel)} mensagem(ns) sem nível classificado; ERROR mostra apenas as confirmadas.`
-            : "Total de mensagens classificadas como ERROR.";
+            : "Registros ERROR no período";
         const pico = tipoPico === "ram" ? indicadores.picoRam : indicadores.picoCpu;
         $("kpi-pico").textContent = pico ? n(pico.valor, "%") : "—";
-        $("kpi-pico-descricao").textContent = pico ? `${pico.container.nome || pico.container.container_id.slice(0, 12)} · ${tipoPico.toUpperCase()} · ${pico.intervalo ? hora(pico.intervalo.fim) + " (fim do resumo)" : pico.data.split("-").reverse().join("/")}` : "Nenhuma medição válida para esta métrica.";
-        $("kpi-pico-nota").textContent = "Horário exato do pico não disponível.";
+        $("kpi-pico-descricao").textContent = pico ? `${pico.container.nome || pico.container.container_id.slice(0, 12)} · ${pico.intervalo ? hora(pico.intervalo.fim) : pico.data.split("-").reverse().join("/")}` : "Nenhuma medição válida para esta métrica.";
         document.querySelectorAll("[data-pico]").forEach((botao) => {
             const ativo = botao.dataset.pico === tipoPico;
             botao.classList.toggle("ativo", ativo);
@@ -507,23 +505,23 @@
     function renderizarDetalhe(container) {
         const s = D.estado(container);
         $("docker-detalhe-titulo").textContent = container.nome || "Contêiner sem nome";
-        $("docker-detalhe-id").textContent = `ID ${container.container_id.slice(0, 12)} · Última observação: ${hora(container.ultima_observacao)}`;
-        $("docker-detalhe-id").title = container.container_id;
+        $("docker-detalhe-id").textContent = `ID: ${container.container_id.slice(0, 12)}`;
+        $("docker-detalhe-id").title = `${container.container_id} · Última observação: ${hora(container.ultima_observacao)}`;
         $("docker-detalhe-estado").textContent = s.rotulo;
         $("docker-detalhe-estado").className = `docker-estado ${s.classe}`;
         const campos = $("docker-detalhe-campos");
         campos.replaceChildren();
         const metricas = $("docker-detalhe-metricas");
         metricas.replaceChildren();
-        atributo(metricas, "CPU · média do último resumo", n(container.cpu?.uso?.media, "%"));
-        atributo(metricas, "Memória · média do último resumo", `${mb(container.memoria?.utilizada?.media)} · ${n(container.memoria?.uso?.media, "%")}`);
-        atributo(metricas, "Limite de memória · Docker", mb(container.memoria?.limite?.ultimo_valor));
+        atributo(metricas, "CPU média", n(container.cpu?.uso?.media, "%"));
+        atributo(metricas, "Memória média", `${mb(container.memoria?.utilizada?.media)} (${n(container.memoria?.uso?.media, "%")})`);
+        atributo(metricas, "Limite de memória", mb(container.memoria?.limite?.ultimo_valor));
         const saude = { healthy: "Saudável", unhealthy: "Não saudável", starting: "Inicializando" }[container.health_status] || "Não informado";
-        atributo(campos, "Imagem Docker", container.imagem || "—");
+        atributo(campos, "Imagem", container.imagem || "—");
         atributo(campos, "Healthcheck", saude);
         atributo(campos, "Início da execução", hora(container.started_at));
-        atributo(campos, "Reinícios acumulados", `${n(container.reinicios?.total?.ultimo_valor)} desde a criação`);
-        atributo(campos, "Código de saída", container.status === "exited" ? n(container.exit_code) : "Não aplicável");
+        atributo(campos, "Reinícios totais", `${n(container.reinicios?.total?.ultimo_valor)} desde a criação`);
+        atributo(campos, "Saída", container.status === "exited" ? n(container.exit_code) : "Não aplicável");
         atributo(campos, "OOM", container.oom_killed == null ? "Não informado" : String(container.oom_killed).toLowerCase() === "true" ? "Sim" : "Não");
         $("docker-eventos-health").textContent = `Healthcheck · ${saude.toLowerCase()}`;
         $("docker-eventos-health").className = `docker-estado ${container.health_status === "healthy" ? "" : container.health_status === "unhealthy" ? "erro" : "parado"}`;
@@ -557,8 +555,8 @@
             borderDash: serie.tracejada ? [6, 4] : [],
             tension: 0,
             borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 6,
+            pointRadius: 1.5,
+            pointHoverRadius: 5,
             spanGaps: false
         }));
         const temMedicoes = conjuntos.some((serie) => serie.data.some((ponto) => ponto.y !== null));
@@ -679,41 +677,41 @@
 
     function renderizarGraficos(c) {
         $("docker-desempenho-titulo").textContent = `Desempenho — ${c.nome || c.container_id.slice(0, 12)}`;
-        $("docker-desempenho-descricao").textContent = `Histórico de ${c.nome || "contêiner"} · período compartilhado · resumos ${periodoDias === 1 ? "horários simulados · BRT" : "diários"}`;
+        $("docker-desempenho-descricao").textContent = `Histórico de ${c.nome || "contêiner"} · período compartilhado · resumos ${periodoDias === 1 ? "horários · BRT" : "diários"}`;
         // Chart.js mantém instâncias associadas aos canvas; destrua-as antes de
         // redesenhar quando mudar o contêiner ou o filtro de período.
         graficosAtivos.forEach((chart) => chart.destroy());
         graficosAtivos = [];
         $("docker-graficos").replaceChildren();
         document.querySelector(".docker-aviso-medicoes").textContent = "CPU, RAM e PIDs mostram medições diárias. Rede, disco e throttling mostram diferenças entre leituras de dias consecutivos, dentro do período. O primeiro dia e intervalos sem continuidade ficam sem valor. Referências são comparativas, sem limites de alerta.";
-        if (periodoDias === 1) document.querySelector(".docker-aviso-medicoes").textContent = "Dados simulados: cada ponto resume uma hora. Rede, disco e throttling mostram diferenças entre leituras horárias consecutivas. A primeira leitura, lacunas e reinícios ficam sem valor; não são tratados como zero. Horários em BRT.";
-        grafico("Utilização de CPU (%)", "Média e pico registrados em cada dia", n(c.cpu?.uso?.media, "%") + " média", c, [
+        if (periodoDias === 1) document.querySelector(".docker-aviso-medicoes").textContent = "Cada ponto resume uma hora. Rede, disco e throttling mostram diferenças entre leituras horárias consecutivas. A primeira leitura, lacunas e reinícios ficam sem valor; não são tratados como zero. Horários em BRT.";
+        grafico("CPU (%)", "Média e pico registrados em cada dia", n(c.cpu?.uso?.media, "%") + " média", c, [
             { nome: "Média diária", ler: (v) => v.cpu?.uso?.media },
             { nome: "Pico diário", ler: (v) => v.cpu?.uso?.maximo }
         ], "%", true, (v) => v.cpu?.uso);
-        grafico("Utilização de RAM (%)", "Média e pico registrados em cada dia", n(c.memoria?.uso?.media, "%") + " média", c, [
+        grafico("Memória (%)", "Média e pico registrados em cada dia", n(c.memoria?.uso?.media, "%") + " média", c, [
             { nome: "Média diária", ler: (v) => v.memoria?.uso?.media },
             { nome: "Pico diário", ler: (v) => v.memoria?.uso?.maximo }
         ], "%", true, (v) => v.memoria?.uso);
-        graficoContadores("Tráfego de Rede (MB por intervalo)", c, [
+        graficoContadores("Rede (MB por intervalo)", c, [
             { nome: "RX · recebidos", cor: "#346b9f", corReferencia: "#8197a9", ler: (v) => v.rede?.recebidos },
             { nome: "TX · enviados", cor: "#8663a6", corReferencia: "#a395af", ler: (v) => v.rede?.enviados }
         ], " MB", 1024 * 1024);
-        graficoContadores("I/O de Disco (MB por intervalo)", c, [
+        graficoContadores("Disco (MB por intervalo)", c, [
             { nome: "Leitura", cor: "#346b9f", corReferencia: "#8197a9", ler: (v) => v.disco?.leitura_acumulada },
             { nome: "Escrita", cor: "#8663a6", corReferencia: "#a395af", ler: (v) => v.disco?.escrita_acumulada }
         ], " MB", 1024 * 1024);
-        grafico("PIDs / Threads (quantidade)", "Média e máximo registrados em cada dia", n(c.pids?.atuais?.media) + " média", c, [
+        grafico("PIDs / Threads", "Média e máximo registrados em cada dia", n(c.pids?.atuais?.media) + " média", c, [
             { nome: "Média diária", ler: (v) => v.pids?.atuais?.media },
             { nome: "Pico diário", ler: (v) => v.pids?.atuais?.maximo }
         ], "", false, (v) => v.pids?.atuais);
-        graficoContadores("CPU Throttling (s por intervalo)", c, [
+        graficoContadores("CPU Throttling", c, [
             { nome: "Tempo limitado", ler: (v) => v.cpu?.tempo_throttled }
         ], " s", 1e9, true);
     }
 
     function renderizarLogs(c) {
-        $("docker-logs-descricao").textContent = `${c.nome} · registros do período selecionado · resumos ${periodoDias === 1 ? "horários" : "diários"}`;
+        $("docker-logs-descricao").textContent = `Histórico do período · ${c.nome}`;
         const painel = $("docker-logs-conteudo");
         painel.replaceChildren();
 
@@ -745,8 +743,8 @@
 
         const consoleLogs = adicionarTexto(painel, "div", "", "docker-console");
         const cabecalho = adicionarTexto(consoleLogs, "div", "", "docker-console-cabecalho");
-        adicionarTexto(cabecalho, "span", `registros ${periodoDias === 1 ? "horários" : "diários"} · ${c.nome || "contêiner"}`);
-        adicionarTexto(cabecalho, "span", "RESUMOS · sem mensagens individuais");
+        adicionarTexto(cabecalho, "span", `Logs · ${c.nome || "contêiner"}`);
+        adicionarTexto(cabecalho, "span", "Resumos por nível");
 
         if (!visiveis.length) {
             adicionarTexto(consoleLogs, "p", registros.length
@@ -768,7 +766,7 @@
     }
 
     function renderizarEventos(c) {
-        $("docker-eventos-descricao").textContent = `${c.nome || "Contêiner"} · histórico do período selecionado · mais recentes primeiro`;
+        $("docker-eventos-descricao").textContent = `Histórico do período · ${c.nome || "Contêiner"}`;
         const painel = $("docker-eventos-conteudo");
         painel.replaceChildren();
         const eventos = historicoAtivo.flatMap((doc) => {
@@ -819,10 +817,8 @@
         selecionadoId = container?.container_id || null;
         indicadores = calcularIndicadores(container);
         renderizarKpis();
-        $("docker-escopo-servidor").textContent = (container
-            ? `Contêiner selecionado: ${container.nome || container.container_id.slice(0, 12)}`
-            : `Servidor inteiro · ${dados.containers.length} monitorados`) +
-            " · Período selecionado · OOM e término do mesmo encerramento contam como uma falha.";
+        $("docker-resumo-titulo").textContent = container ? `Visão do contêiner — ${container.nome || container.container_id.slice(0, 12)}` : "Visão do servidor";
+        $("docker-escopo-servidor").textContent = `${dados.containers.length} containers monitorados`;
         renderizarLista();
         if (!container) { limparDetalhe(); return; }
         renderizarDetalhe(container);
@@ -897,7 +893,7 @@
     $("docker-logs-busca")?.addEventListener("input", atualizarLogsSelecionado);
     $("docker-logs-ordem")?.addEventListener("click", () => {
         logsMaisRecentes = !logsMaisRecentes;
-        $("docker-logs-ordem").textContent = logsMaisRecentes ? "↓  Datas mais recentes" : "↑  Datas mais antigas";
+        $("docker-logs-ordem").textContent = logsMaisRecentes ? "↓  Mais recentes primeiro" : "↑  Mais antigos primeiro";
         $("docker-logs-ordem").setAttribute("aria-pressed", String(logsMaisRecentes));
         atualizarLogsSelecionado();
     });

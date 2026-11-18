@@ -124,10 +124,10 @@ function carregarNavegacao() {
         { titulo: "Monitoramento", itens: [
             { rotulo: "Dashboards", icone: "/assets/sidebar/dashboard.svg", filhos: [
                 { rotulo: "Geral", href: "/pages/inicioDashboard.html" },
-                { rotulo: "Processos" },
+                { rotulo: "Processos", href: "/pages/processos.html" },
                 { rotulo: "Docker" },
                 { rotulo: "Alertas", href: "/pages/alertas.html" },
-                { rotulo: "Servidores" },
+                { rotulo: "Servidores", href: "/pages/servidores.html" },
                 { rotulo: "Análise por perfil", href: "/pages/DashboardPerfil.html" }
             ] }
         ] },

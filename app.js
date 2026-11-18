@@ -22,6 +22,10 @@ const agenteRouter = require("./src/routes/agenteRoutes");
 const servidorRouter = require("./src/routes/servidorRoutes");
 const contatoRouter = require("./src/routes/contatoRoutes");
 const empresaRouter = require("./src/routes/empresaRoutes");
+const alertaRouter = require("./src/routes/alertaRoutes");
+const geralRouter = require("./src/routes/geralRoutes");
+const resumoGeralService = require("./src/services/resumoGeralService");
+const sinaisExternosService = require("./src/services/sinaisExternosService");
 const servidoresRouter = require("./src/routes/servidoresRoutes");
 const s3Routes =  require("./src/routes/s3Routes");
 
@@ -40,8 +44,6 @@ app.use("/agente", agenteRouter);
 app.use("/servidor", servidorRouter);
 app.use("/contato", contatoRouter);
 app.use("/empresa", empresaRouter);
-app.use("/servidores", servidoresRouter);
-app.use("/s3Routes", s3Routes);
 
 app.listen(PORTA_APP, function () {
     console.log(`Servidor rodando: http://${HOST_APP}:${PORTA_APP}`);

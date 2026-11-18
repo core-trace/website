@@ -24,7 +24,7 @@ async function buscarConteudo(req, res) {
 
     const nomeArquivo = req.query.arquivo;
 
-    if (!nomeArquivo || !nomeArquivo.startsWith("raw/")) {
+    if (!nomeArquivo || !nomeArquivo.startsWith("client/")) {
 
         return res.status(400).json({
             erro: "Nome do arquivo inválido"

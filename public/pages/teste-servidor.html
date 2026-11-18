@@ -1,160 +1,251 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teste AWS S3</title>
 </head>
+
 <body>
     <h1>Teste de conexão AWS S3</h1>
-    <button id="botao-listar-arquivos">Listar arquivos</button>
+    <button id="botao-listar-arquivos">Listar dados do client</button>
     <h2>Arquivos encontrados:</h2>
     <select id="arquivos-s3">
         <option value="">Selecione um arquivo</option>
     </select>
-    <button id="botao-buscar-dados">Buscar conteúdo CSV</button>
+    <button id="botao-buscar-dados">Buscar dados JSON</button>
     <h2>Resultado:</h2>
+    <pre id="resultado">Aguardando consulta...</pre>
     <!--O "<pre>" é muito útil para testes e depuração, pois permite visualizar objetos JSON e respostas da API de maneira organizada.-->
     <pre id="resultado">Aguardando consulta...</pre>
     <script>
 
         // Elementos HTML
+        // Seleciona os elementos da página que serão manipulados pelo JavaScript
         const arquivosS3 = document.querySelector("#arquivos-s3");
         const resultado = document.querySelector("#resultado");
         const botaoListarArquivos = document.querySelector("#botao-listar-arquivos");
         const botaoBuscarDados = document.querySelector("#botao-buscar-dados");
 
         // Armazenamento dos dados
+        // Arrays utilizados para armazenar os arquivos encontrados e o JSON consultado
         let arquivosCarregados = [];
-        let dadosCSV = [];
+        let dadosJSON = [];
 
         // Busca os arquivos disponíveis no S3
         async function ListarArquivosS3() {
             try {
+                // Realiza uma requisição HTTP GET para a rota do servidor
+                // responsável por listar os arquivos existentes no S3
                 const resposta = await fetch("/s3Routes/arquivos");
+
+                // Caso a resposta HTTP não tenha sido bem-sucedida,
+                // lança um erro e interrompe a execução do try
                 if (!resposta.ok) {
                     throw new Error("Erro ao consultar arquivos do S3");
                 }
+
+                // Aguarda a resposta do servidor e converte o conteúdo
+                // recebido para um objeto JavaScript no formato JSON
                 const arquivos = await resposta.json();
-                return arquivos;
+
+                // Filtra os arquivos retornados, mantendo apenas aqueles
+                // que correspondem ao padrão dos arquivos de captura do client
+                const arquivosClient = arquivos.filter(arquivo =>
+                    /^client\/lotes\/maquina=[^/]+\/data=[^/]+\/lote=[^/]+\/capturas\.json$/.test(arquivo.Key)
+                );
+
+                // Retorna apenas os arquivos que passaram pelo filtro
+                return arquivosClient;
+
             } catch (erro) {
+                // Exibe o erro no console do navegador
                 console.error(erro);
+
+                // Exibe a mensagem de erro na página
+                resultado.textContent = erro.message;
+
+                // Retorna um array vazio caso ocorra algum erro
                 return [];
             }
         }
 
+
         // Renderiza os arquivos no select
         function RenderizarArquivos(arquivos) {
+
+            // Limpa as opções anteriores do select e mantém
+            // somente a opção padrão de seleção
             arquivosS3.innerHTML = '<option value="">Selecione um arquivo</option>';
+
+            // Percorre todos os arquivos recebidos
             for (let i = 0; i < arquivos.length; i++) {
+
+                // Cria uma nova opção HTML para o select
                 const opcao = document.createElement("option");
+
+                // Define o valor da opção como o caminho completo do arquivo no S3
+                // Esse caminho será utilizado posteriormente para buscar o conteúdo
+                // Key == nome completo do objeto, exemplo: "client/lotes/maquina=cart-api-1/data=2026-11-17/lote=001/capturas.json"
                 opcao.value = arquivos[i].Key;
-                opcao.textContent = arquivos[i].Key.split("/").pop();
+
+                // Divide o caminho do arquivo utilizando "/" como separador
+                // para permitir acessar individualmente as informações do caminho
+                const partes = arquivos[i].Key.split("/");
+
+                // Extrai o nome da máquina, removendo o prefixo "maquina="
+                const maquina = partes[2].replace("maquina=", "");
+
+                // Extrai a data, removendo o prefixo "data="
+                const data = partes[3].replace("data=", "");
+
+                // Extrai o identificador do lote, removendo o prefixo "lote="
+                const lote = partes[4].replace("lote=", "");
+
+                // Define o texto que será exibido na opção do select,
+                // utilizando o nome da máquina, a data e o lote
+                opcao.textContent = `${maquina} | ${data} | ${lote}`;
+
+                // Adiciona a opção criada ao select da página
                 arquivosS3.appendChild(opcao);
             }
         }
 
 
-        // Busca o conteúdo do CSV selecionado
+        // Busca o conteúdo JSON selecionado
         async function BuscarDadosS3() {
+
+            // Recupera o valor da opção selecionada no select,
+            // que corresponde ao caminho completo do arquivo no S3
             const arquivoSelecionado = arquivosS3.value;
+
+            // Verifica se nenhum arquivo foi selecionado
             if (arquivoSelecionado == '') {
+
+                // Exibe uma mensagem solicitando a seleção de um arquivo
                 resultado.textContent = "Selecione um arquivo primeiro.";
+
+                // Interrompe a execução da função para evitar uma consulta desnecessária
                 return;
             }
+
             try {
+
+                // Realiza uma requisição HTTP GET para a rota do servidor responsável
+                // por buscar o conteúdo do arquivo selecionado no S3
+                // encodeURIComponent codifica caracteres especiais do caminho
+                // para que ele possa ser enviado corretamente como parâmetro da URL
                 const resposta = await fetch(
                     `/s3Routes/conteudo?arquivo=${encodeURIComponent(arquivoSelecionado)}`
                 );
+
+                // Lê o conteúdo retornado pelo servidor como texto,
+                // permitindo analisar a resposta antes de convertê-la para JSON
+                const conteudoResposta = await resposta.text();
+
+                // Exibe no console o status HTTP retornado pela requisição
+                console.log("Status HTTP:", resposta.status);
+
+                // Exibe no console o conteúdo textual retornado pelo servidor
+                // facilitando a identificação de erros durante a consulta
+                console.log("Resposta do servidor:", conteudoResposta);
+
+                // Verifica se a requisição HTTP foi bem-sucedida
+                // Caso contrário, lança um erro contendo o status e a resposta recebida
                 if (!resposta.ok) {
-                    throw new Error("Erro ao consultar conteúdo do CSV");
+                    throw new Error(`HTTP ${resposta.status}: ${conteudoResposta}`);
                 }
-                const respostaS3 = await resposta.json();
-                const dados = ConverterCSV(respostaS3.conteudo);
+
+                // Converte o texto recebido do servidor em um objeto JavaScript
+                const respostaS3 = JSON.parse(conteudoResposta);
+
+                // Verifica se o conteúdo do arquivo retornado pelo servidor
+                // está armazenado como string ou já está convertido em objeto
+                // Caso seja string, utiliza JSON.parse para convertê-lo
+                // Caso já seja objeto, utiliza o próprio conteúdo
+                const dados = typeof respostaS3.conteudo == "string"
+                    ? JSON.parse(respostaS3.conteudo)
+                    : respostaS3.conteudo;
+
+                // Retorna os dados JSON do arquivo consultado
                 return dados;
+
             } catch (erro) {
+                // Exibe o erro no console do navegador
                 console.error(erro);
+
+                // Exibe a mensagem de erro na página
                 resultado.textContent = erro.message;
+
+                // Retorna um array vazio caso ocorra algum erro
                 return [];
             }
         }
 
 
-        // Converte o conteúdo CSV em objetos JavaScript (No final, ela é inutil, só estou fazendo ela para trazer para json)
-        function ConverterCSV(conteudo) {
-            if (!conteudo || !conteudo.trim()) {
-                return [];
-            }
-            const linhas = conteudo.trim().split(/\r?\n/);
-            const delimitador = linhas[0].includes(";") ? ";" : ",";
-            const cabecalho = SepararColunas(linhas[0], delimitador);
-            let dados = [];
-            for (let i = 1; i < linhas.length; i++) {
-                if (linhas[i].trim() == '') {
-                    continue;
-                }
-                const valores = SepararColunas(linhas[i], delimitador);
-                let objeto = {};
-                for (let j = 0; j < cabecalho.length; j++) {
-                    objeto[cabecalho[j]] = valores[j] ?? "";
-                }
-                dados.push(objeto);
-            }
-            return dados;
-        }
-
-
-        // Separa as colunas respeitando valores entre aspas
-        function SepararColunas(linha, delimitador) {
-            let colunas = [];
-            let valor = "";
-            let dentroAspas = false;
-            for (let i = 0; i < linha.length; i++) {
-                const caractere = linha[i];
-                if (caractere == '"') {
-                    if (dentroAspas && linha[i + 1] == '"') {
-                        valor += '"';
-                        i++;
-                    } else {
-                        dentroAspas = !dentroAspas;
-                    }
-                } else if (caractere == delimitador && !dentroAspas) {
-                    colunas.push(valor);
-                    valor = "";
-                } else {
-                    valor += caractere;
-                }
-            }
-            colunas.push(valor);
-            return colunas;
-        }
-
-
-        // Renderiza os dados encontrados no CSV
+        // Renderiza os dados encontrados no JSON
         function RenderizarDados(dados) {
+
+            // Converte o objeto recebido em uma string JSON formatada
+            // null indica que não será aplicado nenhum filtro aos dados
+            // 2 define a indentação de dois espaços, facilitando a leitura
+            // Exibe o resultado diretamente no elemento HTML <pre>
             resultado.textContent = JSON.stringify(dados, null, 2);
         }
 
 
         // Executa a busca dos arquivos
+        // Adiciona um evento de clique ao botão de listar arquivos
         botaoListarArquivos.addEventListener("click", function () {
+
+            // Executa a função que consulta os arquivos no S3
+            // O then aguarda a resolução da Promise e recebe os arquivos retornados
             ListarArquivosS3().then(arquivos => {
+
+                // Armazena os arquivos encontrados na variável global
                 arquivosCarregados = arquivos;
+
+                // Envia os arquivos encontrados para a função responsável
+                // por criar e exibir as opções dentro do select
                 RenderizarArquivos(arquivosCarregados);
-                resultado.textContent = `${arquivosCarregados.length} arquivos encontrados.`;
+
+                // Exibe a quantidade de arquivos encontrados na página
+                resultado.textContent =
+                    `${arquivosCarregados.length} arquivos JSON do client encontrados.`;
+
+                // Exibe todos os arquivos encontrados no console do navegador
+                // facilitando a conferência dos resultados da consulta
+                console.log("Arquivos encontrados:", arquivosCarregados);
+
             });
+
         });
 
 
-        // Executa a busca do conteúdo CSV
+        // Executa a busca do conteúdo JSON
+        // Adiciona um evento de clique ao botão de buscar dados
         botaoBuscarDados.addEventListener("click", function () {
+
+            // Executa a função que busca o conteúdo do arquivo selecionado
+            // O then aguarda a resolução da Promise e recebe os dados retornados
             BuscarDadosS3().then(dados => {
-                dadosCSV = dados;
-                RenderizarDados(dadosCSV);
-                console.log("Dados recebidos do S3:", dadosCSV);
+
+                // Armazena os dados JSON retornados pela consulta
+                dadosJSON = dados;
+
+                // Envia os dados para a função responsável por exibi-los
+                // formatados na página
+                RenderizarDados(dadosJSON);
+
+                // Exibe o conteúdo JSON recebido no console do navegador
+                // facilitando a análise e depuração dos dados
+                console.log("Dados recebidos do S3:", dadosJSON);
+
             });
+
         });
+
     </script>
 </body>
 </html>

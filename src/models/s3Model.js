@@ -10,7 +10,7 @@ const s3 = new S3Client({
 });
 
 const BUCKET = "bucket-coretrace-servidores";
-const PASTA = "raw/";
+const PASTA = "client/";
 
 async function listarArquivosS3() {
 

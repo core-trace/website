@@ -22,6 +22,7 @@ const agenteRouter = require("./src/routes/agenteRoutes");
 const servidorRouter = require("./src/routes/servidorRoutes");
 const contatoRouter = require("./src/routes/contatoRoutes");
 const empresaRouter = require("./src/routes/empresaRoutes");
+const processosRouter = require("./src/routes/processosRoutes");
 
 
 app.use(express.json());
@@ -38,6 +39,7 @@ app.use("/agente", agenteRouter);
 app.use("/servidor", servidorRouter);
 app.use("/contato", contatoRouter);
 app.use("/empresa", empresaRouter);
+app.use("/processos", processosRouter);
 
 app.listen(PORTA_APP, function () {
     console.log(`Servidor rodando: http://${HOST_APP}:${PORTA_APP}`);

@@ -127,7 +127,7 @@ function carregarNavegacao() {
                 { rotulo: "Processos", href: "/pages/processos.html" },
                 { rotulo: "Docker" },
                 { rotulo: "Alertas", href: "/pages/alertas.html" },
-                { rotulo: "Servidores" },
+                { rotulo: "Servidores", href: "/pages/servidores.html" },
                 { rotulo: "Análise por perfil" }
             ] }
         ] },

@@ -1,0 +1,55 @@
+.visao-geral{
+    display: flex;
+    height: 10vh;
+    width: 100%;
+    justify-content: start;
+    align-items: start;
+    flex-direction: column;
+}
+
+/* .titulo-visao-geral{} */
+
+.texto-visao-geral{
+    display: flex;
+    padding-top: 1vh;
+    color: rgba(55, 47, 53, 1);
+}
+
+.KPIs{
+    display: flex;
+    height: 25vh;
+    width: 100%;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.KPI{
+    display: flex;
+    height: 80%;
+    width: 14.12%;
+    background-color: rgba(255, 255, 255, 1);
+    border-radius: 15px;
+    border: 2px solid rgba(229, 227, 226, 1);
+    flex-direction: column;
+}
+
+.titulo-KPI{
+    display: flex;
+    padding-left: 8%;
+    padding-top: 10%;
+}
+
+.dado-principal-KPI{
+    display: flex;
+    padding-left: 8%;
+    padding-top: 5%;
+    font-size: 5vh;
+    color: rgba(55, 47, 53, 1);;
+}
+
+.descricao-KPI{
+    display: block;
+    padding-left: 8%;
+    padding-top: 5%;
+    color: rgba(55, 47, 53, 1);
+}

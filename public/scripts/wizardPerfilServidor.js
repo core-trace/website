@@ -14,6 +14,7 @@ const acessoPerfis = {
         const formulario = dialogo.querySelector("form");
         const nome = formulario.elements.nome;
         const descricao = formulario.elements.descricao;
+        const criticidadeNegocio = formulario.elements.criticidadeNegocio;
         const contador = dialogo.querySelector("#perfil-contador");
         const titulo = dialogo.querySelector("#wizard-titulo");
         const introducao = dialogo.querySelector("#wizard-descricao");
@@ -529,6 +530,7 @@ const acessoPerfis = {
             descricao.value = perfil.descricao || "";
             contador.textContent = descricao.value.length + "/500";
             formulario.elements.sistemaOperacional.value = perfil.sistema_operacional;
+            criticidadeNegocio.value = perfil.criticidade_negocio ?? 0;
             await carregarMetricas();
             if (!catalogoCarregado) throw new Error("Não foi possível carregar as métricas. Tente novamente.");
             renderizarMetricas();
@@ -551,6 +553,7 @@ const acessoPerfis = {
                 nome: nome.value.trim(),
                 descricao: descricao.value.trim(),
                 sistemaOperacional: formulario.elements.sistemaOperacional.value,
+                criticidadeNegocio: Number(criticidadeNegocio.value),
                 monitorarDocker: monitorarDocker.checked,
                 metricas: obterMetricasSelecionadas(),
                 equipe: []

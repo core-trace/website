@@ -255,6 +255,10 @@ function validarPerfil(dados) {
     if (typeof dados.monitorarDocker !== "boolean") {
         return "Informe se deseja monitorar Docker.";
     }
+    if (dados.criticidadeNegocio !== undefined
+        && (!Number.isSafeInteger(dados.criticidadeNegocio) || dados.criticidadeNegocio < 0 || dados.criticidadeNegocio > 5)) {
+        return "A criticidade de negócio deve ser um número entre 0 e 5.";
+    }
     if (!Array.isArray(dados.metricas) || dados.metricas.length === 0 || dados.metricas.length > 500) {
         return "Selecione ao menos uma métrica.";
     }

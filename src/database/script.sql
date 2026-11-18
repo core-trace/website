@@ -1,4 +1,4 @@
--- ============================================================================
+--============================================================================
 -- CORETRACE - SCRIPT COMPLETO COM INSERTS DIRETOS (MySQL 8.0+)
 -- Permissoes por nivel:
 -- 1. Administrador CoreTrace: todas as permissoes (uso interno)

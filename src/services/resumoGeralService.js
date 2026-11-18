@@ -8,6 +8,7 @@
 // isso e intencional, nao uma lacuna esquecida.
 const servidorModel = require("../models/servidorModel");
 const resumoGoldService = require("./resumoGoldService");
+const sinaisExternosService = require("./sinaisExternosService");
 
 // iFood e a unica empresa cliente desta demonstracao (ver database/script.sql,
 // INSERT INTO empresa - a ordem de insercao garante o id 2).
@@ -390,7 +391,8 @@ function resumoSemDados() {
         },
         perfis: [],
         resumo: montarResumo([], { avaliados: 0, esperados: 0 }),
-        acoes: []
+        acoes: [],
+        sinaisExternos: sinaisExternosService.obterSinaisExternos()
     };
 }
 
@@ -420,7 +422,8 @@ async function construirResumoGeral() {
         indicadores: montarIndicadores(servidores),
         perfis,
         resumo: montarResumo(perfis, cobertura),
-        acoes: montarAcoes(servidores, perfis)
+        acoes: montarAcoes(servidores, perfis),
+        sinaisExternos: sinaisExternosService.obterSinaisExternos()
     };
 }
 

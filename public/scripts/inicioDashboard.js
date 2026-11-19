@@ -1,7 +1,7 @@
 (() => {
     // Divisao temporaria e intencional: "estado", "cobertura", "indicadores", "perfis",
-    // "resumo" e "acoes" ja vem de dados reais (rota /geral/resumo, ver
-    // src/routes/geralRoutes.js). Os demais campos (evolucao, evolucaoLegenda, riscos,
+    // "resumo", "acoes", "evolucao" e "evolucaoLegenda" ja vem de dados reais (rota
+    // /geral/resumo, ver src/routes/geralRoutes.js). Os demais campos (riscos e
     // perguntasProntas) continuam vindo do mock porque dependem de hipoteses ainda nao
     // implementadas (assistente, previsao de tendencia) - nao e uma lacuna esquecida.
     const dado = geralMock;
@@ -10,8 +10,26 @@
     // perfil conseguir recalcular a tela na hora, sem precisar buscar de novo no
     // servidor - afinal a rota /geral/resumo ja devolve a divisao por perfil pronta.
     let ultimoResumo = null;
+    let graficoEvolucao = null;
 
     const texto = (id, valor) => { document.getElementById(id).textContent = valor; };
+
+    function filtrarEvolucaoPorPerfil(evolucao, nomePerfil) {
+        if (!evolucao || !Array.isArray(evolucao.porServidor) || !nomePerfil) return evolucao;
+        return {
+            ...evolucao,
+            porServidor: evolucao.porServidor.filter(servidor => servidor.nome_perfil === nomePerfil)
+        };
+    }
+
+    function contarServidoresPorBalde(evolucao, estado) {
+        const horarios = evolucao?.horarios ?? [];
+        if (Array.isArray(evolucao?.porServidor)) {
+            return horarios.map((_, indice) => evolucao.porServidor.filter(servidor => servidor.estados[indice] === estado).length);
+        }
+        const chave = estado === "critico" ? "criticos" : "atencao";
+        return evolucao?.[chave] ?? horarios.map(() => 0);
+    }
 
     function mostrarCabecalho(estado) {
         document.getElementById("estado-titulo").textContent = estado.titulo;
@@ -39,9 +57,9 @@
         chip.title = `${proximoFeriado.nome} — fique de olho nos perfis de criticidade alta.`;
     }
 
-    // Recalcula cobertura/indicadores/perfis olhando so pro perfil escolhido, a partir
-    // do resumo que ja temos guardado - o filtro nao busca nada novo no servidor, so
-    // reaproveita a divisao por perfil que a rota /geral/resumo ja manda pronta.
+    // Recalcula cobertura/indicadores/perfis/evolucao olhando so pro perfil escolhido,
+    // a partir do resumo que ja temos guardado - o filtro nao busca nada novo no
+    // servidor, so reaproveita a divisao por perfil que a rota /geral/resumo ja manda pronta.
     function filtrarPorPerfil(resumo, nomePerfil) {
         if (!nomePerfil) return resumo; // "Todos perfis": mostra o resumo inteiro
 
@@ -68,7 +86,9 @@
             // vez de reaproveitar o resumo.resumo/resumo.acoes do agregado.
             resumo: null,
             acoes: null,
-            sinaisExternos: resumo.sinaisExternos
+            sinaisExternos: resumo.sinaisExternos,
+            evolucao: filtrarEvolucaoPorPerfil(resumo.evolucao, perfil.nome),
+            evolucaoLegenda: perfil.evolucaoLegenda ?? resumo.evolucaoLegenda
         };
     }
 
@@ -86,6 +106,7 @@
         mostrarIndicadores(resumo.cobertura, resumo.indicadores);
         mostrarPerfis(resumo.perfis, resumo.sinaisExternos);
         mostrarSinaisExternos(resumo.sinaisExternos);
+        mostrarGraficoEvolucao(resumo);
 
         alternarSecaoResumo(resumo.resumo !== null);
         if (resumo.resumo !== null) {
@@ -103,6 +124,7 @@
     // Busca os dados reais na rota /geral/resumo. Se a rota falhar por qualquer motivo,
     // cai de volta no mock desses mesmos campos, so para a tela nunca ficar vazia.
     async function carregarDadosReais() {
+        texto("evolucao-legenda-texto", "Carregando evolução dos servidores…");
         try {
             const resposta = await fetch("/geral/resumo");
             if (!resposta.ok) throw new Error("Não foi possível carregar o resumo geral.");
@@ -111,7 +133,8 @@
             console.error("Erro ao carregar o resumo geral, usando dados mocados:", erro.message);
             ultimoResumo = {
                 estado: dado.estado, cobertura: dado.cobertura, indicadores: dado.indicadores, perfis: dado.perfis,
-                resumo: dado.resumo, acoes: dado.acoes
+                resumo: dado.resumo, acoes: dado.acoes,
+                evolucao: dado.evolucao, evolucaoLegenda: dado.evolucaoLegenda
             };
         }
         const perfilEscolhido = document.getElementById("filtro-perfil").value;
@@ -214,28 +237,40 @@
         }));
     }
 
-    function mostrarGraficoEvolucao() {
-        texto("evolucao-legenda-texto", dado.evolucaoLegenda);
-        const canvas = document.getElementById("grafico-evolucao");
-        new Chart(canvas, {
-            type: "bar",
-            data: {
-                labels: dado.evolucao.horarios,
-                datasets: [
-                    { label: "Em atenção", data: dado.evolucao.atencao, backgroundColor: "#a96808", stack: "total" },
-                    { label: "Críticos", data: dado.evolucao.criticos, backgroundColor: "#cc0301", stack: "total" }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { display: false } },
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+    function mostrarGraficoEvolucao(resumo) {
+        const evolucao = resumo?.evolucao ?? { horarios: [], porServidor: [] };
+        const horarios = evolucao.horarios ?? [];
+        texto("evolucao-legenda-texto", resumo?.evolucaoLegenda ?? "Nenhuma variação registrada ainda.");
+        texto("evolucao-periodo", horarios.length > 0
+            ? `Histórico · ${horarios[0]}–${horarios[horarios.length - 1]} BRT · críticos e em atenção`
+            : "Histórico indisponível · críticos e em atenção");
+
+        if (!graficoEvolucao) {
+            graficoEvolucao = new Chart(document.getElementById("grafico-evolucao"), {
+                type: "bar",
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: "Em atenção", data: [], backgroundColor: "#a96808", stack: "total" },
+                        { label: "Críticos", data: [], backgroundColor: "#cc0301", stack: "total" }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
                 }
-            }
-        });
+            });
+        }
+
+        graficoEvolucao.data.labels = horarios;
+        graficoEvolucao.data.datasets[0].data = contarServidoresPorBalde(evolucao, "atencao");
+        graficoEvolucao.data.datasets[1].data = contarServidoresPorBalde(evolucao, "critico");
+        graficoEvolucao.update();
     }
 
     function configurarExportar() {
@@ -282,7 +317,6 @@
     configurarFiltroPerfil();
     carregarDadosReais();
     mostrarRiscos();
-    mostrarGraficoEvolucao();
     configurarExportar();
     configurarAssistente();
 })();

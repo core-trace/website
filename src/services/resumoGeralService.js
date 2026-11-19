@@ -1,8 +1,8 @@
 // Monta o resumo da dashboard Geral (ver public/scripts/inicioDashboard.js) a partir
 // dos resumos diarios reais que o pipeline Python deixa no S3, um por servidor.
 //
-// Cobre os campos "estado", "cobertura", "indicadores", "perfis", "resumo", "acoes"
-// e "evolucao". Os demais campos que a dashboard usa (evolucaoLegenda, riscos e
+// Cobre os campos "estado", "cobertura", "indicadores", "perfis", "resumo", "acoes",
+// "evolucao" e "evolucaoLegenda". Os demais campos que a dashboard usa (riscos e
 // perguntasProntas) continuam vindo do mock (public/scripts/geralMock.js) porque
 // dependem de hipoteses ainda nao implementadas (assistente, previsao de tendencia) -
 // isso e intencional, nao uma lacuna esquecida.
@@ -260,6 +260,96 @@ function montarEvolucao(servidores) {
     return { horarios, porServidor };
 }
 
+function servidoresDaEvolucao(evolucao, nomePerfil) {
+    if (!evolucao || !Array.isArray(evolucao.porServidor)) return [];
+    if (!nomePerfil) return evolucao.porServidor;
+    return evolucao.porServidor.filter(servidor => servidor.nome_perfil === nomePerfil);
+}
+
+function contarAfetadosNoBalde(servidores, indice) {
+    const criticos = servidores.filter(servidor => servidor.estados[indice] === "critico").length;
+    const atencao = servidores.filter(servidor => servidor.estados[indice] === "atencao").length;
+    return { criticos, atencao, total: criticos + atencao };
+}
+
+function classificarTransicao(antes, depois) {
+    if (antes === "atencao" && depois === "critico") return "piorou";
+    if (antes === "normal" && depois === "critico") return "criticoDireto";
+    if (antes === "normal" && depois === "atencao") return "casoNovo";
+    if (antes === "critico" && depois === "atencao") return "voltaramParaAtencao";
+    if ((antes === "critico" || antes === "atencao") && depois === "normal") return "voltaramParaNormal";
+    return null;
+}
+
+const ORDEM_TRANSICOES = ["piorou", "criticoDireto", "casoNovo", "voltaramParaAtencao", "voltaramParaNormal"];
+
+function verbo(quantidade, singular, plural) {
+    return quantidade === 1 ? singular : plural;
+}
+
+function fraseDaTransicao(tipo, nomes) {
+    const quantidade = nomes.length;
+    if (quantidade === 0) return "";
+    const lista = juntarComE(nomes);
+    if (tipo === "piorou") return `${lista} ${verbo(quantidade, "passou", "passaram")} de atenção para crítico.`;
+    if (tipo === "criticoDireto") return `${lista} ${verbo(quantidade, "entrou", "entraram")} em crítico sem passar por atenção. Caso grave, sem aviso prévio.`;
+    if (tipo === "casoNovo") return `${lista} ${verbo(quantidade, "entrou", "entraram")} em atenção.`;
+    if (tipo === "voltaramParaAtencao") return `${lista} ${verbo(quantidade, "voltou", "voltaram")} de crítico para atenção.`;
+    return `${lista} ${verbo(quantidade, "voltou", "voltaram")} para a normalidade.`;
+}
+
+function complementoDeTotais(antes, depois) {
+    if (depois.total === antes.total) return ` O total de afetados continuou em ${depois.total}.`;
+    if (depois.total > antes.total) return ` O total de afetados subiu de ${antes.total} para ${depois.total}.`;
+    return ` O total de afetados caiu de ${antes.total} para ${depois.total}.`;
+}
+
+function complementoDeEstabilidade(evolucao, indice) {
+    const ultimo = evolucao.horarios.length - 1;
+    return indice < ultimo ? ` Seguiu assim até ${evolucao.horarios[ultimo]}.` : "";
+}
+
+function montarLegendaEvolucao(evolucao, nomePerfil) {
+    const horarios = evolucao?.horarios ?? [];
+    if (horarios.length === 0) return "Nenhuma variação registrada ainda.";
+
+    const servidores = servidoresDaEvolucao(evolucao, nomePerfil);
+    if (servidores.length === 0) return "Nenhuma variação registrada ainda.";
+
+    let indice = -1;
+    for (let i = horarios.length - 1; i >= 1; i--) {
+        if (servidores.some(servidor => classificarTransicao(servidor.estados[i - 1], servidor.estados[i]))) {
+            indice = i;
+            break;
+        }
+    }
+
+    if (indice === -1) {
+        const primeiro = contarAfetadosNoBalde(servidores, 0);
+        if (primeiro.total === 0) return "Nenhuma variação registrada ainda.";
+        const partes = [];
+        if (primeiro.criticos > 0) partes.push(`${primeiro.criticos} ${primeiro.criticos === 1 ? "crítico" : "críticos"}`);
+        if (primeiro.atencao > 0) partes.push(`${primeiro.atencao} em atenção`);
+        return `Sem mudança no período: ${juntarComE(partes)} desde ${horarios[0]}.`;
+    }
+
+    const grupos = new Map();
+    for (const servidor of servidores) {
+        const tipo = classificarTransicao(servidor.estados[indice - 1], servidor.estados[indice]);
+        if (!tipo) continue;
+        if (!grupos.has(tipo)) grupos.set(tipo, []);
+        grupos.get(tipo).push(servidor.nome);
+    }
+
+    const frases = ORDEM_TRANSICOES
+        .filter(tipo => grupos.has(tipo))
+        .map(tipo => fraseDaTransicao(tipo, grupos.get(tipo)));
+
+    const antes = contarAfetadosNoBalde(servidores, indice - 1);
+    const depois = contarAfetadosNoBalde(servidores, indice);
+    return `Às ${horarios[indice]}, ${frases.join(" ")}${complementoDeTotais(antes, depois)}${complementoDeEstabilidade(evolucao, indice)}`;
+}
+
 function proporcaoAfetada(perfil) {
     const distribuicao = perfil.distribuicao;
     const total = distribuicao.critico + distribuicao.atencao + distribuicao.normal + distribuicao.semDados;
@@ -427,7 +517,8 @@ function resumoSemDados() {
         resumo: montarResumo([], { avaliados: 0, esperados: 0 }),
         acoes: [],
         sinaisExternos: sinaisExternosService.obterSinaisExternos(),
-        evolucao: { horarios: [], porServidor: [] }
+        evolucao: { horarios: [], porServidor: [] },
+        evolucaoLegenda: montarLegendaEvolucao({ horarios: [], porServidor: [] })
     };
 }
 
@@ -450,6 +541,9 @@ async function construirResumoGeral() {
 
     const perfis = montarPerfis(servidores);
     const cobertura = montarCobertura(servidores, servidoresDaEmpresa.length);
+    const evolucao = montarEvolucao(servidores);
+    const evolucaoLegenda = montarLegendaEvolucao(evolucao);
+    for (const perfil of perfis) perfil.evolucaoLegenda = montarLegendaEvolucao(evolucao, perfil.nome);
 
     return {
         estado: montarEstado(),
@@ -459,7 +553,8 @@ async function construirResumoGeral() {
         resumo: montarResumo(perfis, cobertura),
         acoes: montarAcoes(servidores, perfis),
         sinaisExternos: sinaisExternosService.obterSinaisExternos(),
-        evolucao: montarEvolucao(servidores)
+        evolucao,
+        evolucaoLegenda
     };
 }
 

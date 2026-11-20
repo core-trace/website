@@ -568,10 +568,19 @@ function atualizarTudo() {
     document.getElementById('alertas-painel-grafico').hidden = !emPerfil;
     document.getElementById('alertas-painel-lateral').hidden = !emPerfil;
 
-    const selo = document.getElementById('alertas-selo-perfil');
-    selo.innerHTML = '';
-    selo.hidden = !emPerfil;
-    if (emPerfil) selo.append(criarElemento('span', 'alertas-ponto critico'), criarElemento('span', '', estado.perfilAtual));
+    // O selo so existe no DOM quando um perfil especifico esta selecionado.
+    let selo = document.getElementById('alertas-selo-perfil');
+    if (emPerfil) {
+        if (!selo) {
+            selo = criarElemento('span', 'alertas-selo-perfil');
+            selo.id = 'alertas-selo-perfil';
+            document.querySelector('.alertas-cabecalho').append(selo);
+        }
+        selo.innerHTML = '';
+        selo.append(criarElemento('span', 'alertas-ponto critico'), criarElemento('span', '', estado.perfilAtual));
+    } else if (selo) {
+        selo.remove();
+    }
     document.getElementById('alertas-grafico-perfil').textContent = emPerfil ? estado.perfilAtual : '';
 
     desenharCards();

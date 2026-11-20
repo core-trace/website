@@ -124,11 +124,16 @@ function carregarNavegacao() {
         { titulo: "Monitoramento", itens: [
             { rotulo: "Dashboards", icone: "/assets/sidebar/dashboard.svg", filhos: [
                 { rotulo: "Geral", href: "/pages/inicioDashboard.html" },
+<<<<<<< HEAD
                 { rotulo: "Processos" },
                 { rotulo: "Docker", href: "/pages/dockerDashboard.html" },
+=======
+                { rotulo: "Processos", href: "/pages/processos.html" },
+                { rotulo: "Docker" },
+>>>>>>> c27eaeb9e27b3d4e77820ed60e4a12cc868e7d5c
                 { rotulo: "Alertas", href: "/pages/alertas.html" },
-                { rotulo: "Servidores" },
-                { rotulo: "Análise por perfil" }
+                { rotulo: "Servidores", href: "/pages/servidores.html" },
+                { rotulo: "Análise por perfil", href: "/pages/DashboardPerfil.html" }
             ] }
         ] },
         { titulo: "Gestão", itens: [

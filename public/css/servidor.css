@@ -1,0 +1,51 @@
+[title="Servidores"] {
+    color: #cc0301;
+    background-color: #fcede8;
+}
+
+.visao-geral{
+    display: flex;
+    flex-direction: column;
+    gap: 2%;
+}
+
+.campo-selecionar-e-voltar{
+    padding-top: 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.KPIs-servidor{
+    display: flex;
+    margin-top: 5%;
+    height: 20vh;
+    width: 100%;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.KPI-servidor{
+    display: flex;
+    height: 100%;
+    width: 31.3%;
+    background-color: rgba(255, 255, 255, 1);
+    border-radius: 15px;
+    border: 2px solid rgba(229, 227, 226, 1);
+    flex-direction: column;
+    padding-bottom: 1%;
+}
+
+.titulo-KPI{
+    display: flex;
+    padding-left: 8%;
+    padding-top: 5%;
+}
+
+.descricao-KPI-servidor{
+    display: block;
+    padding-left: 8%;
+    padding-top: 2%;
+    color: rgba(55, 47, 53, 1);
+}

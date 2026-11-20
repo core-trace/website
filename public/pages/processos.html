@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dashboard de Processos — CoreTrace">
+    <title>Dashboard de Processos | CoreTrace</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/processo.css">
+    <script src="../scripts/navbarDashboard.js" defer></script>
+    <script src="../scripts/vendor/chart.umd.js"></script>
+    <script src="../scripts/processos.js"></script>
+</head>
+
+<body class="dashboard-page">
+    <a class="dashboard-pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+
+    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
+        <div class="dashboard-menu-cabecalho">
+            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
+            <p class="dashboard-acesso-feedback" role="status"></p>
+        </nav>
+    </aside>
+
+    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
+
+    <div class="dashboard-conteudo">
+        <header class="dashboard-navbar">
+            <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu" aria-controls="menu-dashboard" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <div class="dashboard-usuario">
+                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
+                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
+                </button>
+                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
+                <div class="dashboard-usuario-dados">
+                    <span class="dashboard-usuario-nome"></span>
+                    <span class="dashboard-usuario-cargo"></span>
+                </div>
+                <div class="dashboard-conta">
+                    <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta" aria-controls="menu-conta" aria-expanded="false">
+                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12" height="12">
+                    </button>
+                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <p class="dashboard-conta-email"></p>
+                        <button class="dashboard-sair" type="button">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="principal" id="conteudo-principal" tabindex="-1">
+
+            <!-- Cabeçalho da página (trilha, título, subtítulo, status, timestamp placeholder) -->
+            <section class="processos-cabecalho" aria-label="Identificação da página">
+                <div class="processos-marca">
+                    <span class="processos-trilha">MONITORAMENTO / PROCESSOS</span>
+                    <h1 class="processos-titulo">Dashboard de Processos</h1>
+                    <p class="processos-subtitulo">Investigue o comportamento dos processos e identifique anomalias ao longo do tempo.</p>
+                </div>
+                <div class="processos-acoes">
+                    <div class="processos-status">
+                        <span class="processos-status-dot" aria-hidden="true"></span>
+                        <span class="processos-status-texto">Monitoramento ativo</span>
+                    </div>
+                    <time class="processos-atualizado" id="processos-atualizado">--</time>
+                    <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path fill="none" stroke="currentColor" stroke-width="2" d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Barra de filtros estrutural (sem opções mocadas) -->
+            <form class="processos-filtros" id="filtros" aria-label="Filtros de processo">
+                <div class="filtro-campo">
+                    <label class="filtro-rotulo" for="filtro-servidor">Servidor</label>
+                    <div class="filtro-select">
+                        <select id="filtro-servidor" name="servidor" aria-label="Servidor">
+                            <option value="" selected disabled hidden>--</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filtro-campo">
+                    <label class="filtro-rotulo" for="filtro-periodo">Período de análise</label>
+                    <div class="filtro-select">
+                        <select id="filtro-periodo" name="periodo" aria-label="Período de análise">
+                            <option value="" selected disabled hidden>--</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filtro-campo filtro-campo--busca">
+                    <label class="filtro-rotulo" for="filtro-processo">Investigar processo</label>
+                    <div class="filtro-select">
+                        <input type="search" id="filtro-processo" name="processo"
+                            aria-label="Investigar processo" placeholder="--">
+                    </div>
+                </div>
+
+                <div class="filtro-campo filtro-campo--intervalo">
+                    <label class="filtro-rotulo" for="filtro-intervalo">Intervalo</label>
+                    <div class="filtro-select filtro-select--texto">
+                        <span id="filtro-intervalo">--</span>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Container de conteúdo (etapas 2 a 4) -->
+            <div class="processos-conteudo" id="conteudo-processos" aria-label="Conteúdo do dashboard de processos">
+
+                <!-- Grid de cards KPI (esqueleto) -->
+                <section class="kpis" aria-label="Resumo de processos">
+                    <div class="kpi-grid">
+                        <article class="kpi-card">
+                            <div class="kpi-icone kpi-icone--padrao" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline fill="none" stroke="currentColor" stroke-width="2" points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <div class="kpi-conteudo">
+                                <p class="kpi-rotulo">Processos identificados</p>
+                                <p class="kpi-valor" id="kpi-processos-identificados">--</p>
+                                <p class="kpi-subtitulo" id="kpi-processos-identificados-sub">--</p>
+                            </div>
+                        </article>
+                        <article class="kpi-card kpi-card--critico">
+                            <div class="kpi-icone kpi-icone--critico" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="none" stroke="currentColor" stroke-width="2" d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2"/></svg>
+                            </div>
+                            <div class="kpi-conteudo">
+                                <p class="kpi-rotulo">Processos críticos</p>
+                                <p class="kpi-valor" id="kpi-processos-criticos">--</p>
+                                <p class="kpi-subtitulo" id="kpi-processos-criticos-sub">--</p>
+                            </div>
+                        </article>
+                        <article class="kpi-card kpi-card--atencao">
+                            <div class="kpi-icone kpi-icone--atencao" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="none" stroke="currentColor" stroke-width="2" d="M14.749 9.348a3 3 0 0 1 0 5.302l-5.547 5.547a4 4 0 0 1-5.657-5.657l5.547-5.547a4 4 0 0 1 5.657 0"/></svg>
+                            </div>
+                            <div class="kpi-conteudo">
+                                <p class="kpi-rotulo">CPU elevada</p>
+                                <p class="kpi-valor" id="kpi-cpu-elevada">--</p>
+                                <p class="kpi-subtitulo" id="kpi-cpu-elevada-sub">--</p>
+                            </div>
+                        </article>
+                        <article class="kpi-card kpi-card--atencao">
+                            <div class="kpi-icone kpi-icone--atencao" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2"/><line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2"/></svg>
+                            </div>
+                            <div class="kpi-conteudo">
+                                <p class="kpi-rotulo">RAM elevada</p>
+                                <p class="kpi-valor" id="kpi-ram-elevada">--</p>
+                                <p class="kpi-subtitulo" id="kpi-ram-elevada-sub">--</p>
+                            </div>
+                        </article>
+                        <article class="kpi-card kpi-card--azul">
+                            <div class="kpi-icone kpi-icone--azul" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 2L2 7l10 5 10-5-10-5z"/><path fill="none" stroke="currentColor" stroke-width="2" d="M2 17l10 5 10-5"/></svg>
+                            </div>
+                            <div class="kpi-conteudo">
+                                <p class="kpi-rotulo">Threads identificadas</p>
+                                <p class="kpi-valor" id="kpi-threads-identificadas">--</p>
+                                <p class="kpi-subtitulo" id="kpi-threads-identificadas-sub">--</p>
+                            </div>
+                        </article>
+                        <article class="kpi-card">
+                            <div class="kpi-icone kpi-icone--padrao" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline fill="none" stroke="currentColor" stroke-width="2" points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <div class="kpi-conteudo">
+                                <p class="kpi-rotulo">Eventos registrados</p>
+                                <p class="kpi-valor" id="kpi-eventos-registrados">--</p>
+                                <p class="kpi-subtitulo" id="kpi-eventos-registrados-sub">--</p>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <!-- Histórico de consumo por processo (esqueleto) -->
+                <section class="historico-consumo" aria-label="Histórico de consumo por processo">
+                    <article class="card">
+                        <header class="card-cabecalho">
+                            <h2 class="card-titulo">Histórico de consumo por processo</h2>
+                            <div class="card-acoes">
+                                <button class="btn btn--outline" id="btn-comparar-momentos" type="button">Comparar momentos</button>
+                                <button class="btn btn--primario" id="btn-ampliar" type="button">← Ampliar</button>
+                            </div>
+                        </header>
+                        <div class="card-meta">
+                            <span class="meta-chip meta-chip--processo" id="meta-processo">--</span>
+                            <span class="meta-chip" id="meta-usuario">--</span>
+                            <span class="meta-chip meta-chip--status" id="meta-status">--</span>
+                        </div>
+                        <div class="alerta-banner" id="alerta-banner" hidden>
+                            <span class="alerta-destaque" aria-hidden="true"></span>
+                            <span class="alerta-texto" id="alerta-texto">--</span>
+                        </div>
+                        <div class="graficos" id="graficos-consumo">
+                            <figure class="grafico-card" id="grafico-cpu">
+                                <div class="grafico-rotulo">CPU do processo</div>
+                                <div class="grafico-valor-atual" id="grafico-cpu-valor">--</div>
+                                <div class="grafico-area" id="grafico-cpu-area" role="img" aria-label="CPU do processo"></div>
+                                <figcaption class="grafico-caption" id="grafico-cpu-caption">--</figcaption>
+                            </figure>
+                            <figure class="grafico-card" id="grafico-memoria">
+                                <div class="grafico-rotulo">Memória RSS</div>
+                                <div class="grafico-valor-atual" id="grafico-memoria-valor">--</div>
+                                <div class="grafico-area" id="grafico-memoria-area" role="img" aria-label="Memória RSS"></div>
+                                <figcaption class="grafico-caption" id="grafico-memoria-caption">--</figcaption>
+                            </figure>
+                        </div>
+                        <div class="comparativo" id="comparativo-momentos">
+                            <span class="comparativo-item" id="momento-a">--</span>
+                            <span class="comparativo-seta" aria-hidden="true">→</span>
+                            <span class="comparativo-item" id="momento-b">--</span>
+                        </div>
+                    </article>
+                </section>
+
+                <!-- Processos com maior variação de consumo (esqueleto) -->
+                <section class="variacao-consumo" aria-label="Processos com maior variação de consumo">
+                    <article class="card">
+                        <header class="card-cabecalho">
+                            <h2 class="card-titulo">Processos com maior variação de consumo</h2>
+                            <div class="card-acoes">
+                                <label class="filtro-rotulo ordenacao-rotulo" for="ordenacao-variacao">Ordenar</label>
+                                <div class="filtro-select">
+                                    <select id="ordenacao-variacao" name="ordenacao" aria-label="Ordenar por variação de CPU">
+                                        <option value="delta-cpu-desc" selected>Δ CPU ↓</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="tabela-scroll" role="region" aria-label="Tabela de processos com maior variação de consumo">
+                            <table class="tabela-variacao">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Processo</th>
+                                        <th scope="col">PID</th>
+                                        <th scope="col">CPU antes</th>
+                                        <th scope="col">CPU atual</th>
+                                        <th scope="col">Δ CPU</th>
+                                        <th scope="col">RSS antes</th>
+                                        <th scope="col">RSS atual</th>
+                                        <th scope="col">Δ RSS</th>
+                                        <th scope="col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-variacao" aria-live="polite">
+                                    <!-- Linhas injetadas dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </section>
+
+                <!-- Linha do tempo de eventos (esqueleto) -->
+                <section class="linha-tempo" aria-label="Linha do tempo de eventos">
+                    <article class="card">
+                        <header class="card-cabecalho">
+                            <h2 class="card-titulo">Linha do tempo de eventos</h2>
+                        </header>
+                        <div class="filtros-eventos" role="group" aria-label="Filtros de eventos">
+                            <label class="filtro-rotulo" for="filtro-evento-tipo">Tipo</label>
+                            <div class="filtro-select">
+                                <select id="filtro-evento-tipo" name="tipo" aria-label="Filtrar eventos por tipo">
+                                    <option value="" selected disabled hidden>--</option>
+                                </select>
+                            </div>
+                            <label class="filtro-rotulo" for="filtro-evento-severidade">Severidade</label>
+                            <div class="filtro-select">
+                                <select id="filtro-evento-severidade" name="severidade" aria-label="Filtrar eventos por severidade">
+                                    <option value="" selected disabled hidden>--</option>
+                                </select>
+                            </div>
+                            <label class="filtro-rotulo" for="filtro-evento-horario">Horário</label>
+                            <div class="filtro-select">
+                                <select id="filtro-evento-horario" name="horario" aria-label="Filtrar eventos por horário">
+                                    <option value="" selected disabled hidden>--</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="janela-investigacao" id="janela-investigacao">
+                            <span class="janela-rotulo">JANELA DE INVESTIGAÇÃO</span>
+                            <span class="janela-intervalo" id="janela-intervalo">--</span>
+                        </div>
+                        <div class="eventos-lista" id="eventos-lista" role="list" aria-label="Lista de eventos">
+                            <!-- Itens de evento injetados dinamicamente -->
+                        </div>
+                        <div id="eventos-vazio" class="vazio" hidden>Nenhum evento encontrado para o filtro aplicado.</div>
+                    </article>
+                </section>
+
+                <!-- Todos os processos (esqueleto) -->
+                <section class="todos-processos" aria-label="Todos os processos">
+                    <article class="card">
+                        <header class="card-cabecalho">
+                            <h2 class="card-titulo">Todos os processos</h2>
+                            <div class="card-acoes">
+                                <label class="filtro-rotulo busca-rotulo" for="busca-todos-processos">Buscar</label>
+                                <div class="filtro-select filtro-select--busca">
+                                    <input type="search" id="busca-todos-processos" name="busca"
+                                        aria-label="Buscar nome ou PID" placeholder="--">
+                                </div>
+                                <label class="filtro-rotulo ordenacao-rotulo" for="filtro-status-todos">Status</label>
+                                <div class="filtro-select">
+                                    <select id="filtro-status-todos" name="status" aria-label="Filtrar por status">
+                                        <option value="" selected disabled hidden>--</option>
+                                    </select>
+                                </div>
+                                <label class="filtro-rotulo ordenacao-rotulo" for="ordenacao-todos">Ordenar</label>
+                                <div class="filtro-select">
+                                    <select id="ordenacao-todos" name="ordenacao" aria-label="Ordenar processos">
+                                        <option value="cpu-desc" selected>CPU ↓</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="tabela-scroll" role="region" aria-label="Tabela de todos os processos">
+                            <table class="tabela-todos">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Nome do processo</th>
+                                        <th scope="col">PID</th>
+                                        <th scope="col">Usuário</th>
+                                        <th scope="col">CPU (%)</th>
+                                        <th scope="col">Memória RSS</th>
+                                        <th scope="col">Threads</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Criação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-todos" aria-live="polite">
+                                    <!-- Linhas injetadas dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="paginacao" id="paginacao-todos">
+                            <span class="paginacao-info" id="paginacao-info">Exibindo 1–6 de -- processos</span>
+                            <span class="paginacao-por-pagina" id="paginacao-por-pagina">-- por página</span>
+                            <nav class="paginacao-controles" id="paginacao-controles" aria-label="Paginação">
+                                <!-- Controles injetados dinamicamente -->
+                            </nav>
+                        </div>
+                    </article>
+                </section>
+
+                <!-- Recorrência de anormalidades (esqueleto) -->
+                <section class="recorrencia-anormalidades" aria-label="Recorrência de anormalidades">
+                    <article class="card">
+                        <header class="card-cabecalho">
+                            <h2 class="card-titulo">Recorrência de anormalidades</h2>
+                            <div class="card-acoes">
+                                <label class="filtro-rotulo ordenacao-rotulo" for="ordenacao-recorrencia">Ordenar</label>
+                                <div class="filtro-select">
+                                    <select id="ordenacao-recorrencia" name="ordenacao" aria-label="Ordenar por ocorrências">
+                                        <option value="ocorrencias-desc" selected>ocorrências ↓</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="tabela-scroll" role="region" aria-label="Tabela de recorrência de anormalidades">
+                            <table class="tabela-recorrencia">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Processo / PID</th>
+                                        <th scope="col">Ocorrências</th>
+                                        <th scope="col">Tipo de anormalidade</th>
+                                        <th scope="col">Última ocorrência</th>
+                                        <th scope="col">Duração média</th>
+                                        <th scope="col">Frequência</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-recorrencia" aria-live="polite">
+                                    <!-- Linhas injetadas dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="recorrencia-nota" id="recorrencia-nota">
+                            A duração média considera apenas ocorrências encerradas.
+                        </p>
+                    </article>
+                </section>
+
+            </div>
+
+            <!-- Rodapé geral da página -->
+            <footer class="rodape-pagina" id="rodape-pagina">
+                <p class="rodape-texto">Dados fictícios para demonstração · snapshots de processos coletados com psutil · horário local UTC-3</p>
+            </footer>
+
+        </main>
+    </div>
+</body>
+</html>

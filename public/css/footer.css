@@ -27,7 +27,7 @@
 .rodape-coluna h2 {
     margin-bottom: 6px;
     color: #fff;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -36,7 +36,7 @@
 .rodape-coluna a,
 .rodape-link-indisponivel {
     color: #dedadd;
-    font-size: 12px;
+    font-size: 15px;
     text-decoration: none;
     transition: color 0.2s;
 }
@@ -68,7 +68,7 @@
 
 .rodape-base p {
     color: #dedadd;
-    font-size: 11px;
+    font-size: 14px;
 }
 
 @media (max-width: 900px) {

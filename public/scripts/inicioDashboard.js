@@ -246,6 +246,7 @@
             : "Histórico indisponível · críticos e em atenção");
 
         if (!graficoEvolucao) {
+            Chart.defaults.font.size = 15;
             graficoEvolucao = new Chart(document.getElementById("grafico-evolucao"), {
                 type: "bar",
                 data: {

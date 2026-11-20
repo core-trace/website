@@ -21,7 +21,7 @@
 }
 
 .visao-cabecalho h1 {
-    font-size: clamp(30px, 2.2vw, 38px);
+    font-size: clamp(38px, 2.75vw, 48px);
     font-weight: 600;
     letter-spacing: -0.7px;
 }
@@ -29,7 +29,7 @@
 .visao-cabecalho p {
     margin-top: 10px;
     color: var(--visao-texto-suave);
-    font-size: 18px;
+    font-size: 23px;
 }
 
 .visao-filtros {
@@ -45,7 +45,7 @@
     border-radius: 7px;
     background-color: #fff;
     color: #4b4350;
-    font-size: 18px;
+    font-size: 23px;
 }
 
 .visao-select {
@@ -75,7 +75,7 @@
 .visao-atualizacao {
     margin: 20px 0;
     color: var(--visao-texto-suave);
-    font-size: 18px;
+    font-size: 23px;
 }
 
 .visao-indicadores {
@@ -95,7 +95,7 @@
 }
 
 .visao-card h2 {
-    font-size: 22px;
+    font-size: 28px;
     font-weight: 600;
     line-height: 1.5;
 }
@@ -105,12 +105,12 @@
 
 .visao-indicador h2 {
     color: var(--visao-texto-suave);
-    font-size: 18px;
+    font-size: 23px;
 }
 
 .visao-valor {
     margin: 6px 0 10px;
-    font-size: clamp(38px, 3vw, 46px);
+    font-size: clamp(48px, 3.75vw, 58px);
     font-weight: 600;
     letter-spacing: -0.7px;
     line-height: 1.4;
@@ -124,7 +124,7 @@
 
 .visao-legenda {
     color: #4b4350;
-    font-size: 16px;
+    font-size: 20px;
     line-height: 1.7;
 }
 
@@ -154,7 +154,7 @@
     outline: none;
     background: transparent;
     color: var(--cor-texto);
-    font-size: 18px;
+    font-size: 23px;
 }
 
 .visao-servidores > .visao-legenda {
@@ -168,11 +168,11 @@
 .visao-grafico-area { position: relative; height: 390px; min-width: 0; margin-top: auto; padding-top: 20px; }
 .visao-grafico-area canvas { display: block; max-width: 100%; }
 .visao-grafico-area canvas[hidden] { display: none; }
-.visao-grafico-status { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: #4b4350; font-size: 18px; }
+.visao-grafico-status { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; text-align: center; color: #4b4350; font-size: 23px; }
 .visao-grafico-status[hidden] { display: none; }
 .visao-alertas-legenda { display: flex; flex-wrap: wrap; gap: 4px 8px; }
-.visao-valor.visao-sem-previsao { font-size: 26px; letter-spacing: -0.3px; }
-.visao-coleta-aviso { display: block; margin-top: 4px; color: #875700; font-size: 16px; }
+.visao-valor.visao-sem-previsao { font-size: 33px; letter-spacing: -0.3px; }
+.visao-coleta-aviso { display: block; margin-top: 4px; color: #875700; font-size: 20px; }
 .visao-select-situacao { min-width: 260px; background-color: #fcece7; color: var(--cor-vermelho); }
 .visao-tabela-scroll { position: relative; margin-top: 14px; overflow-x: auto; }
 
@@ -180,7 +180,7 @@
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 16px;
+    font-size: 20px;
     white-space: nowrap;
 }
 
@@ -213,8 +213,8 @@
 .visao-detalhes-botao:disabled img { filter: grayscale(1); }
 .visao-detalhes-botao img { width: 11px; height: 11px; }
 .visao-tabela-rodape p { margin-top: 12px; }
-.visao-vazio { padding: 28px 12px; color: var(--visao-texto-suave); text-align: center; font-size: 18px; }
-.visao-rodape { margin-top: 20px; color: var(--visao-texto-suave); font-size: 16px; }
+.visao-vazio { padding: 28px 12px; color: var(--visao-texto-suave); text-align: center; font-size: 23px; }
+.visao-rodape { margin-top: 20px; color: var(--visao-texto-suave); font-size: 20px; }
 
 .visao-sistema {
     display: flex;
@@ -222,10 +222,10 @@
     gap: 8px;
     margin-top: auto;
     padding: 24px;
-    font-size: 18px;
+    font-size: 23px;
 }
 
-.visao-sistema small { font-size: 16px; }
+.visao-sistema small { font-size: 20px; }
 .visao-sistema-ponto { flex-shrink: 0; width: 16px; height: 16px; margin-top: 2px; border-radius: 50%; background: #4de0aa; }
 .visao-seta-conta { transform: rotate(-90deg); }
 .dashboard-usuario-toggle[aria-expanded="true"] .visao-seta-conta { transform: rotate(90deg); }
@@ -256,8 +256,8 @@
     .visao-select-campo select { width: 100%; }
     .visao-indicadores { grid-template-columns: 1fr; gap: 12px; }
     .visao-card { padding: 16px; }
-    .visao-indicador h2 { font-size: 16px; }
-    .visao-valor { font-size: 36px; }
+    .visao-indicador h2 { font-size: 20px; }
+    .visao-valor { font-size: 45px; }
     .visao-tabela-cabecalho { align-items: stretch; flex-direction: column; gap: 12px; }
     .visao-busca-servidores { flex: 0 0 auto; }
     .visao-select-situacao { min-width: 0; width: 100%; }
@@ -268,15 +268,15 @@
     .visao-indicadores { grid-template-columns: 1fr; }
 }
 
-.visao-erro { padding: 24px 16px; color: var(--cor-vermelho); font-size: 18px; text-align: center; }
-.visao-erro button { margin-top: 12px; padding: 8px 14px; border: 1px solid var(--dashboard-borda); border-radius: 6px; background: var(--cor-fundo); color: var(--cor-texto); font-size: 18px; }
+.visao-erro { padding: 24px 16px; color: var(--cor-vermelho); font-size: 23px; text-align: center; }
+.visao-erro button { margin-top: 12px; padding: 8px 14px; border: 1px solid var(--dashboard-borda); border-radius: 6px; background: var(--cor-fundo); color: var(--cor-texto); font-size: 23px; }
 .visao-indicador .visao-legenda { overflow-wrap: anywhere; }
 
 .visao-servidor-mac {
     display: block;
     margin-top: 4px;
     color: var(--visao-texto-suave);
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 400;
     white-space: nowrap;
     user-select: text;

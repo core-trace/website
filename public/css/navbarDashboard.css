@@ -65,7 +65,7 @@
 .dashboard-acesso-feedback {
     padding: 24px;
     color: var(--cor-cinza);
-    font-size: 16px;
+    font-size: 20px;
     line-height: 1.6;
 }
 
@@ -76,7 +76,7 @@
 .dashboard-menu-titulo {
     margin-bottom: 0;
     color: var(--cor-cinza);
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 600;
     line-height: 22px;
     text-transform: uppercase;
@@ -94,7 +94,7 @@
     background: transparent;
     text-align: left;
     color: var(--cor-cinza);
-    font-size: 17px;
+    font-size: 21px;
     font-weight: 500;
     line-height: 24px;
     text-decoration: none;
@@ -182,7 +182,7 @@
     outline: none;
     background-color: transparent;
     color: var(--cor-texto);
-    font-size: 16px;
+    font-size: 20px;
 }
 
 .dashboard-pesquisa input::placeholder {
@@ -231,7 +231,7 @@
     border-radius: 50%;
     background-color: #e6e4dc;
     color: var(--cor-cinza);
-    font-size: 20px;
+    font-size: 25px;
     font-weight: 600;
 }
 
@@ -248,13 +248,13 @@
 
 .dashboard-usuario-nome {
     color: var(--cor-cinza);
-    font-size: 18px;
+    font-size: 23px;
     font-weight: 500;
 }
 
 .dashboard-usuario-cargo {
     color: #4b4350;
-    font-size: 16px;
+    font-size: 20px;
 }
 
 .dashboard-conta {
@@ -313,7 +313,7 @@
     border-radius: 6px;
     background-color: transparent;
     color: var(--cor-primaria);
-    font-size: 16px;
+    font-size: 20px;
     text-align: left;
 }
 
@@ -430,7 +430,7 @@
     }
 
     .dashboard-fechar-menu {
-        font-size: 32px;
+        font-size: 40px;
     }
 
     .dashboard-menu-aberto .dashboard-menu-fundo {
@@ -470,7 +470,7 @@
     .dashboard-avatar {
         width: 44px;
         height: 44px;
-        font-size: 18px;
+        font-size: 23px;
     }
 
     .dashboard-pesquisa {
@@ -481,7 +481,7 @@
     }
 
     .dashboard-pesquisa input {
-        font-size: 16px;
+        font-size: 20px;
     }
 }
 
@@ -494,7 +494,7 @@
 
 .dashboard-menu-conta p {
     margin: 6px 10px;
-    font-size: 16px;
+    font-size: 20px;
     overflow-wrap: anywhere;
 }
 
@@ -572,7 +572,7 @@
     border-radius: 50%;
     background: var(--cor-fundo);
     color: var(--cor-cinza);
-    font-size: 20px;
+    font-size: 25px;
     line-height: 1;
 }
 
@@ -647,7 +647,7 @@
     .dashboard-menu-recolhido .dashboard-submenu-titulo {
         display: block;
         padding: 4px 16px 8px;
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 600;
         color: var(--cor-cinza);
     }

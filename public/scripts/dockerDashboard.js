@@ -661,6 +661,7 @@
         const marcasEixo = [];
         for (let instante = inicioEixo; instante < fimEixo; instante += passoEixo) marcasEixo.push(instante);
         marcasEixo.push(fimEixo);
+        window.Chart.defaults.font.size = 15;
         const chart = new window.Chart(canvas, {
             type: "line",
             data: { datasets: conjuntos },
@@ -670,7 +671,7 @@
                 parsing: false,
                 interaction: { mode: "nearest", intersect: false },
                 plugins: {
-                    legend: { display: true, position: "bottom", align: "start", labels: { boxWidth: 14, boxHeight: 2, color: "#555056", font: { size: 11 }, padding: 16 } },
+                    legend: { display: true, position: "bottom", align: "start", labels: { boxWidth: 14, boxHeight: 2, color: "#555056", font: { size: 14 }, padding: 16 } },
                     tooltip: {
                         callbacks: {
                             title: (itens) => {

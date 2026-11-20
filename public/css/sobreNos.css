@@ -53,7 +53,7 @@
 }
 
 .historia-texto h1 {
-    font-size: 3.5vw;
+    font-size: 4.375vw;
     line-height: 1.5;
     font-weight: 700;
     margin-bottom: 2vh;
@@ -64,7 +64,7 @@
 }
 
 .historia-texto p {
-    font-size: 1.2vw;
+    font-size: 1.5vw;
     line-height: 1.5;
     margin-bottom: 2.5vh;
 }
@@ -78,7 +78,7 @@
     padding: 1.5vh 2vw;
     border-radius: 0.5vw;
     text-decoration: none;
-    font-size: 1.2vw;
+    font-size: 1.5vw;
     font-weight: 600;
 }
 
@@ -131,13 +131,13 @@
 }
 
 .beneficio h2 {
-    font-size: 1.2vw;
+    font-size: 1.5vw;
     font-weight: 700;
     margin-bottom: 1vh;
 }
 
 .beneficio p {
-    font-size: 0.95vw;
+    font-size: 1.1875vw;
     color: #eeeaed;
     line-height: 1.6;
 }
@@ -168,7 +168,7 @@
 }
 
 .equipe-texto h1 {
-    font-size: 3.5vw;
+    font-size: 4.375vw;
     line-height: 1.4;
     margin-bottom: 2vh;
 }
@@ -179,7 +179,7 @@
 }
 
 .equipe-texto p {
-    font-size: 1.2vw;
+    font-size: 1.5vw;
     line-height: 1.6;
 }
 
@@ -223,12 +223,12 @@
 }
 
 .informacoes h3 {
-    font-size: 1vw;
+    font-size: 1.25vw;
     margin-bottom: 0.5vh;
 }
 
 .informacoes p {
-    font-size: 0.95vw;
+    font-size: 1.1875vw;
     color: #eeeaed;
 }
 .redes {
@@ -252,7 +252,7 @@
 }
 
 .diferencial-texto h1 {
-    font-size: 3.5vw;
+    font-size: 4.375vw;
     line-height: 1.4;
     margin-bottom: 2vh;
 }
@@ -263,7 +263,7 @@
 }
 
 .diferencial-texto p {
-    font-size: 1.2vw;
+    font-size: 1.5vw;
     margin-bottom: 2vh;
     line-height: 1.6;
 }
@@ -282,14 +282,14 @@
 }
 
 .vantagem h3 {
-    font-size: 1.2vw;
+    font-size: 1.5vw;
     border-left: 0.3vw solid #cc0301;
     padding-left: 1vw;
     margin-bottom: 1vh;
 }
 
 .vantagem p {
-    font-size: 0.95vw;
+    font-size: 1.1875vw;
         color: #eeeaed;
     line-height: 1.6;
 }
@@ -313,7 +313,7 @@
     left: 2vw;
     right: 2vw;
     color: white;
-    font-size: 1.7vw;
+    font-size: 2.125vw;
     line-height: 1.4;
 }
 
@@ -367,19 +367,19 @@
     }
 
     .historia-texto h1 {
-        font-size: 9vw;
+        font-size: 11.25vw;
         line-height: 1.3;
         margin-bottom: 2vh;
     }
 
     .historia-texto p {
-        font-size: 3.5vw;
+        font-size: 4.375vw;
         line-height: 1.6;
         margin-bottom: 3vh;
     }
 
     .botao-contato {
-        font-size: 3.5vw;
+        font-size: 4.375vw;
         padding: 1.5vh 5vw;
         border-radius: 1.5vw;
     }
@@ -424,12 +424,12 @@
     }
 
     .beneficio h2 {
-        font-size: 3.5vw;
+        font-size: 4.375vw;
         margin-bottom: 1vh;
     }
 
     .beneficio p {
-        font-size: 2.8vw;
+        font-size: 3.5vw;
         line-height: 1.6;
     }
 
@@ -452,12 +452,12 @@
     }
 
     .equipe-texto h1 {
-        font-size: 9vw;
+        font-size: 11.25vw;
         line-height: 1.3;
     }
 
     .equipe-texto p {
-        font-size: 3.5vw;
+        font-size: 4.375vw;
         line-height: 1.6;
     }
 
@@ -485,12 +485,12 @@
     }
 
     .informacoes h3 {
-        font-size: 3vw;
+        font-size: 3.75vw;
         margin-bottom: 0.5vh;
     }
 
     .informacoes p {
-        font-size: 2.5vw;
+        font-size: 3.125vw;
     }
 
     .redes {
@@ -523,12 +523,12 @@
     }
 
     .diferencial-texto h1 {
-        font-size: 9vw;
+        font-size: 11.25vw;
         line-height: 1.3;
     }
 
     .diferencial-texto > p {
-        font-size: 3.5vw;
+        font-size: 4.375vw;
         line-height: 1.6;
         margin-bottom: 3vh;
     }
@@ -543,14 +543,14 @@
     }
 
     .vantagem h3 {
-        font-size: 3.5vw;
+        font-size: 4.375vw;
         border-left: 1vw solid #cc0301;
         padding-left: 3vw;
         margin-bottom: 1vh;
     }
 
     .vantagem p {
-        font-size: 2.8vw;
+        font-size: 3.5vw;
         line-height: 1.6;
     }
 
@@ -566,7 +566,7 @@
     }
 
     .diferencial-imagem h2 {
-        font-size: 5vw;
+        font-size: 6.25vw;
         bottom: 3vh;
         left: 4vw;
         right: 4vw;

@@ -245,6 +245,7 @@
             });
         }
 
+        Chart.defaults.font.size = 15;
         state.charts[key] = new Chart(ctx, {
             type: "line",
             data: { labels, datasets },

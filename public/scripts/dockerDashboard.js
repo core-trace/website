@@ -99,6 +99,63 @@
     let logsPeriodo = { inicio: null, fim: null };
     let logsUltimas24h = true;
     let logsExibidos = [];
+    let perfisDisponiveis = [];
+    let servidoresDisponiveis = [];
+
+    async function carregarContextos() {
+        const idEmpresa = Number(sessionStorage.getItem("ID_EMPRESA"));
+        const idUsuario = Number(sessionStorage.getItem("ID_USUARIO"));
+        const perfilSelect = $("docker-perfil");
+        const servidorSelect = $("docker-servidor");
+
+        if (!Number.isSafeInteger(idEmpresa) || idEmpresa <= 0
+            || !Number.isSafeInteger(idUsuario) || idUsuario <= 0) {
+            throw new Error("Faça login para consultar os perfis e servidores disponíveis.");
+        }
+
+        const [respostaPerfis, respostaServidores] = await Promise.all([
+            fetch(`/servidor/perfis?empresa=${encodeURIComponent(idEmpresa)}`, { cache: "no-store" }),
+            fetch(`/servidor/lista?empresa=${encodeURIComponent(idEmpresa)}&usuario=${encodeURIComponent(idUsuario)}`, { cache: "no-store" })
+        ]);
+        if (!respostaPerfis.ok || !respostaServidores.ok) {
+            throw new Error("Não foi possível consultar os perfis e servidores da empresa.");
+        }
+        [perfisDisponiveis, servidoresDisponiveis] = await Promise.all([respostaPerfis.json(), respostaServidores.json()]);
+        if (!Array.isArray(perfisDisponiveis) || !Array.isArray(servidoresDisponiveis)) {
+            throw new Error("A API retornou uma lista inválida de perfis ou servidores.");
+        }
+
+        perfilSelect.replaceChildren(new Option("Todos os perfis", ""), ...perfisDisponiveis.map((perfil) =>
+            new Option(perfil.nome, String(perfil.id_perfil_servidor))));
+        servidorSelect.replaceChildren(new Option("Selecione um servidor", ""), ...servidoresDisponiveis.map((servidor) =>
+            new Option(servidor.nome, servidor.endereco_mac)));
+
+        perfilSelect.addEventListener("change", atualizarServidoresDoPerfil);
+        servidorSelect.addEventListener("change", atualizarServidorSelecionado);
+        atualizarServidoresDoPerfil();
+    }
+
+    function atualizarServidoresDoPerfil() {
+        const perfilId = $("docker-perfil").value;
+        const disponiveis = perfilId
+            ? servidoresDisponiveis.filter((servidor) => String(servidor.id_perfil_servidor) === perfilId)
+            : servidoresDisponiveis;
+        const atual = $("docker-servidor").value;
+        $("docker-servidor").replaceChildren(new Option("Selecione um servidor", ""), ...disponiveis.map((servidor) =>
+            new Option(servidor.nome, servidor.endereco_mac)));
+        if (disponiveis.some((servidor) => servidor.endereco_mac === atual)) $("docker-servidor").value = atual;
+        atualizarServidorSelecionado();
+    }
+
+    function atualizarServidorSelecionado() {
+        const servidor = servidoresDisponiveis.find((item) => item.endereco_mac === $("docker-servidor").value);
+        if (!servidor) return;
+        const perfil = perfisDisponiveis.find((item) => String(item.id_perfil_servidor) === String(servidor.id_perfil_servidor));
+        $("docker-perfil").value = perfil ? String(perfil.id_perfil_servidor) : "";
+        const resultado = $("docker-contexto-resultado");
+        resultado.hidden = false;
+        resultado.textContent = `Servidor selecionado: ${servidor.nome} · Perfil: ${perfil?.nome || servidor.nome_perfil}. O histórico exibido depende da fonte Docker configurada.`;
+    }
 
     function n(valor, unidade = "") {
         return D.numero(valor) === null ? "—" : `${formatoNumero.format(valor)}${unidade}`;
@@ -420,7 +477,7 @@
         // Um MAC mascarado identifica a amostra de desenvolvimento, não um servidor real.
         const nomeServidor = dados.mac && dados.mac !== "00:00:00:00:00:00"
             ? `Servidor · ${dados.mac}` : "Servidor selecionado";
-        $("docker-servidor").replaceChildren(new Option(nomeServidor, dados.mac || ""));
+        if (!servidoresDisponiveis.length) $("docker-servidor").replaceChildren(new Option(nomeServidor, dados.mac || ""));
         const primeiro = historicoAtivo[0]?.data.split("-").reverse().join("/") || "—";
         const ultimo = historicoAtivo.at(-1)?.data.split("-").reverse().join("/") || "—";
         const diasComMetricas = historicoAtivo.filter((doc) => doc.containers.length > 0).length;
@@ -855,6 +912,7 @@
 
     async function iniciar() {
         try {
+            await carregarContextos();
             await carregarHistorico();
             await carregarHistoricoHorario();
             atualizarPeriodo();
@@ -886,10 +944,15 @@
         const busca = evento.target.value.trim().toLocaleLowerCase("pt-BR");
         const resultado = $("docker-contexto-resultado");
         resultado.hidden = !busca;
-        const contexto = `${$("docker-perfil").value} · ${$("docker-servidor").selectedOptions[0]?.textContent || ""}`;
-        resultado.textContent = !dados ? "Aguardando os dados do servidor."
-            : contexto.toLocaleLowerCase("pt-BR").includes(busca)
-                ? `Servidor disponível: ${contexto}` : "Nenhum servidor ou perfil corresponde à busca neste histórico.";
+        const encontrados = servidoresDisponiveis.filter((servidor) => {
+            const perfil = perfisDisponiveis.find((item) => String(item.id_perfil_servidor) === String(servidor.id_perfil_servidor));
+            return `${servidor.nome} ${servidor.endereco_mac} ${perfil?.nome || servidor.nome_perfil || ""}`
+                .toLocaleLowerCase("pt-BR").includes(busca);
+        });
+        resultado.textContent = !servidoresDisponiveis.length ? "Aguardando a lista de servidores."
+            : encontrados.length
+                ? `${encontrados.length} servidor(es) encontrado(s): ${encontrados.map((servidor) => servidor.nome).join(", ")}`
+                : "Nenhum servidor ou perfil corresponde à busca.";
     });
     $("docker-limpar").addEventListener("click", () => selecionar(null));
     const atualizarLogsSelecionado = () => {

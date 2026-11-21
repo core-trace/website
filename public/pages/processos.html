@@ -233,7 +233,7 @@
                                 <figcaption class="grafico-caption" id="grafico-cpu-caption">--</figcaption>
                             </figure>
                             <figure class="grafico-card" id="grafico-memoria">
-                                <div class="grafico-rotulo">Memória RSS</div>
+                                <div class="grafico-rotulo">Memória RAM</div>
                                 <div class="grafico-valor-atual" id="grafico-memoria-valor">--</div>
                                 <div class="grafico-area" id="grafico-memoria-area" role="img" aria-label="Memória RSS"></div>
                                 <figcaption class="grafico-caption" id="grafico-memoria-caption">--</figcaption>
@@ -246,47 +246,6 @@
                         </div>
                     </article>
                 </section>
-
-                <!-- Processos com maior variação de consumo (esqueleto) -->
-                <section class="variacao-consumo" aria-label="Processos com maior variação de consumo">
-                    <article class="card">
-                        <header class="card-cabecalho">
-                            <h2 class="card-titulo">Processos com maior variação de consumo</h2>
-                            <div class="card-acoes">
-                                <label class="filtro-rotulo ordenacao-rotulo" for="ordenacao-variacao">Ordenar</label>
-                                <div class="filtro-select">
-                                    <select id="ordenacao-variacao" name="ordenacao" aria-label="Ordenar por variação de CPU">
-                                        <option value="delta-cpu-desc" selected>Δ CPU ↓</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </header>
-                        <div class="tabela-scroll" role="region" aria-label="Tabela de processos com maior variação de consumo">
-                            <table class="tabela-variacao">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Processo</th>
-                                        <th scope="col">PID</th>
-                                        <th scope="col">CPU antes</th>
-                                        <th scope="col">CPU atual</th>
-                                        <th scope="col">Δ CPU</th>
-                                        <th scope="col">RSS antes</th>
-                                        <th scope="col">RSS atual</th>
-                                        <th scope="col">Δ RSS</th>
-                                        <th scope="col">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-variacao" aria-live="polite">
-                                    <!-- Linhas injetadas dinamicamente -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </article>
-                </section>
-
-                
-               
-
             </div>
 
             <!-- Rodapé geral da página -->

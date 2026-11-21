@@ -71,17 +71,17 @@
             <p id="dashboard-feedback" role="status" aria-live="polite">Carregando dados...</p>
             <section class="indicadores" aria-label="Resumo dos perfis">
                 <article class="indicador"><img class="icone-indicador" src="../assets/images/dashboard-perfil-critico.png" alt="" width="34" height="34"><div><strong class="vermelho nome-perfil" id="indicador-perfil-critico">—</strong><p>Perfil com mais servidores críticos</p></div></article>
-                <article class="indicador"><img class="icone-indicador" src="../assets/images/dashboard-servidores-inativos.png" alt="" width="34" height="34"><div><strong class="vermelho" id="indicador-servidores-inativos">—</strong><p>servidores inativos</p></div></article>
-                <article class="indicador"><img class="icone-indicador sucesso" src="../assets/images/dashboard-perfis-ativos.png" alt="" width="34" height="34"><div><strong id="indicador-perfis-ativos">—</strong><p>Perfis ativos</p></div></article>
+                <article class="indicador"><img class="icone-indicador sucesso" src="../assets/images/dashboard-perfis-ativos.png" alt="" width="34" height="34"><div><strong id="indicador-perfis-ativos">—</strong><p>Perfis com servidores</p></div></article>
                 <article class="indicador"><img class="icone-indicador" src="../assets/images/dashboard-perfis-configurados.png" alt="" width="34" height="34"><div><strong id="indicador-perfis-configurados">—</strong><p>Perfis configurados</p></div></article>
             </section>
             <div class="grade-paineis">
                 <section class="painel criticos"><h2><img src="../assets/images/Alerta — triângulo contornado.png" alt="" width="18" height="18"> Perfis com maior % de servidores críticos</h2><div class="lista-criticos"><canvas id="grafico-perfis-criticos" role="img" aria-label="Aguardando dados do dashboard">Aguardando dados do dashboard.</canvas></div></section>
                 <section class="painel situacao">
                     <div class="cabecalho-painel">
-                        <div><h2>Status dos servidores por perfil</h2><p id="descricao-historico-status">Status no momento escolhido</p></div>
-                        <label class="seletor-perfil">Histórico:
+                        <div><h2>Status dos servidores por perfil</h2><p id="descricao-historico-status">Status atual</p></div>
+                        <label class="seletor-perfil">Período:
                             <select id="historico-status" aria-label="Período do histórico de status">
+                                <option value="0" selected>Agora</option>
                                 <option value="30">Há 30 minutos</option>
                                 <option value="60">Há 1 hora</option>
                                 <option value="420">Há 7 horas</option>
@@ -91,22 +91,38 @@
                     </div>
                     <table><thead><tr><th>Perfil</th><th>Ativos</th><th>Inativos</th></tr></thead><tbody id="status-perfis"></tbody></table></section>
                 <section class="painel servidores"><h2>Servidores por perfil</h2><div class="grafico-barras"><canvas id="grafico-servidores-perfil" role="img" aria-label="Aguardando dados do dashboard">Aguardando dados do dashboard.</canvas></div></section>
-                <section class="painel prejuizo" aria-labelledby="titulo-prejuizo">
+                <section class="painel custos sem-custos" aria-labelledby="titulo-custos">
                     <div class="cabecalho-painel">
                         <div>
-                            <h2 id="titulo-prejuizo">Prejuízo estimado por perfil</h2>
-                            <p>Tempo em estado crítico × custo por hora do perfil</p>
+                            <h2 id="titulo-custos">Custo e previsão por perfil</h2>
+                            <p>Gasto acumulado e estimativa até o fim do mês</p>
+                        </div>
+                        <label class="seletor-perfil">Perfil:
+                            <select id="perfil-custos" aria-label="Perfil dos custos" disabled></select>
+                        </label>
+                    </div>
+                    <div class="custos-indicadores">
+                        <div>
+                            <span>Gasto até agora</span>
+                            <strong id="custo-atual">—</strong>
+                            <small id="custo-periodo-atual">Neste mês</small>
+                        </div>
+                        <div>
+                            <span>Previsão do mês</span>
+                            <strong id="custo-previsto">—</strong>
+                            <small id="custo-periodo-previsto">Até o último dia do mês</small>
                         </div>
                     </div>
-                    <ul class="prejuizo-lista" id="prejuizo-perfis" aria-live="polite"></ul>
+                    <div class="custos-legenda" aria-label="Legenda do gráfico">
+                        <span><i class="custo-cor-realizado" aria-hidden="true"></i>Acumulado</span>
+                        <span><i class="custo-cor-previsto" aria-hidden="true"></i>Projetado</span>
+                    </div>
+                    <div class="grafico-custos">
+                        <canvas id="grafico-custos-perfil" role="img" aria-label="Custo acumulado e projeção mensal do perfil selecionado"></canvas>
+                        <p id="custos-vazios" class="custos-vazios" role="status">Custos ainda não disponíveis.</p>
+                    </div>
+                    <p class="custos-atualizacao" id="custos-atualizacao">Aguardando a divisão do custo entre os perfis.</p>
                 </section>
-                <template id="linha-prejuizo">
-                    <li class="prejuizo-item">
-                        <div class="prejuizo-resumo"><span class="prejuizo-nome"></span><strong class="prejuizo-valor">—</strong></div>
-                        <div class="prejuizo-trilho" hidden><div class="prejuizo-barra"></div></div>
-                        <p class="prejuizo-detalhe">Aguardando tempo crítico e custo por hora.</p>
-                    </li>
-                </template>
                 <section class="painel limites">
                     <div class="cabecalho-painel">
                         <div><h2>Limites por perfil</h2><p>Métricas monitoradas nos componentes presentes neste perfil</p></div>

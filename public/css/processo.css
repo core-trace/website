@@ -326,7 +326,7 @@ img, svg { display: block; max-width: 100%; }
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--espaco-m);
   min-width: 0;
 }
@@ -1009,7 +1009,7 @@ img, svg { display: block; max-width: 100%; }
   .filtro-select input { min-width: 110px; font-size: 13px; }
   .processos-conteudo { padding: var(--espaco-l); }
 
-  .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .graficos { grid-template-columns: 1fr; }
   .grafico-svg { min-height: 200px; }
 

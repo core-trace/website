@@ -127,14 +127,14 @@
                 <!-- Grid de cards KPI (esqueleto) -->
                 <section class="kpis" aria-label="Resumo de processos">
                     <div class="kpi-grid">
-                        <article class="kpi-card">
-                            <div class="kpi-icone kpi-icone--padrao" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline fill="none" stroke="currentColor" stroke-width="2" points="12 6 12 12 16 14"/></svg>
+                        <article class="kpi-card kpi-card--atencao">
+                            <div class="kpi-icone kpi-icone--atencao" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2"/><line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2"/></svg>
                             </div>
                             <div class="kpi-conteudo">
-                                <p class="kpi-rotulo">Processos identificados</p>
-                                <p class="kpi-valor" id="kpi-processos-identificados">--</p>
-                                <p class="kpi-subtitulo" id="kpi-processos-identificados-sub">--</p>
+                                <p class="kpi-rotulo">Processos mortos por OOM</p>
+                                <p class="kpi-valor" id="kpi-processos-oom">--</p>
+                                <p class="kpi-subtitulo" id="kpi-processos-oom-sub">--</p>
                             </div>
                         </article>
                         <article class="kpi-card kpi-card--critico">
@@ -147,22 +147,13 @@
                                 <p class="kpi-subtitulo" id="kpi-processos-criticos-sub">--</p>
                             </div>
                         </article>
-                        <article class="kpi-card kpi-card--atencao">
-                            <div class="kpi-icone kpi-icone--atencao" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="none" stroke="currentColor" stroke-width="2" d="M14.749 9.348a3 3 0 0 1 0 5.302l-5.547 5.547a4 4 0 0 1-5.657-5.657l5.547-5.547a4 4 0 0 1 5.657 0"/></svg>
-                            </div>
-                            <div class="kpi-conteudo">
-                                <p class="kpi-rotulo">CPU elevada</p>
-                                <p class="kpi-valor" id="kpi-cpu-elevada">--</p>
-                                <p class="kpi-subtitulo" id="kpi-cpu-elevada-sub">--</p>
-                            </div>
-                        </article>
+                        
                         <article class="kpi-card kpi-card--atencao">
                             <div class="kpi-icone kpi-icone--atencao" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2"/><line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2"/></svg>
                             </div>
                             <div class="kpi-conteudo">
-                                <p class="kpi-rotulo">RAM elevada</p>
+                                <p class="kpi-rotulo">Processo com RAM elevada</p>
                                 <p class="kpi-valor" id="kpi-ram-elevada">--</p>
                                 <p class="kpi-subtitulo" id="kpi-ram-elevada-sub">--</p>
                             </div>
@@ -172,195 +163,15 @@
                                 <svg viewBox="0 0 24 24" width="18" height="18"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 2L2 7l10 5 10-5-10-5z"/><path fill="none" stroke="currentColor" stroke-width="2" d="M2 17l10 5 10-5"/></svg>
                             </div>
                             <div class="kpi-conteudo">
-                                <p class="kpi-rotulo">Threads identificadas</p>
-                                <p class="kpi-valor" id="kpi-threads-identificadas">--</p>
-                                <p class="kpi-subtitulo" id="kpi-threads-identificadas-sub">--</p>
-                            </div>
-                        </article>
-                        <article class="kpi-card">
-                            <div class="kpi-icone kpi-icone--padrao" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline fill="none" stroke="currentColor" stroke-width="2" points="12 6 12 12 16 14"/></svg>
-                            </div>
-                            <div class="kpi-conteudo">
-                                <p class="kpi-rotulo">Eventos registrados</p>
-                                <p class="kpi-valor" id="kpi-eventos-registrados">--</p>
-                                <p class="kpi-subtitulo" id="kpi-eventos-registrados-sub">--</p>
+                                <p class="kpi-rotulo">Processo com CPU elevada</p>
+                                <p class="kpi-valor" id="kpi-cpu-elevada">--</p>
+                                <p class="kpi-subtitulo" id="kpi-cpu-elevada-sub">--</p>
                             </div>
                         </article>
                     </div>
                 </section>
 
-                <!-- Histórico de consumo por processo (esqueleto) -->
-                <section class="historico-consumo" aria-label="Histórico de consumo por processo">
-                    <article class="card">
-                        <header class="card-cabecalho">
-                            <h2 class="card-titulo">Histórico de consumo por processo</h2>
-                            <div class="card-acoes">
-                                <button class="btn btn--outline" id="btn-comparar-momentos" type="button">Comparar momentos</button>
-                                <button class="btn btn--primario" id="btn-ampliar" type="button">← Ampliar</button>
-                            </div>
-                        </header>
-                        <div class="card-meta">
-                            <span class="meta-chip meta-chip--processo" id="meta-processo">--</span>
-                            <span class="meta-chip" id="meta-usuario">--</span>
-                            <span class="meta-chip meta-chip--status" id="meta-status">--</span>
-                        </div>
-                        <div class="alerta-banner" id="alerta-banner" hidden>
-                            <span class="alerta-destaque" aria-hidden="true"></span>
-                            <span class="alerta-texto" id="alerta-texto">--</span>
-                        </div>
-                        <div class="graficos" id="graficos-consumo">
-                            <figure class="grafico-card" id="grafico-cpu">
-                                <div class="grafico-rotulo">CPU do processo</div>
-                                <div class="grafico-valor-atual" id="grafico-cpu-valor">--</div>
-                                <div class="grafico-area" id="grafico-cpu-area" role="img" aria-label="CPU do processo"></div>
-                                <figcaption class="grafico-caption" id="grafico-cpu-caption">--</figcaption>
-                            </figure>
-                            <figure class="grafico-card" id="grafico-memoria">
-                                <div class="grafico-rotulo">Memória RSS</div>
-                                <div class="grafico-valor-atual" id="grafico-memoria-valor">--</div>
-                                <div class="grafico-area" id="grafico-memoria-area" role="img" aria-label="Memória RSS"></div>
-                                <figcaption class="grafico-caption" id="grafico-memoria-caption">--</figcaption>
-                            </figure>
-                        </div>
-                        <div class="comparativo" id="comparativo-momentos">
-                            <span class="comparativo-item" id="momento-a">--</span>
-                            <span class="comparativo-seta" aria-hidden="true">→</span>
-                            <span class="comparativo-item" id="momento-b">--</span>
-                        </div>
-                    </article>
-                </section>
-
-                <!-- Processos com maior variação de consumo (esqueleto) -->
-                <section class="variacao-consumo" aria-label="Processos com maior variação de consumo">
-                    <article class="card">
-                        <header class="card-cabecalho">
-                            <h2 class="card-titulo">Processos com maior variação de consumo</h2>
-                            <div class="card-acoes">
-                                <label class="filtro-rotulo ordenacao-rotulo" for="ordenacao-variacao">Ordenar</label>
-                                <div class="filtro-select">
-                                    <select id="ordenacao-variacao" name="ordenacao" aria-label="Ordenar por variação de CPU">
-                                        <option value="delta-cpu-desc" selected>Δ CPU ↓</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </header>
-                        <div class="tabela-scroll" role="region" aria-label="Tabela de processos com maior variação de consumo">
-                            <table class="tabela-variacao">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Processo</th>
-                                        <th scope="col">PID</th>
-                                        <th scope="col">CPU antes</th>
-                                        <th scope="col">CPU atual</th>
-                                        <th scope="col">Δ CPU</th>
-                                        <th scope="col">RSS antes</th>
-                                        <th scope="col">RSS atual</th>
-                                        <th scope="col">Δ RSS</th>
-                                        <th scope="col">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-variacao" aria-live="polite">
-                                    <!-- Linhas injetadas dinamicamente -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </article>
-                </section>
-
-                <!-- Linha do tempo de eventos (esqueleto) -->
-                <section class="linha-tempo" aria-label="Linha do tempo de eventos">
-                    <article class="card">
-                        <header class="card-cabecalho">
-                            <h2 class="card-titulo">Linha do tempo de eventos</h2>
-                        </header>
-                        <div class="filtros-eventos" role="group" aria-label="Filtros de eventos">
-                            <label class="filtro-rotulo" for="filtro-evento-tipo">Tipo</label>
-                            <div class="filtro-select">
-                                <select id="filtro-evento-tipo" name="tipo" aria-label="Filtrar eventos por tipo">
-                                    <option value="" selected disabled hidden>--</option>
-                                </select>
-                            </div>
-                            <label class="filtro-rotulo" for="filtro-evento-severidade">Severidade</label>
-                            <div class="filtro-select">
-                                <select id="filtro-evento-severidade" name="severidade" aria-label="Filtrar eventos por severidade">
-                                    <option value="" selected disabled hidden>--</option>
-                                </select>
-                            </div>
-                            <label class="filtro-rotulo" for="filtro-evento-horario">Horário</label>
-                            <div class="filtro-select">
-                                <select id="filtro-evento-horario" name="horario" aria-label="Filtrar eventos por horário">
-                                    <option value="" selected disabled hidden>--</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="janela-investigacao" id="janela-investigacao">
-                            <span class="janela-rotulo">JANELA DE INVESTIGAÇÃO</span>
-                            <span class="janela-intervalo" id="janela-intervalo">--</span>
-                        </div>
-                        <div class="eventos-lista" id="eventos-lista" role="list" aria-label="Lista de eventos">
-                            <!-- Itens de evento injetados dinamicamente -->
-                        </div>
-                        <div id="eventos-vazio" class="vazio" hidden>Nenhum evento encontrado para o filtro aplicado.</div>
-                    </article>
-                </section>
-
-                <!-- Todos os processos (esqueleto) -->
-                <section class="todos-processos" aria-label="Todos os processos">
-                    <article class="card">
-                        <header class="card-cabecalho">
-                            <h2 class="card-titulo">Todos os processos</h2>
-                            <div class="card-acoes">
-                                <label class="filtro-rotulo busca-rotulo" for="busca-todos-processos">Buscar</label>
-                                <div class="filtro-select filtro-select--busca">
-                                    <input type="search" id="busca-todos-processos" name="busca"
-                                        aria-label="Buscar nome ou PID" placeholder="--">
-                                </div>
-                                <label class="filtro-rotulo ordenacao-rotulo" for="filtro-status-todos">Status</label>
-                                <div class="filtro-select">
-                                    <select id="filtro-status-todos" name="status" aria-label="Filtrar por status">
-                                        <option value="" selected disabled hidden>--</option>
-                                    </select>
-                                </div>
-                                <label class="filtro-rotulo ordenacao-rotulo" for="ordenacao-todos">Ordenar</label>
-                                <div class="filtro-select">
-                                    <select id="ordenacao-todos" name="ordenacao" aria-label="Ordenar processos">
-                                        <option value="cpu-desc" selected>CPU ↓</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </header>
-                        <div class="tabela-scroll" role="region" aria-label="Tabela de todos os processos">
-                            <table class="tabela-todos">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Nome do processo</th>
-                                        <th scope="col">PID</th>
-                                        <th scope="col">Usuário</th>
-                                        <th scope="col">CPU (%)</th>
-                                        <th scope="col">Memória RSS</th>
-                                        <th scope="col">Threads</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Criação</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-todos" aria-live="polite">
-                                    <!-- Linhas injetadas dinamicamente -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="paginacao" id="paginacao-todos">
-                            <span class="paginacao-info" id="paginacao-info">Exibindo 1–6 de -- processos</span>
-                            <span class="paginacao-por-pagina" id="paginacao-por-pagina">-- por página</span>
-                            <nav class="paginacao-controles" id="paginacao-controles" aria-label="Paginação">
-                                <!-- Controles injetados dinamicamente -->
-                            </nav>
-                        </div>
-                    </article>
-                </section>
-
-                <!-- Recorrência de anormalidades (esqueleto) -->
-                <section class="recorrencia-anormalidades" aria-label="Recorrência de anormalidades">
+                 <section class="recorrencia-anormalidades" aria-label="Recorrência de anormalidades">
                     <article class="card">
                         <header class="card-cabecalho">
                             <h2 class="card-titulo">Recorrência de anormalidades</h2>
@@ -395,12 +206,50 @@
                         </p>
                     </article>
                 </section>
-
+                <!-- Histórico de consumo por processo (esqueleto) -->
+                <section class="historico-consumo" aria-label="Histórico de consumo por processo">
+                    <article class="card">
+                        <header class="card-cabecalho">
+                            <h2 class="card-titulo">Histórico de consumo por processo</h2>
+                            <div class="card-acoes">
+                                <button class="btn btn--outline" id="btn-comparar-momentos" type="button">Comparar momentos</button>
+                            </div>
+                        </header>
+                        <div class="card-meta">
+                            <span class="meta-chip meta-chip--processo" id="meta-processo">--</span>
+                            <span class="meta-chip" id="meta-usuario">--</span>
+                            <span class="meta-chip meta-chip--status" id="meta-status">--</span>
+                        </div>
+                        <div class="alerta-banner" id="alerta-banner" hidden>
+                            <span class="alerta-destaque" aria-hidden="true"></span>
+                            <span class="alerta-texto" id="alerta-texto">--</span>
+                        </div>
+                        <div class="graficos" id="graficos-consumo">
+                            <figure class="grafico-card" id="grafico-cpu">
+                                <div class="grafico-rotulo">CPU do processo</div>
+                                <div class="grafico-valor-atual" id="grafico-cpu-valor">--</div>
+                                <div class="grafico-area" id="grafico-cpu-area" role="img" aria-label="CPU do processo"></div>
+                                <figcaption class="grafico-caption" id="grafico-cpu-caption">--</figcaption>
+                            </figure>
+                            <figure class="grafico-card" id="grafico-memoria">
+                                <div class="grafico-rotulo">Memória RAM</div>
+                                <div class="grafico-valor-atual" id="grafico-memoria-valor">--</div>
+                                <div class="grafico-area" id="grafico-memoria-area" role="img" aria-label="Memória RSS"></div>
+                                <figcaption class="grafico-caption" id="grafico-memoria-caption">--</figcaption>
+                            </figure>
+                        </div>
+                        <div class="comparativo" id="comparativo-momentos">
+                            <span class="comparativo-item" id="momento-a">--</span>
+                            <span class="comparativo-seta" aria-hidden="true">→</span>
+                            <span class="comparativo-item" id="momento-b">--</span>
+                        </div>
+                    </article>
+                </section>
             </div>
 
             <!-- Rodapé geral da página -->
             <footer class="rodape-pagina" id="rodape-pagina">
-                <p class="rodape-texto">Dados fictícios para demonstração · snapshots de processos coletados com psutil · horário local UTC-3</p>
+               
             </footer>
 
         </main>

@@ -534,7 +534,6 @@ function obterKpis(filtros) {
             let cpuCritico = 0;
             let ramAtencao = 0;
             let ramCritico = 0;
-            let threadsTotal = 0;
 
             for (const p of atuais) {
                 const status = classificar(p.cpu, p.rssGb, limites);
@@ -545,8 +544,6 @@ function obterKpis(filtros) {
 
                 if (p.rssGb != null && limites.rssGb.critico != null && p.rssGb >= limites.rssGb.critico) ramCritico++;
                 else if (p.rssGb != null && limites.rssGb.atencao != null && p.rssGb >= limites.rssGb.atencao) ramAtencao++;
-
-                if (p.threads != null) threadsTotal += p.threads;
             }
 
             return {
@@ -554,9 +551,7 @@ function obterKpis(filtros) {
                     { id: "processos-identificados", valor: atuais.length, subtitulo: "No servidor selecionado" },
                     { id: "processos-criticos", valor: criticos, subtitulo: "Limite crítico excedido" },
                     { id: "cpu-elevada", valor: cpuAtencao + cpuCritico, subtitulo: `${cpuAtencao} em atenção · ${cpuCritico} críticos` },
-                    { id: "ram-elevada", valor: ramAtencao + ramCritico, subtitulo: `${ramAtencao} em atenção · ${ramCritico} críticos` },
-                    { id: "threads-identificadas", valor: threadsTotal, subtitulo: "Dos processos monitorados" },
-                    { id: "eventos-registrados", valor: 0, subtitulo: "Implementar na etapa de eventos" }
+                    { id: "ram-elevada", valor: ramAtencao + ramCritico, subtitulo: `${ramAtencao} em atenção · ${ramCritico} críticos` }
                 ]
             };
         });

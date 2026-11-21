@@ -10,6 +10,7 @@ const s3 = new S3Client({
 });
 
 const PASTA = "client/";
+const NOME_BUCKET = process.env.BUCKET_DADOS_GOLD;
 
 async function listarArquivosS3(BUCKET) {
 
@@ -29,7 +30,7 @@ async function buscarConteudoS3(nomeArquivo) {
 
     const resposta = await s3.send(
         new GetObjectCommand({
-            Bucket: BUCKET,
+            Bucket: NOME_BUCKET,
             Key: nomeArquivo
         })
     );

@@ -6,7 +6,7 @@ const {
 
 // Configuração AWS
 const s3 = new S3Client({
-    region: process.env.AWS_REGION
+    region: process.env.AWS_REGION || "us-east-1"
 });
 
 const PASTA = "client/";
@@ -25,7 +25,7 @@ async function listarArquivosS3(BUCKET) {
     return arquivos.filter(arquivo => arquivo.Key !== PASTA);
 }
 
-async function buscarConteudoS3(nomeArquivo) {
+async function buscarConteudoS3(BUCKET, nomeArquivo) {
 
     const resposta = await s3.send(
         new GetObjectCommand({

@@ -28,7 +28,8 @@ const graficoServidores = new Chart(ctxServidores, {
             },
             y: {
                 beginAtZero: true,
-                ticks: { stepSize: 5 }
+                grace: "15%",
+                ticks: { precision: 0, maxTicksLimit: 6 }
             }
         }
     }
@@ -83,7 +84,8 @@ const feedback = document.getElementById("dashboard-feedback");
 const categorias = ["cpu", "ram", "rede", "swap", "disco", "carga", "outros"];
 
 
-document.getElementById("historico-status").disabled = true;
+const filtroHistorico = document.getElementById("historico-status");
+let historicoDashboard = [];
 
 
 function mostrarValor(id, valor) {
@@ -164,11 +166,21 @@ function preencherFiltro() {
 }
 
 
-function atualizarIndicadores(quantidade) {
-    mostrarValor("indicador-perfis-configurados", quantidade);
-    mostrarValor("indicador-perfis-ativos", null);
-    mostrarValor("indicador-servidores-inativos", null);
-    mostrarValor("indicador-perfil-critico", null);
+// Mostra as contagens devolvidas pelo backend. Empates aparecem com os dois nomes.
+function atualizarIndicadores(kpis) {
+    mostrarValor("indicador-perfis-configurados", kpis.perfisConfigurados);
+    mostrarValor("indicador-perfis-ativos", kpis.perfisAtivos);
+    let nomes = null;
+    if (Array.isArray(kpis.perfisComMaisCriticos)) {
+        nomes = kpis.perfisComMaisCriticos.map(perfil => perfil.nome).join(", ") || "Nenhum";
+    }
+    mostrarValor("indicador-perfil-critico", nomes);
+}
+
+function atualizarGraficoCriticos(ranking) {
+    graficoCriticos.data.labels = ranking.map(perfil => perfil.nome);
+    graficoCriticos.data.datasets[0].data = ranking.map(perfil => perfil.percentualCriticos);
+    graficoCriticos.update();
 }
 
 function atualizarGraficoServidores() {
@@ -183,59 +195,112 @@ function atualizarGraficoServidores() {
     graficoServidores.update();
 }
 
-// Mostra o impacto financeiro apenas quando houver tempo crítico e custo por hora.
-function atualizarPrejuizo() {
-    const lista = document.getElementById("prejuizo-perfis");
-    const modelo = document.getElementById("linha-prejuizo");
-    lista.innerHTML = "";
-    const valores = [];
-    let maiorValor = 0;
+const filtroCustos = document.getElementById("perfil-custos");
+let moedaCustos = "USD";
+const graficoCustos = new Chart(document.getElementById("grafico-custos-perfil"), {
+    type: "bar",
+    data: {
+        labels: [],
+        datasets: [
+            { label: "Acumulado", data: [], backgroundColor: "#cc0301", borderRadius: 2, stack: "custos" },
+            { label: "Projetado", data: [], backgroundColor: "#d9dce2", borderRadius: 2, stack: "custos" }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: {
+                label: contexto => contexto.dataset.label + ": " + formatarCusto(contexto.parsed.y)
+            } }
+        },
+        scales: {
+            x: { stacked: true, grid: { display: false }, ticks: { maxTicksLimit: 7, maxRotation: 0 } },
+            y: { stacked: true, beginAtZero: true, ticks: { maxTicksLimit: 5, callback: valor => formatarCusto(valor) } }
+        }
+    }
+});
+
+function formatarCusto(valor) {
+    if (!Number.isFinite(valor) || valor < 0) return "—";
+    return valor.toLocaleString("pt-BR", { style: "currency", currency: moedaCustos });
+}
+
+// O navegador só mostra os valores e a projeção que vierem prontos da Gold.
+function atualizarCustos() {
+    const vazio = document.getElementById("custos-vazios");
+    const nota = document.getElementById("custos-atualizacao");
+    const nomes = [];
+    const realizados = [];
+    const projetados = [];
+    document.getElementById("custo-atual").textContent = "—";
+    document.getElementById("custo-previsto").textContent = "—";
+    document.getElementById("custo-periodo-atual").textContent = "Neste mês";
+    document.getElementById("custo-periodo-previsto").textContent = "Até o último dia do mês";
+    vazio.hidden = false;
+    vazio.textContent = "Custos ainda não disponíveis.";
+    nota.textContent = "Aguardando a divisão do custo entre os perfis.";
+
     for (const perfil of perfisDashboard) {
-        let estimativa = null;
-        if (Number.isFinite(perfil.tempoCriticoMinutos) && perfil.tempoCriticoMinutos >= 0 &&
-            Number.isFinite(perfil.custoHora) && perfil.custoHora >= 0) {
-            estimativa = perfil.tempoCriticoMinutos / 60 * perfil.custoHora;
-            if (!Number.isFinite(estimativa)) estimativa = null;
-            if (estimativa > maiorValor) maiorValor = estimativa;
+        if (String(perfil.id) !== filtroCustos.value) continue;
+        const custos = perfil.custos;
+        if (!custos) break;
+        // A moeda deve vir da cobrança; não convertemos dólares em reais por conta própria.
+        if (!/^[A-Z]{3}$/.test(custos.moeda || "")) break;
+        moedaCustos = custos.moeda;
+        document.getElementById("custo-atual").textContent = formatarCusto(custos.gastoAteAgora);
+        document.getElementById("custo-previsto").textContent = formatarCusto(custos.previsaoFimMes);
+        if (typeof custos.periodoRealizado === "string") document.getElementById("custo-periodo-atual").textContent = custos.periodoRealizado;
+        if (typeof custos.periodoMes === "string") document.getElementById("custo-periodo-previsto").textContent = custos.periodoMes;
+        for (const dia of Array.isArray(custos.serie) ? custos.serie : []) {
+            if (typeof dia.data !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dia.data)) continue;
+            nomes.push(dia.data.slice(8, 10) + "/" + dia.data.slice(5, 7));
+            realizados.push(Number.isFinite(dia.realizadoAcumulado) && dia.realizadoAcumulado >= 0 ? dia.realizadoAcumulado : null);
+            projetados.push(Number.isFinite(dia.projetadoAcumulado) && dia.projetadoAcumulado >= 0 ? dia.projetadoAcumulado : null);
         }
-        valores.push({ perfil: perfil, estimativa: estimativa });
-    }
-    // Os maiores prejuízos aparecem primeiro. Os perfis sem dados ficam no final.
-    valores.sort(function(a, b) {
-        if (a.estimativa === null && b.estimativa === null) return 0;
-        if (a.estimativa === null) return 1;
-        if (b.estimativa === null) return -1;
-        return b.estimativa - a.estimativa;
-    });
-    for (const item of valores) {
-        const linha = modelo.content.cloneNode(true);
-        linha.querySelector(".prejuizo-nome").textContent = item.perfil.nome;
-        if (item.estimativa !== null) {
-            linha.querySelector(".prejuizo-valor").textContent = item.estimativa.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-            const custo = item.perfil.custoHora.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-            linha.querySelector(".prejuizo-detalhe").textContent = item.perfil.tempoCriticoMinutos + " min em estado crítico × " + custo + "/h";
-            linha.querySelector(".prejuizo-trilho").hidden = false;
-            if (maiorValor > 0) linha.querySelector(".prejuizo-barra").style.width = item.estimativa / maiorValor * 100 + "%";
+        // Cada dia usa o valor realizado OU o projetado, para não somar acumulados.
+        for (let i = 0; i < realizados.length; i++) {
+            if (realizados[i] !== null) projetados[i] = null;
         }
-        lista.append(linha);
+        vazio.hidden = realizados.concat(projetados).some(valor => valor !== null);
+        nota.textContent = "Estimativa do perfil na instância compartilhada.";
+        if (typeof custos.atualizadoEm === "string") {
+            const data = new Date(custos.atualizadoEm);
+            if (Number.isFinite(data.getTime())) nota.textContent += " Atualizado em " + data.toLocaleString("pt-BR") + ".";
+        }
+        break;
     }
-    if (perfisDashboard.length === 0) lista.textContent = "Nenhum perfil disponível.";
+    if (perfisDashboard.length === 0) vazio.textContent = "Nenhum perfil disponível.";
+    document.querySelector(".painel.custos").classList.toggle("sem-custos", !vazio.hidden);
+    graficoCustos.data.labels = nomes;
+    graficoCustos.data.datasets[0].data = realizados;
+    graficoCustos.data.datasets[1].data = projetados;
+    graficoCustos.update();
+}
+
+function preencherFiltroCustos() {
+    filtroCustos.innerHTML = "";
+    for (const perfil of perfisDashboard) filtroCustos.add(new Option(perfil.nome, perfil.id));
+    filtroCustos.disabled = perfisDashboard.length === 0;
+    atualizarCustos();
 }
 
 
 function atualizarTabelaStatus() {
     const tabela = document.getElementById("status-perfis");
     tabela.innerHTML = "";
-    for (const perfil of perfisDashboard) {
+    for (const perfil of historicoDashboard) {
         const linha = tabela.insertRow();
         adicionarCelula(linha, perfil.nome);
-        adicionarCelula(linha, null);
-        adicionarCelula(linha, null);
+        adicionarCelula(linha, perfil.ativos);
+        adicionarCelula(linha, perfil.inativos);
     }
 }
 
 
 async function carregarDashboard() {
+    filtroHistorico.disabled = true;
     feedback.hidden = false;
     feedback.textContent = "Carregando dados...";
     try {
@@ -243,27 +308,37 @@ async function carregarDashboard() {
         const usuario = sessionStorage.ID_USUARIO;
         if (!empresa || !usuario) throw new Error("Faça login para consultar os dados.");
         const url = "/servidor/dashboard-perfil?empresa=" + encodeURIComponent(empresa) +
-            "&usuario=" + encodeURIComponent(usuario);
+            "&usuario=" + encodeURIComponent(usuario) + "&minutos=" + filtroHistorico.value;
         const resposta = await fetch(url);
         if (!resposta.ok) throw new Error("Não foi possível consultar os dados. Confira o terminal do servidor.");
         const dados = await resposta.json();
         perfisDashboard = dados.perfis;
-        atualizarIndicadores(dados.kpis.perfisConfigurados);
+        atualizarIndicadores(dados.kpis);
+        historicoDashboard = dados.historicoStatus.perfis;
+        document.getElementById("descricao-historico-status").textContent =
+            filtroHistorico.value === "0" ? "Status atual" : "Status no momento escolhido";
+        atualizarGraficoCriticos(dados.rankingCriticos);
         atualizarGraficoServidores();
-        atualizarPrejuizo();
+        preencherFiltroCustos();
         atualizarTabelaStatus();
         preencherFiltro();
         if (perfisDashboard.length === 0) {
             feedback.textContent = "Nenhum perfil disponível para este usuário.";
         } else {
-            feedback.textContent = "";
-            feedback.hidden = true;
+            feedback.textContent = (dados.avisos || []).filter(aviso =>
+                aviso !== "Os indicadores aguardam uma saída atualizada da Gold ou o acesso ao bucket."
+            ).join(" ");
+            feedback.hidden = !feedback.textContent;
         }
     } catch (erro) {
         feedback.textContent = erro.message;
         feedback.hidden = false;
+    } finally {
+        filtroHistorico.disabled = false;
     }
 }
 
+filtroCustos.addEventListener("change", atualizarCustos);
+filtroHistorico.addEventListener("change", carregarDashboard);
 filtroLimites.addEventListener("change", atualizarLimites);
 carregarDashboard();

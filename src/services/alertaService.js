@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { S3Client, ListObjectsV2Command, GetObjectCommand } = require("@aws-sdk/client-s3");
 const servidorModel = require("../models/servidorModel");
+const resumoGoldService = require("./resumoGoldService");
 
 const s3 = new S3Client({
     region: process.env.AWS_REGION || "us-east-1"
@@ -23,12 +24,8 @@ function normalizarMac(mac) {
 }
 
 function dataHojeLocal() {
-    return new Intl.DateTimeFormat("sv-SE", {
-        timeZone: "America/Sao_Paulo",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit"
-    }).format(new Date());
+    // Reaproveita a mesma data demo da dashboard Geral (ver resumoGoldService).
+    return resumoGoldService.dataDeHojeSaoPaulo();
 }
 
 function horaFormatada(data) {
@@ -265,7 +262,7 @@ function montarGradeTempo(agora) {
 
 async function obterAlertasServidores(idEmpresa, idUsuario) {
     const servidoresBanco = await servidorModel.listarServidoresPorEmpresa(idEmpresa, idUsuario);
-    const agora = new Date();
+    const agora = resumoGoldService.agoraOuReferenciaDemo();
     const horaAtualizacao = horaFormatada(agora);
     const hoje = dataHojeLocal();
     const slots = montarGradeTempo(agora);

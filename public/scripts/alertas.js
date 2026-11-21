@@ -4,6 +4,7 @@ let HORA_ATUALIZACAO = '--:--';
 
 const TEXTO_SITUACAO = { critico: 'Crítico', atencao: 'Atenção', normal: 'Normal', semdados: 'Sem dados' };
 const COR_SITUACAO = { critico: '#cc0301', atencao: '#e2891b', normal: '#2f9e6e', semdados: '#8a8f9c' };
+const MENSAGEM_ERRO_ALERTAS = 'Não foi possível carregar os alertas de servidores. Tente novamente pelo botão Atualizar.';
 
 async function obterServidoresEmAlerta() {
     const idEmpresa = Number(sessionStorage.ID_EMPRESA);
@@ -20,6 +21,13 @@ async function obterServidoresEmAlerta() {
     const dados = await resposta.json();
     HORA_ATUALIZACAO = dados.horaAtualizacao || HORA_ATUALIZACAO;
     return dados.servidores || [];
+}
+
+function mostrarMensagem(texto, papel = 'status') {
+    const mensagem = document.getElementById('alertas-estado');
+    mensagem.textContent = texto;
+    mensagem.hidden = !texto;
+    mensagem.setAttribute('role', papel);
 }
 
 const estado = { perfilAtual: 'todos', metricaAtual: '', servidoresSelecionados: [], servidores: [] };
@@ -568,10 +576,19 @@ function atualizarTudo() {
     document.getElementById('alertas-painel-grafico').hidden = !emPerfil;
     document.getElementById('alertas-painel-lateral').hidden = !emPerfil;
 
-    const selo = document.getElementById('alertas-selo-perfil');
-    selo.innerHTML = '';
-    selo.hidden = !emPerfil;
-    if (emPerfil) selo.append(criarElemento('span', 'alertas-ponto critico'), criarElemento('span', '', estado.perfilAtual));
+    // O selo so existe no DOM quando um perfil especifico esta selecionado.
+    let selo = document.getElementById('alertas-selo-perfil');
+    if (emPerfil) {
+        if (!selo) {
+            selo = criarElemento('span', 'alertas-selo-perfil');
+            selo.id = 'alertas-selo-perfil';
+            document.querySelector('.alertas-cabecalho').append(selo);
+        }
+        selo.innerHTML = '';
+        selo.append(criarElemento('span', 'alertas-ponto critico'), criarElemento('span', '', estado.perfilAtual));
+    } else if (selo) {
+        selo.remove();
+    }
     document.getElementById('alertas-grafico-perfil').textContent = emPerfil ? estado.perfilAtual : '';
 
     desenharCards();
@@ -696,26 +713,31 @@ function iniciarEventos() {
         botao.classList.remove('girando');
         void botao.offsetWidth;
         botao.classList.add('girando');
+        mostrarMensagem('Carregando alertas…');
         try {
             estado.servidores = await obterServidoresEmAlerta();
             document.getElementById('alertas-hora-atualizacao').textContent = HORA_ATUALIZACAO;
             atualizarTudo();
+            mostrarMensagem('');
         } catch (erro) {
             console.error(erro);
+            mostrarMensagem(MENSAGEM_ERRO_ALERTAS, 'alert');
         }
     });
 }
 
 async function iniciar() {
+    // Registra os eventos antes da busca para que o botao Atualizar funcione mesmo
+    // se a primeira carga falhar.
+    iniciarEventos();
+    mostrarMensagem('Carregando alertas…');
     estado.servidores = await obterServidoresEmAlerta();
     document.getElementById('alertas-hora-atualizacao').textContent = HORA_ATUALIZACAO;
-    iniciarEventos();
     atualizarTudo();
+    mostrarMensagem('');
 }
 
 iniciar().catch((erro) => {
     console.error(erro);
-    const vazio = document.getElementById('alertas-vazio');
-    vazio.hidden = false;
-    vazio.textContent = 'Não foi possível carregar os alertas de servidores.';
+    mostrarMensagem(MENSAGEM_ERRO_ALERTAS, 'alert');
 });

@@ -1,0 +1,19 @@
+{
+  "demonstracao": true,
+  "cenario": "docker_simulado_por_servidor_cadastrado",
+  "servidor": "pay-api-06",
+  "arquivos": [
+    "data=2026-11-18/resumo.json",
+    "data=2026-11-19/resumo.json",
+    "data=2026-11-20/resumo.json",
+    "data=2026-11-21/resumo.json",
+    "data=2026-11-22/resumo.json",
+    "data=2026-11-23/resumo.json",
+    "data=2026-11-24/resumo.json",
+    "data=2026-11-25/resumo.json",
+    "data=2026-11-26/resumo.json",
+    "data=2026-11-27/resumo.json",
+    "data=2026-11-28/resumo.json",
+    "data=2026-11-29/resumo.json"
+  ]
+}

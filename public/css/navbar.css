@@ -68,7 +68,7 @@
     min-height: 56px;
     padding: 0 18px;
     color: var(--cor-texto);
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 700;
     line-height: 1.5;
     text-decoration: none;
@@ -111,7 +111,7 @@
     padding: 6px 18px;
     border: 1px solid var(--cor-preto);
     border-radius: 999px;
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 400;
     line-height: 1.5;
     text-align: center;
@@ -260,7 +260,7 @@ body.menu-aberto {
         justify-content: flex-start;
         min-height: 52px;
         padding: 0 4px;
-        font-size: 20px;
+        font-size: 16px;
     }
 
     .cabecalho .navbar-links a::after {
@@ -277,7 +277,7 @@ body.menu-aberto {
     .cabecalho .navbar-acoes a {
         width: 100%;
         min-height: 46px;
-        font-size: 19px;
+        font-size: 15px;
     }
 }
 

@@ -45,7 +45,7 @@
 .traço {
     margin: 0 0 0.75rem;
     color: var(--ct-vermelho);
-    font-size: clamp(3.125rem, 6.25vw, 4.375rem);
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
     font-weight: 700;
     line-height: 0.6;
 }
@@ -53,7 +53,7 @@
 .rotulo,
 .rotulo-diferencial {
     margin: 0 0 0.5rem;
-    font-size: 1rem;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.2em;
     color: var(--ct-texto-suave-escuro);
@@ -129,7 +129,7 @@
     border-radius: 999px;
     background-color: var(--ct-vermelho);
     color: var(--ct-claro);
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 700;
     text-decoration: none;
     transition: background-color 0.2s ease;
@@ -250,7 +250,7 @@
     border-radius: 8px;
     color: var(--ct-texto-claro);
     font: inherit;
-    font-size: 1.25rem;    /* >= 16px evita zoom automático no iPhone */
+    font-size: 1rem;    /* >= 16px evita zoom automático no iPhone */
     transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
@@ -262,7 +262,7 @@
 .caixa-input::placeholder,
 .caixa-input-3::placeholder {
     color: var(--ct-placeholder);
-    font-size: 1.1875rem;
+    font-size: 0.95rem;
 }
 
 .caixa-input:focus,
@@ -285,7 +285,7 @@
     background-color: var(--ct-vermelho);
     color: var(--ct-claro);
     font: inherit;
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
     transition: background-color 0.2s ease;
@@ -341,13 +341,13 @@
 
 .descricao-contato h2 {
     margin: 0 0 4px;
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: var(--ct-texto-claro);
 }
 
 .descricao-contato p {
     margin: 0;
-    font-size: 1.125rem;
+    font-size: 0.9rem;
     color: var(--ct-texto-suave-claro);
     overflow-wrap: anywhere;
 }
@@ -460,13 +460,13 @@
 
 .caixa-beneficios h3 {
     margin: 0;
-    font-size: 1.40625rem;
+    font-size: 1.125rem;
     color: var(--ct-texto-claro);
 }
 
 .caixa-beneficios p {
     margin: 0;
-    font-size: 1.1875rem;
+    font-size: 0.95rem;
     line-height: 1.5;
     color: var(--ct-texto-suave-claro);
 }

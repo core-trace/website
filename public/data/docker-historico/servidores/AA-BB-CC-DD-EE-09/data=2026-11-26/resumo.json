@@ -1,0 +1,4524 @@
+{
+  "schema_version": 1,
+  "tipo_documento": "resumo_diario",
+  "data": "2026-11-26",
+  "endereco_mac": "AA:BB:CC:DD:EE:09",
+  "cenario": "docker_simulado_por_servidor_cadastrado",
+  "dados_simulados": true,
+  "lotes_atuais": [],
+  "resumos": {
+    "containers": [
+      {
+        "container_id": "sim-aabbccddee09-api-java-01",
+        "nome": "cart-api-09",
+        "imagem": "coretrace/api-java:simulada",
+        "status": "running",
+        "health_status": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-11-18T09:00:00-03:00",
+        "finished_at": null,
+        "exit_code": 0,
+        "oom_killed": false,
+        "primeira_observacao": "2026-11-26T10:00:00-03:00",
+        "ultima_observacao": "2026-11-26T22:00:00-03:00",
+        "amostras_observadas": 60,
+        "cpu": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 42,
+            "minimo": 33,
+            "maximo": 54
+          },
+          "nucleos": {
+            "metrica": null,
+            "unidade": "núcleos",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 4,
+            "ultimo_status": "ok"
+          },
+          "tempo_throttled": {
+            "metrica": null,
+            "unidade": "ns",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 150000000,
+            "ultimo_status": "ok"
+          }
+        },
+        "memoria": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 48,
+            "minimo": 43,
+            "maximo": 57
+          },
+          "utilizada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 515396075.52,
+            "minimo": 461708984.32,
+            "maximo": 612032839.68
+          },
+          "limite": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 1073741824,
+            "ultimo_status": "ok"
+          }
+        },
+        "pids": {
+          "atuais": {
+            "metrica": null,
+            "unidade": "processos",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 21,
+            "minimo": 16,
+            "maximo": 34
+          }
+        },
+        "rede": {
+          "recebidos": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 583217971,
+            "ultimo_status": "ok"
+          },
+          "enviados": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 448266240,
+            "ultimo_status": "ok"
+          }
+        },
+        "disco": {
+          "leitura_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 360500429,
+            "ultimo_status": "ok"
+          },
+          "escrita_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 253860250,
+            "ultimo_status": "ok"
+          }
+        },
+        "reinicios": {
+          "total": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        }
+      },
+      {
+        "container_id": "sim-aabbccddee09-pay-api-04",
+        "nome": "pay-api-04-04",
+        "imagem": "coretrace/pay-api:simulada",
+        "status": "running",
+        "health_status": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-11-18T09:00:00-03:00",
+        "finished_at": null,
+        "exit_code": 0,
+        "oom_killed": false,
+        "primeira_observacao": "2026-11-26T10:00:00-03:00",
+        "ultima_observacao": "2026-11-26T22:00:00-03:00",
+        "amostras_observadas": 60,
+        "cpu": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 58,
+            "minimo": 49,
+            "maximo": 70
+          },
+          "nucleos": {
+            "metrica": null,
+            "unidade": "núcleos",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 4,
+            "ultimo_status": "ok"
+          },
+          "tempo_throttled": {
+            "metrica": null,
+            "unidade": "ns",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 1425000000,
+            "ultimo_status": "ok"
+          }
+        },
+        "memoria": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 53,
+            "minimo": 48,
+            "maximo": 62
+          },
+          "utilizada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 569083166.72,
+            "minimo": 515396075.52,
+            "maximo": 665719930.88
+          },
+          "limite": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 1073741824,
+            "ultimo_status": "ok"
+          }
+        },
+        "pids": {
+          "atuais": {
+            "metrica": null,
+            "unidade": "processos",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 25,
+            "minimo": 20,
+            "maximo": 39
+          }
+        },
+        "rede": {
+          "recebidos": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 598946611,
+            "ultimo_status": "ok"
+          },
+          "enviados": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 461373440,
+            "ultimo_status": "ok"
+          }
+        },
+        "disco": {
+          "leitura_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 370986189,
+            "ultimo_status": "ok"
+          },
+          "escrita_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 261724570,
+            "ultimo_status": "ok"
+          }
+        },
+        "reinicios": {
+          "total": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        }
+      },
+      {
+        "container_id": "sim-aabbccddee09-orders-api-02",
+        "nome": "orders-api-02-04",
+        "imagem": "coretrace/orders-api:simulada",
+        "status": "running",
+        "health_status": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-11-18T09:00:00-03:00",
+        "finished_at": null,
+        "exit_code": 0,
+        "oom_killed": false,
+        "primeira_observacao": "2026-11-26T10:00:00-03:00",
+        "ultima_observacao": "2026-11-26T22:00:00-03:00",
+        "amostras_observadas": 60,
+        "cpu": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 57,
+            "minimo": 48,
+            "maximo": 69
+          },
+          "nucleos": {
+            "metrica": null,
+            "unidade": "núcleos",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 4,
+            "ultimo_status": "ok"
+          },
+          "tempo_throttled": {
+            "metrica": null,
+            "unidade": "ns",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 1275000000,
+            "ultimo_status": "ok"
+          }
+        },
+        "memoria": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 59,
+            "minimo": 54,
+            "maximo": 68
+          },
+          "utilizada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 950261514.24,
+            "minimo": 869730877.44,
+            "maximo": 1095216660.48
+          },
+          "limite": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 1610612736,
+            "ultimo_status": "ok"
+          }
+        },
+        "pids": {
+          "atuais": {
+            "metrica": null,
+            "unidade": "processos",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 24,
+            "minimo": 19,
+            "maximo": 39
+          }
+        },
+        "rede": {
+          "recebidos": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 586049126,
+            "ultimo_status": "ok"
+          },
+          "enviados": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 450625536,
+            "ultimo_status": "ok"
+          }
+        },
+        "disco": {
+          "leitura_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 362387866,
+            "ultimo_status": "ok"
+          },
+          "escrita_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 255275827,
+            "ultimo_status": "ok"
+          }
+        },
+        "reinicios": {
+          "total": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        }
+      },
+      {
+        "container_id": "sim-aabbccddee09-mysql-01",
+        "nome": "mysql-04",
+        "imagem": "mysql:simulada",
+        "status": "running",
+        "health_status": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-11-18T09:00:00-03:00",
+        "finished_at": null,
+        "exit_code": 0,
+        "oom_killed": false,
+        "primeira_observacao": "2026-11-26T10:00:00-03:00",
+        "ultima_observacao": "2026-11-26T22:00:00-03:00",
+        "amostras_observadas": 60,
+        "cpu": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 30,
+            "minimo": 21,
+            "maximo": 42
+          },
+          "nucleos": {
+            "metrica": null,
+            "unidade": "núcleos",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 4,
+            "ultimo_status": "ok"
+          },
+          "tempo_throttled": {
+            "metrica": null,
+            "unidade": "ns",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        },
+        "memoria": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 52,
+            "minimo": 47,
+            "maximo": 61
+          },
+          "utilizada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 1116691496.96,
+            "minimo": 1009317314.56,
+            "maximo": 1309965025.28
+          },
+          "limite": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 2147483648,
+            "ultimo_status": "ok"
+          }
+        },
+        "pids": {
+          "atuais": {
+            "metrica": null,
+            "unidade": "processos",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 18,
+            "minimo": 14,
+            "maximo": 30
+          }
+        },
+        "rede": {
+          "recebidos": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 563399885,
+            "ultimo_status": "ok"
+          },
+          "enviados": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 431751168,
+            "ultimo_status": "ok"
+          }
+        },
+        "disco": {
+          "leitura_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 347288371,
+            "ultimo_status": "ok"
+          },
+          "escrita_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 243951206,
+            "ultimo_status": "ok"
+          }
+        },
+        "reinicios": {
+          "total": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        }
+      },
+      {
+        "container_id": "sim-aabbccddee09-redis-cache-01",
+        "nome": "redis-cache-01-04",
+        "imagem": "redis:simulada",
+        "status": "running",
+        "health_status": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-11-18T09:00:00-03:00",
+        "finished_at": null,
+        "exit_code": 0,
+        "oom_killed": false,
+        "primeira_observacao": "2026-11-26T10:00:00-03:00",
+        "ultima_observacao": "2026-11-26T22:00:00-03:00",
+        "amostras_observadas": 60,
+        "cpu": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 18,
+            "minimo": 9,
+            "maximo": 30
+          },
+          "nucleos": {
+            "metrica": null,
+            "unidade": "núcleos",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 4,
+            "ultimo_status": "ok"
+          },
+          "tempo_throttled": {
+            "metrica": null,
+            "unidade": "ns",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        },
+        "memoria": {
+          "uso": {
+            "metrica": null,
+            "unidade": "%",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 62,
+            "minimo": 57,
+            "maximo": 71
+          },
+          "utilizada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 332859965.44,
+            "minimo": 306016419.84,
+            "maximo": 381178347.52
+          },
+          "limite": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "inventario",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 536870912,
+            "ultimo_status": "ok"
+          }
+        },
+        "pids": {
+          "atuais": {
+            "metrica": null,
+            "unidade": "processos",
+            "tipo": "medicao",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "media": 15,
+            "minimo": 12,
+            "maximo": 26
+          }
+        },
+        "rede": {
+          "recebidos": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 541379789,
+            "ultimo_status": "ok"
+          },
+          "enviados": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 413401088,
+            "ultimo_status": "ok"
+          }
+        },
+        "disco": {
+          "leitura_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 332608307,
+            "ultimo_status": "ok"
+          },
+          "escrita_acumulada": {
+            "metrica": null,
+            "unidade": "bytes",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 232941158,
+            "ultimo_status": "ok"
+          }
+        },
+        "reinicios": {
+          "total": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "contador_acumulado",
+            "amostras_validas": 60,
+            "amostras_invalidas": 0,
+            "ultimo_valor": 0,
+            "ultimo_status": "ok"
+          }
+        }
+      }
+    ],
+    "logs": [
+      {
+        "container_id": "sim-aabbccddee09-api-java-01",
+        "nome": "api-java",
+        "total": {
+          "metrica": null,
+          "unidade": "mensagens",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 93,
+          "amostras_invalidas": 0,
+          "total_observado": 93
+        },
+        "niveis": {
+          "info": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 90,
+            "amostras_invalidas": 0,
+            "total_observado": 90
+          },
+          "warn": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 3,
+            "amostras_invalidas": 0,
+            "total_observado": 3
+          }
+        }
+      },
+      {
+        "container_id": "sim-aabbccddee09-pay-api-04",
+        "nome": "pay-api-04",
+        "total": {
+          "metrica": null,
+          "unidade": "mensagens",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 114,
+          "amostras_invalidas": 0,
+          "total_observado": 114
+        },
+        "niveis": {
+          "info": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 110,
+            "amostras_invalidas": 0,
+            "total_observado": 110
+          },
+          "warn": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 4,
+            "amostras_invalidas": 0,
+            "total_observado": 4
+          }
+        }
+      },
+      {
+        "container_id": "sim-aabbccddee09-orders-api-02",
+        "nome": "orders-api-02",
+        "total": {
+          "metrica": null,
+          "unidade": "mensagens",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 113,
+          "amostras_invalidas": 0,
+          "total_observado": 113
+        },
+        "niveis": {
+          "info": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 109,
+            "amostras_invalidas": 0,
+            "total_observado": 109
+          },
+          "warn": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 4,
+            "amostras_invalidas": 0,
+            "total_observado": 4
+          }
+        }
+      },
+      {
+        "container_id": "sim-aabbccddee09-mysql-01",
+        "nome": "mysql",
+        "total": {
+          "metrica": null,
+          "unidade": "mensagens",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 77,
+          "amostras_invalidas": 0,
+          "total_observado": 77
+        },
+        "niveis": {
+          "info": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 74,
+            "amostras_invalidas": 0,
+            "total_observado": 74
+          },
+          "warn": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 3,
+            "amostras_invalidas": 0,
+            "total_observado": 3
+          }
+        }
+      },
+      {
+        "container_id": "sim-aabbccddee09-redis-cache-01",
+        "nome": "redis-cache-01",
+        "total": {
+          "metrica": null,
+          "unidade": "mensagens",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 60,
+          "amostras_invalidas": 0,
+          "total_observado": 60
+        },
+        "niveis": {
+          "info": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 58,
+            "amostras_invalidas": 0,
+            "total_observado": 58
+          },
+          "warn": {
+            "metrica": null,
+            "unidade": "mensagens",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 2,
+            "amostras_invalidas": 0,
+            "total_observado": 2
+          }
+        }
+      }
+    ],
+    "eventos": [],
+    "inicio": "2026-11-26T03:00:00.000Z",
+    "fim": "2026-11-27T03:00:00.000Z",
+    "metodo_media": "aritmetica_das_amostras_validas"
+  },
+  "logs": [
+    {
+      "timestamp": "2026-11-26T03:12:31.304Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "7adf52b18cac23d4dc011c5a8fe881e9471032bc3cadd3dc9b91abb7cce00d34"
+    },
+    {
+      "timestamp": "2026-11-26T03:12:37.894Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "45aa84edd1352c0538cb968595c105c79f9354719de31567114e799072c31fd9"
+    },
+    {
+      "timestamp": "2026-11-26T03:15:19.148Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "684c79f8d09c0c528e0439b98cdba4c5927d5ca5b819e8440142457674952375"
+    },
+    {
+      "timestamp": "2026-11-26T03:18:27.692Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "e29d378f32af5c8dd1267d210de12a2af3dd33880e2c98a427b4998eb6debabe"
+    },
+    {
+      "timestamp": "2026-11-26T03:23:36.393Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "7c15984e9f3a0c2dae60859018d51fd02f8de745ea1097a4c50a984681d6b113"
+    },
+    {
+      "timestamp": "2026-11-26T03:25:02.608Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "c650d73cc42dae80174553b5795f7e50899e3790cf1041c47f9fa725b281b20b"
+    },
+    {
+      "timestamp": "2026-11-26T03:25:15.789Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "d6628f85d3378317eda13b94608a9f3ba46a81017fe0f1037a6b19babf4bc51d"
+    },
+    {
+      "timestamp": "2026-11-26T03:30:38.297Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "608240aa0667931c7ff456de18a3494993aa25e68c9b64662df9544f665844cf"
+    },
+    {
+      "timestamp": "2026-11-26T03:36:55.384Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "2f7507e8e2e5be5834718ae73b66030d8c616fd66d0c64044f19316ddfcce528"
+    },
+    {
+      "timestamp": "2026-11-26T03:37:33.913Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "ff8203a124f70fc4819cd3d6ebe2b5dccc514a83d19dd80659057b51c23d6131"
+    },
+    {
+      "timestamp": "2026-11-26T03:37:53.684Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "08ab34deb1b9d470ca2d3f275b34df0f832e9b62cb5211f01ac68a1682e92d58"
+    },
+    {
+      "timestamp": "2026-11-26T03:45:57.446Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "07b78979da4cbdef736e0546fbebef7848813622f5b02ade93efb3c60fb669b7"
+    },
+    {
+      "timestamp": "2026-11-26T03:47:12.786Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "819e6d55493409d45bec563c3bb4e6c0716801115fc7519913a5c9d3610f8f7e"
+    },
+    {
+      "timestamp": "2026-11-26T03:50:05.217Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "10a34bc5444fc797f74d07f83b64dc578543ec8e9f64f28c577e28c7e9ddf1f6"
+    },
+    {
+      "timestamp": "2026-11-26T03:50:31.578Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "704622bb25ce63a6a361123e127c2582cead95760df069d989be64719a9e7954"
+    },
+    {
+      "timestamp": "2026-11-26T03:55:23.076Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "872da3f2b361f3f543fd6b2f0816e98a8f8f4a27505aecca0fbf9d71baef7b10"
+    },
+    {
+      "timestamp": "2026-11-26T04:01:16.595Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "adf96d68f936f8d385da2e1fd3417e09f34bc107425babe937c2a869c344b7e8"
+    },
+    {
+      "timestamp": "2026-11-26T04:02:36.521Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "fe98f278f685536f02b32032fdff210863b43936635546fdf29f4e378aaa8f7c"
+    },
+    {
+      "timestamp": "2026-11-26T04:03:09.473Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "87db3d8436029fc049cfa71100d012536ba6786100966f5b80c6827d1e0eeb7f"
+    },
+    {
+      "timestamp": "2026-11-26T04:10:49.180Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "fd8e7ca5aee29e994a96695c396de58e21904de00c2f6ceef878cfbfef45b5a0"
+    },
+    {
+      "timestamp": "2026-11-26T04:13:50.769Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "d130569e9e32dff1e14dedcf1c8b2c182ba5760ddcacda13edcc041f7243d84c"
+    },
+    {
+      "timestamp": "2026-11-26T04:15:07.826Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "36767f33634365ffb1d9f84277e335929470ebacac3867f3276ffc95ddf50592"
+    },
+    {
+      "timestamp": "2026-11-26T04:15:47.368Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "92b5ac0f3e76340f5efc518e9c3f8c8a1f033c61735e511d6f27e5428880cd97"
+    },
+    {
+      "timestamp": "2026-11-26T04:16:35.744Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "a6d0f2b140c9ae79487e3d5178ba2ab1db7c79d6d0b175d5bb99788f8d0a9208"
+    },
+    {
+      "timestamp": "2026-11-26T04:27:39.130Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "d4b3a7303c044a092738147763e01fe4cdd32b3cf99bc361a4f8aef5188ae637"
+    },
+    {
+      "timestamp": "2026-11-26T04:28:25.263Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "d8f0eb0fc241a18f20ccebe1d6a8744c778b0d61624a61e77e17b46cfcc00c31"
+    },
+    {
+      "timestamp": "2026-11-26T04:31:54.893Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "51f65f67eb4948a048f8b5b0e4493004cf9568147ce40ed9341985ad746d4a43"
+    },
+    {
+      "timestamp": "2026-11-26T04:32:18.461Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "e5770a075f58ffdb51b3ba3a08aa918ed6219cfe157756033dbe6066343faeec"
+    },
+    {
+      "timestamp": "2026-11-26T04:34:25.573Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "ae2ddc8b7254e452693e98ee0dbddc3acc2152aa4106562e5fa5bbdd2508f568"
+    },
+    {
+      "timestamp": "2026-11-26T04:40:10.434Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "8db4934f37bd5d7d85d4da9422d42f3b74760c529003e06fd74a8a8719bacf20"
+    },
+    {
+      "timestamp": "2026-11-26T04:41:03.157Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "7be07be6f82a2945b9a2fe0a5bebe70c5845fe11eef591429d07127f90f7ce33"
+    },
+    {
+      "timestamp": "2026-11-26T04:47:14.042Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "ee567d76ca818021553db4994f3b79f93591e2e00ed9d40b9976cc7fca7df3a4"
+    },
+    {
+      "timestamp": "2026-11-26T04:50:46.153Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "b4c4ca67944b4749b805cb4d3144eb2669ebc47acd2bd09ab3661fa727cf14d1"
+    },
+    {
+      "timestamp": "2026-11-26T04:52:41.739Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "2c001f07e0c124bb2e706167e058f7d59cdd3a75b495760df109d5510af73be5"
+    },
+    {
+      "timestamp": "2026-11-26T04:53:41.052Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "9f104e3eb7614f31d40f23d6e7e5318a67847da823439a88a56b2c9912238c17"
+    },
+    {
+      "timestamp": "2026-11-26T04:58:01.967Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "8f9fa73b6b7e6b9597cf761fa664d154637bf61def915c5e182a9a8494c9d4da"
+    },
+    {
+      "timestamp": "2026-11-26T05:02:33.191Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "8d0c905f6965e56491ff152d24acfcfad8e91e4f73ce9ee687cf3011bedeb3d0"
+    },
+    {
+      "timestamp": "2026-11-26T05:05:13.043Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "d58d260d6a2deb6587a6353816812acd9baea55a5f2dc48f8bea4111ec3beb58"
+    },
+    {
+      "timestamp": "2026-11-26T05:06:18.947Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "ecc5ef66d88319195ba020d3263dea1ab380fd5b14c3aae4583512d26c2f3ecc"
+    },
+    {
+      "timestamp": "2026-11-26T05:09:13.846Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "2dbe56f40129e6bbbf154381ee8cc5be1e6c5a945b1b6a718cbacac0af5156b1"
+    },
+    {
+      "timestamp": "2026-11-26T05:17:44.347Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "27ed70ad40ca54131069536223aba22162abc8458087aa5a0c75dc1bd7d81c84"
+    },
+    {
+      "timestamp": "2026-11-26T05:17:52.340Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "44a1d550b31c24934ca08a778c880dedebaff05f32c23c49982782fac72c246f"
+    },
+    {
+      "timestamp": "2026-11-26T05:18:56.842Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "d8c59929a7aa3b7ae40f0d44911df9a912930a9c8b3673d1af1a4d8388ae43fd"
+    },
+    {
+      "timestamp": "2026-11-26T05:21:38.360Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "52ab6090dbffaf0a9d79ba943d29927de0bfea1116437b0ffa362fcce269023c"
+    },
+    {
+      "timestamp": "2026-11-26T05:27:41.538Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "49770fb217548cb0b681b02a149e3e10bec5c3ec3d6683a2707d3b0758ca18b1"
+    },
+    {
+      "timestamp": "2026-11-26T05:30:15.652Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "59a50b79eb6b85e9773124522e54e7094515eaf51e20631d2b386a363792e7d9"
+    },
+    {
+      "timestamp": "2026-11-26T05:31:34.736Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "08001a7b837db17c324532ca1e2e259778030649e2984bb554b6eefdeb5bf6f5"
+    },
+    {
+      "timestamp": "2026-11-26T05:33:11.489Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "381f7f73e7ca622af5cdf663ead7a276b5ef5938ff577873fd62169f58b46822"
+    },
+    {
+      "timestamp": "2026-11-26T05:42:46.956Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "d293cffac9133362e43b1c4808e40bd5f5b647b4af057936bc50b2874b5a7871"
+    },
+    {
+      "timestamp": "2026-11-26T05:44:12.631Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "993ca3a16ab8d9d71a16a4e5941104480db40595634a06451db76b6c89c9588f"
+    },
+    {
+      "timestamp": "2026-11-26T05:45:14.754Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "2ee65643345ec074778b01f116dd6faff04f2ebc23d23a3106246e47c16a22ab"
+    },
+    {
+      "timestamp": "2026-11-26T05:46:09.230Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "3f50694df0750c1c0d4c00d2ee1d9eb1cf22055cddb38573e895278661431fee"
+    },
+    {
+      "timestamp": "2026-11-26T05:48:30.638Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "c7ec99c411580d03554312b34d6b1304f96385bffa63cf1c204255a148e47fe0"
+    },
+    {
+      "timestamp": "2026-11-26T05:55:18.260Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "70180c51b7cef7af59e6f6d3cf3eb8ed4f64626edfca0e30c13237a48503e123"
+    },
+    {
+      "timestamp": "2026-11-26T05:56:50.526Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "60284cf9a45a3992635b71964bb053b9ee452ae859054b6aef34e2c0016e8726"
+    },
+    {
+      "timestamp": "2026-11-26T06:03:49.787Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "58f91647cf2252811029d390a4b6ceead087165efc12b33a50c48ce7156b873d"
+    },
+    {
+      "timestamp": "2026-11-26T06:04:36.923Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "607dd55e11b718cb535aae79170a775ae08520e14198c5834f3065001696b8dd"
+    },
+    {
+      "timestamp": "2026-11-26T06:07:49.565Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "2a60379ccc7cfa1eb466af952bf217d5f4b31cb287b6fc63f04539d8c31dda59"
+    },
+    {
+      "timestamp": "2026-11-26T06:08:51.147Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "c5bce050478c86f6204de429a412f65232f77687b4e87b6b8b7b4b1a9da57177"
+    },
+    {
+      "timestamp": "2026-11-26T06:09:28.421Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "aee76d46a52cb64ed9ce4f460fb055572d21af1f5fed6561171b575e5dea5370"
+    },
+    {
+      "timestamp": "2026-11-26T06:19:08.936Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "1a62b11a7a97e1d5a34e848a92a54378c7a3555c1cf16ab7ad1a29b90149e67f"
+    },
+    {
+      "timestamp": "2026-11-26T06:20:20.869Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "d60783b755bd128121de8d22373c305440b0fcf6ad7f52b04098d4f0e07cedd9"
+    },
+    {
+      "timestamp": "2026-11-26T06:22:06.315Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "ee4652ea793f648c93fcf8477563b4c98bde59049023966ff2ca67cfdaec633f"
+    },
+    {
+      "timestamp": "2026-11-26T06:23:04.615Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "a1153f32c579025416ef7cce3ff52c627246a2f29bfd5003b293e3424d6fbc8c"
+    },
+    {
+      "timestamp": "2026-11-26T06:32:27.540Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "3a6e28fe321683b62ff2ff3171fc7913716b445da3eac31596b8766bf171e01e"
+    },
+    {
+      "timestamp": "2026-11-26T06:32:52.173Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "8b6a358af131fe7229afa250e509abf77cf8995cbb3cdf5a53434aecfe652dac"
+    },
+    {
+      "timestamp": "2026-11-26T06:34:28.085Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "d0632004d150cb68403876563b3cc0cfd693c47c1bd062e4f5f42c93e8dd2c76"
+    },
+    {
+      "timestamp": "2026-11-26T06:34:44.210Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "f7b46c5f6b30d7c131787929903817b9e66ccf52e664f8369bec57cbdd9202ca"
+    },
+    {
+      "timestamp": "2026-11-26T06:41:32.307Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "16cba2598745857a8a1f86d6a66907c59a5b4d92977083dde7b036608245874f"
+    },
+    {
+      "timestamp": "2026-11-26T06:45:23.478Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "15c1bfc6545c8b2e8c844d95abbd025804887e1b38d5d57f0e7a775e9b32304c"
+    },
+    {
+      "timestamp": "2026-11-26T06:47:22.105Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "c64d3aa1d1924d5b91e9ace382238cfac6eb665d85e37532ef867a4564686733"
+    },
+    {
+      "timestamp": "2026-11-26T06:49:47.234Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "d12d7d314e54b13f388fbc6d34118a5711c75984c28bd41fc9924d8c7827e2ea"
+    },
+    {
+      "timestamp": "2026-11-26T06:56:03.934Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "f47d96133b15cfa6fa326022d0fbabe6190609baa3daffefb6158dc495f0241c"
+    },
+    {
+      "timestamp": "2026-11-26T06:57:54.782Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "3425064987de6e97169236c8e9f4b4d9295a77c2e2031c6bcc5dc87ebcf6a7c6"
+    },
+    {
+      "timestamp": "2026-11-26T07:00:00.000Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "8b4d821b33aa00194c963f057e49cf48e2e184a4fb7e1e32cac12cec9f9b4cea"
+    },
+    {
+      "timestamp": "2026-11-26T07:00:00.000Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "8e124668ba38ea6aa2900e2fce8d7d57f9ecb5b0df0cbd888c109694bb39a846"
+    },
+    {
+      "timestamp": "2026-11-26T07:05:06.382Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "3eab1f57c03ee992abcaa3552a6c27a70bc0b02593e7d95ab41594622762bdf3"
+    },
+    {
+      "timestamp": "2026-11-26T07:10:26.086Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "74d7e1509b4865ace85d87d025a5ceb1281458e892791544c89f67bd89265f01"
+    },
+    {
+      "timestamp": "2026-11-26T07:12:37.894Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "e9e36c011b78fc16546c0a1419658cde2dff00ad4af8d0dd421baace5c016406"
+    },
+    {
+      "timestamp": "2026-11-26T07:18:27.692Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "0717d4e8de739f18db3484830b0578dec8fc4afc43d4f081d505e4c979fb5be0"
+    },
+    {
+      "timestamp": "2026-11-26T07:19:40.327Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "edf4a6fd0f4ff7ceea66c6f7375963a5b7da5bf90f0ce16d5aaec2852989a0e6"
+    },
+    {
+      "timestamp": "2026-11-26T07:20:25.531Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "49aa11eacc6b607981a2f918137097485f25a5db080bb0f1395f051491e51cfb"
+    },
+    {
+      "timestamp": "2026-11-26T07:22:57.391Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "2c5351451d69c6764dc815a5f1098390ce3b6105687d2785c1e07ec7ce665f29"
+    },
+    {
+      "timestamp": "2026-11-26T07:25:15.789Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "5c6ac80dc980555a9cee3a9cacf7d97bdcf3e1f3b4731bb7d42bc451d6c8dabc"
+    },
+    {
+      "timestamp": "2026-11-26T07:35:28.695Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "ca26c35a59446a6484eecb24a03f9b75fc4a9b8f4c38998d488259a1bf0d6ac9"
+    },
+    {
+      "timestamp": "2026-11-26T07:35:44.680Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "c5298045d632ac1e01cc3dc51285051f6a67a349237ad6640f09c15328cc05ea"
+    },
+    {
+      "timestamp": "2026-11-26T07:36:55.384Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "e9ad77af69b81d1305042775ea26e5630aabec3dfa81561b4b409c145141aa96"
+    },
+    {
+      "timestamp": "2026-11-26T07:37:53.684Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "59e7dff6c1e5c210da7072fc1458c4a1cb4b8e12c494ca3b756ef8682366e2a9"
+    },
+    {
+      "timestamp": "2026-11-26T07:43:16.721Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "ca3b895ea83c31f5607171be2b4f30a753fe28996f366199017cb05dd4659d31"
+    },
+    {
+      "timestamp": "2026-11-26T07:48:00.000Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "03bd5cf198be4e3e7343bc6d07916a838e8536e6fe55750255c58a6436ad7944"
+    },
+    {
+      "timestamp": "2026-11-26T07:50:31.578Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "2c232564e4868a77df67f244d3905fc540fea1da9b7f77380fe7d17192873e0d"
+    },
+    {
+      "timestamp": "2026-11-26T07:51:03.829Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "339926e36abe61648dfcd37c93cca240c86b63c04232e19c017dfb375210b644"
+    },
+    {
+      "timestamp": "2026-11-26T07:55:23.076Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "57f88899736c5e4f582d78cc0fc3e46086be1874db7b11fa62dfd8caf2cee5c5"
+    },
+    {
+      "timestamp": "2026-11-26T08:00:31.304Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "570f289633c23b6ee0123dbd9c8afe9e89e4538674822e402901069d88c966a9"
+    },
+    {
+      "timestamp": "2026-11-26T08:03:09.473Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "671623cff71ec6b8281a1b44487b01c50905f4752ed3e4a5149f7088ad22c965"
+    },
+    {
+      "timestamp": "2026-11-26T08:06:22.978Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "1aad3898e538a61c41d85a2062af63f54fa0140c2dbf25da3021e9e3bd6e22b6"
+    },
+    {
+      "timestamp": "2026-11-26T08:06:53.114Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "4d9be5f2e2d5ae598fcf8a8e5aa19d8784aa522e05845c0bba0624c807bd8888"
+    },
+    {
+      "timestamp": "2026-11-26T08:13:02.608Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "71260869c4c4d7f9907c1f5cc94363e51b998a7f00c6e8cc6a87eb8b30f61858"
+    },
+    {
+      "timestamp": "2026-11-26T08:13:50.769Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "2f8d948b65f7173d8c41c91e662060f6cdb0986b9ca4fbeb827e146d9d058c46"
+    },
+    {
+      "timestamp": "2026-11-26T08:15:47.368Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "de0bfc0db44bf98479a180f06bdb80e20ede87004e16b5a09c0a0a4b82d59f34"
+    },
+    {
+      "timestamp": "2026-11-26T08:21:42.127Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "dfdc18ef13bd8104c4f4f2e8108977d6f0938b277eb3a47108c141653a06a686"
+    },
+    {
+      "timestamp": "2026-11-26T08:25:33.913Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "d305d3430f4e6dc9daec2bb5925ed873b200a7e005890a01532e819262cdc6f2"
+    },
+    {
+      "timestamp": "2026-11-26T08:28:25.263Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "2233468c9f960f616f53875910b6bd39f23d6644bba602c75457a4f82a7d8be7"
+    },
+    {
+      "timestamp": "2026-11-26T08:30:29.508Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "a36aa7616708b97e6167c71dc03f698b82f5391aaef4af50a5eed34476ffa6b6"
+    },
+    {
+      "timestamp": "2026-11-26T08:32:18.461Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "6f51551d0e578fdf9534842393389e273fa75d87c8b4cdc79d056d4a4b2b8035"
+    },
+    {
+      "timestamp": "2026-11-26T08:37:01.276Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "47b2a4c962fa737fa0673bf768461188e79b8bb1d219cd827fafebd43122f8ea"
+    },
+    {
+      "timestamp": "2026-11-26T08:38:05.217Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "9287a5abe504428d60d425cc6bb278bccf24ce1739c247db0f6efa3c374361d0"
+    },
+    {
+      "timestamp": "2026-11-26T08:41:03.157Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "3538aab1bbb9695c150493a2b14d548ca7b9bd4eab34612a324386348e02faa4"
+    },
+    {
+      "timestamp": "2026-11-26T08:50:36.521Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "f150ed3e16f23c41eee9c9103faed9b27464e560bcf3a3f80cb30ed5e6bf13e9"
+    },
+    {
+      "timestamp": "2026-11-26T08:50:46.153Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "3a0e4508750f0d73a015c104455505273743777bcb3f74304eff9096df6e92d3"
+    },
+    {
+      "timestamp": "2026-11-26T08:52:20.425Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "22557c4af545dc70679e6e5171a1909c632ccfd4f048045b6361e7583066324b"
+    },
+    {
+      "timestamp": "2026-11-26T08:53:41.052Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "f784f139efd0916789d41b9c5dca1e26d039c8a176647ed1c52f86df442dbe36"
+    },
+    {
+      "timestamp": "2026-11-26T08:54:05.901Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "cad7311a0163dbae374d3c462b153f018ab09e15c862c6da29a32056d5b0abc7"
+    },
+    {
+      "timestamp": "2026-11-26T09:03:07.826Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "3e0ea9413698b935f6b89a53ee7c2dbb66aa73b58d1da6c01bed97c541ad2590"
+    },
+    {
+      "timestamp": "2026-11-26T09:06:18.947Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "192f40238a3e9453b3649bbbfcc5a0b3b71fff48cf843cd4c3ecb73a6a99836c"
+    },
+    {
+      "timestamp": "2026-11-26T09:07:39.574Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "be187b2fd39acae6e74e23febff43ed432164531bd4634d8031daf853df22d58"
+    },
+    {
+      "timestamp": "2026-11-26T09:09:13.846Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "80f1b449d9332f363786fafa8da25db77e695b0d3b46a3038c3812ccacdb9dd2"
+    },
+    {
+      "timestamp": "2026-11-26T09:15:39.130Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "304f1effeffd5bcdb6389d4d19c0068c9c7c57defbaae6a3efda8cbf18eb9155"
+    },
+    {
+      "timestamp": "2026-11-26T09:17:42.295Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "9e85439b8fdf674b27387d8643ccb2bdd2a990b9509e1b57b1b634b2f883903b"
+    },
+    {
+      "timestamp": "2026-11-26T09:18:56.842Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "af00a5ed9b8cb7e4c3e413d4a95744b3dc3fb658ab2367f0c84d438db64ffdd1"
+    },
+    {
+      "timestamp": "2026-11-26T09:22:58.723Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "a9df89de505e6d9ca11d328b499dbaf5664154a17fd9c7c4edef8d706e56db7e"
+    },
+    {
+      "timestamp": "2026-11-26T09:27:41.538Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "aed6e863079fc1f78c5d671a00765e8684cbbe276d6b531607d0f4f9552627f0"
+    },
+    {
+      "timestamp": "2026-11-26T09:28:10.434Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "7aea93e448bbbdb6d8960ca91736e2ac7a5fe596cad5010300a0a597c91640a2"
+    },
+    {
+      "timestamp": "2026-11-26T09:31:34.736Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "758b39d6a4cb0fdbc282e79cacb38fd4eae4bbd4a9ed677c3af5efae1d9fc306"
+    },
+    {
+      "timestamp": "2026-11-26T09:38:17.872Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "7cdec2db71b8f687dedaa7dfed591903380c5051b98c4ba9974c9cbd542876d2"
+    },
+    {
+      "timestamp": "2026-11-26T09:40:41.739Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "fe15261090ba526d91d4988c4fdaf68460f0177e873c54f66a19d1db4c257e07"
+    },
+    {
+      "timestamp": "2026-11-26T09:41:18.688Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "dc67c5e41129ddb9610b492d45c4ea42b5660dce07189ac6c3c2a4061ac2b0ce"
+    },
+    {
+      "timestamp": "2026-11-26T09:44:12.631Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "8b785023601ce146d9e94463be07dd17fe8a2d3e88c0bf11f3d909fcfcd8f2d4"
+    },
+    {
+      "timestamp": "2026-11-26T09:46:09.230Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "a5f0b8f85b34b9f854983947870832f38d58dcda78f1346f1fd5d6f66d445084"
+    },
+    {
+      "timestamp": "2026-11-26T09:53:13.043Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "d8a1ab7377713934d34758e96e6b2bb80da8116bea640cf763dfbdfc6f3988bb"
+    },
+    {
+      "timestamp": "2026-11-26T09:53:37.021Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "2ba384a65c83cf827d1f0093b74575134461405a9e2a5487fdae118b6b9ec873"
+    },
+    {
+      "timestamp": "2026-11-26T09:56:50.526Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "170df928dab72725ac075dcbd7559a73b349e3cbe491ded9bdf2e7ad80939075"
+    },
+    {
+      "timestamp": "2026-11-26T10:04:36.923Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "0f80753ad42932bcd1185d5eda86ccd65db069d93504431c3fad3e5cc6d921db"
+    },
+    {
+      "timestamp": "2026-11-26T10:04:55.081Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "9832212fb3b0594f92653cd404a940a532afed94767dddf6e14158ef485abd48"
+    },
+    {
+      "timestamp": "2026-11-26T10:05:44.347Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "ea4ccc1d60cc646cd48a59828ace338f5418b9803d361d2a473b9ad59161c76a"
+    },
+    {
+      "timestamp": "2026-11-26T10:08:56.170Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "fa2e7cd9284b0dd3b13c667c4a8ac03f19d9eaae64463771da27863403ccb3f8"
+    },
+    {
+      "timestamp": "2026-11-26T10:09:28.421Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "2ae339745c1aa5ca95d73cf585be0ed9fd0954ccece2f25fb2ec727949ee5faa"
+    },
+    {
+      "timestamp": "2026-11-26T10:18:15.652Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "008f9153592296a1a8c9b37820b91a0e8511e4f79c00f7b48b7fa30ca00e44e1"
+    },
+    {
+      "timestamp": "2026-11-26T10:22:06.315Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "d86d681238951209d2bb6aacc77445ec2e8e64c8281fa0d9aa11cf6e5564ea8b"
+    },
+    {
+      "timestamp": "2026-11-26T10:23:04.615Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "d94d6d707aa193da5b13a06f90ed914182e0029abf38c8676752c7e97dc1fbb9"
+    },
+    {
+      "timestamp": "2026-11-26T10:24:15.319Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "3f144c68e181979dd33fbc2afd09cd534c0148cf0200408e6f9e66c76f12d7cc"
+    },
+    {
+      "timestamp": "2026-11-26T10:28:31.475Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "aadcbdbe90c6b941c3bf1e9917c9cdc56a5b5f9717ec8e8baf9c6c2871d2af0c"
+    },
+    {
+      "timestamp": "2026-11-26T10:30:46.956Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "f83f9c3b8f9a887ef278a0831d6f09673ff83995937012dd8d35592590f382b1"
+    },
+    {
+      "timestamp": "2026-11-26T10:34:44.210Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "442fc6402ff54515361d4676604046008dd31c2ebda2fbcbe1b4aba63396d049"
+    },
+    {
+      "timestamp": "2026-11-26T10:39:34.468Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "78e4b13cd2136ea8b12ef472b50c91e1da85219f5e4b8c1bdaf4e1714b7b8821"
+    },
+    {
+      "timestamp": "2026-11-26T10:41:32.307Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "cd247e08c6553c21f4423ede49cf5b50ac7db15591e199ae118d8c0c74bff0ff"
+    },
+    {
+      "timestamp": "2026-11-26T10:43:18.260Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "4ba940620bd76bb20e244fb47e0e2151481dac312460a5fbbb8f8762624e5c6a"
+    },
+    {
+      "timestamp": "2026-11-26T10:47:22.105Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "a017be7c4205a9f974d39bab2acc3eb3eb478105b8a6229e7f0dd4dc10fe2378"
+    },
+    {
+      "timestamp": "2026-11-26T10:52:07.868Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "a56998e5be7b0e207ed721cc212e802dd1cd8c9085d3dd294bf45d84da7e122c"
+    },
+    {
+      "timestamp": "2026-11-26T10:54:53.617Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "82254a3a1a226899c22cd8053e118f996c9cb032247edb2b69aa4e4977e71e08"
+    },
+    {
+      "timestamp": "2026-11-26T10:55:49.565Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "df65d340337af1aa32835a7b657e985b77994208d6f388121c86f3a831f8e756"
+    },
+    {
+      "timestamp": "2026-11-26T11:00:00.000Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "fb6fb8d7feb68e976b723912654054238a23c9ebbe66830693f1ff90256449a8"
+    },
+    {
+      "timestamp": "2026-11-26T11:00:00.000Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "984bedbc3727e509e4d26956bae9da4ed8c66e6f6ed2ca8d532f63abfb201103"
+    },
+    {
+      "timestamp": "2026-11-26T11:08:20.869Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "6c19d1d9b3695463c7192a8633b4801c8213fdf7e05cbbaca68c9e2029e6d53f"
+    },
+    {
+      "timestamp": "2026-11-26T11:10:12.765Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "15322a73f7fda76a7d0998100f05eee69a4670d058d34686016436d775c6d3d3"
+    },
+    {
+      "timestamp": "2026-11-26T11:12:37.894Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "462c11a1652385a2e229633b3a3176b6157fd0e65d01e0631f72958d1238f3aa"
+    },
+    {
+      "timestamp": "2026-11-26T11:15:44.262Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "5a11675750027deca04e6d4ec6f13af144f0db7a8b3ba7fe6c757d66c3f6dca1"
+    },
+    {
+      "timestamp": "2026-11-26T11:18:27.692Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "c376aeea81cddb934e64744d4549da5327f9f50efc485254fd60320fbcb64f97"
+    },
+    {
+      "timestamp": "2026-11-26T11:20:52.173Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "f33efe00b71e3b98fe043ed1f1efa0a1cf74ea564a1e31eded2b688f873983c2"
+    },
+    {
+      "timestamp": "2026-11-26T11:25:15.789Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "69bb7b286a83ac2b13a5392ef50c27fdc9ea3e1fe0bd4a2c5cabaf1f65d7ffd2"
+    },
+    {
+      "timestamp": "2026-11-26T11:25:31.914Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "ecf7840d7e934bec6be524960dfa0b002b00839999b728515b39de71c6d5ca08"
+    },
+    {
+      "timestamp": "2026-11-26T11:33:23.478Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "c1b6a295c8f4c8258f6cb0c0bb40c52814bf866c4b985571f91a8ca7d29d33f4"
+    },
+    {
+      "timestamp": "2026-11-26T11:36:55.384Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "0776754a6ad214142c2d4ec18e46b883ea2a895b26d6943d528d220dc8975ce6"
+    },
+    {
+      "timestamp": "2026-11-26T11:37:53.684Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "48630e0ee5cff45aaa1539c32ce2f0f6a903ee3bb80a0c34cc2a3694003a27a3"
+    },
+    {
+      "timestamp": "2026-11-26T11:39:20.655Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "7776c9dae36e43379ce3e8719e38b4c6e9f7973163125fe09862478e80e141f6"
+    },
+    {
+      "timestamp": "2026-11-26T11:40:51.063Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "7e762716c3c4aa3b7d7afeb4bb24c6c0455655a2c4661e5c1d74228f34577faa"
+    },
+    {
+      "timestamp": "2026-11-26T11:45:54.782Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "240dbc9a6d4f04a65bca445afa3728557caeaa3c1321ddd9389a6f8f1caa8048"
+    },
+    {
+      "timestamp": "2026-11-26T11:50:31.578Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "50554da8e842388824ed0ffda0b60bbad2dce4b3c93690030e0ee91b1e77352e"
+    },
+    {
+      "timestamp": "2026-11-26T11:55:23.076Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "3d97e31160f0a0f676a4e7a1b226cf94bac4d242509c2a403d52d76957d622c7"
+    },
+    {
+      "timestamp": "2026-11-26T11:56:10.212Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "40c8d5742ad941d45fc58b6e649f1d4c9a7eb42bf6f8e8a5ffb70500d4759c2b"
+    },
+    {
+      "timestamp": "2026-11-26T11:58:26.086Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "2fcbc1e6409490d44cc76f3fcb4358d2b454d380b84e85866273377dccb8e073"
+    },
+    {
+      "timestamp": "2026-11-26T12:02:57.049Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "319a4c3f5885a4008fd133b2a4d1c94263ca093a62c2a7ec8cb1fe2036b615f1"
+    },
+    {
+      "timestamp": "2026-11-26T12:03:09.473Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "5d6750ce0cf4b5f6a8caac9619c972b603dd246a37477b32441189a2b27315c3"
+    },
+    {
+      "timestamp": "2026-11-26T12:10:57.391Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "b855d28f5fe471a70d271c48782b84a8cb026aa9cc9b0e605037699d1aaa49b8"
+    },
+    {
+      "timestamp": "2026-11-26T12:11:29.361Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "715d36d8973d78d89dc9a4746b263e4924389a0bf6964e129a97f9f858b99963"
+    },
+    {
+      "timestamp": "2026-11-26T12:13:50.769Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "e708361087fb32ace3bdcf448e3536f980e5620e3287f95691052b5a662d0c01"
+    },
+    {
+      "timestamp": "2026-11-26T12:15:47.368Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "7201cd72d97b7205da0c6b316af2522b63bdf23ea331f0c4354a6c2c7edd6672"
+    },
+    {
+      "timestamp": "2026-11-26T12:23:28.695Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "3b123c87b9e1c97f7d0aabc25c10f85ed740efd13ca6cd25a0195e5f3e71b9fc"
+    },
+    {
+      "timestamp": "2026-11-26T12:26:33.442Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "ad55c05604fa46f084bb8e7e1425aa9b00574074e6184980b3e5821852e391b6"
+    },
+    {
+      "timestamp": "2026-11-26T12:26:48.510Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "f9bdf4a24964f6753771f8bda558f60b99b38a07f6fe131908d4ada8c2b55059"
+    },
+    {
+      "timestamp": "2026-11-26T12:28:25.263Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "46af9546d30b08cf819d65f962e00e298b72fc9dfe6b92b7b57b2ad98a649349"
+    },
+    {
+      "timestamp": "2026-11-26T12:32:18.461Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "001d98f90aae2e8fc84fdf4c682d2ad11ddc2e41a661b22658185c8cc77f1a08"
+    },
+    {
+      "timestamp": "2026-11-26T12:36:00.000Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "f6adcc8cae88209b1cd32ab224a1166e7917d609cc67ab0a7b09c8119163b2d1"
+    },
+    {
+      "timestamp": "2026-11-26T12:41:03.157Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "751ab599afede456c89eb964417365debc1c5942011f5f2eefc656303267214b"
+    },
+    {
+      "timestamp": "2026-11-26T12:42:07.659Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "b8411cb328f772aff884558c0cbd86a2d1a2d20c6bcbf1140beb4cd96209d8ef"
+    },
+    {
+      "timestamp": "2026-11-26T12:48:31.304Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "c2e86380b76b1152742eac3be635509e82308a4664c201d98c4a8b8cebfe8d46"
+    },
+    {
+      "timestamp": "2026-11-26T12:50:09.836Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "dba32cab8886ae92949a156cc0a403474e3549dc6ea7d6e27920cb4075cde801"
+    },
+    {
+      "timestamp": "2026-11-26T12:50:46.153Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "c4039d9b10261edc28a434df42bc97c09c641af220cddc2ec008fae894e48716"
+    },
+    {
+      "timestamp": "2026-11-26T12:53:41.052Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "5a3973d97f096792bd2878b1b2af4297181f8a5ff4838f894786ba9a9714d723"
+    },
+    {
+      "timestamp": "2026-11-26T12:57:26.808Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "e7b128b92c2a3aa4cb6236369abb701bfd613b6deb9df830d20e04683b94a899"
+    },
+    {
+      "timestamp": "2026-11-26T13:01:02.608Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "0338424c2aebb3db3b4069e46ad8e73093581185488c47cec4830077913805f5"
+    },
+    {
+      "timestamp": "2026-11-26T13:06:18.947Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "6389f0534481cb904cc1a8fab14d0558680d28ff06def8ffe4482a3766cf77b7"
+    },
+    {
+      "timestamp": "2026-11-26T13:09:13.846Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "f164677a756e63926984f1488a8b39f7d70cf62e0c639c091f18bd69ed1d9b10"
+    },
+    {
+      "timestamp": "2026-11-26T13:12:45.957Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "ac9e682b60aa8ea178985658ef1ec035890727de81110043c3673bbc63b39c19"
+    },
+    {
+      "timestamp": "2026-11-26T13:13:33.913Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "c5bb05f71245b66f009c6e6c04e17e9bd80aea4ce7f4c0c5406cb5bc625a45ad"
+    },
+    {
+      "timestamp": "2026-11-26T13:13:46.229Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "841f214cd20fbfbdcddd9af53834e0bc7bbc421b360ba13e14fb323b70cee5c3"
+    },
+    {
+      "timestamp": "2026-11-26T13:18:56.842Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "0deb5be5c423513980f988fcdfabe9f200b42bb684c6f75e9d9e91bcf5b059a6"
+    },
+    {
+      "timestamp": "2026-11-26T13:26:05.217Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "428d64ae0d01801848dbc67229dc46b875a576cf84a652943c05df35bd73628e"
+    },
+    {
+      "timestamp": "2026-11-26T13:27:41.538Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "b7cd3ef28e1179db27ba319b96200f62340b838ffd0f770acf01b44ee4def372"
+    },
+    {
+      "timestamp": "2026-11-26T13:28:05.106Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "53f8f9c1dff49bf40d0a21dbde4219c376f1ec1860f89c6618449da8f05b4a8d"
+    },
+    {
+      "timestamp": "2026-11-26T13:31:34.736Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "d6787237e6230f9d591d88cf29498a8e4db019325d28922ca5b541abbf5fb3d5"
+    },
+    {
+      "timestamp": "2026-11-26T13:37:22.622Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "c491b26a31f76c980b292e9197a59f32dada824347f128d2e985d0ebd7841aae"
+    },
+    {
+      "timestamp": "2026-11-26T13:38:36.521Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "81e46a9784e41bb009275db16df57cdb6ba952ef87d5fa94fb1122c0d52308a4"
+    },
+    {
+      "timestamp": "2026-11-26T13:43:24.255Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "43815b0c81d8950c78b636246491866f16156eb28ee5b7f58098030c0c898bca"
+    },
+    {
+      "timestamp": "2026-11-26T13:44:12.631Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "9384412bce6bb061a78b695f6c7a8ef7c6ce94014d6202fa2cee9a1d1393befd"
+    },
+    {
+      "timestamp": "2026-11-26T13:46:09.230Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "0609d117a9dd91d939e119b510b54bbf8ede9755265e7c1df81cf283c98bcec3"
+    },
+    {
+      "timestamp": "2026-11-26T13:51:07.826Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "31a00c7393aa8cb68560a4c8f27d2792aa363e67d90eb207bf67da2f7ca98a6d"
+    },
+    {
+      "timestamp": "2026-11-26T13:56:50.526Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "726e1e984170770d707f044982c5ca82226e2f471d87e4d61de53772a849def1"
+    },
+    {
+      "timestamp": "2026-11-26T13:58:43.404Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "2303ca54b9a6060c612196fc57650729322ae01f3a91a6b4165dd2d1198bab52"
+    },
+    {
+      "timestamp": "2026-11-26T14:00:59.016Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "9cd435ffc9e29f1cd18f36912bc3aad981ad241b0ecc892747e34d13c04f6afc"
+    },
+    {
+      "timestamp": "2026-11-26T14:03:39.130Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "aaec3fbc2a1f72893268afd654946f5157926547d2c5976b740bc93d9ca413ec"
+    },
+    {
+      "timestamp": "2026-11-26T14:04:36.923Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "b0eaf1fd877f42b510517a4cb6a995a4ec569731723afd76fe23ec6955accaa6"
+    },
+    {
+      "timestamp": "2026-11-26T14:09:28.421Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "4d248898668afb01c38b4b05c54e26efc6c302615e60b3fd4dacb94593f2bc4f"
+    },
+    {
+      "timestamp": "2026-11-26T14:14:02.553Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "172b330b9718414852cd82d5301dc24ae02ecfe6d4878a0f7bfe14b5b98b4301"
+    },
+    {
+      "timestamp": "2026-11-26T14:16:10.434Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "850c7c5f881d915d3474f1f652e86af76a1f76c0c68ad7c94333590afe63bd68"
+    },
+    {
+      "timestamp": "2026-11-26T14:22:06.315Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "331d6257c57619ebcd9f4855b9dbfc2e8a0315ae3f74b17462ac87a534ffdf95"
+    },
+    {
+      "timestamp": "2026-11-26T14:23:04.615Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "5197777eb4f9d8d979c93d47fb4f6c9c7620a3bf0ef394bf43cdee067f17148e"
+    },
+    {
+      "timestamp": "2026-11-26T14:24:35.409Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "80d0ba319e02a9c3ebac9b0306530cdfcb37d668bb08b77d441a132c9836e637"
+    },
+    {
+      "timestamp": "2026-11-26T14:28:41.739Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "2532fd7847084b0930e8d2185d977c412fccbfd731db2ff296773c611accb1a7"
+    },
+    {
+      "timestamp": "2026-11-26T14:29:21.702Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "f381bf38409f5fc5f76034e9070cc374ffb1962405b2548ca978adee7ba3da9f"
+    },
+    {
+      "timestamp": "2026-11-26T14:34:44.210Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "e0e696da1a1e4bfd582e58c32a5cc65af99d8374ce98038526cdbe0b8e5b356f"
+    },
+    {
+      "timestamp": "2026-11-26T14:41:13.043Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "08b203bc0639a8090813876e09fc3a7036e18227b49dc2dd9d88fcf1ef4e19b1"
+    },
+    {
+      "timestamp": "2026-11-26T14:41:32.307Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "63663fae189c980ddb10d68c97bb61c36017e4c02c12eefbf9223babbe882212"
+    },
+    {
+      "timestamp": "2026-11-26T14:44:40.851Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "0ed5ac2839a7c30ab79b9aa85f46a603de24066fc6a09f606830d8461b044711"
+    },
+    {
+      "timestamp": "2026-11-26T14:47:22.105Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "1c7ddd553166871a464b9fd0e63ef3173ffcae088157571d17ac950596859c21"
+    },
+    {
+      "timestamp": "2026-11-26T14:48:11.803Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "066d546e1d9d45816b99694dfe31bf827a9e917712098e1337302bdff5113a23"
+    },
+    {
+      "timestamp": "2026-11-26T14:53:44.347Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "74e7b47f4da8f8cda286bb6e3aa1f4637af56c3d719ce4c2bd497c26a79abf8f"
+    },
+    {
+      "timestamp": "2026-11-26T15:00:00.000Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "ebaaa3acd22ec4ae33036bb1b9e0c3a6cd58aa0717c534f1d733bfebdf276aea"
+    },
+    {
+      "timestamp": "2026-11-26T15:00:00.000Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "4aeeaf05c6afd68315a9a029c02569bae7b3fb071ee644322dcde04aa0863f79"
+    },
+    {
+      "timestamp": "2026-11-26T15:00:00.000Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "a50aa6d5fbfa7bfe03cf79f0e1fe7ae7ebddb867d363da9b9c2407add6e67c16"
+    },
+    {
+      "timestamp": "2026-11-26T15:06:15.652Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "113cf5e432c82b6dd9971c7ab002270e2c2d183c6f877f779d65774471fea2b2"
+    },
+    {
+      "timestamp": "2026-11-26T15:11:48.196Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "94f85156946d657e0010b5390c0f1677ba4e4ba38e7201598b86b0fd26c6d259"
+    },
+    {
+      "timestamp": "2026-11-26T15:12:37.894Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "b2a6632edb25f0ecad37e513b50c59596b619ade0390b433e43e2a5e6ba11d6c"
+    },
+    {
+      "timestamp": "2026-11-26T15:15:19.148Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "b6e0683273687a9f6be1b6d4795f71bd08609f091b0ac3e57310c7b9ffe8bd25"
+    },
+    {
+      "timestamp": "2026-11-26T15:18:27.692Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "af8e5a0e7d35eccac586cfec8d6e71266632c92610b8980147b1678255352ef0"
+    },
+    {
+      "timestamp": "2026-11-26T15:18:46.956Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "4909530e631940d07abfece1935307a2036eeccfacb7cbec3d2f56a6d2f7ba73"
+    },
+    {
+      "timestamp": "2026-11-26T15:25:15.789Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "eb9002dcacc31703a2f6b516b6d7a012b2b25b81ce285778fe73870ca4ad1b2b"
+    },
+    {
+      "timestamp": "2026-11-26T15:30:38.297Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "7afbaa67e2074bc6ec183257da39377f6058f4643410707ac875faf4fd66526a"
+    },
+    {
+      "timestamp": "2026-11-26T15:31:18.260Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "8d6910c37909a9230c8fc6e2b6c071d8d45083352ad6a5f5551c44913f969646"
+    },
+    {
+      "timestamp": "2026-11-26T15:35:24.590Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "d766969e0e7eedebbcce0995724ee087d74835a92e3d7eb2916cd8dc1f7c4791"
+    },
+    {
+      "timestamp": "2026-11-26T15:36:55.384Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "0d7d803540ec3f593f3c73dd44bfdee8df6decd358931119aa024f610c081204"
+    },
+    {
+      "timestamp": "2026-11-26T15:37:53.684Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "fd1603cbe1b6dd87a6794bdf4cc423e7cfc045a012495e52b15554f8f1f95a31"
+    },
+    {
+      "timestamp": "2026-11-26T15:43:49.565Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "b277507acbdad8c356a25d17a4fff5ffe2d77a368fafabd3f26d8f59473979e9"
+    },
+    {
+      "timestamp": "2026-11-26T15:45:57.446Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "3ebdd066cefff274c5e88d41b35b50437dfa92f502016006aa6197962e77dc30"
+    },
+    {
+      "timestamp": "2026-11-26T15:50:31.578Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "9016b1459326b5db481fb1281e06f23be6a5f9ebb94926d26e6f34b206cf1f93"
+    },
+    {
+      "timestamp": "2026-11-26T15:55:23.076Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "710680dd80ee7ff6fd8d66b8b0bb914caf494396e606dedfc8eee3f960349404"
+    },
+    {
+      "timestamp": "2026-11-26T15:56:20.869Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "c4f7cb9eb6f7a58984605e36889502c44f4cebd8729ce48bc0b5399b54b9bdf9"
+    },
+    {
+      "timestamp": "2026-11-26T15:59:00.983Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "733c5ca65e8b5428a66782c43e378662d77228035d7f13f79894a4284ab58660"
+    },
+    {
+      "timestamp": "2026-11-26T16:01:16.595Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "288c83f1eae3c5eb54f5bf615c6f7836200914469d3bb5f273ef2db979d0db9c"
+    },
+    {
+      "timestamp": "2026-11-26T16:03:09.473Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "9c5382d3ef0125b025c3cd43fb8b82f2960614c3001921bb37d36b22e6913aee"
+    },
+    {
+      "timestamp": "2026-11-26T16:08:52.173Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "6624ee7aebc2d402396e259b9096ee44efb7cedcada3cbb8a838e9583016e23c"
+    },
+    {
+      "timestamp": "2026-11-26T16:13:50.769Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "d8c8a7853eaf3566ee4b7b4487071a88653fe64fe9db8134b97d21a95243308d"
+    },
+    {
+      "timestamp": "2026-11-26T16:15:47.368Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "771ed64d173702ff6bffb4bed7229dc31362657a47d0fd560d9ce78534a58146"
+    },
+    {
+      "timestamp": "2026-11-26T16:16:35.744Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "33efe336a1deb1f91e179aef9ae0b1f9ecc8f79b957c958bc096c504efd73ee3"
+    },
+    {
+      "timestamp": "2026-11-26T16:21:23.478Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "f72da2fbde821a8635c1bfd1df609142108dc0ad232c64695fbfb954c80901a3"
+    },
+    {
+      "timestamp": "2026-11-26T16:22:37.377Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "2b55d557c4dc0940cd49d11ef397d2e3ddadbe6221aa87cf6fdef277ff6bd43e"
+    },
+    {
+      "timestamp": "2026-11-26T16:28:25.263Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "b44192779f2566c974540bdc201d1fcc2a62d62ddff3d24c1393b073864c945c"
+    },
+    {
+      "timestamp": "2026-11-26T16:31:54.893Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "7a9deebf5eaaa46e8fda3b6365906f00be2946c625424564d574970c112ca4fe"
+    },
+    {
+      "timestamp": "2026-11-26T16:32:18.461Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "c600772aa2a03427308f544bd1228357abcce222b2fe1cea191c9fa9cb0d7950"
+    },
+    {
+      "timestamp": "2026-11-26T16:33:54.782Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "b1835013d0819cc5e66c7e6391709ad61081652fc51e1af033674aeda7b934be"
+    },
+    {
+      "timestamp": "2026-11-26T16:41:03.157Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "da6c0754350c38583179d6371a039c97b045aee84a9fcc11e8fa9a604cf4f241"
+    },
+    {
+      "timestamp": "2026-11-26T16:46:13.770Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "d85130943dc83d90ad9b1fb410577032b666c62a93360676ce55bd79242a8232"
+    },
+    {
+      "timestamp": "2026-11-26T16:46:26.086Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "2dfe180132064d5957a58e8d0a6886d4984700991f89a7a397188f82491c3b6b"
+    },
+    {
+      "timestamp": "2026-11-26T16:47:14.042Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "7e9b8777d1ddec77c7d4f7d1aab038d14d4f208395e6edb470ad0d671b4f8f8b"
+    },
+    {
+      "timestamp": "2026-11-26T16:50:46.153Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "6737c46d5530e624d17a3f09718229defc70a5d6d7898fa2559c7d64b76b3fee"
+    },
+    {
+      "timestamp": "2026-11-26T16:53:41.052Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "40d32abab441e85b4ca64648483cf44cf7fa6acacdc058aaa98aeadc3b7c7397"
+    },
+    {
+      "timestamp": "2026-11-26T16:58:57.391Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "20747274c236fbf997795a609844f910e1e369399e87a05879dc9bf4dc0510f4"
+    },
+    {
+      "timestamp": "2026-11-26T17:02:33.191Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "b945ceba546b5d283509b6814ca13d1ad96780a8653d715391450a2c178e8158"
+    },
+    {
+      "timestamp": "2026-11-26T17:06:18.947Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "d07df03c1bf1e58b9f3bac7d625a7d25a2987f93d9e7682845e595b44f850b91"
+    },
+    {
+      "timestamp": "2026-11-26T17:09:13.846Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "01727a1b583bea4ddf458a411bb94a0cecd230ecceb07f1e2eaf836ca3b7fb66"
+    },
+    {
+      "timestamp": "2026-11-26T17:09:50.163Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "5a1e3ad129a362db379e387b1745e6db9bf3b9dbf5d9726d94c9851e86cd9aff"
+    },
+    {
+      "timestamp": "2026-11-26T17:11:28.695Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "ba47b7f62c2c8a8e2bd901aefa14a4348762afb0c4551e2637b32b1c3d28d2af"
+    },
+    {
+      "timestamp": "2026-11-26T17:17:52.340Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "c86276a40fe05b85a5959aa2cbc74571d000b44ff81d4fae6599ea72c16dfc98"
+    },
+    {
+      "timestamp": "2026-11-26T17:18:56.842Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "a641ea144e776a0bb68d505851008701f77b6f226f84beeba942664b79b82673"
+    },
+    {
+      "timestamp": "2026-11-26T17:24:00.000Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "b87f8d89ffd42edb840e77cbf1851855a023271a579e1be8f28fd782e1f9ffdc"
+    },
+    {
+      "timestamp": "2026-11-26T17:27:41.538Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "0f9e88868ed5b5a0648aae36309b10536b8550629c7370322d2b8197a84e2688"
+    },
+    {
+      "timestamp": "2026-11-26T17:31:34.736Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "4d7893af6aaeeb359943be4eb88831c9edd79d5332e6209c74a9df17a1d54ea4"
+    },
+    {
+      "timestamp": "2026-11-26T17:33:11.489Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "af32353f3072105edcd5ecafa3b6bb4caf609a3df29035ba0d5ee67e2cfd0119"
+    },
+    {
+      "timestamp": "2026-11-26T17:33:26.557Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "387d0b317556c271efbb586ba98e0d603dfaf5a4bfbcb3ae9f307b0a75b99b94"
+    },
+    {
+      "timestamp": "2026-11-26T17:36:31.304Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "a99bbb1af507c9fd8d35769da3aa8fadff96265f76bdb16bc9432dbc10f6bd49"
+    },
+    {
+      "timestamp": "2026-11-26T17:44:12.631Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "86ec8b3019ae4515649d567a2a78893ca322e0a859725c6e2da8b49f7c33b249"
+    },
+    {
+      "timestamp": "2026-11-26T17:46:09.230Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "33ff1c9f12523fb362144d7210ed28521eded05837a17fe308d5390b4254fa78"
+    },
+    {
+      "timestamp": "2026-11-26T17:48:30.638Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "1f6c6ea2321fa845626fce1170b5b498d0ebb6ed770492ed8462ed345b9c0bee"
+    },
+    {
+      "timestamp": "2026-11-26T17:49:02.608Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "73fd68e37c83be135bfe30ee53e352c7f1004998ddf2d41e47d1bbdc6e3fd6df"
+    },
+    {
+      "timestamp": "2026-11-26T17:56:50.526Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "c59ffd391176354a4991eaa1c75d2a778e62bc0e7dea8ee153442d836ff2e8d8"
+    },
+    {
+      "timestamp": "2026-11-26T17:57:02.950Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "fc61949d42ea6047cb7a1c8bfaa6b3e5c9c2267d3920ff9be0919d591376b2f8"
+    },
+    {
+      "timestamp": "2026-11-26T18:01:33.913Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "df9bfd26fb39961383e67ae17119e21adcdcc08a84da88cb50fbd5bf3cde2752"
+    },
+    {
+      "timestamp": "2026-11-26T18:03:49.787Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "69f308e4c74e00cd0c91a8eee798c05e35cddf2bb311ffc3f5f1a1ae5dd2a27d"
+    },
+    {
+      "timestamp": "2026-11-26T18:04:36.923Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "842ed75230f48ca6b3a809014c81bcd0f53483c7a8fac57dbe697dc277bda9d3"
+    },
+    {
+      "timestamp": "2026-11-26T18:09:28.421Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "6c65326182ab8f51547e2a2dee84aa1051aa13e48017e2f9cef4a020260214fc"
+    },
+    {
+      "timestamp": "2026-11-26T18:14:05.217Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "a6f86483019d3dda6903b28b5c82407a61b46fb7460fe6daa7bee2429b10ea07"
+    },
+    {
+      "timestamp": "2026-11-26T18:19:08.936Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "236fe88602cd3b19f3c35a1604dae662554527d924ee2e384eede8536c474798"
+    },
+    {
+      "timestamp": "2026-11-26T18:20:39.344Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "7f3e028798be82c24163d8fd694880cba8a75d15bcd91c4829a325205fd38087"
+    },
+    {
+      "timestamp": "2026-11-26T18:22:06.315Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "f9504a9883eb588e647cea2bbb109c10b97a94cab48048654c790b2def5f2c7f"
+    },
+    {
+      "timestamp": "2026-11-26T18:23:04.615Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "93b7bed0de5f0094cd466b68dbfb9bd8e06f29faa4f932d445ac9042ead13119"
+    },
+    {
+      "timestamp": "2026-11-26T18:26:36.521Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "4d82fe84fb9a595583fe4e4466910cd499ac549bfd5ccc153cb7494818ae12f4"
+    },
+    {
+      "timestamp": "2026-11-26T18:34:28.085Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "b4f4b984e4e6b8edf1fc63c90955210acdaf3a3a66d3cc04f654a89a077765ee"
+    },
+    {
+      "timestamp": "2026-11-26T18:34:44.210Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "14e0fbf240728ac4d1f0cdac2311647e59c33cb5761f5423252ffa76cf20f3bb"
+    },
+    {
+      "timestamp": "2026-11-26T18:39:07.826Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "60a61a73bde2a7e373df2b56a35fddc2cf07f196f6fdf034263f38a742a7c208"
+    },
+    {
+      "timestamp": "2026-11-26T18:41:32.307Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "9a802f1b814f5c7892ce727f24af88f76ec2c9b13b24d186a8403eaefec2f623"
+    },
+    {
+      "timestamp": "2026-11-26T18:44:15.737Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "c04dd8ca4dcdf1b50aeeb25297a38d8626aa6c43f7ebc57cea367604358041bf"
+    },
+    {
+      "timestamp": "2026-11-26T18:47:22.105Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "4ba05498769f2939d2c9113936c26700dc154acafbef0144323a2a60f2f271a4"
+    },
+    {
+      "timestamp": "2026-11-26T18:49:47.234Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "cb2aa8acb42f2b997242928269ad9d51d7b110c65bd61fbbbe4eb8fb1f2d375d"
+    },
+    {
+      "timestamp": "2026-11-26T18:51:39.130Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "3ec6d5df6aec183c2cc6ef37cc6e02b717275f148996883011db064fd1770dcd"
+    },
+    {
+      "timestamp": "2026-11-26T19:00:00.000Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "82a7724a249f0e1509aa1f54bccdc25b266309f5356342daff5436fd6ddcb962"
+    },
+    {
+      "timestamp": "2026-11-26T19:00:00.000Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "6c4a26156efda1fa6c2426d579606c507aff2e9cb5ee43738b01176bc9e7bb38"
+    },
+    {
+      "timestamp": "2026-11-26T19:04:10.434Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "8cb04e89b7bad3d22ea44f4dc088331c48784a2b5dcabfdfd70f656bdc68e305"
+    },
+    {
+      "timestamp": "2026-11-26T19:05:06.382Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "29c71335a1f137102ae47502c14bf72d0a8d321f283719b1e225bd07ff78869e"
+    },
+    {
+      "timestamp": "2026-11-26T19:07:52.131Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "c391b78cb4325b5e58fcfaf7040c06111461fa8622f9a122b2ba416de25eaf5c"
+    },
+    {
+      "timestamp": "2026-11-26T19:12:37.894Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "e1710003c547b5670a4d49c89d2f2fc8bd120d3812fe03290e45e9a4327b7d55"
+    },
+    {
+      "timestamp": "2026-11-26T19:16:41.739Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "74c53801520cd1c348cbf81f04cd744d91443cadf5c0817a3720c109fb74cf77"
+    },
+    {
+      "timestamp": "2026-11-26T19:18:27.692Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "fde6eeb07ce8c5bfdee7404add5148cfff958a2121464afc608b80de40739e0f"
+    },
+    {
+      "timestamp": "2026-11-26T19:20:25.531Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "cf4a067f67b58e992711e090bf5bd41849ede6aad0843a0cd12c97b00c62c9cc"
+    },
+    {
+      "timestamp": "2026-11-26T19:25:15.789Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "d479c2d9c6cf1151145745f1d5a1cc3f8c3af5ff79550b00fc3781dacdaf745c"
+    },
+    {
+      "timestamp": "2026-11-26T19:29:13.043Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "8d7ea72a00c4a3648ba168061f80e302b289db7d852ed0014a94fe867f96fd0e"
+    },
+    {
+      "timestamp": "2026-11-26T19:31:28.524Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "9a51cc29c4acc0b932523933fa21e0278b2da05c32cd4169c20b321e622cb203"
+    },
+    {
+      "timestamp": "2026-11-26T19:35:44.680Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "1881a985445b8050c705dcfbb586e92c6a688d401499edd8f86934781e37eab7"
+    },
+    {
+      "timestamp": "2026-11-26T19:36:55.384Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "04cd27e06457f9ccdfad8557dc23df32ff6f6b1e82e41828f73ef40691f60b42"
+    },
+    {
+      "timestamp": "2026-11-26T19:37:53.684Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "9fba6a8ed24e2e48c1b5297e7cc86bb56fa3c9043a0270be5f9f3ebc78600ff3"
+    },
+    {
+      "timestamp": "2026-11-26T19:41:44.347Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "45d8aa18bd4c2fa0fbba264eca009bc84201158e9cb8b0170eaf58b0e92aae83"
+    },
+    {
+      "timestamp": "2026-11-26T19:50:31.578Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "37301793b602b0c07975a71e4e102558251abda0a9ec9aea2c3cd256a251a138"
+    },
+    {
+      "timestamp": "2026-11-26T19:51:03.829Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "62d5f3a585a38aa02aaecb933f8cba6ad3b582f2f7dc8ff4243ff9ea8a1a2349"
+    },
+    {
+      "timestamp": "2026-11-26T19:54:15.652Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "ea8634a7bf19e9a4fbe2e9b08bb448259a1f435d4b2de625743f02de085db62d"
+    },
+    {
+      "timestamp": "2026-11-26T19:55:04.918Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "c0a9494a9f254b10ef660998c2c8efd1a24fc443655a7a1cd19b2f6d607534d2"
+    },
+    {
+      "timestamp": "2026-11-26T19:55:23.076Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "165fc0257abff92a192de730575416cfc356dbb44645aeedf0f3089f109ea076"
+    },
+    {
+      "timestamp": "2026-11-26T20:03:09.473Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "753c96645576bd28a51d162f6dd6980a8d0bb987b9a21c922d8a2b47a1573c1a"
+    },
+    {
+      "timestamp": "2026-11-26T20:06:22.978Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "f300c7a6feca414096a5a0d00153bca66c711504f90b8a27e600c371d5f74d83"
+    },
+    {
+      "timestamp": "2026-11-26T20:06:46.956Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "31d5d2d71233df6b75be08a757e298024fcd09f6f3aa7526c3bdb0583c6b7f24"
+    },
+    {
+      "timestamp": "2026-11-26T20:13:50.769Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "b4ec7731e606aa07638147040860549a7ef842ae7ba1f85a753a0ebc3625bc67"
+    },
+    {
+      "timestamp": "2026-11-26T20:15:47.368Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "3b2e37423313924c5b63d5b688ff700bd24e8a0cd3027f82c6ca6c74d79f6d6c"
+    },
+    {
+      "timestamp": "2026-11-26T20:18:41.311Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "d478c43cc2c1bef698f828642bbd71077ab7695f23025da3fcf39310b9356bb2"
+    },
+    {
+      "timestamp": "2026-11-26T20:19:18.260Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "b8e3cead4d497185c04be1f8aaaa0a7182687280f738f7d3f5a645505c25c243"
+    },
+    {
+      "timestamp": "2026-11-26T20:21:42.127Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "fb71ef494c2cc139d8f93b354cb8cbabab9e7fcd0dca7686cccadc62e310ca6c"
+    },
+    {
+      "timestamp": "2026-11-26T20:28:25.263Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "8496c0be0241ada523db0e6fc84b7e91bec256eace5cca14e08527acd9b30154"
+    },
+    {
+      "timestamp": "2026-11-26T20:31:49.565Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "910aa70ea292c2b34fd6420843b85cd8e9f45d9cff65cc4f1aa2ac72d22f2261"
+    },
+    {
+      "timestamp": "2026-11-26T20:32:18.461Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "4160169ab086f8fc6f8506ab5c7a7b6c6125b2d5242069b6acf9fad7d46e495b"
+    },
+    {
+      "timestamp": "2026-11-26T20:37:01.276Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "d3b8ae5c80dbf56c384429a2ee7287e9dc82ae825070b559edc76c8f304c8b92"
+    },
+    {
+      "timestamp": "2026-11-26T20:41:03.157Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "cdb5fed87abb128b0ecc4560b718e7795f35cdcf68440e1c97cfe8f76fe36d6f"
+    },
+    {
+      "timestamp": "2026-11-26T20:42:17.704Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "801206f9913388231ae28c00dde95657684369bd7ae41cacc9783b39dd2f2cd3"
+    },
+    {
+      "timestamp": "2026-11-26T20:44:20.869Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "416aec657643ca1d6d8da3008a25455e5119286acfdb55113ff17700d43fb947"
+    },
+    {
+      "timestamp": "2026-11-26T20:50:46.153Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "622b74ca2edadc809f5e36f0b377e854f404ec128a98209475626c370edba7b1"
+    },
+    {
+      "timestamp": "2026-11-26T20:52:20.425Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "9af2ab918e4fe7623de42571cde4d3492979e33e8b7ef6058b2d7d555b742d28"
+    },
+    {
+      "timestamp": "2026-11-26T20:53:41.052Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "f3aa821b3298911afff4a64279694d47bfd9fe3018bfb871ab838cac4aad45b4"
+    },
+    {
+      "timestamp": "2026-11-26T20:56:52.173Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "95ad4733c4af73c5a3ab46aba6886cb9a3973f63874e63742774f896d8d41f19"
+    },
+    {
+      "timestamp": "2026-11-26T21:05:54.098Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "a19bdbd72ce8c79a71faec92cc6742c6a19b3b743b08ab246071d1389be25c3d"
+    },
+    {
+      "timestamp": "2026-11-26T21:06:18.947Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "86d6605eafb836d0012e9c262eed5204f5f34b36e7f2270a51b9a34543a30f35"
+    },
+    {
+      "timestamp": "2026-11-26T21:07:39.574Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "be8cc48a9a455d04c0bedb6bcae995161e7aad4b5ae8130073daa10db4a4d367"
+    },
+    {
+      "timestamp": "2026-11-26T21:09:13.846Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "be40495153a199fda4075129eec3478001ac37ce89ac12e2fb5c0be07e5cd08f"
+    },
+    {
+      "timestamp": "2026-11-26T21:09:23.478Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "04079d3fe88f3e60803c04385496b9e28c10b1c4d61bf5dedc264e3dadb316cc"
+    },
+    {
+      "timestamp": "2026-11-26T21:18:56.842Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "44508b033271d170c894a805e77cfe56915878cccbbed213a5d479a8a13f83f4"
+    },
+    {
+      "timestamp": "2026-11-26T21:21:54.782Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "4597172324027db0f8d6c32bd374571a02d5f470850179ef863e28ec31fa6b51"
+    },
+    {
+      "timestamp": "2026-11-26T21:22:58.723Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "6fbd77f3aaabd260fba874aa00bc40582079dccc744724b08f793a8e0d48e2a5"
+    },
+    {
+      "timestamp": "2026-11-26T21:27:41.538Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "767e1b0fc05d0501d7abfb7c9e94e7eb3ff5ad8d670fc2a1df362586114bb07e"
+    },
+    {
+      "timestamp": "2026-11-26T21:29:30.491Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "ccc0c5a5bcb0c771d6b7f126767a32cd8abde9716f042e68f59ac8e616922498"
+    },
+    {
+      "timestamp": "2026-11-26T21:31:34.736Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "d7168288d3b5fcb013de7be1a610905e24e07b779e21c6486b12aecfb3c5dd11"
+    },
+    {
+      "timestamp": "2026-11-26T21:34:26.086Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "fa47747cf8c080eed28987199292e39307962977012244cb66f4474f96249373"
+    },
+    {
+      "timestamp": "2026-11-26T21:38:17.872Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "9e103b24167581fac8440a947cacfaa79b5fb5b7a138a482bb87c87936d6c04b"
+    },
+    {
+      "timestamp": "2026-11-26T21:44:12.631Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "c0bb1fb04bd3ba32f164257a2a998dd166666497f92a1c7f41e667d7ae7cd97f"
+    },
+    {
+      "timestamp": "2026-11-26T21:46:09.230Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "3969e06acba7839587bfdad7ac5f2ebcf8e45dabed6c41dfca1e0086eed83938"
+    },
+    {
+      "timestamp": "2026-11-26T21:46:57.391Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "b15905a26325215435041c75513257d5e3b9c46026c6033721bc516629dffad4"
+    },
+    {
+      "timestamp": "2026-11-26T21:53:06.885Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "15ba440bb9d09490020c465f937581a9ce17cff6632f46929778150f7a886c2e"
+    },
+    {
+      "timestamp": "2026-11-26T21:53:37.021Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "c4f523744fd7989463040f75c401383962b28f95128975e12162f80047f5304f"
+    },
+    {
+      "timestamp": "2026-11-26T21:56:50.526Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "24d73ae3a8da14f5b8ed5afafa9cd5e92428f3a7ec022f689321482628f62aa5"
+    },
+    {
+      "timestamp": "2026-11-26T21:59:28.695Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "80ad313e21240c79a7fdd868453bb4446a3a37d66077bef1101d9cc02d17586b"
+    },
+    {
+      "timestamp": "2026-11-26T22:04:36.923Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "6c17e7bb524691b170b2b5d06dfdab370b871584cd78f407e7921e7822ad7903"
+    },
+    {
+      "timestamp": "2026-11-26T22:08:56.170Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "119d95da567cbb0af1646a16b1db0de2ff145af181e23bd43c9a0be3a06c21ed"
+    },
+    {
+      "timestamp": "2026-11-26T22:09:28.421Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "80d67dedccb48651f28e2efcca75f9306ceddb5bb9f4a9304723ffeccea4c575"
+    },
+    {
+      "timestamp": "2026-11-26T22:12:00.000Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "e9976c753cfd6a5d0031675ecc8fe3ba7f5a4de0bbbdf3dee95a821e956d81b5"
+    },
+    {
+      "timestamp": "2026-11-26T22:16:43.278Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "c9fbb49de7796c098a4d7ca0e9dac144e1e25098cfa579487a937cda08c83f91"
+    },
+    {
+      "timestamp": "2026-11-26T22:22:06.315Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "a4ae57f0bc34b52891711a0216cd526dbb7ea0f3941fb762ecabb2e3b9837edb"
+    },
+    {
+      "timestamp": "2026-11-26T22:23:04.615Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "e8a00ed285a7dad3f3bdaeea835491d7716698fb8c8e58c5e36a5e20debe7cb1"
+    },
+    {
+      "timestamp": "2026-11-26T22:24:15.319Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "6851ac258fa59cb8a4964408f456a807b4064c3e41c6fc5a83672902cf1c634c"
+    },
+    {
+      "timestamp": "2026-11-26T22:24:31.304Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "d8eaa4bef19b2f2b832c3cd9b7b7da84b2c7c3dd69b5c383caf43842e29a614c"
+    },
+    {
+      "timestamp": "2026-11-26T22:34:44.210Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "d4efc173b5cc13a1eb6b72c0c1c657ba3d5ba03588cb06f6a1577c9f776f1a80"
+    },
+    {
+      "timestamp": "2026-11-26T22:37:02.608Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "8395bb73dc98bf1d6104a721e3bdbf5abdd30144905ee32c8a8d8eeeea2d751a"
+    },
+    {
+      "timestamp": "2026-11-26T22:39:34.468Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "c8c19a85cc9fe4fe3e899e118c03b77193aae5be0bd3c1427d0059964147015b"
+    },
+    {
+      "timestamp": "2026-11-26T22:40:19.672Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "852bf15772f9dedc56fc28dc80ee36359f8d2ad3699be704dd2767e40f249c9a"
+    },
+    {
+      "timestamp": "2026-11-26T22:41:32.307Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "006fbf05e3aaa51737dd20bdfb0081e59efe910ca749f3344d7e717c4f010f24"
+    },
+    {
+      "timestamp": "2026-11-26T22:47:22.105Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "3ef7559a99c2786f27216e13332a67ea178abacac71824853da6d9133fd5edca"
+    },
+    {
+      "timestamp": "2026-11-26T22:49:33.913Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "638f4694c3448d5fca75c05cb4b9d39317918427e7cc3c1cbd8978e71ea2ad1f"
+    },
+    {
+      "timestamp": "2026-11-26T22:54:53.617Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "cb5cc5b189adefcbaa3d01daf0034ce5024d43fa7805aad908f848837e34ee33"
+    },
+    {
+      "timestamp": "2026-11-26T23:00:00.000Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "44fff86105e397b4f2a3c2340adc2d589fa71bdc09588a4d824b8bc10530ddc0"
+    },
+    {
+      "timestamp": "2026-11-26T23:00:00.000Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "7bf6ad0d7d2e08a9e1f30e52dcf12e35934bf95493fa0e9f9d4270cf216d9dc9"
+    },
+    {
+      "timestamp": "2026-11-26T23:02:05.217Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "eb56659431aaec45fb728ceb8eb00c5a2f6d31d3e7d7c743066b6d772bd018b2"
+    },
+    {
+      "timestamp": "2026-11-26T23:03:56.065Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "be3371ca9376c58c8ea38ea1ce9e19509f33c1399b3ccbefba6822102a880f5b"
+    },
+    {
+      "timestamp": "2026-11-26T23:10:12.765Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "d283f16d79815ce17d620025efba968ab99ffd13adcfad4b3f46034f7f4671aa"
+    },
+    {
+      "timestamp": "2026-11-26T23:12:37.894Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "2d6a20021bb3d61633bbb238adefb734cd0405a545356b53184a82b104624474"
+    },
+    {
+      "timestamp": "2026-11-26T23:14:36.521Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "35ae57b3f551df01d4fa6e0db1e5f7374bdc2bdaadee67f78b675e20da571922"
+    },
+    {
+      "timestamp": "2026-11-26T23:18:27.692Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "3c61752d17b47ed528bb37f42fb482a144e145a81440c43ec812c35c268140e1"
+    },
+    {
+      "timestamp": "2026-11-26T23:25:15.789Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "acd6e62705db15b4565de975ec27454db34016f5d378b997fb7189f71a623891"
+    },
+    {
+      "timestamp": "2026-11-26T23:25:31.914Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "1b761f7610bd36cbadce4866310799c7a922d512c84ed9102f9a5971ad4354c5"
+    },
+    {
+      "timestamp": "2026-11-26T23:27:07.826Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "bac08f5209dd8afdd5788f9d7ff0cb34dc429abb09c2bbaf33c2c0ae5628048a"
+    },
+    {
+      "timestamp": "2026-11-26T23:27:32.459Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "73f1c31d1b697129eb8820e837875df6506399eefcbe518380c608e8e3f78307"
+    },
+    {
+      "timestamp": "2026-11-26T23:36:55.384Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "26d243e41e3efa7f139e5a4e69cfddfd20f058611bf805bbfd62d1699606da94"
+    },
+    {
+      "timestamp": "2026-11-26T23:37:53.684Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "df2f59c80cb8481846ddd3b1d1618389c307d2631dfec55fbca80694b9e88b7a"
+    },
+    {
+      "timestamp": "2026-11-26T23:39:39.130Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "7000bd3e31c3f6ed512f2f085f3f074cb83dd959690f95a0b7d66f579a305d1f"
+    },
+    {
+      "timestamp": "2026-11-26T23:40:51.063Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "38c750abcc9b9288fcba1c5af3bd5583ee42b8c0fdb8ab2c186e0f4c3f1c7cdf"
+    },
+    {
+      "timestamp": "2026-11-26T23:50:31.578Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "a628404e3a8d7eb7e5a3bf02a8d125f77be0650bb79cf4df97791644bcccfb99"
+    },
+    {
+      "timestamp": "2026-11-26T23:51:08.852Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "cb774bd5fe9e037fd6a51efb863e7349190032fc7c03ad041f00578a8ebe13af"
+    },
+    {
+      "timestamp": "2026-11-26T23:52:10.434Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "47da6bfb6374fcf688fcaa63d66ebec433396312b5f0356fbc7f850f7a4036ca"
+    },
+    {
+      "timestamp": "2026-11-26T23:55:23.076Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "c1742b45f431ce6052b2967dd1747c5794a3c1435e2bd051441a524864029b81"
+    },
+    {
+      "timestamp": "2026-11-26T23:56:10.212Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "47e65d0c39345479dad1dd9918ee694a9c91d340f6523f0036de8dd3d184c291"
+    },
+    {
+      "timestamp": "2026-11-27T00:03:09.473Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "208649d21824ef528343d0a88474ad926c36a7b07df0a7572a0b1d79572761d7"
+    },
+    {
+      "timestamp": "2026-11-27T00:04:41.739Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "5438199ed38709c581865b7e9221c9b5fd340e1c475f8031cd875ecc54dd9b35"
+    },
+    {
+      "timestamp": "2026-11-27T00:11:29.361Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "99540b647e0e9b8c3bb237c904093be4c4b32087bcdf8f027a6d6b87d801226d"
+    },
+    {
+      "timestamp": "2026-11-27T00:13:50.769Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "62bbd8bc98acb75cd76d233e69ab9f465e14090034e5ca4931eafeb9c31cdc03"
+    },
+    {
+      "timestamp": "2026-11-27T00:14:45.245Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "a0f42bd94e2cac558f4fc5402ad538e31ba44366afb9db6d62cf9e53475a5b55"
+    },
+    {
+      "timestamp": "2026-11-27T00:15:47.368Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "f6e69f46e0f19c3a6d0532fcf53081301012153aac114d5975a67e958c53a318"
+    },
+    {
+      "timestamp": "2026-11-27T00:17:13.043Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "d365a4113bae5b8b8e6661797e9f4875eadbcdb233795f16435b031268a1e263"
+    },
+    {
+      "timestamp": "2026-11-27T00:26:48.510Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "80e5c23f0312414b89a0d9c1b60ca3f897312d6a80ccec05b97a927a27502f02"
+    },
+    {
+      "timestamp": "2026-11-27T00:28:25.263Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "8030804a208c93e7382c96b581fa075d7048a735f3cf80fe87a8b668c7ac0d52"
+    },
+    {
+      "timestamp": "2026-11-27T00:29:44.347Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "20f439aedb3ced9600c93b77480ce95992713ee4885f2f33f5974dc661bf9042"
+    },
+    {
+      "timestamp": "2026-11-27T00:32:18.461Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "e94fc9820893d43b2331c9e1cf2caa51e26bcfa6132e7ce31f279669dffda646"
+    },
+    {
+      "timestamp": "2026-11-27T00:38:21.639Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "91ab0b470e58ff285cfaabb0c3fa020f126a0285bc3d146a0902840da896f96d"
+    },
+    {
+      "timestamp": "2026-11-27T00:41:03.157Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "f43858084afe9baabe1477f88e684e2ea2998382dabff76f3ae8740870c3172e"
+    },
+    {
+      "timestamp": "2026-11-27T00:42:07.659Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "e9d06072a5f71a02ec3bfd9d45560ae0460b881f15afa6edf2b033cdc8b62708"
+    },
+    {
+      "timestamp": "2026-11-27T00:42:15.652Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "308217667029dc59d0fa32f470ef1f24bb3c05977d27bd26bc30b35cafcbd574"
+    },
+    {
+      "timestamp": "2026-11-27T00:50:46.153Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "f1700e06d8b21bee025abd4b8098aa3e19a476b3244e595c6dac135c0e7cf148"
+    },
+    {
+      "timestamp": "2026-11-27T00:53:41.052Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "2844a0d78cf1820d5ff831393f1a5bd4b21a3537ce80c1326d171c80a4d9b669"
+    },
+    {
+      "timestamp": "2026-11-27T00:54:46.956Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "cb0b171d369e587cb8a7152f241d35e737ca5e65b8230251699c0c9df618ddc6"
+    },
+    {
+      "timestamp": "2026-11-27T00:57:26.808Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "02f60f405dab0d3da114afa3f49b4c0a00c21c1cdf4a362bb3411d927666a29f"
+    },
+    {
+      "timestamp": "2026-11-27T01:01:58.032Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Conexão com dependências estabelecida",
+      "id_captura": "b329465bd9921031a156bac0c97ff57ae5b24d3c1ea149886318ef7696df8da1"
+    },
+    {
+      "timestamp": "2026-11-27T01:06:18.947Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "47c1a19ed5aa97206f520ee84c4ffcf4d95df0b4fa2a5ae8e00de0de98020f42"
+    },
+    {
+      "timestamp": "2026-11-27T01:07:18.260Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "f83a875921e6e33067b502f1cc49e8528e4cd78b627b5da3675c5e54da6ab234"
+    },
+    {
+      "timestamp": "2026-11-27T01:09:13.846Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Processamento concluído",
+      "id_captura": "176e95c586206ee4c2163e17e996b2cf1ab1de94015027ca6654dd548d53c719"
+    },
+    {
+      "timestamp": "2026-11-27T01:12:45.957Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "6fa3e39470511a4c244582888fec50871dd0066fedeabdc7b1a259ea76e9ce7d"
+    },
+    {
+      "timestamp": "2026-11-27T01:18:56.842Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "371fa625fc0e2ef946e9f85f935f0ed8c8d216cdc6f47206232c219af98aaf5d"
+    },
+    {
+      "timestamp": "2026-11-27T01:19:49.565Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "aea1fa26398f4e790a01ee6d9d28fbccf079f83f76959ff27fa1af00afa437dc"
+    },
+    {
+      "timestamp": "2026-11-27T01:25:34.426Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Processamento concluído",
+      "id_captura": "476510d0ab2891f4507408dbcbe62db6758721d109ccc428beb70aa36c45532b"
+    },
+    {
+      "timestamp": "2026-11-27T01:27:41.538Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Healthcheck concluído com sucesso",
+      "id_captura": "f105f66092e5cebf92306ab1abc830d53dec1e4639e6d2087e474eebafa33746"
+    },
+    {
+      "timestamp": "2026-11-27T01:28:05.106Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Healthcheck concluído com sucesso",
+      "id_captura": "a17dbb2933d30c1b594963336b5ea4646e322fa1cb8a7ac158e4bf291f83f379"
+    },
+    {
+      "timestamp": "2026-11-27T01:31:34.736Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Conexão com dependências estabelecida",
+      "id_captura": "8d4c8f145183e7e6860ed03e8a8a73a83eeee6a33a6e7434885e6cb8bf14358e"
+    },
+    {
+      "timestamp": "2026-11-27T01:32:20.869Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Processamento concluído",
+      "id_captura": "98374f3ef6d78f99dd29fee682dae985c8a83fb87ef0d574697d4035eb655d68"
+    },
+    {
+      "timestamp": "2026-11-27T01:43:24.255Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Conexão com dependências estabelecida",
+      "id_captura": "8bb812d238f94a1d864dc594a625523c2fb44ebeac3280314824f3f1deb9aa3a"
+    },
+    {
+      "timestamp": "2026-11-27T01:44:12.631Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Processamento concluído",
+      "id_captura": "8b211bbf93980f746cad1090cc277cc2f25e9c04edef1d7d2bf8c6a2a17e5c06"
+    },
+    {
+      "timestamp": "2026-11-27T01:44:52.173Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Healthcheck concluído com sucesso",
+      "id_captura": "2c3c0dd556215d801c05ddbc8145b3815b127bcb4b6e65b2e9d5d49b6a4a81ef"
+    },
+    {
+      "timestamp": "2026-11-27T01:46:09.230Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] mysql · Conexão com dependências estabelecida",
+      "id_captura": "384dd82c69972b934bb8e51cfaf440b3b06f5049e29a9964e60e53a53b820c4d"
+    },
+    {
+      "timestamp": "2026-11-27T01:49:10.819Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] redis-cache-01 · Healthcheck concluído com sucesso",
+      "id_captura": "c8fa55e8908156698448c98db27aef6d4eefdb059531bb5874d151d6641c4e51"
+    },
+    {
+      "timestamp": "2026-11-27T01:56:50.526Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] orders-api-02 · Healthcheck concluído com sucesso",
+      "id_captura": "b6615d71b449c5c7580da1c5fdc59a614d53a815fdab22019fa0f91f1859dabc"
+    },
+    {
+      "timestamp": "2026-11-27T01:57:23.478Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] pay-api-04 · Conexão com dependências estabelecida",
+      "id_captura": "c205d022460128c548d480458d4a0f6a930f480b61422255ecb5321ea313fab6"
+    },
+    {
+      "timestamp": "2026-11-27T01:58:43.404Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "INFO",
+      "mensagem": "[SIMULADO] api-java · Processamento concluído",
+      "id_captura": "9ed5a909bacd5ebd4ad27942ba2f014195547c49542b724b1090832988e05d6d"
+    },
+    {
+      "timestamp": "2026-11-27T02:04:36.923Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] mysql · Tempo de resposta acima do esperado",
+      "id_captura": "13c1e748953e176e9a118d954df9472764062324db444814af9417329e93b53b"
+    },
+    {
+      "timestamp": "2026-11-27T02:09:28.421Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] orders-api-02 · Tempo de resposta acima do esperado",
+      "id_captura": "8de913809f3bbd2a300aa17b959e36dc576a522ab42c3a18acaf25b24ee759ac"
+    },
+    {
+      "timestamp": "2026-11-27T02:09:54.782Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] pay-api-04 · Tempo de resposta acima do esperado",
+      "id_captura": "e67eb5001e67b71bc31c69100cfbbdbf863eb7164f352af6e0029acb728f543e"
+    },
+    {
+      "timestamp": "2026-11-27T02:12:47.213Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] redis-cache-01 · Tempo de resposta acima do esperado",
+      "id_captura": "179c3329adc2445e2b01e4f7d4f947f91d8249e1ed6f16e01ea970a0717b56f3"
+    },
+    {
+      "timestamp": "2026-11-27T02:14:02.553Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] api-java · Tempo de resposta acima do esperado",
+      "id_captura": "418b48f92e9aa570e09a71412c663ed515d324139a709cd768f49b228e4c1899"
+    },
+    {
+      "timestamp": "2026-11-27T02:22:06.315Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] orders-api-02 · Nova tentativa de conexão agendada",
+      "id_captura": "6c362550ff9aab3965c5e5909596ca6f69158daa50c3260f37865682c2fad90b"
+    },
+    {
+      "timestamp": "2026-11-27T02:22:26.086Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] pay-api-04 · Nova tentativa de conexão agendada",
+      "id_captura": "ac5e57729a9783c4f89cb9aa9ad2a7b66e889c4f0e590c0f174e760a4a3eb92e"
+    },
+    {
+      "timestamp": "2026-11-27T02:23:04.615Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] mysql · Nova tentativa de conexão agendada",
+      "id_captura": "4d06c3a483b419d57ba4c900c3ffcac0c638b1435bdea39f9e38fdeae6d5b2c9"
+    },
+    {
+      "timestamp": "2026-11-27T02:29:21.702Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] api-java · Nova tentativa de conexão agendada",
+      "id_captura": "1ed16445ad2de4b31ab29de993985d12347ad95b528fae757b922e3ebb191703"
+    },
+    {
+      "timestamp": "2026-11-27T02:34:44.210Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] orders-api-02 · Tempo de resposta acima do esperado",
+      "id_captura": "bdab68c06df94e5bce7211068d752a4449718cf7a8cb563d4164c51994786ef2"
+    },
+    {
+      "timestamp": "2026-11-27T02:34:57.391Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] pay-api-04 · Tempo de resposta acima do esperado",
+      "id_captura": "f23d08ee172eaf2235640fa44cb7d95ab5a60b74ee5850669f8f26027fd349fb"
+    },
+    {
+      "timestamp": "2026-11-27T02:36:23.606Z",
+      "container_id": "sim-aabbccddee09-redis-cache-01",
+      "nome": "redis-cache-01",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] redis-cache-01 · Nova tentativa de conexão agendada",
+      "id_captura": "ef773a0ce47ee391c9332b6e33f382da4d9e2e564d320161a6f437bcd14b19d0"
+    },
+    {
+      "timestamp": "2026-11-27T02:41:32.307Z",
+      "container_id": "sim-aabbccddee09-mysql-01",
+      "nome": "mysql",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] mysql · Tempo de resposta acima do esperado",
+      "id_captura": "6eb216d5c94e36ef3d17adeb1994b744014a05105bb5a331f4b6b29da2634e1d"
+    },
+    {
+      "timestamp": "2026-11-27T02:44:40.851Z",
+      "container_id": "sim-aabbccddee09-api-java-01",
+      "nome": "api-java",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] api-java · Tempo de resposta acima do esperado",
+      "id_captura": "ed9a8aea2b15cc835f1856e4ec2558ddadf95f749bb54dd0f41da01f23c0083a"
+    },
+    {
+      "timestamp": "2026-11-27T02:47:22.105Z",
+      "container_id": "sim-aabbccddee09-orders-api-02",
+      "nome": "orders-api-02",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] orders-api-02 · Nova tentativa de conexão agendada",
+      "id_captura": "37f6c53c89c5ab88b1d5ff887fbd8587d33ae0c40234742f1b6c27e8cacdfb12"
+    },
+    {
+      "timestamp": "2026-11-27T02:47:28.695Z",
+      "container_id": "sim-aabbccddee09-pay-api-04",
+      "nome": "pay-api-04",
+      "nivel": "WARN",
+      "mensagem": "[SIMULADO] pay-api-04 · Nova tentativa de conexão agendada",
+      "id_captura": "bce4eefbce93e490bc78750256be1e4ea1d9586b486687416412c52463e37e3d"
+    }
+  ],
+  "servidor": "cart-api-09",
+  "perfil": "Carrinho"
+}

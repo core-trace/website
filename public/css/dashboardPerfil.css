@@ -19,7 +19,7 @@
 .pagina-perfis .caminho-navegacao {
     margin-bottom: 12px;
     color: var(--perfis-texto-secundario);
-    font-size: 15px;
+    font-size: 12px;
 }
 
 .pagina-perfis .cabecalho-pagina {
@@ -31,7 +31,7 @@
 }
 
 .pagina-perfis .cabecalho-pagina h1 {
-    font-size: clamp(28px, 2.5vw, 38px);
+    font-size: clamp(22px, 2vw, 30px);
     font-weight: 600;
     line-height: 1.3;
 }
@@ -39,7 +39,7 @@
 .pagina-perfis .cabecalho-pagina p {
     margin-top: 4px;
     color: var(--perfis-texto-secundario);
-    font-size: 16px;
+    font-size: 13px;
 }
 
 .pagina-perfis .periodo {
@@ -61,7 +61,7 @@
     border-radius: 6px;
     background-color: var(--perfis-superficie);
     color: var(--perfis-texto);
-    font-size: 15px;
+    font-size: 12px;
     cursor: pointer;
 }
 
@@ -97,20 +97,20 @@
 
 .pagina-perfis .indicador strong {
     display: block;
-    font-size: 35px;
+    font-size: 28px;
     font-weight: 600;
     line-height: 1.2;
     overflow-wrap: anywhere;
 }
 
 .pagina-perfis .indicador .nome-perfil {
-    font-size: 30px;
+    font-size: 24px;
 }
 
 .pagina-perfis .indicador p {
     margin-top: 5px;
     color: var(--perfis-texto-secundario);
-    font-size: 15px;
+    font-size: 12px;
 }
 
 .pagina-perfis .vermelho {
@@ -133,7 +133,7 @@
 }
 
 .pagina-perfis .painel h2 {
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 600;
     line-height: 1.5;
 }
@@ -149,7 +149,7 @@
 .pagina-perfis .cabecalho-painel p {
     margin-top: 4px;
     color: var(--perfis-texto-secundario);
-    font-size: 14px;
+    font-size: 11px;
 }
 
 .pagina-perfis .seletor-perfil {
@@ -161,7 +161,7 @@
     border-radius: 6px;
     background-color: var(--perfis-superficie);
     color: var(--perfis-texto-secundario);
-    font-size: 14px;
+    font-size: 10px;
 }
 
 .pagina-perfis .seletor-perfil select {
@@ -172,7 +172,7 @@
     border-radius: 6px;
     background-color: transparent;
     color: var(--perfis-texto);
-    font-size: 14px;
+    font-size: 10px;
     cursor: pointer;
 }
 
@@ -214,13 +214,13 @@
     border-spacing: 0 6px;
     table-layout: fixed;
     text-align: left;
-    font-size: 15px;
+    font-size: 12px;
 }
 
 .pagina-perfis .situacao th {
     padding: 6px 10px;
     color: var(--perfis-texto-secundario);
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 400;
 }
 
@@ -259,7 +259,7 @@
 .pagina-perfis #dashboard-feedback {
     margin-bottom: 16px;
     color: var(--perfis-texto-secundario);
-    font-size: 16px;
+    font-size: 13px;
 }
 
 .pagina-perfis .limites {
@@ -291,7 +291,7 @@
 }
 
 .pagina-perfis .componente-limites summary span {
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 500;
 }
 
@@ -299,7 +299,7 @@
     display: block;
     margin-top: 5px;
     color: var(--perfis-texto-secundario);
-    font-size: 14px;
+    font-size: 9px;
     line-height: 1.5;
     overflow-wrap: anywhere;
 }
@@ -315,7 +315,7 @@
 .pagina-perfis .aviso-limites {
     margin-top: 12px;
     color: var(--perfis-texto-secundario);
-    font-size: 14px;
+    font-size: 11px;
 }
 
 .pagina-perfis .tabela-limites-area {
@@ -328,7 +328,7 @@
     min-width: 320px;
     border-collapse: collapse;
     text-align: left;
-    font-size: 15px;
+    font-size: 12px;
 }
 
 .pagina-perfis .tabela-limites caption {
@@ -386,7 +386,7 @@
     }
 
     .pagina-perfis .indicador .nome-perfil {
-        font-size: 25px;
+        font-size: 20px;
     }
 
     .pagina-perfis .painel {
@@ -431,7 +431,7 @@
     border-radius: 4px;
     background: #fff0ed;
     color: #cc0301;
-    font-size: 14px;
+    font-size: 9px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.4px;
@@ -452,7 +452,7 @@
     justify-content: space-between;
     align-items: baseline;
     gap: 12px;
-    font-size: 15px;
+    font-size: 12px;
 }
 
 .pagina-perfis .prejuizo-nome {
@@ -461,7 +461,7 @@
 
 .pagina-perfis .prejuizo-valor {
     white-space: nowrap;
-    font-size: 16px;
+    font-size: 13px;
     font-variant-numeric: tabular-nums;
 }
 
@@ -483,7 +483,7 @@
 .pagina-perfis .prejuizo-detalhe {
     margin-top: 6px;
     color: var(--perfis-texto-secundario);
-    font-size: 14px;
+    font-size: 10px;
     line-height: 1.5;
 }
 
@@ -492,6 +492,6 @@
     padding-top: 10px;
     border-top: 1px solid var(--perfis-borda);
     color: var(--perfis-texto-secundario);
-    font-size: 14px;
+    font-size: 10px;
     line-height: 1.5;
 }

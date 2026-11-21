@@ -43,7 +43,7 @@
 
 .login-showcase h1 {
     margin: -5px 0 0;
-    font-size: clamp(38px, 3.51563vw, 68px);
+    font-size: clamp(30px, 2.8125vw, 54px);
     font-weight: 700;
     line-height: 1.5;
 }
@@ -55,7 +55,7 @@
 .login-showcase__description {
     margin: 26px 0 0;
     color: #e7e7e7;
-    font-size: clamp(20px, 1.6276vw, 31px);
+    font-size: clamp(16px, 1.302083vw, 25px);
     font-weight: 500;
     line-height: 1.52;
 }
@@ -87,7 +87,7 @@
 .login-access__heading h2 {
     margin: 0;
     color: #000;
-    font-size: 43px;
+    font-size: 34px;
     font-weight: 600;
     line-height: 1.5;
 }
@@ -95,7 +95,7 @@
 .login-access__heading p {
     margin: 8px 0 0;
     color: #4b4b4b;
-    font-size: 25px;
+    font-size: 20px;
     font-weight: 500;
     line-height: 1.5;
 }
@@ -135,7 +135,7 @@
     outline: 0;
     background: transparent;
     color: var(--login-text);
-    font: 400 19px "Poppins", Arial, sans-serif;
+    font: 400 15px "Poppins", Arial, sans-serif;
 }
 
 .login-form input::placeholder {
@@ -150,7 +150,7 @@
     border-radius: 8px;
     background: var(--login-red);
     color: #fff;
-    font: 700 21px "Poppins", Arial, sans-serif;
+    font: 700 17px "Poppins", Arial, sans-serif;
     cursor: pointer;
 }
 
@@ -166,7 +166,7 @@
 .login-form__feedback {
     margin: 0;
     color: var(--login-red);
-    font-size: 18px;
+    font-size: 14px;
     line-height: 1.5;
 }
 
@@ -193,11 +193,11 @@
     }
 
     .login-access__heading h2 {
-        font-size: clamp(33px, 2.65625vw, 43px);
+        font-size: clamp(26px, 2.125vw, 34px);
     }
 
     .login-access__heading p {
-        font-size: clamp(20px, 1.5625vw, 25px);
+        font-size: clamp(16px, 1.25vw, 20px);
     }
 }
 
@@ -207,7 +207,7 @@
     }
 
     .login-showcase h1 {
-        font-size: clamp(31px, 3.625vw, 40px);
+        font-size: clamp(25px, 2.9vw, 32px);
     }
 
     .login-showcase__accent {
@@ -245,13 +245,13 @@
     }
 
     .login-showcase h1 {
-        font-size: clamp(28px, 8vw, 50px);
+        font-size: clamp(22px, 6.4vw, 40px);
     }
 
     .login-showcase__description {
         max-width: 440px;
         margin-top: 22px;
-        font-size: 21px;
+        font-size: 17px;
     }
 
     .login-access {
@@ -272,6 +272,6 @@
     }
 
     .login-form input {
-        font-size: 20px;
+        font-size: 16px;
     }
 }

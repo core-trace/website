@@ -1,7 +1,13 @@
 # Resumos Docker simulados — CoreTrace
 
-Este diretório contém **12 arquivos totalmente fictícios** para testar a
-dashboard de investigação de contêineres. Eles NÃO são dados do S3.
+Este diretório contém um cenário fictício para testar a dashboard de
+investigação de contêineres. Ele NÃO contém dados do S3 ou do banco.
+
+Os índices em `servidores/<MAC>/indice.json` usam os endereços MAC dos dez
+servidores cadastrados nos inserts de demonstração de `src/database/script.sql`.
+Cada servidor tem seu próprio conjunto de arquivos, com o MAC, nome e perfil
+correspondentes. Os nomes, IDs e métricas dos contêineres são simulados e
+isolados por servidor para permitir validar a troca de contexto na tela.
 
 - Período: **18 a 29/11/2026**.
 - Cenário: aumento progressivo de demanda na Black Friday de 27/11.
@@ -36,35 +42,13 @@ Os arrays são preenchidos nos arquivos gerados. Preservamos as estruturas de
 `rede`, `disco`, `reinicios`, logs por nível e eventos agregados. As outras
 métricas do host foram omitidas porque a dashboard Docker não as consome.
 
-## Testar na dashboard atual
+## Seleção de servidor
 
-No `public/pages/docker.html`, localize a tag `<body>` e **acrescente somente**
-o atributo abaixo, preservando os demais atributos e suas alterações de layout:
-
-```html
-data-fonte-historico="../data/docker-historico-simulado/indice.json"
-```
-
-O `dockerDashboard.js` já reconhece esse atributo. Não é necessário substituir
-os JSONs reais nem alterar os arquivos de JavaScript.
-
-Abra a página pelo servidor HTTP do projeto e selecione `api-java` ou
-`pay-api-04`. O filtro de 30 dias mostra 12 pontos; o filtro de 7 dias mostra
-os sete últimos dias da simulação.
-
-Para voltar aos resumos reais, **remova o atributo** `data-fonte-historico`.
-
-## Regerar o conjunto
-
-Na raiz do projeto:
-
-```bash
-node scripts/gerar-historico-docker-simulado.js
-```
-
-O gerador está em `scripts/gerar-historico-docker-simulado.js` e escreve apenas
-na pasta `public/data/docker-historico-simulado/`. As pastas com dados reais
-anonimizados em `public/data/docker-historico/` não são modificadas.
+A página usa `GET /servidor/lista` para popular o seletor e escolhe o índice
+local usando o MAC do servidor. O cenário do servidor escolhido alimenta os
+gráficos, KPIs, tabela e logs. Quando houver endpoint de histórico real, a
+função de carregamento poderá trocar a origem dos índices mantendo o mesmo
+contrato e a associação pelo MAC.
 
 ## Âncoras de referência
 

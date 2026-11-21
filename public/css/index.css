@@ -15,13 +15,13 @@
 }
 
 .hero-apresentacao {
-    font-size: clamp(18px, 2vw, 25px);
+    font-size: clamp(14px, 1.6vw, 20px);
     font-weight: 700;
 }
 
 .hero h1 {
     margin-top: 4px;
-    font-size: clamp(28px, 3.25vw, 50px);
+    font-size: clamp(22px, 2.6vw, 40px);
     font-weight: 500;
     line-height: 1.25;
 }
@@ -32,7 +32,7 @@
 
 .hero-descricao {
     margin-top: 4px;
-    font-size: clamp(16px, 2vw, 23px);
+    font-size: clamp(13px, 1.6vw, 18px);
     font-weight: 500;
     line-height: 1.4;
 }
@@ -57,7 +57,7 @@
     min-height: clamp(44px, 4.3vw, 56px);
     padding: 10px 16px;
     border: 1px solid var(--cor-vermelho);
-    font-size: clamp(16px, 1.75vw, 20px);
+    font-size: clamp(13px, 1.4vw, 16px);
     font-weight: 700;
     line-height: 1.4;
     text-align: center;
@@ -154,12 +154,12 @@
 
     .hero h1 {
         margin-top: 8px;
-        font-size: clamp(35px, 6.875vw, 48px);
+        font-size: clamp(28px, 5.5vw, 38px);
     }
 
     .hero-descricao {
         margin-top: 16px;
-        font-size: 18px;
+        font-size: 14px;
         line-height: 1.6;
     }
 
@@ -250,7 +250,7 @@
 
 .solucoes-apresentacao {
     color: var(--cor-vermelho);
-    font-size: clamp(14px, 1.0625vw, 15px);
+    font-size: clamp(10px, 0.85vw, 12px);
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -258,7 +258,7 @@
 
 .solucoes h2 {
     margin-top: 2px;
-    font-size: clamp(33px, 3.125vw, 45px);
+    font-size: clamp(26px, 2.5vw, 36px);
     font-weight: 700;
     line-height: 1.2;
 }
@@ -318,7 +318,7 @@
 }
 
 .solucao-card h3 {
-    font-size: clamp(16px, 1.375vw, 20px);
+    font-size: clamp(13px, 1.1vw, 16px);
     font-weight: 700;
     line-height: 1.4;
 }
@@ -326,7 +326,7 @@
 .solucao-card p {
     margin-top: 16px;
     color: #282729;
-    font-size: clamp(19px, 1.15vw, 21px);
+    font-size: clamp(15px, 0.92vw, 17px);
     line-height: 1.5;
 }
 
@@ -341,7 +341,7 @@
     border: 1px solid var(--cor-vermelho);
     border-radius: 5px;
     color: var(--cor-vermelho);
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 600;
     text-decoration: none;
 }
@@ -405,7 +405,7 @@
     }
 
     .solucao-card p {
-        font-size: 16px;
+        font-size: 13px;
     }
 
     .solucao-link {
@@ -425,7 +425,7 @@
     }
 
     .solucao-card h3 {
-        font-size: 18px;
+        font-size: 14px;
     }
 }
 
@@ -446,14 +446,14 @@
 
 .clientes-apresentacao {
     color: var(--cor-vermelho);
-    font-size: clamp(14px, 1.0625vw, 15px);
+    font-size: clamp(10px, 0.85vw, 12px);
     font-weight: 700;
     text-transform: uppercase;
 }
 
 .clientes h2 {
     margin-top: 8px;
-    font-size: clamp(38px, 3.75vw, 53px);
+    font-size: clamp(30px, 3vw, 42px);
     font-weight: 700;
     line-height: 1.2;
 }
@@ -461,7 +461,7 @@
 .clientes-descricao {
     margin-top: 16px;
     color: #282729;
-    font-size: clamp(19px, 0.125vw, 21px);
+    font-size: clamp(15px, 0.100vw, 17px);
     line-height: 1.5;
 }
 
@@ -518,7 +518,7 @@
 }
 
 .cliente-card h3 {
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 700;
     line-height: 1.4;
 }
@@ -535,7 +535,7 @@
     border-radius: 5px;
     background-color: #fff;
     color: var(--cor-vermelho);
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 600;
     text-decoration: none;
 }
@@ -557,12 +557,12 @@
     }
 
     .clientes-descricao {
-        font-size: 16px;
+        font-size: 13px;
     }
 
     .cliente-link {
         min-height: 44px;
-        font-size: 15px;
+        font-size: 12px;
     }
 }
 
@@ -588,7 +588,7 @@
 
 .funcionalidades-apresentacao {
     color: var(--cor-vermelho);
-    font-size: clamp(14px, 1.0625vw, 15px);
+    font-size: clamp(10px, 0.85vw, 12px);
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -596,7 +596,7 @@
 
 .funcionalidades h2 {
     margin-top: 8px;
-    font-size: clamp(33px, 3.125vw, 45px);
+    font-size: clamp(26px, 2.5vw, 36px);
     font-weight: 700;
     line-height: 1.2;
 }
@@ -667,7 +667,7 @@
 }
 
 .funcionalidade-card h3 {
-    font-size: clamp(16px, 1.25vw, 19px);
+    font-size: clamp(13px, 1vw, 15px);
     font-weight: 700;
     line-height: 1.4;
 }
@@ -675,7 +675,7 @@
 .funcionalidade-conteudo p {
     margin-top: 12px;
     color: #282729;
-    font-size: clamp(16px, 1.125vw, 19px);
+    font-size: clamp(13px, 0.9vw, 15px);
     line-height: 1.45;
 }
 
@@ -690,7 +690,7 @@
     border: 1px solid var(--cor-vermelho);
     border-radius: 5px;
     color: var(--cor-vermelho);
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 600;
     text-decoration: none;
 }
@@ -711,16 +711,16 @@
     }
 
     .funcionalidade-card h3 {
-        font-size: 18px;
+        font-size: 14px;
     }
 
     .funcionalidade-conteudo p {
-        font-size: 16px;
+        font-size: 13px;
     }
 
     .funcionalidade-link {
         min-height: 44px;
-        font-size: 15px;
+        font-size: 12px;
     }
 }
 
@@ -756,7 +756,7 @@
 
 .projeto-apresentacao {
     color: var(--cor-vermelho);
-    font-size: clamp(14px, 1.0625vw, 15px);
+    font-size: clamp(10px, 0.85vw, 12px);
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -764,7 +764,7 @@
 
 .projeto h2 {
     margin-top: 8px;
-    font-size: clamp(35px, 3.5vw, 53px);
+    font-size: clamp(28px, 2.8vw, 42px);
     font-weight: 700;
     line-height: 1.2;
 }
@@ -841,7 +841,7 @@
 }
 
 .projeto-card h3 {
-    font-size: clamp(16px, 1.375vw, 20px);
+    font-size: clamp(13px, 1.1vw, 16px);
     font-weight: 700;
     line-height: 1.35;
 }
@@ -849,7 +849,7 @@
 .projeto-card p {
     margin-top: 16px;
     color: #282729;
-    font-size: clamp(16px, 1.15vw, 19px);
+    font-size: clamp(13px, 0.92vw, 15px);
     line-height: 1.5;
 }
 
@@ -910,7 +910,7 @@
 
 .contato-final-apresentacao {
     color: var(--cor-vermelho);
-    font-size: clamp(14px, 1.0625vw, 15px);
+    font-size: clamp(10px, 0.85vw, 12px);
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -918,7 +918,7 @@
 
 .contato-final h2 {
     margin-top: 10px;
-    font-size: clamp(40px, 3.75vw, 58px);
+    font-size: clamp(32px, 3vw, 46px);
     font-weight: 700;
     line-height: 1.15;
 }
@@ -926,7 +926,7 @@
 .contato-final-descricao {
     margin-top: 16px;
     color: #282729;
-    font-size: clamp(19px, 1.1875vw, 21px);
+    font-size: clamp(15px, 0.95vw, 17px);
     line-height: 1.55;
 }
 
@@ -946,7 +946,7 @@
     padding: 8px 18px;
     border: 1px solid var(--cor-vermelho);
     border-radius: 4px;
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 700;
     text-align: center;
     text-decoration: none;
@@ -1005,7 +1005,7 @@
 
 .contato-painel-informacoes p {
     color: #d9d4d8;
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -1015,7 +1015,7 @@
     display: block;
     margin-top: 7px;
     color: #e9e5e8;
-    font-size: 18px;
+    font-size: 14px;
 }
 
 .contato-painel-paginacao {

@@ -1,7 +1,6 @@
 
 const ctxServidores = document.getElementById("grafico-servidores-perfil");
 
-Chart.defaults.font.size = 15;
 const graficoServidores = new Chart(ctxServidores, {
     type: "bar",
     data: {

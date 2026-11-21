@@ -52,13 +52,13 @@
     "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 
-  --text-xs: 0.85938rem;
-  --text-sm: 0.9375rem;
-  --text-base: 1.09375rem;
-  --text-md: 1.25rem;
-  --text-lg: 1.40625rem;
-  --text-xl: 1.875rem;
-  --text-2xl: clamp(1.875rem, 1.5625rem + 0.6875vw, 2.1875rem);
+  --text-xs: 0.6875rem;   /* 11px */
+  --text-sm: 0.75rem;     /* 12px */
+  --text-base: 0.875rem;  /* 14px */
+  --text-md: 1rem;        /* 16px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.5rem;      /* 24px */
+  --text-2xl: clamp(1.5rem, 1.25rem + 0.55vw, 1.75rem);
 
   /* Espaçamento */
   --space-1: 0.25rem;
@@ -259,7 +259,7 @@ body.processos-page ::selection {
   border-radius: var(--radius-sm);
   background-color: var(--color-surface);
   color: var(--color-text-muted);
-  font-size: 1.5625rem;
+  font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
   transition: background-color var(--transition-fast),
@@ -418,7 +418,7 @@ body.processos-page ::selection {
 .sidebar-profile-name {
   overflow: hidden;
   color: var(--color-text-strong);
-  font-size: 1.01563rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -426,7 +426,7 @@ body.processos-page ::selection {
 
 .sidebar-profile-role {
   color: var(--color-text-muted);
-  font-size: 0.85938rem;
+  font-size: 0.6875rem;
   line-height: 1.4;
 }
 
@@ -623,7 +623,7 @@ body.processos-page ::selection {
 
 .filter-label {
   color: var(--color-text-subtle);
-  font-size: 0.78125rem;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   line-height: 1.4;
@@ -884,11 +884,11 @@ body.processos-page ::selection {
   }
 
   .page-title {
-    font-size: 1.71875rem;
+    font-size: 1.375rem;
   }
 
   .page-subtitle {
-    font-size: 1.01563rem;
+    font-size: 0.8125rem;
   }
 
   .page-actions {
@@ -898,11 +898,11 @@ body.processos-page ::selection {
   .updated-at {
     flex-basis: 100%;
     order: 3;
-    font-size: 0.85938rem;
+    font-size: 0.6875rem;
   }
 
   .monitoring-badge {
-    font-size: 0.78125rem;
+    font-size: 0.625rem;
   }
 
   .filter-bar {
@@ -927,7 +927,7 @@ body.processos-page ::selection {
 
 @media (max-width: 380px) {
   .page-title {
-    font-size: 1.5625rem;
+    font-size: 1.25rem;
   }
 
   .sidebar {

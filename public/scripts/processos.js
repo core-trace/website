@@ -169,12 +169,10 @@
 
     function aplicarKpis(data) {
         const mapa = {
-            "processos-identificados": ["kpi-processos-identificados", "kpi-processos-identificados-sub"],
+            "processos-oom": ["kpi-processos-oom", "kpi-processos-oom-sub"],
             "processos-criticos": ["kpi-processos-criticos", "kpi-processos-criticos-sub"],
             "cpu-elevada": ["kpi-cpu-elevada", "kpi-cpu-elevada-sub"],
-            "ram-elevada": ["kpi-ram-elevada", "kpi-ram-elevada-sub"],
-            "threads-identificadas": ["kpi-threads-identificadas", "kpi-threads-identificadas-sub"],
-            "eventos-registrados": ["kpi-eventos-registrados", "kpi-eventos-registrados-sub"]
+            "ram-elevada": ["kpi-ram-elevada", "kpi-ram-elevada-sub"]
         };
         (data.kpis || []).forEach((k) => {
             const ids = mapa[k.id];

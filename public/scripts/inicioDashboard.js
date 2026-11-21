@@ -1,14 +1,11 @@
 (() => {
-    // Divisao temporaria e intencional: "estado", "cobertura", "indicadores", "perfis",
-    // "resumo", "acoes", "evolucao" e "evolucaoLegenda" ja vem de dados reais (rota
-    // /geral/resumo, ver src/routes/geralRoutes.js). Os demais campos (riscos e
-    // perguntasProntas) continuam vindo do mock porque dependem de hipoteses ainda nao
-    // implementadas (assistente, previsao de tendencia) - nao e uma lacuna esquecida.
+    // riscos e perguntasProntas ainda sao mock, falta o assistente e a previsao pra
+    // calcular isso de verdade. o resto (estado, cobertura, indicadores, perfis,
+    // resumo, acoes, evolucao) ja e tudo real, vem da rota /geral/resumo
     const dado = geralMock;
 
-    // Guarda o ultimo resumo (real ou, se a rota falhar, mocado) para o filtro de
-    // perfil conseguir recalcular a tela na hora, sem precisar buscar de novo no
-    // servidor - afinal a rota /geral/resumo ja devolve a divisao por perfil pronta.
+    // ultimo resumo guardado, pra trocar o filtro de perfil sem precisar buscar tudo
+    // de novo no servidor
     let ultimoResumo = null;
     let graficoEvolucao = null;
 
@@ -57,9 +54,8 @@
         chip.title = `${proximoFeriado.nome} — fique de olho nos perfis de criticidade alta.`;
     }
 
-    // Recalcula cobertura/indicadores/perfis/evolucao olhando so pro perfil escolhido,
-    // a partir do resumo que ja temos guardado - o filtro nao busca nada novo no
-    // servidor, so reaproveita a divisao por perfil que a rota /geral/resumo ja manda pronta.
+    // recalcula tudo so pro perfil escolhido, usando o resumo que ja ta guardado,
+    // sem bater no servidor de novo
     function filtrarPorPerfil(resumo, nomePerfil) {
         if (!nomePerfil) return resumo; // "Todos perfis": mostra o resumo inteiro
 
@@ -79,11 +75,9 @@
                 semDadosRecentes: distribuicao.semDados, semDadosLegenda: ""
             },
             perfis: [perfil],
-            // Com um unico perfil selecionado nao ha o que comparar - resumo/acoes sao
-            // calculados priorizando ENTRE perfis, e mostrar o resultado global (de um
-            // perfil que pode nem ser o filtrado) seria informacao errada, nao so
-            // incompleta. Null aqui sinaliza pra renderizarResumo esconder a secao em
-            // vez de reaproveitar o resumo.resumo/resumo.acoes do agregado.
+            // com um perfil so selecionado nao da pra comparar nada (resumo/acoes
+            // comparam ENTRE perfis), entao fica null e renderizarResumo esconde essa
+            // parte da tela
             resumo: null,
             acoes: null,
             sinaisExternos: resumo.sinaisExternos,
@@ -93,11 +87,8 @@
     }
 
     function alternarSecaoResumo(mostrar) {
-        // Nao da pra usar o atributo "hidden" aqui: .geral-resumo-linha ja tem
-        // "display: grid" proprio (geralDashboard.css), que empata em especificidade
-        // com a regra nativa [hidden]{display:none} do navegador - e CSS de autor
-        // sempre vence CSS do agente do usuario, entao "hidden" ficaria sem efeito
-        // visual nenhum (confirmado testando ao vivo). style.display direto resolve.
+        // hidden nao funciona aqui, o display:grid do css ganha. por isso uso
+        // style.display direto
         document.querySelector(".geral-resumo-linha").style.display = mostrar ? "" : "none";
     }
 
@@ -121,8 +112,7 @@
         });
     }
 
-    // Busca os dados reais na rota /geral/resumo. Se a rota falhar por qualquer motivo,
-    // cai de volta no mock desses mesmos campos, so para a tela nunca ficar vazia.
+    // busca o resumo real, se der erro usa o mock pra tela nao ficar vazia
     async function carregarDadosReais() {
         texto("evolucao-legenda-texto", "Carregando evolução dos servidores…");
         try {
@@ -275,7 +265,8 @@
 
     function configurarExportar() {
         document.getElementById("botao-exportar").addEventListener("click", () => {
-            alert("Exportar relatório ainda não está implementado — isso é só o layout.");
+            // baixa o pdf que ja ta pronto no s3, nao gera nada na hora do clique
+            window.location.href = "/geral/relatorio";
         });
     }
 

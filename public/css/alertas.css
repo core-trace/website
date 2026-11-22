@@ -25,7 +25,7 @@
 }
 
 .alertas-cabecalho h1 {
-    font-size: clamp(28px, 2.2vw, 36px);
+    font-size: clamp(30px, 2.4vw, 40px);
     font-weight: 600;
     letter-spacing: -0.6px;
 }
@@ -39,7 +39,7 @@
     border-radius: 999px;
     background-color: rgba(204, 3, 1, 0.08);
     color: var(--alertas-critico);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -99,14 +99,14 @@
     align-items: center;
     gap: 8px;
     color: var(--alertas-texto-suave);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
 
 .alertas-cartao-valor {
-    font-size: 34px;
+    font-size: 38px;
     font-weight: 700;
     line-height: 1.1;
 }
@@ -129,7 +129,7 @@
 
 .alertas-cartao-legenda {
     color: var(--alertas-texto-suave);
-    font-size: 14px;
+    font-size: 15px;
 }
 
 /* ---------- Barra de chips ---------- */
@@ -156,7 +156,7 @@
 
 .alertas-chips-rotulo {
     color: var(--alertas-texto-suave);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
 }
 
@@ -170,7 +170,7 @@
     border-radius: 999px;
     background-color: #fff;
     color: var(--cor-texto);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
     transition: border-color 0.2s, background-color 0.2s, color 0.2s;
 }
@@ -192,7 +192,7 @@
     border-radius: 999px;
     background-color: #eef0f4;
     color: var(--alertas-texto-suave);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
 }
 
@@ -241,7 +241,7 @@
 }
 
 .alertas-painel-topo h2 {
-    font-size: 21px;
+    font-size: 23px;
     font-weight: 600;
 }
 
@@ -250,14 +250,14 @@
     border-radius: 999px;
     background-color: #eef0f4;
     color: var(--alertas-texto-suave);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
 }
 
 .alertas-subtitulo {
     flex-basis: 100%;
     color: var(--alertas-texto-suave);
-    font-size: 15px;
+    font-size: 16px;
 }
 
 /* ---------- Tabela de servidores ---------- */
@@ -276,7 +276,7 @@
     padding: 10px 12px;
     border-bottom: 1px solid var(--alertas-borda);
     color: var(--alertas-texto-suave);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -303,13 +303,13 @@
 }
 
 .alertas-servidor-nome {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
 }
 
 .alertas-servidor-perfil {
     color: var(--alertas-texto-suave);
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .alertas-badge {
@@ -317,7 +317,7 @@
     align-items: center;
     padding: 4px 12px;
     border-radius: 999px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -346,7 +346,7 @@
 .alertas-desde {
     margin-top: 6px;
     color: var(--alertas-texto-suave);
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .alertas-metricas {
@@ -363,7 +363,7 @@
     border: 1px solid var(--alertas-borda);
     border-radius: 999px;
     background-color: #f8f9fb;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     white-space: nowrap;
 }
@@ -386,7 +386,7 @@
     border-radius: 999px;
     background-color: #fff;
     color: var(--cor-texto);
-    font-size: 15px;
+    font-size: 17px;
     text-decoration: none;
     white-space: nowrap;
     transition: border-color 0.2s, background-color 0.2s;
@@ -398,8 +398,8 @@
 }
 
 .alertas-icone-jira {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     object-fit: contain;
     flex: 0 0 auto;
 }
@@ -409,7 +409,7 @@
     border: 0;
     background: none;
     color: var(--alertas-critico);
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
@@ -450,7 +450,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 15px;
+    font-size: 16px;
 }
 
 .alertas-abas {
@@ -470,7 +470,7 @@
     border-radius: 999px;
     background-color: transparent;
     color: var(--alertas-texto-suave);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -492,7 +492,7 @@
     gap: 14px;
     margin-bottom: 10px;
     color: var(--alertas-texto-suave);
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .alertas-cor {
@@ -516,6 +516,7 @@
 .alertas-grafico-vazio {
     padding: 48px 16px;
     color: var(--alertas-texto-suave);
+    font-size: 16px;
     text-align: center;
 }
 
@@ -526,7 +527,7 @@
     gap: 6px 18px;
     margin: 12px 0 0;
     color: #5b5f6b;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .alertas-grafico-aviso[hidden] {
@@ -553,7 +554,7 @@
 .alertas-lateral-dica {
     margin-bottom: 12px;
     color: var(--alertas-texto-suave);
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .alertas-lateral-lista {
@@ -590,7 +591,7 @@
 }
 
 .alertas-lateral-nome {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 600;
 }
 
@@ -602,7 +603,7 @@
     border-radius: 999px;
     background-color: #fff;
     color: var(--alertas-texto-suave);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -631,7 +632,7 @@
     border-radius: 999px;
     background-color: #fff;
     color: var(--alertas-texto-suave);
-    font-size: 15px;
+    font-size: 16px;
     white-space: nowrap;
 }
 
@@ -666,6 +667,7 @@
 .alertas-vazio {
     padding: 32px 16px;
     color: var(--alertas-texto-suave);
+    font-size: 16px;
     text-align: center;
 }
 
@@ -717,11 +719,21 @@
     }
 
     .alertas-cartao-valor {
-        font-size: 28px;
+        font-size: 30px;
     }
 
     .alertas-atualizado {
         display: none;
+    }
+
+    .alertas-botao-chamado,
+    .alertas-link-perfil {
+        font-size: 16px;
+    }
+
+    .alertas-icone-jira {
+        width: 18px;
+        height: 18px;
     }
 }
 /* Garante que o card do gráfico nunca estoure a coluna do grid */

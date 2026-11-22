@@ -86,6 +86,7 @@
             // vez de reaproveitar o resumo.resumo/resumo.acoes do agregado.
             resumo: null,
             acoes: null,
+            riscos: (resumo.riscos ?? []).filter(risco => risco.nome_perfil === perfil.nome),
             sinaisExternos: resumo.sinaisExternos,
             evolucao: filtrarEvolucaoPorPerfil(resumo.evolucao, perfil.nome),
             evolucaoLegenda: perfil.evolucaoLegenda ?? resumo.evolucaoLegenda
@@ -107,6 +108,7 @@
         mostrarPerfis(resumo.perfis, resumo.sinaisExternos);
         mostrarSinaisExternos(resumo.sinaisExternos);
         mostrarGraficoEvolucao(resumo);
+        mostrarRiscos(resumo.riscos ?? []);
 
         alternarSecaoResumo(resumo.resumo !== null);
         if (resumo.resumo !== null) {
@@ -133,7 +135,7 @@
             console.error("Erro ao carregar o resumo geral, usando dados mocados:", erro.message);
             ultimoResumo = {
                 estado: dado.estado, cobertura: dado.cobertura, indicadores: dado.indicadores, perfis: dado.perfis,
-                resumo: dado.resumo, acoes: dado.acoes,
+                resumo: dado.resumo, acoes: dado.acoes, riscos: dado.riscos,
                 evolucao: dado.evolucao, evolucaoLegenda: dado.evolucaoLegenda
             };
         }
@@ -220,9 +222,15 @@
         }));
     }
 
-    function mostrarRiscos() {
+    function mostrarRiscos(riscos) {
         const lista = document.getElementById("lista-riscos");
-        lista.replaceChildren(...dado.riscos.map(risco => {
+
+        if (riscos.length === 0) {
+            lista.innerHTML = `<p class="geral-sem-riscos">Nenhum risco em acompanhamento no momento.</p>`;
+            return;
+        }
+
+        lista.replaceChildren(...riscos.map(risco => {
             const item = document.createElement("div");
             item.className = "geral-risco";
             item.innerHTML = `
@@ -316,7 +324,6 @@
 
     configurarFiltroPerfil();
     carregarDadosReais();
-    mostrarRiscos();
     configurarExportar();
     configurarAssistente();
 })();

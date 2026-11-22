@@ -233,6 +233,21 @@ function criarElemento(tag, classe, texto) {
     return el;
 }
 
+function criarIconeJira() {
+    const icone = document.createElement('img');
+    icone.className = 'alertas-icone-jira';
+    icone.src = '../assets/icons/jira.png';
+    icone.alt = '';
+    icone.setAttribute('aria-hidden', 'true');
+    return icone;
+}
+
+function definirTextoBotaoChamado(link, texto) {
+    const icone = link.querySelector('.alertas-icone-jira');
+    link.textContent = texto;
+    if (icone) link.prepend(icone);
+}
+
 function criarSvg(tag, atributos = {}) {
     const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
     Object.entries(atributos).forEach(([k, v]) => el.setAttribute(k, String(v)));
@@ -336,6 +351,7 @@ function criarLinhaServidor(servidor) {
     const celulaAcoes = criarElemento('td', 'alertas-acoes');
     const rotuloChamado = servidor.chamado?.chave ? `Chamado ${servidor.chamado.chave}` : 'Acessar o chamado';
     const botaoChamado = criarElemento('a', 'alertas-botao-chamado', rotuloChamado);
+    botaoChamado.prepend(criarIconeJira());
     botaoChamado.href = servidor.chamado?.url || '#';
     if (servidor.chamado?.url) {
         botaoChamado.target = '_blank';
@@ -634,7 +650,7 @@ async function tratarCliqueChamado(link, servidor) {
         return;
     }
     const textoOriginal = link.textContent;
-    link.textContent = 'Buscando chamado...';
+    definirTextoBotaoChamado(link, 'Buscando chamado...');
     try {
         const resp = await fetch('/alertas/chamado', {
             method: 'POST',
@@ -651,15 +667,15 @@ async function tratarCliqueChamado(link, servidor) {
         if (dados.url) {
             servidor.chamado = dados;
             link.href = dados.url;
-            link.textContent = `Chamado ${dados.chave}`;
+            definirTextoBotaoChamado(link, `Chamado ${dados.chave}`);
             window.open(dados.url, '_blank', 'noopener,noreferrer');
         } else {
-            link.textContent = textoOriginal;
+            definirTextoBotaoChamado(link, textoOriginal);
             alert('Integração com o Jira ainda não configurada no servidor.');
         }
     } catch (erro) {
         console.error(erro);
-        link.textContent = textoOriginal;
+        definirTextoBotaoChamado(link, textoOriginal);
         alert('Não foi possível acessar ou abrir o chamado no Jira.');
     }
 }

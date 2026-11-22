@@ -379,6 +379,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     min-height: 38px;
     padding: 0 16px;
     border: 1px solid #b9c0cc;
@@ -394,6 +395,13 @@
 .alertas-botao-chamado:hover {
     border-color: #8f97a5;
     background-color: #f4f5f7;
+}
+
+.alertas-icone-jira {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex: 0 0 auto;
 }
 
 .alertas-link-perfil {

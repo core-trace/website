@@ -53,13 +53,6 @@ function minutosSemDados(servidor) {
     return ref >= ult ? ref - ult : (24 * 60 - ult) + ref;
 }
 
-function formatarDuracao(minutos) {
-    if (minutos < 60) return `${minutos} min`;
-    const horas = Math.floor(minutos / 60);
-    const resto = minutos % 60;
-    return resto ? `${horas}h ${resto}min` : `${horas}h`;
-}
-
 function servidoresDoPerfil(perfil, servidores = estado.servidores) {
     if (!perfil || perfil === 'todos') return servidores;
     return servidores.filter((s) => s.perfil === perfil);
@@ -159,19 +152,6 @@ function contarNormais(servidores) { return contarSituacao(servidores, 'normal')
 function contarSemDados(servidores) { return contarSituacao(servidores, 'semdados'); }
 function contarEmAlerta(servidores) { return contarCriticos(servidores) + contarAtencao(servidores) + contarSemDados(servidores); }
 
-function maiorTempoEmCritico(servidores) {
-    const criticos = servidores.filter((s) => s.status === 'critico');
-    if (!criticos.length) return { servidor: null, minutos: 0 };
-    const maior = criticos.reduce((a, b) => (minutosEmAlerta(a) >= minutosEmAlerta(b) ? a : b));
-    return { servidor: maior, minutos: minutosEmAlerta(maior) };
-}
-
-function tempoMedioEmAlerta(servidores) {
-    const emAlerta = servidoresEmAlerta(servidores);
-    if (!emAlerta.length) return 0;
-    return Math.round(emAlerta.reduce((soma, s) => soma + minutosEmAlerta(s), 0) / emAlerta.length);
-}
-
 function ordenarPorCriticidade(servidores) {
     const peso = { critico: 0, atencao: 1, semdados: 2, normal: 3 };
     return [...servidores].sort((a, b) => (
@@ -215,15 +195,14 @@ function formatarValorComUnidade(valor, unidade) {
 }
 
 function descricaoDoServidor(servidor) {
-    const duracao = formatarDuracao(minutosEmAlerta(servidor));
-    if (servidor.status === 'critico') return `desde ${servidor.desde} · ${duracao} em alerta crítico`;
-    if (servidor.status === 'atencao') return `desde ${servidor.desde} · ${duracao} em atenção`;
     if (servidor.status === 'semdados') {
         return servidor.ultimaColeta
             ? `último dado ${ultimaColetaDe(servidor)} · sem dados há ${minutosSemDados(servidor)} min`
             : 'nenhuma coleta registrada hoje';
     }
-    return `última coleta às ${ultimaColetaDe(servidor)}`;
+    if (servidor.status === 'normal') return `última coleta às ${ultimaColetaDe(servidor)}`;
+    // Critico e atencao ja estao no selo: nao repetir o tempo em alerta na linha.
+    return '';
 }
 
 function criarElemento(tag, classe, texto) {
@@ -263,16 +242,11 @@ function criarSvgTexto(x, y, conteudo, atributos = {}) {
 function desenharCards() {
     const container = document.getElementById('alertas-resumo');
     const escopo = servidoresDoPerfil(estado.perfilAtual);
-    const emPerfil = estado.perfilAtual !== 'todos';
-    const maior = maiorTempoEmCritico(escopo);
 
     const cartoes = [
         { rotulo: 'Críticos', valor: String(contarCriticos(escopo)), cor: 'critico', legenda: 'servidores' },
         { rotulo: 'Atenção', valor: String(contarAtencao(escopo)), cor: 'atencao', legenda: 'servidores em atenção' },
         { rotulo: 'Sem envio de dados', valor: String(contarSemDados(escopo)), cor: 'semdados', legenda: 'servidores sem coleta' },
-        emPerfil
-            ? { rotulo: 'Maior tempo em crítico', valor: `${maior.minutos} min`, cor: 'critico', legenda: maior.servidor ? maior.servidor.nome : 'sem servidores críticos' }
-            : { rotulo: 'Tempo médio em alerta', valor: `${tempoMedioEmAlerta(escopo)} min`, cor: 'critico', legenda: 'por servidor em alerta' },
         { rotulo: 'Normal', valor: String(contarNormais(escopo)), cor: 'normal', legenda: 'servidores' }
     ];
 
@@ -329,7 +303,8 @@ function criarLinhaServidor(servidor) {
 
     const celulaSituacao = criarElemento('td');
     celulaSituacao.append(criarElemento('span', `alertas-badge ${servidor.status}`, TEXTO_SITUACAO[servidor.status]));
-    celulaSituacao.append(criarElemento('p', 'alertas-desde', descricaoDoServidor(servidor)));
+    const descricao = descricaoDoServidor(servidor);
+    if (descricao) celulaSituacao.append(criarElemento('p', 'alertas-descricao', descricao));
 
     const celulaMetricas = criarElemento('td');
     const metricas = criarElemento('div', 'alertas-metricas');

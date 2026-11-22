@@ -343,7 +343,7 @@
     color: #5b5f6b;
 }
 
-.alertas-desde {
+.alertas-descricao {
     margin-top: 6px;
     color: var(--alertas-texto-suave);
     font-size: 15px;

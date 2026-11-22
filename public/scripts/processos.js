@@ -7,6 +7,15 @@
         return;
     }
 
+    // Mesma paleta semântica da tela de alertas (alertas.css).
+    const CORES = {
+        critico: "#cc0301",
+        atencao: "#e2891b",
+        normal: "#2f9e6e",
+        textoSuave: "#4b4350",
+        grade: "#e6e9ef"
+    };
+
     const state = {
         mac: null,
         inicio: null,
@@ -205,7 +214,7 @@
         const pontos = (dadosSerie.pontos || []).filter((p) => p && p.v != null);
         const labels = pontos.map((p) => fmtHoraLabel(p.t));
         const valores = pontos.map((p) => p.v);
-        const cor = tipo === "cpu" ? "#e35d6a" : "#4a90e2";
+        const cor = tipo === "cpu" ? CORES.critico : CORES.normal;
         const limAt = limites && limites.atencao != null ? limites.atencao : null;
         const limCr = limites && limites.critico != null ? limites.critico : null;
 
@@ -224,7 +233,7 @@
             datasets.push({
                 label: "Atenção",
                 data: valores.map(() => limAt),
-                borderColor: "#f0ad4e",
+                borderColor: CORES.atencao,
                 borderDash: [6, 4],
                 borderWidth: 1.5,
                 pointRadius: 0,
@@ -235,7 +244,7 @@
             datasets.push({
                 label: "Crítico",
                 data: valores.map(() => limCr),
-                borderColor: "#d9534f",
+                borderColor: CORES.critico,
                 borderDash: [6, 4],
                 borderWidth: 1.5,
                 pointRadius: 0,
@@ -249,10 +258,19 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                color: CORES.textoSuave,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { ticks: { maxTicksLimit: 6 } },
-                    y: { beginAtZero: true, suggestedMax: tipo === "cpu" ? 100 : undefined }
+                    x: {
+                        ticks: { maxTicksLimit: 6, color: CORES.textoSuave },
+                        grid: { color: CORES.grade }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: tipo === "cpu" ? 100 : undefined,
+                        ticks: { color: CORES.textoSuave },
+                        grid: { color: CORES.grade }
+                    }
                 }
             }
         });

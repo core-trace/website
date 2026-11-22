@@ -580,12 +580,16 @@ function atualizarAbas() {
 }
 
 function limparSecaoPerfil() {
-    ['alertas-legend', 'alertas-grafico-area', 'alertas-lateral-lista', 'alertas-grafico-aviso'].forEach((id) => { document.getElementById(id).innerHTML = ''; });
+    ['alertas-legend', 'alertas-grafico-area', 'alertas-lateral-lista', 'alertas-grafico-aviso', 'alertas-abas'].forEach((id) => { document.getElementById(id).innerHTML = ''; });
     document.getElementById('alertas-grafico-aviso').hidden = true;
     ['alertas-selo-grafico', 'alertas-resumo-grafico', 'alertas-selo-lateral', 'alertas-resumo-lateral'].forEach((id) => { document.getElementById(id).textContent = ''; });
 }
 
 function atualizarTudo() {
+    // Um servidor pode ter saido da resposta porque todos os chamados foram concluidos.
+    const idsDisponiveis = new Set(estado.servidores.map((s) => s.id));
+    estado.servidoresSelecionados = estado.servidoresSelecionados.filter((id) => idsDisponiveis.has(id));
+
     const emPerfil = estado.perfilAtual !== 'todos';
     document.getElementById('alertas-painel-geral').hidden = emPerfil;
     document.getElementById('alertas-painel-perfil').hidden = !emPerfil;

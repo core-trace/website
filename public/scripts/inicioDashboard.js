@@ -291,12 +291,28 @@
             botao.setAttribute("aria-expanded", "true");
         }
 
+        // pergunta pro gemini de verdade, com o texto fixo do mock so se der erro
+        async function responderPerguntaReal(perguntaTexto, respostaFallback) {
+            mostrarResposta("Pensando...");
+            try {
+                const resposta = await fetch("/api/assistente/responder", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ pergunta: perguntaTexto })
+                });
+                const dado = await resposta.json();
+                mostrarResposta(dado.resposta ?? respostaFallback);
+            } catch {
+                mostrarResposta(respostaFallback);
+            }
+        }
+
         lista.replaceChildren(...dado.perguntasProntas.map(item => {
             const li = document.createElement("li");
             const perguntaBotao = document.createElement("button");
             perguntaBotao.type = "button";
             perguntaBotao.textContent = item.pergunta;
-            perguntaBotao.addEventListener("click", () => mostrarResposta(item.resposta));
+            perguntaBotao.addEventListener("click", () => responderPerguntaReal(item.pergunta, item.resposta));
             li.append(perguntaBotao);
             return li;
         }));
@@ -308,8 +324,8 @@
         });
 
         document.getElementById("botao-pergunta-evolucao").addEventListener("click", () => {
-            const pergunta = dado.perguntasProntas.find(item => item.pergunta === "O que mudou às 20h05?");
-            if (pergunta) mostrarResposta(pergunta.resposta);
+            const pergunta = dado.perguntasProntas.find(item => item.pergunta === "O que mudou recentemente?");
+            if (pergunta) responderPerguntaReal(pergunta.pergunta, pergunta.resposta);
         });
     }
 

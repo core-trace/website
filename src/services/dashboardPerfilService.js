@@ -16,7 +16,8 @@ function horarioDaCaptura(texto) {
 
 // vê se esta ativo ou inativo o servidor
 function estaAtivo(ultima, referencia) {
-    return ultima !== null && referencia - ultima < TEMPO_INATIVO;
+    return Number.isFinite(ultima) && Number.isFinite(referencia) &&
+        referencia >= ultima && referencia - ultima < TEMPO_INATIVO;
 }
 // recebe o horario mas volta so a data 
 function dataSaoPaulo(horario) {
@@ -123,7 +124,7 @@ async function lerServidor(servidor, agora, referencia) {
                     if (horario > agora) continue;
                     //ve se aquele é a captura mais nova
                     if (ultimaAtual === null || horario > ultimaAtual) ultimaAtual = horario;
-                    4//procura a captura mais recente ate o horario de referencia
+                    //procura a captura mais recente ate o horario de referencia
                     if (horario <= referencia && (ultimaHistorica === null || horario > ultimaHistorica)) ultimaHistorica = horario;
                     if (campo === "metricas" && (horarioMetrica === null || horario > horarioMetrica ||
                         (horario === horarioMetrica && String(captura.id_captura) > String(ultimaMetrica.id_captura)))) {

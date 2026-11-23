@@ -512,15 +512,11 @@
 .pagina-perfis .custos.sem-custos .grafico-custos { height: 100px; }
 .pagina-perfis .custos.sem-custos .custos-legenda { display: none; }
 
-.pagina-perfis .custos-atualizacao {
-    margin-top: 12px;
-    color: var(--perfis-texto-secundario);
-    font-size: 11px;
-    line-height: 1.5;
-}
 
 @media (max-width: 480px) {
     .pagina-perfis .custos-indicadores { gap: 10px; }
     .pagina-perfis .custos-indicadores > div { padding: 10px; }
     .pagina-perfis .custos-indicadores strong { font-size: 18px; }
 }
+
+

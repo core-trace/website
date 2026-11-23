@@ -196,13 +196,13 @@ function atualizarGraficoServidores() {
 }
 
 const filtroCustos = document.getElementById("perfil-custos");
-let moedaCustos = "USD";
+let moedaCustos = "BRL";
 const graficoCustos = new Chart(document.getElementById("grafico-custos-perfil"), {
     type: "bar",
     data: {
         labels: [],
         datasets: [
-            { label: "Acumulado", data: [], backgroundColor: "#cc0301", borderRadius: 2, stack: "custos" },
+            { label: "Estimado", data: [], backgroundColor: "#cc0301", borderRadius: 2, stack: "custos" },
             { label: "Projetado", data: [], backgroundColor: "#d9dce2", borderRadius: 2, stack: "custos" }
         ]
     },
@@ -227,10 +227,9 @@ function formatarCusto(valor) {
     return valor.toLocaleString("pt-BR", { style: "currency", currency: moedaCustos });
 }
 
-// O navegador só mostra os valores e a projeção que vierem prontos da Gold.
+// O navegador só mostra os valores e a projeção que vierem prontos do backend.
 function atualizarCustos() {
     const vazio = document.getElementById("custos-vazios");
-    const nota = document.getElementById("custos-atualizacao");
     const nomes = [];
     const realizados = [];
     const projetados = [];
@@ -240,13 +239,12 @@ function atualizarCustos() {
     document.getElementById("custo-periodo-previsto").textContent = "Até o último dia do mês";
     vazio.hidden = false;
     vazio.textContent = "Custos ainda não disponíveis.";
-    nota.textContent = "Aguardando a divisão do custo entre os perfis.";
 
     for (const perfil of perfisDashboard) {
         if (String(perfil.id) !== filtroCustos.value) continue;
         const custos = perfil.custos;
         if (!custos) break;
-        // A moeda deve vir da cobrança; não convertemos dólares em reais por conta própria.
+        // A estimativa usa a moeda do preço consultado, sem conversão automática.
         if (!/^[A-Z]{3}$/.test(custos.moeda || "")) break;
         moedaCustos = custos.moeda;
         document.getElementById("custo-atual").textContent = formatarCusto(custos.gastoAteAgora);
@@ -264,11 +262,6 @@ function atualizarCustos() {
             if (realizados[i] !== null) projetados[i] = null;
         }
         vazio.hidden = realizados.concat(projetados).some(valor => valor !== null);
-        nota.textContent = "Estimativa do perfil na instância compartilhada.";
-        if (typeof custos.atualizadoEm === "string") {
-            const data = new Date(custos.atualizadoEm);
-            if (Number.isFinite(data.getTime())) nota.textContent += " Atualizado em " + data.toLocaleString("pt-BR") + ".";
-        }
         break;
     }
     if (perfisDashboard.length === 0) vazio.textContent = "Nenhum perfil disponível.";

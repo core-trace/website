@@ -115,7 +115,7 @@ async function buscarPaginas(loteEtiquetas, configuracao) {
                 "Accept": "application/json",
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(corso)
+            body: JSON.stringify(corpo)
         });
 
         if (!resposta.ok) {

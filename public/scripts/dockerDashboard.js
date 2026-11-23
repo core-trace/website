@@ -329,6 +329,25 @@
         return houveLog && (!desconhecidos || resultado > 0) ? resultado : null;
     }
 
+    function identificarPicosHorarios(lista, referencia, lerMedida) {
+        const picos = new Map();
+        for (const doc of lista) {
+            const container = containerNoDia(doc, referencia);
+            const maximo = D.numero(container ? lerMedida(container)?.maximo : null);
+            if (maximo === null) continue;
+
+            const inicio = D.instante(container.primeira_observacao);
+            const fim = D.instante(container.ultima_observacao);
+            const ordem = inicio || D.instante(doc.intervalo.inicio);
+            const dia = D.diaSaoPaulo(ordem);
+            const anterior = picos.get(dia);
+            if (!anterior || maximo > anterior.maximo || (maximo === anterior.maximo && ordem < anterior.ordem)) {
+                picos.set(dia, { maximo, ordem, inicio, fim });
+            }
+        }
+        return picos;
+    }
+
     function criarPontosDiarios(lista, referencia, ler) {
         return lista.map((doc) => {
             const c = containerNoDia(doc, referencia);
@@ -622,9 +641,49 @@
     }
 
     function grafico(titulo, subtitulo, destaque, referencia, series, unidade, porcentagem = false, lerMedidaReferencia = null, opcoes = {}) {
+        if (periodoDias > 1 && lerMedidaReferencia) {
+            subtitulo = "Média e faixa entre mínimo e máximo de cada dia";
+            series = [
+                series[0],
+                { nome: "Mínimo diário", cor: "#706b6d", ler: (c) => lerMedidaReferencia(c)?.minimo },
+                { ...series[1], nome: "Faixa mínima–máxima", cor: "#e49b26" }
+            ];
+        }
+        const faixaHoraria = periodoDias === 1 && lerMedidaReferencia;
+        const faixa = Boolean(lerMedidaReferencia);
+        const barrasDiarias = periodoDias > 1 && opcoes.barras;
         if (periodoDias === 1) {
             subtitulo = subtitulo.replaceAll("cada dia", "cada hora").replaceAll("dias consecutivos", "horas consecutivas");
             series = series.map((serie) => ({ ...serie, nome: serie.nome.replace("diária", "horária").replace("diário", "horário") }));
+        }
+        if (faixaHoraria) {
+            subtitulo = "Média e faixa entre mínimo e máximo de cada hora";
+            series = [
+                series[0],
+                { nome: "Mínimo horário", ler: (c) => lerMedidaReferencia(c)?.minimo },
+                { ...series[1], nome: "Faixa mínima–máxima" }
+            ];
+        }
+        if (faixa) {
+            let somaPonderada = 0;
+            let amostrasValidas = 0;
+            let pico = null;
+            for (const doc of historicoAtivo) {
+                const container = containerNoDia(doc, referencia);
+                const medida = container ? lerMedidaReferencia(container) : null;
+                const media = D.numero(medida?.media);
+                const amostras = D.numero(medida?.amostras_validas);
+                const maximo = D.numero(medida?.maximo);
+                if (media !== null && amostras > 0) {
+                    somaPonderada += media * amostras;
+                    amostrasValidas += amostras;
+                }
+                if (maximo !== null && (pico === null || maximo > pico)) pico = maximo;
+            }
+            const mediaGeral = amostrasValidas ? somaPonderada / amostrasValidas : null;
+            const rotuloMedia = porcentagem ? "Média" : "Média geral";
+            const rotuloPico = porcentagem ? "Pico" : "Máximo dos resumos";
+            destaque = `${rotuloMedia}: ${n(mediaGeral, unidade)} · ${rotuloPico}: ${n(pico, unidade)}`;
         }
         const artigo = adicionarTexto($("docker-graficos"), "article", "", "docker-card docker-grafico-card");
         const topo = adicionarTexto(artigo, "div", "", "docker-grafico-topo");
@@ -647,6 +706,26 @@
             pointHoverRadius: 5,
             spanGaps: false
         }));
+        if (faixa) {
+            const [, minimo, maximo] = conjuntos;
+            const estiloFaixa = { borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, order: 1, backgroundColor: "#e49b2650" };
+            Object.assign(minimo, estiloFaixa);
+            Object.assign(maximo, estiloFaixa, { fill: "-1" });
+        }
+        if (opcoes.barras) {
+            const [tempoLimitado] = conjuntos;
+            tempoLimitado.type = "bar";
+            tempoLimitado.order = 1;
+            if (barrasDiarias) {
+                // Mantém o zero visível e deixa os intervalos sem leitura sem barra.
+                tempoLimitado.minBarLength = 2;
+            } else {
+                // Centraliza a barra no intervalo que ela representa.
+                tempoLimitado.data = tempoLimitado.data.map((ponto) => ({
+                    ...ponto, x: ponto.y === null ? ponto.x : (Date.parse(ponto.inicio) + ponto.x) / 2
+                }));
+            }
+        }
         const temMedicoes = conjuntos.some((serie) => serie.data.some((ponto) => ponto.y !== null));
         if (lerMedidaReferencia) {
             const mediaHistorica = calcularMediaHistorica(historicoAtivo, referencia, lerMedidaReferencia);
@@ -661,6 +740,9 @@
         if (!temMedicoes) {
             criarGraficoVazio(artigo, opcoes.intervalos ? "Sem pares de leituras válidas e contínuas no período. Ausência de dados não significa consumo zero." : "Nenhum resumo do período contém essa métrica.");
             return artigo;
+        }
+        if (periodoDias > 1 && conjuntos.some((serie) => serie.data.some((ponto) => ponto.y === null))) {
+            adicionarTexto(artigo, "p", "Lacunas indicam leituras indisponíveis. O zero é exibido quando medido.", "docker-grafico-observacao");
         }
         if (!window.Chart) {
             criarGraficoVazio(artigo, "A biblioteca Chart.js não foi carregada.");
@@ -678,6 +760,11 @@
             timeZone: "UTC", day: "2-digit", month: "2-digit"
         });
         const horario = periodoDias === 1;
+        const picosHorarios = !horario && faixa
+            ? identificarPicosHorarios(historicoHorario, referencia, lerMedidaReferencia) : null;
+        const formatoHoraPico = picosHorarios && new Intl.DateTimeFormat("pt-BR", {
+            timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+        });
         const fimEixo = instanteResumo(historicoAtivo.at(-1));
         const inicioEixo = horario ? fimEixo - 86400000 : instanteResumo(historicoAtivo[0]);
         // Evita o arredondamento decimal de timestamps da escala linear.
@@ -695,25 +782,68 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 parsing: false,
-                interaction: { mode: "nearest", intersect: false },
+                interaction: { mode: barrasDiarias ? "x" : (faixa || !horario ? "index" : "nearest"), intersect: false, ...(faixa ? { axis: "x" } : {}) },
                 plugins: {
-                    legend: { display: true, position: "bottom", align: "start", labels: { boxWidth: 14, boxHeight: 2, color: "#555056", font: { size: 14 }, padding: 16 } },
+                    legend: {
+                        display: true, position: "bottom", align: "start",
+                        labels: {
+                            boxWidth: 14, boxHeight: 2, color: "#555056", font: { size: 14 }, padding: 16,
+                            ...(faixa ? { filter: (item) => item.datasetIndex !== 1 } : {})
+                        },
+                        ...(faixa ? {
+                            onClick(evento, item, legenda) {
+                                if (item.datasetIndex === 2) legenda.chart.setDatasetVisibility(1, item.hidden);
+                                window.Chart.defaults.plugins.legend.onClick(evento, item, legenda);
+                            }
+                        } : {})
+                    },
                     tooltip: {
+                        ...(barrasDiarias ? { filter: (item) => item.parsed.y !== null } : {}),
+                        ...(faixa ? {
+                            itemSort: (a, b) => [1, 0, 2, 3][a.datasetIndex] - [1, 0, 2, 3][b.datasetIndex]
+                        } : {}),
                         callbacks: {
+                            ...(picosHorarios ? {
+                                afterBody(itens) {
+                                    if (!itens.length) return "";
+                                    const dia = historicoAtivo[itens[0].dataIndex].data;
+                                    const pico = picosHorarios.get(dia);
+                                    if (!pico?.inicio || !pico.fim || pico.fim < pico.inicio) return "Horário indisponível";
+                                    return `Intervalo do pico: ${formatoHoraPico.format(pico.inicio)}–${formatoHoraPico.format(pico.fim)}`;
+                                }
+                            } : {}),
                             title: (itens) => {
                                 if (!itens.length) return "";
+                                if (faixaHoraria) {
+                                    const intervalo = historicoAtivo[itens[0].dataIndex]?.intervalo;
+                                    if (intervalo) return `${hora(intervalo.inicio)} → ${hora(intervalo.fim)}`;
+                                }
                                 const ponto = itens[0].raw;
+                                if (!horario) {
+                                    const data = historicoAtivo[itens[0].dataIndex].data.split("-").reverse().join("/");
+                                    return ponto?.inicioObservado
+                                        ? [data, `${formatoData.format(ponto.inicioObservado)} → ${formatoData.format(ponto.fimObservado)}`]
+                                        : data;
+                                }
+                                if (ponto?.inicioObservado) return `${formatoData.format(ponto.inicioObservado)} → ${formatoData.format(ponto.fimObservado)}`;
                                 return ponto?.inicio ? (periodoDias === 1 ? `${hora(ponto.inicio)} → ${hora(ponto.fim)}` : `${ponto.inicio.split("-").reverse().join("/")} → ${ponto.fim.split("-").reverse().join("/")}`) : formatarDia(itens[0].parsed.x);
                             },
-                            label: (item) => `${item.dataset.label}: ${n(item.parsed.y, unidade)}${item.dataset.referenciaHistorica || item.dataset.referenciaComparativa ? " (referência de comparação)" : ""}`
+                            label: (item) => {
+                                const nome = faixa && item.datasetIndex === 2
+                                    ? (horario ? "Máximo horário" : "Máximo diário") : item.dataset.label;
+                                const valor = !horario
+                                    ? item.parsed.y.toLocaleString("pt-BR", { maximumSignificantDigits: 21 }) + unidade
+                                    : n(item.parsed.y, unidade);
+                                return `${nome}: ${valor}${item.dataset.referenciaHistorica || item.dataset.referenciaComparativa ? " (referência de comparação)" : ""}`;
+                            }
                         }
                     }
                 },
                 scales: {
                     x: {
                         type: "linear",
-                        min: inicioEixo,
-                        max: fimEixo,
+                        min: barrasDiarias ? inicioEixo - 43200000 : inicioEixo,
+                        max: barrasDiarias ? fimEixo + 43200000 : fimEixo,
                         afterBuildTicks: (escala) => {
                             escala.ticks = marcasEixo.map((value) => ({ value }));
                         },
@@ -747,18 +877,42 @@
         return artigo;
     }
 
-    function graficoContadores(titulo, container, series, unidade, divisor, incluirZero = false) {
+    function graficoContadores(titulo, container, series, unidade, divisor, incluirZero = false, barras = false) {
         const intervalos = series.map((serie) => ({
             ...serie, pontos: criarPontosIntervalos(historicoAtivo, container, serie.ler, divisor)
         }));
-        const referencias = criarReferenciasIntervalos(historicoAtivo, intervalos, incluirZero);
+        if (periodoDias > 1) {
+            const medidas = intervalos.map((serie) => ({
+                ...serie, pontos: serie.pontos.map((ponto, indice) => {
+                    if (ponto.y === null) return ponto;
+                    const anterior = containerNoDia(historicoAtivo[indice - 1], container);
+                    const atual = containerNoDia(historicoAtivo[indice], container);
+                    const inicioObservado = D.instante(anterior.ultima_observacao);
+                    const fimObservado = D.instante(atual.ultima_observacao);
+                    const reiniciosAntes = anterior.restart_count;
+                    const reiniciosDepois = atual.restart_count;
+                    const reiniciosInformados = reiniciosAntes != null || reiniciosDepois != null;
+                    if (!inicioObservado || !fimObservado
+                        || (reiniciosInformados && (!Number.isInteger(reiniciosAntes) || reiniciosAntes < 0 || reiniciosAntes !== reiniciosDepois))) {
+                        return { x: ponto.x, y: null };
+                    }
+                    return { ...ponto, inicioObservado, fimObservado };
+                })
+            }));
+            const destaque = medidas.map((serie) => n(serie.pontos.at(-1)?.y, unidade)).join(" / ");
+            const tituloDiario = titulo.replace("por intervalo", "por dia") + (incluirZero ? " (s por dia)" : "");
+            grafico(tituloDiario, "Total observado entre leituras, por data final", destaque + " · último dia",
+                container, medidas, unidade, false, null, { intervalos: true, barras });
+            return;
+        }
+        const referencias = criarReferenciasIntervalos(historicoAtivo, intervalos, incluirZero && !barras);
         const historicas = referencias.filter((serie) => serie.referenciaHistorica);
         const nota = historicas.map((serie) => `${serie.label}: ${n(serie.data[0].y, unidade)} (${serie.intervalos} intervalos anteriores)`).join(" · ");
         const insuficientes = intervalos.filter((serie) => !calcularMediaIntervalos(serie.pontos)).map((serie) => serie.nome);
         const destaque = intervalos.map((serie) => n(serie.pontos.at(-1)?.y, unidade)).join(" / ") + " · último intervalo";
         grafico(titulo, "Diferenças entre leituras de dias consecutivos", destaque, container,
             intervalos, unidade, false, null, {
-                intervalos: true, referencias,
+                intervalos: true, referencias, barras,
                 nota: [nota ? nota + "." : "", insuficientes.length ? `Histórico insuficiente para referência: ${insuficientes.join(", ")}.` : "",
                     "Comparação por intervalo; exclui a última data do período. Lacunas e reinícios não são considerados zero."].filter(Boolean).join(" ")
             });
@@ -772,7 +926,7 @@
         graficosAtivos.forEach((chart) => chart.destroy());
         graficosAtivos = [];
         $("docker-graficos").replaceChildren();
-        document.querySelector(".docker-aviso-medicoes").textContent = "CPU, RAM e PIDs mostram medições diárias. Rede, disco e throttling mostram diferenças entre leituras de dias consecutivos, dentro do período. O primeiro dia e intervalos sem continuidade ficam sem valor. Referências são comparativas, sem limites de alerta.";
+        document.querySelector(".docker-aviso-medicoes").textContent = "Rede, disco e throttling mostram o total observado desde a última leitura do dia anterior, na data da leitura final. Os horários aparecem ao passar o mouse. Os resumos não permitem calcular totais exatos de meia-noite a meia-noite. O primeiro dia, lacunas, reinícios e resets detectados ficam sem valor. Referências são comparativas, sem limites de alerta.";
         if (periodoDias === 1) document.querySelector(".docker-aviso-medicoes").textContent = "Cada ponto resume uma hora. Rede, disco e throttling mostram diferenças entre leituras horárias consecutivas. A primeira leitura, lacunas e reinícios ficam sem valor; não são tratados como zero. Horários em BRT.";
         grafico("CPU (%)", "Média e pico registrados em cada dia", n(c.cpu?.uso?.media, "%") + " média", c, [
             { nome: "Média diária", ler: (v) => v.cpu?.uso?.media },
@@ -796,7 +950,7 @@
         ], "", false, (v) => v.pids?.atuais);
         graficoContadores("CPU Throttling", c, [
             { nome: "Tempo limitado", ler: (v) => v.cpu?.tempo_throttled }
-        ], " s", 1e9, true);
+        ], " s", 1e9, true, true);
     }
 
     function renderizarLogs(c) {

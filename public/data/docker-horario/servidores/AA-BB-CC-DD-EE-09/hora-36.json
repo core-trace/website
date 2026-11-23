@@ -896,7 +896,38 @@
         }
       }
     ],
-    "eventos": [],
+    "eventos": [
+      {
+        "container_id": "sim-aabbccddee09-pay-api-04",
+        "nome": "pay-api-04-04",
+        "total": {
+          "metrica": null,
+          "unidade": "ocorrências",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 2,
+          "amostras_invalidas": 0,
+          "total_observado": 2
+        },
+        "acoes": {
+          "restart": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 1,
+            "amostras_invalidas": 0,
+            "total_observado": 1
+          },
+          "start": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 1,
+            "amostras_invalidas": 0,
+            "total_observado": 1
+          }
+        }
+      }
+    ],
     "inicio": "2026-11-29T13:00:00.000Z",
     "fim": "2026-11-29T14:00:00.000Z",
     "metodo_media": "aritmetica_das_amostras_validas"

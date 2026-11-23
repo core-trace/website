@@ -896,7 +896,30 @@
         }
       }
     ],
-    "eventos": [],
+    "eventos": [
+      {
+        "container_id": "sim-aabbccddee12-pay-api-04",
+        "nome": "pay-api-04-02",
+        "total": {
+          "metrica": null,
+          "unidade": "ocorrências",
+          "tipo": "eventos_intervalo",
+          "amostras_validas": 1,
+          "amostras_invalidas": 0,
+          "total_observado": 1
+        },
+        "acoes": {
+          "die": {
+            "metrica": null,
+            "unidade": "ocorrências",
+            "tipo": "eventos_intervalo",
+            "amostras_validas": 1,
+            "amostras_invalidas": 0,
+            "total_observado": 1
+          }
+        }
+      }
+    ],
     "inicio": "2026-11-29T12:00:00.000Z",
     "fim": "2026-11-29T13:00:00.000Z",
     "metodo_media": "aritmetica_das_amostras_validas"

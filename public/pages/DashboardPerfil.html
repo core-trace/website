@@ -94,8 +94,8 @@
                 <section class="painel custos sem-custos" aria-labelledby="titulo-custos">
                     <div class="cabecalho-painel">
                         <div>
-                            <h2 id="titulo-custos">Custo e previsão por perfil</h2>
-                            <p>Gasto acumulado e estimativa até o fim do mês</p>
+                            <h2 id="titulo-custos">Custo estimado por perfil</h2>
+                            <p>Estimativa mensal com preços públicos da AWS</p>
                         </div>
                         <label class="seletor-perfil">Perfil:
                             <select id="perfil-custos" aria-label="Perfil dos custos" disabled></select>
@@ -103,7 +103,7 @@
                     </div>
                     <div class="custos-indicadores">
                         <div>
-                            <span>Gasto até agora</span>
+                            <span>Estimativa até agora</span>
                             <strong id="custo-atual">—</strong>
                             <small id="custo-periodo-atual">Neste mês</small>
                         </div>
@@ -114,14 +114,13 @@
                         </div>
                     </div>
                     <div class="custos-legenda" aria-label="Legenda do gráfico">
-                        <span><i class="custo-cor-realizado" aria-hidden="true"></i>Acumulado</span>
+                        <span><i class="custo-cor-realizado" aria-hidden="true"></i>Estimado</span>
                         <span><i class="custo-cor-previsto" aria-hidden="true"></i>Projetado</span>
                     </div>
                     <div class="grafico-custos">
                         <canvas id="grafico-custos-perfil" role="img" aria-label="Custo acumulado e projeção mensal do perfil selecionado"></canvas>
                         <p id="custos-vazios" class="custos-vazios" role="status">Custos ainda não disponíveis.</p>
                     </div>
-                    <p class="custos-atualizacao" id="custos-atualizacao">Aguardando a divisão do custo entre os perfis.</p>
                 </section>
                 <section class="painel limites">
                     <div class="cabecalho-painel">

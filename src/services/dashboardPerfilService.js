@@ -16,7 +16,8 @@ function horarioDaCaptura(texto) {
 
 // vê se esta ativo ou inativo o servidor
 function estaAtivo(ultima, referencia) {
-    return ultima !== null && referencia - ultima < TEMPO_INATIVO;
+    return Number.isFinite(ultima) && Number.isFinite(referencia) &&
+        referencia >= ultima && referencia - ultima < TEMPO_INATIVO;
 }
 // recebe o horario mas volta so a data 
 function dataSaoPaulo(horario) {
@@ -123,7 +124,7 @@ async function lerServidor(servidor, agora, referencia) {
                     if (horario > agora) continue;
                     //ve se aquele é a captura mais nova
                     if (ultimaAtual === null || horario > ultimaAtual) ultimaAtual = horario;
-                    4//procura a captura mais recente ate o horario de referencia
+                    //procura a captura mais recente ate o horario de referencia
                     if (horario <= referencia && (ultimaHistorica === null || horario > ultimaHistorica)) ultimaHistorica = horario;
                     if (campo === "metricas" && (horarioMetrica === null || horario > horarioMetrica ||
                         (horario === horarioMetrica && String(captura.id_captura) > String(ultimaMetrica.id_captura)))) {
@@ -144,6 +145,20 @@ async function montarDashboard(cadastros, servidores, minutos) {
     const referencia = agora - minutos * 60000;
     const perfis = [];
     const historico = [];
+    // Busca até quatro servidores ao mesmo tempo para diminuir a espera pelo S3.
+    const leituras = new Map();
+    const servidoresDosPerfis = servidores.filter(servidor => cadastros.some(
+        perfil => String(perfil.id_perfil_servidor) === String(servidor.id_perfil_servidor)
+    ));
+    for (let inicio = 0; inicio < servidoresDosPerfis.length; inicio += 4) {
+        const grupo = servidoresDosPerfis.slice(inicio, inicio + 4);
+        const resultados = await Promise.allSettled(
+            grupo.map(servidor => lerServidor(servidor, agora, referencia))
+        );
+        for (let indice = 0; indice < grupo.length; indice++) {
+            leituras.set(grupo[indice], resultados[indice]);
+        }
+    }
     let disponivel = true;
     for (const cadastro of cadastros) {
         const perfil = {
@@ -156,7 +171,9 @@ async function montarDashboard(cadastros, servidores, minutos) {
             // so continua quandoo servidor pertence  ao perfil que esta sendo analisado
             if (String(servidor.id_perfil_servidor) !== String(perfil.id)) continue;
             try {
-                const leitura = await lerServidor(servidor, agora, referencia);
+                const resultado = leituras.get(servidor);
+                if (resultado.status === "rejected") throw resultado.reason;
+                const leitura = resultado.value;
                 const ativo = estaAtivo(leitura.ultimaAtual, agora);
                 if (ativo && perfil.ativos !== null) perfil.ativos++;
                 if (!ativo && perfil.inativos !== null) perfil.inativos++;

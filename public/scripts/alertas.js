@@ -20,6 +20,7 @@ async function obterServidoresEmAlerta() {
 
     const dados = await resposta.json();
     HORA_ATUALIZACAO = dados.horaAtualizacao || HORA_ATUALIZACAO;
+    estado.resolucaoChamados = dados.resolucaoChamados || null;
     return dados.servidores || [];
 }
 
@@ -30,7 +31,7 @@ function mostrarMensagem(texto, papel = 'status') {
     mensagem.setAttribute('role', papel);
 }
 
-const estado = { perfilAtual: 'todos', metricaAtual: '', servidoresSelecionados: [], servidores: [] };
+const estado = { perfilAtual: 'todos', metricaAtual: '', servidoresSelecionados: [], servidores: [], resolucaoChamados: null };
 
 function minutosDaHora(hora) {
     if (!hora || !hora.includes(':')) return 0;
@@ -239,14 +240,34 @@ function criarSvgTexto(x, y, conteudo, atributos = {}) {
     return texto;
 }
 
+function resumoResolucaoAtual() {
+    const vazio = { texto: '—', quantidade: 0, vazio: true };
+    const dados = estado.resolucaoChamados;
+    if (!dados) return vazio;
+    if (estado.perfilAtual === 'todos') return dados.geral || vazio;
+
+    const servidor = estado.servidores.find((s) => s.perfil === estado.perfilAtual);
+    const idPerfil = servidor?.perfilId;
+    return (idPerfil !== undefined && idPerfil !== null && dados.porPerfil?.[String(idPerfil)]) || vazio;
+}
+
 function desenharCards() {
     const container = document.getElementById('alertas-resumo');
     const escopo = servidoresDoPerfil(estado.perfilAtual);
+    const resolucao = resumoResolucaoAtual();
 
     const cartoes = [
         { rotulo: 'Críticos', valor: String(contarCriticos(escopo)), cor: 'critico', legenda: 'servidores' },
         { rotulo: 'Atenção', valor: String(contarAtencao(escopo)), cor: 'atencao', legenda: 'servidores em atenção' },
         { rotulo: 'Sem envio de dados', valor: String(contarSemDados(escopo)), cor: 'semdados', legenda: 'servidores sem coleta' },
+        {
+            rotulo: 'Tempo médio de resolução de chamado',
+            valor: resolucao.texto,
+            cor: resolucao.vazio ? 'semdados' : 'normal',
+            legenda: resolucao.vazio
+                ? 'sem chamados concluídos'
+                : `${resolucao.quantidade} chamado${resolucao.quantidade === 1 ? '' : 's'} concluído${resolucao.quantidade === 1 ? '' : 's'}`
+        },
         { rotulo: 'Normal', valor: String(contarNormais(escopo)), cor: 'normal', legenda: 'servidores' }
     ];
 

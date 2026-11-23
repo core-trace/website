@@ -241,8 +241,61 @@ async function obterChamadosPorEmpresa(idEmpresa, servidoresBanco = []) {
     }
 }
 
+function formatarMinutos(minutos) {
+    if (!Number.isFinite(minutos) || minutos < 0) return "—";
+    const total = Math.round(minutos);
+    if (total < 60) return `${total} min`;
+    const horas = Math.floor(total / 60);
+    const resto = total % 60;
+    return resto ? `${horas}h ${resto}min` : `${horas}h`;
+}
+
+function duracaoMinutos(chamado) {
+    if (!chamado.concluido || !chamado.abertaEm || !chamado.concluidaEm) return null;
+
+    const inicio = Date.parse(chamado.abertaEm);
+    const fim = Date.parse(chamado.concluidaEm);
+    if (!Number.isFinite(inicio) || !Number.isFinite(fim) || fim < inicio) return null;
+
+    return (fim - inicio) / 60000;
+}
+
+function resumoDuracoes(duracoes) {
+    if (!duracoes.length) {
+        return { texto: "—", minutos: null, quantidade: 0, vazio: true };
+    }
+
+    const minutos = Math.round(duracoes.reduce((soma, atual) => soma + atual, 0) / duracoes.length);
+    return { texto: formatarMinutos(minutos), minutos, quantidade: duracoes.length, vazio: false };
+}
+
+// Geral considera todos os chamados concluidos ligados a servidores da empresa.
+// Por perfil, apenas os chamados dos servidores daquele perfil.
+function calcularResolucao(chamados = [], servidoresBanco = []) {
+    const concluidos = chamados.filter((chamado) => chamado.servidorId && duracaoMinutos(chamado) !== null);
+
+    const idsPerfis = [...new Set((servidoresBanco || [])
+        .map((servidor) => servidor.id_perfil_servidor ?? servidor.perfilId ?? null)
+        .filter((id) => id !== null && id !== undefined))];
+
+    const porPerfil = {};
+    idsPerfis.forEach((id) => {
+        porPerfil[String(id)] = resumoDuracoes(
+            concluidos
+                .filter((chamado) => String(chamado.perfilId) === String(id))
+                .map((chamado) => duracaoMinutos(chamado))
+        );
+    });
+
+    return {
+        geral: resumoDuracoes(concluidos.map((chamado) => duracaoMinutos(chamado))),
+        porPerfil
+    };
+}
+
 module.exports = {
     obterChamadosPorEmpresa,
+    calcularResolucao,
     gerarEtiquetaJira,
     normalizarMac,
     extrairMacDoTitulo,

@@ -258,6 +258,7 @@ function montarGradeTempo(agora) {
 async function obterAlertasServidores(idEmpresa, idUsuario) {
     const servidoresBanco = await servidorModel.listarServidoresPorEmpresa(idEmpresa, idUsuario);
     const chamados = await jiraChamadosService.obterChamadosPorEmpresa(idEmpresa, servidoresBanco);
+    const resolucaoChamados = jiraChamadosService.calcularResolucao(chamados.chamados, servidoresBanco);
     const agora = resumoGoldService.agoraOuReferenciaDemo();
     const horaAtualizacao = horaFormatada(agora);
     const hoje = dataHojeLocal();
@@ -415,7 +416,7 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
         };
     }));
 
-    return { horaAtualizacao, servidores: servidoresProcessados.filter(Boolean) };
+    return { horaAtualizacao, servidores: servidoresProcessados.filter(Boolean), resolucaoChamados };
 }
 
 module.exports = { obterAlertasServidores, abrirOuObterChamadoJira };

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1170.0",
+    "@google/genai": "^0.14.1",
     "archiver": "^7.0.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",

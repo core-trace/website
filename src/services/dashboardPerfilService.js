@@ -145,6 +145,20 @@ async function montarDashboard(cadastros, servidores, minutos) {
     const referencia = agora - minutos * 60000;
     const perfis = [];
     const historico = [];
+    // Busca até quatro servidores ao mesmo tempo para diminuir a espera pelo S3.
+    const leituras = new Map();
+    const servidoresDosPerfis = servidores.filter(servidor => cadastros.some(
+        perfil => String(perfil.id_perfil_servidor) === String(servidor.id_perfil_servidor)
+    ));
+    for (let inicio = 0; inicio < servidoresDosPerfis.length; inicio += 4) {
+        const grupo = servidoresDosPerfis.slice(inicio, inicio + 4);
+        const resultados = await Promise.allSettled(
+            grupo.map(servidor => lerServidor(servidor, agora, referencia))
+        );
+        for (let indice = 0; indice < grupo.length; indice++) {
+            leituras.set(grupo[indice], resultados[indice]);
+        }
+    }
     let disponivel = true;
     for (const cadastro of cadastros) {
         const perfil = {
@@ -157,7 +171,9 @@ async function montarDashboard(cadastros, servidores, minutos) {
             // so continua quandoo servidor pertence  ao perfil que esta sendo analisado
             if (String(servidor.id_perfil_servidor) !== String(perfil.id)) continue;
             try {
-                const leitura = await lerServidor(servidor, agora, referencia);
+                const resultado = leituras.get(servidor);
+                if (resultado.status === "rejected") throw resultado.reason;
+                const leitura = resultado.value;
                 const ativo = estaAtivo(leitura.ultimaAtual, agora);
                 if (ativo && perfil.ativos !== null) perfil.ativos++;
                 if (!ativo && perfil.inativos !== null) perfil.inativos++;

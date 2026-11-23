@@ -292,8 +292,13 @@ function atualizarTabelaStatus() {
 }
 
 
+let consultaDashboard;
+
 async function carregarDashboard() {
-    filtroHistorico.disabled = true;
+    // Se o horário mudar, para de esperar a consulta anterior no navegador.
+    if (consultaDashboard) consultaDashboard.abort();
+    const consulta = new AbortController();
+    consultaDashboard = consulta;
     feedback.hidden = false;
     feedback.textContent = "Carregando dados...";
     try {
@@ -302,14 +307,22 @@ async function carregarDashboard() {
         if (!empresa || !usuario) throw new Error("Faça login para consultar os dados.");
         const url = "/servidor/dashboard-perfil?empresa=" + encodeURIComponent(empresa) +
             "&usuario=" + encodeURIComponent(usuario) + "&minutos=" + filtroHistorico.value;
-        const resposta = await fetch(url);
+        const resposta = await fetch(url, { signal: consulta.signal });
         if (!resposta.ok) throw new Error("Não foi possível consultar os dados. Confira o terminal do servidor.");
         const dados = await resposta.json();
+        // Uma resposta antiga não pode substituir o horário escolhido por último.
+        if (consulta !== consultaDashboard) return;
         perfisDashboard = dados.perfis;
         atualizarIndicadores(dados.kpis);
         historicoDashboard = dados.historicoStatus.perfis;
+        // Mostra o horário consultado no backend, incluindo a data fixa do cenário.
+        const dataStatus = new Date(dados.historicoStatus.referencia);
         document.getElementById("descricao-historico-status").textContent =
-            filtroHistorico.value === "0" ? "Status atual" : "Status no momento escolhido";
+            Number.isFinite(dataStatus.getTime())
+                ? "Status em " + dataStatus.toLocaleString("pt-BR", {
+                    timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short"
+                })
+                : "Status no momento escolhido";
         atualizarGraficoCriticos(dados.rankingCriticos);
         atualizarGraficoServidores();
         preencherFiltroCustos();
@@ -324,10 +337,9 @@ async function carregarDashboard() {
             feedback.hidden = !feedback.textContent;
         }
     } catch (erro) {
+        if (consulta !== consultaDashboard || erro.name === "AbortError") return;
         feedback.textContent = erro.message;
         feedback.hidden = false;
-    } finally {
-        filtroHistorico.disabled = false;
     }
 }
 

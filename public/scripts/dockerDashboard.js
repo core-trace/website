@@ -831,9 +831,7 @@
                             label: (item) => {
                                 const nome = faixa && item.datasetIndex === 2
                                     ? (horario ? "Máximo horário" : "Máximo diário") : item.dataset.label;
-                                const valor = !horario
-                                    ? item.parsed.y.toLocaleString("pt-BR", { maximumSignificantDigits: 21 }) + unidade
-                                    : n(item.parsed.y, unidade);
+                                const valor = n(item.parsed.y, unidade);
                                 return `${nome}: ${valor}${item.dataset.referenciaHistorica || item.dataset.referenciaComparativa ? " (referência de comparação)" : ""}`;
                             }
                         }
@@ -878,11 +876,11 @@
     }
 
     function graficoContadores(titulo, container, series, unidade, divisor, incluirZero = false, barras = false) {
-        const intervalos = series.map((serie) => ({
+        let intervalos = series.map((serie) => ({
             ...serie, pontos: criarPontosIntervalos(historicoAtivo, container, serie.ler, divisor)
         }));
         if (periodoDias > 1) {
-            const medidas = intervalos.map((serie) => ({
+            intervalos = intervalos.map((serie) => ({
                 ...serie, pontos: serie.pontos.map((ponto, indice) => {
                     if (ponto.y === null) return ponto;
                     const anterior = containerNoDia(historicoAtivo[indice - 1], container);
@@ -899,18 +897,15 @@
                     return { ...ponto, inicioObservado, fimObservado };
                 })
             }));
-            const destaque = medidas.map((serie) => n(serie.pontos.at(-1)?.y, unidade)).join(" / ");
-            const tituloDiario = titulo.replace("por intervalo", "por dia") + (incluirZero ? " (s por dia)" : "");
-            grafico(tituloDiario, "Total observado entre leituras, por data final", destaque + " · último dia",
-                container, medidas, unidade, false, null, { intervalos: true, barras });
-            return;
         }
         const referencias = criarReferenciasIntervalos(historicoAtivo, intervalos, incluirZero && !barras);
         const historicas = referencias.filter((serie) => serie.referenciaHistorica);
         const nota = historicas.map((serie) => `${serie.label}: ${n(serie.data[0].y, unidade)} (${serie.intervalos} intervalos anteriores)`).join(" · ");
         const insuficientes = intervalos.filter((serie) => !calcularMediaIntervalos(serie.pontos)).map((serie) => serie.nome);
-        const destaque = intervalos.map((serie) => n(serie.pontos.at(-1)?.y, unidade)).join(" / ") + " · último intervalo";
-        grafico(titulo, "Diferenças entre leituras de dias consecutivos", destaque, container,
+        const diario = periodoDias > 1;
+        const destaque = intervalos.map((serie) => n(serie.pontos.at(-1)?.y, unidade)).join(" / ") + (diario ? " · último dia" : " · último intervalo");
+        const tituloGrafico = diario ? titulo.replace("por intervalo", "por dia") + (incluirZero ? " (s por dia)" : "") : titulo;
+        grafico(tituloGrafico, diario ? "Total observado entre leituras, por data final" : "Diferenças entre leituras horárias consecutivas", destaque, container,
             intervalos, unidade, false, null, {
                 intervalos: true, referencias, barras,
                 nota: [nota ? nota + "." : "", insuficientes.length ? `Histórico insuficiente para referência: ${insuficientes.join(", ")}.` : "",

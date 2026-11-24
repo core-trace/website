@@ -36,7 +36,7 @@ async function buscarConteudo(req, res) {
 
     try {
 
-        const conteudo = await s3Model.buscarConteudoS3(nomeArquivo);
+        const conteudo = await s3Model.buscarConteudoS3(BUCKET, nomeArquivo);
 
         return res.status(200).json({
             arquivo: nomeArquivo,

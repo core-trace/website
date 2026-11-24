@@ -1,6 +1,8 @@
-const crypto = require("crypto");
+const jiraChamadosService = require("./jiraChamadosService");
+const { gerarEtiquetaJira } = jiraChamadosService;
 const { S3Client, ListObjectsV2Command, GetObjectCommand } = require("@aws-sdk/client-s3");
 const servidorModel = require("../models/servidorModel");
+const resumoGoldService = require("./resumoGoldService");
 
 const s3 = new S3Client({
     region: process.env.AWS_REGION || "us-east-1"
@@ -23,12 +25,8 @@ function normalizarMac(mac) {
 }
 
 function dataHojeLocal() {
-    return new Intl.DateTimeFormat("sv-SE", {
-        timeZone: "America/Sao_Paulo",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit"
-    }).format(new Date());
+    // Reaproveita a mesma data demo da dashboard Geral (ver resumoGoldService).
+    return resumoGoldService.dataDeHojeSaoPaulo();
 }
 
 function horaFormatada(data) {
@@ -133,12 +131,6 @@ function avaliarComponente(valor, comp) {
     if (atencao1 || atencao2) return "atencao";
 
     return "normal";
-}
-
-function gerarEtiquetaJira(mac, recurso, metrica, campoOrigem = "") {
-    const identificador = [mac, recurso, metrica, campoOrigem].join("|").toLowerCase();
-    const hash = crypto.createHash("sha256").update(identificador, "utf-8").digest("hex");
-    return `coretrace-${hash.substring(0, 24)}`;
 }
 
 async function buscarChamadoJiraPorEtiqueta(etiqueta) {
@@ -265,12 +257,14 @@ function montarGradeTempo(agora) {
 
 async function obterAlertasServidores(idEmpresa, idUsuario) {
     const servidoresBanco = await servidorModel.listarServidoresPorEmpresa(idEmpresa, idUsuario);
-    const agora = new Date();
+    const chamados = await jiraChamadosService.obterChamadosPorEmpresa(idEmpresa, servidoresBanco);
+    const resolucaoChamados = jiraChamadosService.calcularResolucao(chamados.chamados, servidoresBanco);
+    const agora = resumoGoldService.agoraOuReferenciaDemo();
     const horaAtualizacao = horaFormatada(agora);
     const hoje = dataHojeLocal();
     const slots = montarGradeTempo(agora);
 
-    const resultado = await Promise.all(servidoresBanco.map(async (srv) => {
+    const servidoresProcessados = await Promise.all(servidoresBanco.map(async (srv) => {
         const mac = normalizarMac(srv.endereco_mac);
         const componentes = srv.componentes || [];
 
@@ -390,12 +384,20 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
             }
         }
 
-        let chamado = null;
-        if (status !== "normal") {
-            const alvo = metricasEmAlerta[0] || { recurso: "CPU", coluna: "cpu_percent" };
-            const etiqueta = gerarEtiquetaJira(mac, alvo.recurso, alvo.coluna, alvo.coluna.toUpperCase());
-            chamado = await buscarChamadoJiraPorEtiqueta(etiqueta);
-        }
+        const chamadosDoServidor = chamados.porServidor.get(String(srv.id_servidor)) || [];
+        const chamadoAberto = chamadosDoServidor.find((item) => !item.concluido) || null;
+        const chamado = chamadoAberto
+            ? {
+                chave: chamadoAberto.chave,
+                url: chamadoAberto.url,
+                status: chamadoAberto.status,
+                titulo: chamadoAberto.titulo
+            }
+            : null;
+
+        // Concluir os chamados remove o alerta da resposta, sem apagar registros.
+        // Servidores normais continuam presentes para o KPI Normal.
+        if (status !== "normal" && chamadosDoServidor.length > 0 && !chamadoAberto) return null;
 
         return {
             id: String(srv.id_servidor),
@@ -414,7 +416,7 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
         };
     }));
 
-    return { horaAtualizacao, servidores: resultado };
+    return { horaAtualizacao, servidores: servidoresProcessados.filter(Boolean), resolucaoChamados };
 }
 
 module.exports = { obterAlertasServidores, abrirOuObterChamadoJira };

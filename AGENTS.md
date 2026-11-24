@@ -107,11 +107,12 @@ Cada pessoa do grupo trabalha em dashboards diferentes. Em cada sessão, a perso
 
 - MySQL 8. `src/database/script.sql` começa com `DROP DATABASE IF EXISTS coretrace`: use só em banco novo, nunca para atualizar instalação existente. Mudanças em banco existente exigem script de migração novo.
 - O README cita `src/database/atualizar_token_perfil_servidor.sql`, mas o arquivo não existe.
-- `src/services/alertaService.js` usa `AWS_REGION`, `S3_BUCKET` (padrão `bucket-coretrace`), `S3_PREFIX` (padrão `client/lotes/`), `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_PROJECT_KEY` e as credenciais AWS padrão do SDK. Nada disso está no `.env.dev.example`; sem isso, a tela de alertas quebra. Toda variável nova deve ser registrada no `.env.dev.example`.
+- `src/services/alertaService.js` usa `AWS_REGION`, `S3_BUCKET` (padrão `bucket-coretrace`), `S3_PREFIX` (padrão `client/lotes/`), `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_PROJECT_KEY` e as credenciais AWS padrão do SDK. Todas estão registradas no `.env.dev.example`; sem as variáveis do Jira a busca de chamados retorna vazia e o KPI de resolução fica em `—`. Toda variável nova deve ser registrada no `.env.dev.example`.
 
 ### Fluxo de código
 
 - `app.js` → `src/routes/*` → `src/controllers/*` → `src/models/*` (MySQL em `src/database/config.js`) → `src/services/*`.
+- A dashboard de Alertas consulta o Jira por `src/services/jiraChamadosService.js`: cache em memória por empresa com TTL de 5 min, JQL paginada por etiqueta e vínculo por etiqueta ou MAC do título. Concluído = `status.statusCategory.key === "done"`; a data de conclusão usa `resolutiondate` com fallback `updated`. Não há tabela, migração ou S3 novo. `GET /alertas/servidores` devolve `resolucaoChamados.geral` e `.porPerfil[id]`; servidores em alerta com todos os chamados concluídos saem da resposta, enquanto os normais continuam.
 - Não há sessão por cookie nem autorização no servidor. O login grava `ID_USUARIO`, `ID_EMPRESA`, `ID_NIVEL_ACESSO` etc. no `sessionStorage`, e as páginas enviam esses IDs nas queries. O controle de nível é só visual; URLs não são bloqueadas. Não trate isso como segurança.
 - O agente Python fica em `src/agente`. O ZIP de `POST /agente/download` é montado em tempo real pelo `archiver`; `config.json` é só modelo e recebe os tokens do banco no download. `API_BASE_URL` está fixo em `http://localhost:3333` em `src/agente/capturas/captura.py`.
 - Cadastro de empresa e convites usam Resend dentro de transação: se o envio falhar, o rollback desfaz o usuário/empresa. `RESEND_FROM=onboarding@resend.dev` só entrega ao e-mail da própria conta Resend.

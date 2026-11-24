@@ -67,7 +67,7 @@
 
 .pagina-perfis .indicadores {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
     margin-bottom: 28px;
 }
@@ -417,81 +417,106 @@
 
 .pagina-perfis .painel.servidores {
     grid-column: auto;
-}
-
-.pagina-perfis .prejuizo h2 {
     display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
 }
 
-.pagina-perfis .prejuizo-novo {
-    padding: 3px 6px;
-    border-radius: 4px;
-    background: #fff0ed;
-    color: #cc0301;
-    font-size: 9px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-}
-
-.pagina-perfis .prejuizo-lista {
-    list-style: none;
-    padding: 0;
-    margin: 18px 0 0;
-}
-
-.pagina-perfis .prejuizo-item + .prejuizo-item {
+.pagina-perfis .servidores .grafico-barras {
+    flex: 1;
+    min-height: 240px;
     margin-top: 16px;
 }
 
-.pagina-perfis .prejuizo-resumo {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
-    font-size: 12px;
+.pagina-perfis .custos-indicadores {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 16px;
 }
 
-.pagina-perfis .prejuizo-nome {
+.pagina-perfis .custos-indicadores > div {
+    padding: 12px;
+    border: 1px solid var(--perfis-borda);
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.pagina-perfis .custos-indicadores > div + div strong {
+    color: #cc0301;
+}
+
+.pagina-perfis .custos-indicadores span,
+.pagina-perfis .custos-indicadores small {
+    display: block;
+    color: var(--perfis-texto-secundario);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.pagina-perfis .custos-indicadores strong {
+    display: block;
+    margin: 6px 0;
+    color: var(--perfis-texto);
+    font-size: 22px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
 }
 
-.pagina-perfis .prejuizo-valor {
-    white-space: nowrap;
-    font-size: 13px;
-    font-variant-numeric: tabular-nums;
-}
-
-.pagina-perfis .prejuizo-trilho {
-    height: 6px;
-    margin-top: 7px;
-    background: #f1f0ed;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.pagina-perfis .prejuizo-barra {
-    height: 100%;
-    width: 0;
-    background: #cc0301;
-    border-radius: inherit;
-}
-
-.pagina-perfis .prejuizo-detalhe {
-    margin-top: 6px;
+.pagina-perfis .custos-legenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
     color: var(--perfis-texto-secundario);
-    font-size: 10px;
-    line-height: 1.5;
+    font-size: 12px;
 }
 
-.pagina-perfis .prejuizo-nota {
-    margin-top: 18px;
-    padding-top: 10px;
-    border-top: 1px solid var(--perfis-borda);
-    color: var(--perfis-texto-secundario);
-    font-size: 10px;
-    line-height: 1.5;
+.pagina-perfis .custos-legenda span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
+
+.pagina-perfis .custos-legenda i {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.pagina-perfis .custo-cor-realizado { background: #cc0301; }
+.pagina-perfis .custo-cor-previsto { background: #d9dce2; }
+
+.pagina-perfis .grafico-custos {
+    position: relative;
+    height: 170px;
+    margin-top: 12px;
+}
+
+.pagina-perfis .custos-vazios {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    padding: 16px;
+    text-align: center;
+    color: var(--perfis-texto-secundario);
+    font-size: 12px;
+    border: 1px dashed var(--perfis-borda);
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+.pagina-perfis .custos-vazios[hidden] { display: none; }
+
+.pagina-perfis .custos.sem-custos .grafico-custos { height: 100px; }
+.pagina-perfis .custos.sem-custos .custos-legenda { display: none; }
+
+
+@media (max-width: 480px) {
+    .pagina-perfis .custos-indicadores { gap: 10px; }
+    .pagina-perfis .custos-indicadores > div { padding: 10px; }
+    .pagina-perfis .custos-indicadores strong { font-size: 18px; }
+}
+
+

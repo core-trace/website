@@ -202,6 +202,44 @@ ativação em outro dispositivo. Sem `APP_URL`, são usados `APP_HOST` e `APP_PO
 Se o Resend recusar o envio, o cadastro pendente é desfeito para permitir nova
 tentativa. A página só confirma o envio após o Resend aceitar a solicitação.
 
+### Integração com Jira na dashboard de Alertas
+
+A dashboard `/pages/alertas.html` usa o Jira como fonte única dos chamados: não há
+tabela, migração nem bucket S3 novo. `POST /alertas/chamado` cria ou reaproveita a
+issue, cujo título contém o MAC do servidor. A etiqueta `coretrace-<hash>` é
+determinística, gerada a partir de `MAC|recurso|métrica|campo_origem`.
+
+`src/services/jiraChamadosService.js` busca essas issues com
+`project = "SUP" AND labels IN (...)`, paginado por `nextPageToken` e em lotes de
+50 etiquetas. O resultado fica em cache em memória por empresa por 5 minutos
+(`INTERVALO_CACHE_MS`). Se o Jira falhar, o último cache é reaproveitado; se nunca
+houve cache, a tela segue funcionando sem chamados. Um chamado é concluído quando
+`status.statusCategory.key === "done"`; a data de conclusão vem de `resolutiondate`,
+com fallback para `updated`. O vínculo com o servidor é feito pela etiqueta e, se
+ela não casar, pelo MAC extraído do `summary`.
+
+Servidores em alerta cujos chamados estão **todos concluídos** deixam de aparecer
+na resposta; servidores normais continuam presentes para o KPI Normal. Além de
+`horaAtualizacao` e `servidores`, `GET /alertas/servidores` devolve:
+
+```json
+"resolucaoChamados": {
+  "geral": { "texto": "1h 20min", "minutos": 80, "quantidade": 3, "vazio": false },
+  "porPerfil": { "1": { "texto": "1h 25min", "minutos": 85, "quantidade": 2, "vazio": false } }
+}
+```
+
+`geral` usa todos os chamados concluídos ligados aos servidores da empresa;
+`porPerfil` filtra apenas os chamados dos servidores daquele perfil. O front mostra
+`geral` em "Todos os perfis" e `porPerfil[id]` ao selecionar um perfil. A média é
+calculada entre `created` e `resolutiondate`/`updated`, arredondada para minutos e
+formatada como `42 min`, `1h 25min` ou `26h 30min`. Sem chamados concluídos, o card
+exibe `—` e a legenda `sem chamados concluídos`.
+
+Configure `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN` e `JIRA_PROJECT_KEY` no
+`.env.dev` (modelo no `.env.dev.example`). Sem essas variáveis a busca retorna
+vazia e o KPI fica em `—`, mas a dashboard continua abrindo.
+
 ### Perfis de servidor e wizard
 
 A página `/pages/inicioDashboard.html` usa um histórico local de sete dias para os dez servidores. Os filtros de tempo e perfil atualizam os KPIs e os gráficos. A previsão de armazenamento exige pelo menos 24 horas de histórico; a tabela e os detalhes mostram também os valores da última coleta.

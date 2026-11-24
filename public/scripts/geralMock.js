@@ -73,16 +73,16 @@ const geralMock = {
             resposta: "O Financeiro tem 2 de 3 servidores afetados (67%), a proporção mais alta entre os perfis, e o caso crítico mais antigo (pay-api-04, há 45 minutos)."
         },
         {
-            pergunta: "O que mudou às 20h05?",
+            pergunta: "O que mudou recentemente?",
             resposta: "cart-api-07 passou de atenção para crítico por CPU. O total de servidores afetados no Carrinho continuou em 2 de 4."
         },
         {
-            pergunta: "Quando o disco pode chegar a 90%?",
-            resposta: "catalog-api-05 está em 82% de uso e, no ritmo atual de crescimento, deve chegar a 90% por volta de 30 de novembro."
+            pergunta: "Algum risco está perto de virar um problema?",
+            resposta: "Consulte o card \"Riscos em acompanhamento\" acima pra ver os riscos reais do momento."
         },
         {
             pergunta: "O que significa sem dados recentes?",
-            resposta: "A última leitura desse servidor passou de 15 minutos sem chegar. Não significa que o servidor está com problema — significa que não sabemos o estado dele agora."
+            resposta: "A última leitura desse servidor passou de 15 minutos sem chegar. Não significa que o servidor está com problema — vale verificar se o script de captura ainda está rodando nele."
         },
         {
             pergunta: "Como exporto o relatório?",

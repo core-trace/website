@@ -28,6 +28,7 @@ const resumoGeralService = require("./src/services/resumoGeralService");
 const sinaisExternosService = require("./src/services/sinaisExternosService");
 const servidoresRouter = require("./src/routes/servidoresRoutes");
 const s3Routes =  require("./src/routes/s3Routes");
+const processosRouter = require("./src/routes/processosRoutes");
 
 
 app.use(express.json());
@@ -47,6 +48,7 @@ app.use("/empresa", empresaRouter);
 app.use("/s3Routes", s3Routes);
 app.use("/alertas", alertaRouter);
 app.use("/geral", geralRouter);
+app.use("/processos", processosRouter);
 
 // Mantem o resumo da dashboard Geral atualizado em segundo plano, em vez de buscar
 // no S3 a cada requisicao (ver comentario no topo de resumoGeralService.js).

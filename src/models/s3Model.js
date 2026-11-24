@@ -10,27 +10,28 @@ const s3 = new S3Client({
 });
 
 const PASTA = "client/";
-const NOME_BUCKET = process.env.BUCKET_DADOS_GOLD;
+const NOME_BUCKET = process.env.BUCKET_DADOS_GOLD || process.env.S3_BUCKET || "bucket-coretrace";
 
-async function listarArquivosS3(BUCKET) {
-
-    const resposta = await s3.send(
-        new ListObjectsV2Command({
+async function listarArquivosS3(BUCKET, prefixo = PASTA) {
+    const arquivos = [];
+    let token;
+    do {
+        const resposta = await s3.send(new ListObjectsV2Command({
             Bucket: BUCKET,
-            Prefix: PASTA
-        })
-    );
-
-    const arquivos = resposta.Contents || [];
-
-    return arquivos.filter(arquivo => arquivo.Key !== PASTA);
+            Prefix: prefixo,
+            ContinuationToken: token
+        }));
+        arquivos.push(...(resposta.Contents || []).filter(arquivo => !arquivo.Key.endsWith("/")));
+        token = resposta.IsTruncated ? resposta.NextContinuationToken : undefined;
+    } while (token);
+    return arquivos;
 }
 
 async function buscarConteudoS3(BUCKET, nomeArquivo) {
 
     const resposta = await s3.send(
         new GetObjectCommand({
-            Bucket: NOME_BUCKET,
+            Bucket: BUCKET,
             Key: nomeArquivo
         })
     );

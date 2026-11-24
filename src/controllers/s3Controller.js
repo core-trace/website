@@ -1,13 +1,16 @@
 
 const s3Model = require("../models/s3Model");
 
-const BUCKET = process.env.BUCKET_DADOS_GOLD;
+const BUCKET = process.env.BUCKET_DADOS_GOLD || process.env.S3_BUCKET || "bucket-coretrace";
 
 async function listarArquivos(req, res) {
 
+    const prefixo = req.query.prefixo || "client/";
+    if (typeof prefixo !== "string" || !prefixo.startsWith("client/")) {
+        return res.status(400).json({ erro: "Prefixo inválido" });
+    }
     try {
-
-        const arquivos = await s3Model.listarArquivosS3(BUCKET);
+        const arquivos = await s3Model.listarArquivosS3(BUCKET, prefixo);
 
         return res.status(200).json(arquivos);
 

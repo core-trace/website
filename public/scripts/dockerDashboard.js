@@ -1,8 +1,7 @@
 /* Dashboard de investigação de Docker.
- * Lê os históricos do servidor selecionado pelos índices locais vinculados ao MAC.
+ * Lê os resumos do servidor selecionado no S3 por meio dos endpoints Node.
  * Filtros de horas e personalizado usam resumos horários; 7 e 30 dias usam diários.
- * Para conectar ao Node/S3 depois, basta trocar a origem dos índices;
- * nenhuma credencial AWS fica no navegador.
+ * Nenhuma credencial AWS fica no navegador.
  */
 (function () {
     "use strict";
@@ -84,6 +83,7 @@
     const $ = (id) => document.getElementById(id);
     const formatoNumero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
     const formatoData = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
+    let requisicaoHistorico = 0;
     let historico = [];
     let historicoHorario = [];
     let historicoAtivo = [];
@@ -149,7 +149,10 @@
         servidorSelect.replaceChildren(new Option("Selecione um servidor", ""), ...servidoresDisponiveis.map((servidor) =>
             new Option(servidor.nome, servidor.endereco_mac)));
 
-        perfilSelect.addEventListener("change", atualizarServidoresDoPerfil);
+        perfilSelect.addEventListener("change", () => {
+            atualizarServidoresDoPerfil();
+            trocarServidorSelecionado();
+        });
         servidorSelect.addEventListener("change", trocarServidorSelecionado);
         atualizarServidoresDoPerfil();
     }
@@ -179,16 +182,27 @@
 
     async function trocarServidorSelecionado() {
         atualizarServidorSelecionado();
-        if (!$("docker-servidor").value) return;
+        const requisicao = ++requisicaoHistorico;
+        historico = [];
+        historicoHorario = [];
+        atualizarPeriodo();
         const feedback = $("docker-feedback");
-        feedback.hidden = true;
+        if (!$("docker-servidor").value) return;
+        feedback.hidden = false;
+        feedback.textContent = "Carregando resumos do servidor...";
         try {
-            await carregarHistorico();
-            await carregarHistoricoHorario();
+            const documentos = await carregarHistorico();
+            if (requisicao !== requisicaoHistorico) return;
+            historico = documentos.filter((doc) => !doc.intervalo).sort((a, b) => a.data.localeCompare(b.data));
+            historicoHorario = documentos.filter((doc) => doc.intervalo)
+                .sort((a, b) => Date.parse(a.intervalo.fim) - Date.parse(b.intervalo.fim));
+            demonstracao = false;
+            anonimizado = false;
             atualizarPeriodo();
         } catch (erro) {
+            if (requisicao !== requisicaoHistorico) return;
             feedback.hidden = false;
-            feedback.textContent = `Não foi possível carregar o histórico deste servidor: ${erro.message}`;
+            feedback.textContent = `Não foi possível carregar os resumos do S3: ${erro.message}`;
             console.error("CoreTrace Docker:", erro);
         }
     }
@@ -214,63 +228,35 @@
         return elemento;
     }
 
-    // O índice é apenas uma lista de caminhos. Em produção, o Node pode
-    // devolver essa mesma lista após consultar as datas disponíveis no S3.
-    async function carregarIndice(fonte, horario = false) {
-        const resposta = await fetch(fonte, { cache: "no-store" });
-        if (!resposta.ok) throw new Error(`HTTP ${resposta.status} ao buscar ${fonte}`);
-        const indice = await resposta.json();
-        if (!Array.isArray(indice.arquivos) || !indice.arquivos.length) {
-            throw new Error("O índice do histórico precisa conter uma lista de arquivos.");
-        }
-
-        // Resolve os caminhos em relação ao índice, não à URL do HTML.
-        const documentos = await Promise.all(indice.arquivos.map(async (caminho) => {
-            const url = new URL(caminho, resposta.url);
-            const resultado = await fetch(url, { cache: "no-store" });
-            if (!resultado.ok) throw new Error(`HTTP ${resultado.status} ao buscar ${url.pathname}`);
-            const documento = D.validar(await resultado.json());
-            if (horario && (!documento.intervalo || !D.instante(documento.intervalo.inicio) || !D.instante(documento.intervalo.fim)
-                || Date.parse(documento.intervalo.fim) - Date.parse(documento.intervalo.inicio) !== 3600000)) {
-                throw new Error("Resumo horário sem intervalo válido de uma hora.");
-            }
-            return documento;
-        }));
-        const mac = documentos[0].mac;
-        if (documentos.some((doc) => doc.mac !== mac)) {
-            throw new Error("O histórico contém resumos de servidores diferentes. Separe os arquivos por máquina.");
-        }
-        const servidorSelecionado = $("docker-servidor")?.value;
-        if (servidorSelecionado && mac !== servidorSelecionado) {
-            throw new Error("O histórico local não corresponde ao servidor selecionado.");
-        }
-        return { indice, documentos };
-    }
-
     async function carregarHistorico() {
-        const servidor = servidoresDisponiveis.find((item) => item.endereco_mac === $("docker-servidor").value);
-        const fonte = servidor
-            ? `../data/docker-historico/servidores/${encodeURIComponent(servidor.endereco_mac.replaceAll(":", "-"))}/indice.json`
-            : document.body.dataset.fonteHistorico || "../data/docker-historico/indice.json";
-        const { indice, documentos } = await carregarIndice(fonte);
-
-        // Se houver duas versões do mesmo dia, a última listada prevalece.
-        // Nunca contamos duas vezes o mesmo resumo diário.
-        historico = [...new Map(documentos.map((doc) => [doc.data, doc])).values()]
-            .sort((a, b) => a.data.localeCompare(b.data));
-        demonstracao = indice.demonstracao === true;
-        anonimizado = indice.anonimizado === true;
-    }
-
-    async function carregarHistoricoHorario() {
-        const servidor = servidoresDisponiveis.find((item) => item.endereco_mac === $("docker-servidor").value);
-        const fonte = servidor
-            ? `../data/docker-horario/servidores/${encodeURIComponent(servidor.endereco_mac.replaceAll(":", "-"))}/indice.json`
-            : "../data/docker-horario/indice.json";
-        const { documentos } = await carregarIndice(fonte, true);
-        if (documentos.some((doc) => doc.mac !== historico[0]?.mac)) throw new Error("Histórico horário de outro servidor.");
-        historicoHorario = [...new Map(documentos.map((doc) => [doc.intervalo.fim, doc])).values()]
-            .sort((a, b) => Date.parse(a.intervalo.fim) - Date.parse(b.intervalo.fim));
+        const mac = $("docker-servidor").value;
+        const prefixo = `client/resumos/maquina=${mac}/`;
+        const resposta = await fetch(`/s3Routes/arquivos?prefixo=${encodeURIComponent(prefixo)}`, { cache: "no-store" });
+        if (!resposta.ok) throw new Error(`HTTP ${resposta.status} ao listar os resumos.`);
+        const arquivos = await resposta.json();
+        if (!Array.isArray(arquivos)) throw new Error("A API retornou uma lista inválida de arquivos.");
+        const chaves = [...new Set(arquivos.map((arquivo) => arquivo.Key)
+            .filter((chave) => typeof chave === "string" && chave.startsWith(prefixo) && chave.endsWith(".json")))];
+        const documentos = [];
+        // Limita as consultas simultâneas ao carregar o histórico do servidor.
+        for (let indice = 0; indice < chaves.length; indice += 6) {
+            const lote = await Promise.all(chaves.slice(indice, indice + 6).map(async (chave) => {
+                const resultado = await fetch(`/s3Routes/conteudo?arquivo=${encodeURIComponent(chave)}`, { cache: "no-store" });
+                if (!resultado.ok) throw new Error(`HTTP ${resultado.status} ao buscar um resumo.`);
+                const corpo = await resultado.json();
+                const original = typeof corpo.conteudo === "string" ? JSON.parse(corpo.conteudo) : corpo.conteudo;
+                const documento = D.validar(original);
+                if (documento.mac !== mac) throw new Error("O resumo não corresponde ao servidor selecionado.");
+                if (original.granularidade === "hora" && (!documento.intervalo
+                    || !D.instante(documento.intervalo.inicio) || !D.instante(documento.intervalo.fim)
+                    || Date.parse(documento.intervalo.fim) - Date.parse(documento.intervalo.inicio) !== 3600000)) {
+                    throw new Error("Resumo horário sem intervalo válido de uma hora.");
+                }
+                return documento;
+            }));
+            documentos.push(...lote);
+        }
+        return [...new Map(documentos.map((doc) => [doc.intervalo?.fim || doc.data, doc])).values()];
     }
 
     function instanteResumo(doc) {
@@ -1126,15 +1112,13 @@
     async function iniciar() {
         try {
             await carregarContextos();
-            await carregarHistorico();
-            await carregarHistoricoHorario();
-            atualizarPeriodo();
+            await trocarServidorSelecionado();
         } catch (erro) {
             $("docker-feedback").hidden = false;
             $("docker-feedback").textContent = `Não foi possível carregar o histórico: ${erro.message}`;
             $("docker-linhas").replaceChildren();
             const linha = adicionarTexto($("docker-linhas"), "tr", "");
-            const celula = adicionarTexto(linha, "td", "Nenhum dado carregado. Confira o arquivo JSON e o servidor HTTP.");
+            const celula = adicionarTexto(linha, "td", "Nenhum dado carregado. Confira a conexão com a API e o S3.");
             celula.colSpan = 5;
             console.error("CoreTrace Docker:", erro);
         }

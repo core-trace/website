@@ -11,7 +11,6 @@ const path = require("path");
 
 const PORTA_APP = process.env.APP_PORT;
 const HOST_APP = process.env.APP_HOST;
-
 const app = express();
 
 const indexRouter = require("./src/routes/index");

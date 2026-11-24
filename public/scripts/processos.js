@@ -78,12 +78,15 @@
     }
 
     function extrairValorLeitura(leitura) {
-        if (!leitura) return null;
-        return leitura.valor;
+        if (leitura == null) return null;
+        if (typeof leitura === "number") return leitura;
+        if (typeof leitura === "object" && leitura.valor !== undefined) return leitura.valor;
+        return null;
     }
 
     function statusDaLeitura(leitura) {
         if (!leitura) return "indisponivel";
+        if (typeof leitura === "string") return leitura;
         return leitura.status || "indisponivel";
     }
 
@@ -113,12 +116,9 @@
             },
             scales: {
                 x: {
-                    type: "time",
-                    time: {
-                        unit: "minute",
-                        tooltipFormat: "HH:mm:ss"
-                    },
-                    title: { display: true, text: "Horário" }
+                    type: "category",
+                    title: { display: true, text: "Horário" },
+                    ticks: { maxRotation: 45, minRotation: 45 }
                 },
                 y: {
                     beginAtZero: true,
@@ -150,7 +150,7 @@
     function atualizarGrafico(grafico, pontos, rotuloY) {
         if (!grafico) return;
 
-        const labels = pontos.map(p => new Date(p.t));
+        const labels = pontos.map(p => p.t);
         const valores = pontos.map(p => p.v);
 
         grafico.data.labels = labels;
@@ -177,8 +177,8 @@
         let cpuMax = { valor: -1, nome: "--", pid: "--", usuario: "--", ts: "--" };
 
         for (const p of processos) {
-            const cpuUso = extrairValorLeitura(p.cpu?.uso);
-            const ramUso = extrairValorLeitura(p.memoria?.uso);
+            const cpuUso = extrairValorLeitura(p.cpu);
+            const ramUso = extrairValorLeitura(p.memoria);
 
             const ehCritico =
                 (cpuUso != null && cpuUso >= LIMITE_CRITICO_CPU) ||
@@ -248,7 +248,7 @@
 
         for (const p of processos) {
             const chave = `${p.nome || "desconhecido"} | PID ${p.pid || "--"}`;
-            if !grupos.has(chave) {
+            if (!grupos.has(chave)) {
                 grupos.set(chave, {
                     nome: p.nome || "desconhecido",
                     pid: p.pid || "--",
@@ -262,8 +262,8 @@
             const grupo = grupos.get(chave);
             grupo.ocorrencias++;
 
-            const cpuUso = extrairValorLeitura(p.cpu?.uso);
-            const ramUso = extrairValorLeitura(p.memoria?.uso);
+            const cpuUso = extrairValorLeitura(p.cpu);
+            const ramUso = extrairValorLeitura(p.memoria);
 
             if (
                 (cpuUso != null && cpuUso >= LIMITE_CRITICO_CPU) ||
@@ -334,6 +334,20 @@
         const recorrencia = calcularRecorrencia(processosDoDia);
 
         renderizarTabelaRecorrencia(recorrencia);
+
+        // Plota automaticamente o gráfico do primeiro processo da recorrência
+        // (o que teve mais ocorrências acima do limite, ou o primeiro da lista).
+        if (recorrencia.length > 0) {
+            const primeiro = recorrencia[0];
+            carregarHistoricoProcesso(primeiro.nome, primeiro.pid);
+        } else {
+            cpuValor.textContent = "--";
+            cpuCaption.textContent = "--";
+            memoriaValor.textContent = "--";
+            memoriaCaption.textContent = "--";
+            atualizarGrafico(graficoCpu, [], "CPU");
+            atualizarGrafico(graficoMemoria, [], "RAM");
+        }
 
         // Meta chips (usa o processo com maior RAM como destaque, se existir)
         if (ramMax.valor >= 0) {
@@ -458,8 +472,8 @@
         const pontosMem = [];
 
         for (const p of filtrados) {
-            const cpu = extrairValorLeitura(p.cpu?.uso);
-            const mem = extrairValorLeitura(p.memoria?.uso);
+            const cpu = extrairValorLeitura(p.cpu);
+            const mem = extrairValorLeitura(p.memoria);
 
             if (cpu != null) pontosCpu.push({ t: p.timestamp, v: cpu });
             if (mem != null) pontosMem.push({ t: p.timestamp, v: mem });

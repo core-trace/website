@@ -6,11 +6,10 @@ const {
 
 // Credenciais pelo padrão do SDK (AWS_ACCESS_KEY_ID etc. no .env.dev, nunca versionado)
 const s3 = new S3Client({
-    region: process.env.AWS_REGION
+    region: process.env.AWS_REGION || "us-east-1"
 });
 
-const BUCKET = process.env.BUCKET_DADOS_GOLD;
-const PASTA_RESUMOS = "client/resumos/";
+const PASTA = "client/";
 
 // Um resumo por máquina e dia, no caminho:
 // client/resumos/maquina=AA:BB:CC:DD:EE:FF/data=2026-11-22/resumo.json
@@ -33,79 +32,34 @@ async function listarResumosS3() {
     return arquivos;
 }
 
-async function buscarConteudoS3(chave) {
+async function buscarConteudoS3(nomeArquivo) {
 
     const resposta = await s3.send(
         new GetObjectCommand({
             Bucket: BUCKET,
-            Key: chave
+            Key: nomeArquivo
         })
     );
 
-    return await resposta.Body.transformToString();
+    const conteudo = await resposta.Body.transformToString();
+
+    return conteudo;
 }
 
-// Para a dashboard: sem listar nada, a chave é montada pelo MAC e pelo dia.
-// O MAC segue o mesmo formato da Gold (maiúsculo, com dois-pontos).
-function normalizarMac(mac) {
+// Igual a buscarConteudoS3, mas sem converter pra texto pq transformToString() corromperia o conteudo.
+async function buscarArquivoBinarioS3(nomeArquivo) {
 
-    return mac.trim().toUpperCase().replace(/-/g, ":");
-
-}
-
-async function buscarResumoServidor(mac, data) {
-
-    const chave = `${PASTA_RESUMOS}maquina=${normalizarMac(mac)}/data=${data}/resumo.json`;
-
-    try {
-        return JSON.parse(await buscarConteudoS3(chave));
-    } catch (erro) {
-        if (erro.name === "NoSuchKey") {
-            return null;
-        }
-        throw erro;
-    }
-}
-
-// Resumo mais recente da máquina, não importa há quanto tempo foi gerado.
-// As pastas data=AAAA-MM-DD ordenam corretamente em ordem alfabética.
-async function buscarUltimoResumoServidor(mac) {
-
-    const prefixo = `${PASTA_RESUMOS}maquina=${normalizarMac(mac)}/`;
-    const pastas = [];
-
-    const paginas = paginateListObjectsV2(
-        { client: s3 },
-        { Bucket: BUCKET, Prefix: prefixo, Delimiter: "/" }
+    const resposta = await s3.send(
+        new GetObjectCommand({
+            Bucket: NOME_BUCKET,
+            Key: nomeArquivo
+        })
     );
 
-    for await (const pagina of paginas) {
-        for (const pasta of pagina.CommonPrefixes || []) {
-            pastas.push(pasta.Prefix);
-        }
-    }
-
-    // Da data mais nova para a mais antiga, até achar uma pasta que tenha o resumo.json
-    pastas.sort().reverse();
-
-    for (const pasta of pastas) {
-
-        try {
-            return JSON.parse(await buscarConteudoS3(`${pasta}resumo.json`));
-        } catch (erro) {
-            if (erro.name !== "NoSuchKey") {
-                throw erro;
-            }
-        }
-
-    }
-
-    return null;
+    return Buffer.from(await resposta.Body.transformToByteArray());
 }
 
 module.exports = {
-    listarResumosS3,
-    buscarConteudoS3,
-    buscarResumoServidor,
-    buscarUltimoResumoServidor
+    listarArquivosS3,
+    buscarConteudoS3
 };

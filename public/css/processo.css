@@ -5,33 +5,32 @@
    ========================================= */
 
 /* ---------- Design Tokens ---------- */
+/* Paleta alinhada à tela de alertas (alertas.css). */
 :root {
   /* Superfícies */
-  --cor-fundo: #F7F7F5;
-  --cor-card: #FFFFFF;
+  --cor-fundo: #f7f7f2;
+  --cor-card: #ffffff;
   --cor-surface-muted: #fafaf8;
-  --cor-surface-hover: #f4f4f1;
-  --cor-borda: #E5E7EB;
-  --cor-borda-strong: #d1d5db;
-  --cor-borda-foco: #DC2626;
+  --cor-surface-hover: #f4f5f7;
+  --cor-borda: #d9dee7;
+  --cor-borda-strong: #b6bdca;
+  --cor-borda-foco: #cc0301;
 
   /* Textos */
-  --cor-texto: #374151;
-  --cor-texto-suave: #6B7280;
-  --cor-texto-menor: #9CA3AF;
+  --cor-texto: #141115;
+  --cor-texto-suave: #4b4350;
+  --cor-texto-menor: #8a8f9c;
 
   /* Acentos semânticos */
-  --cor-coral: #DC2626;
-  --cor-coral-suave: #FEF2F2;
-  --cor-coral-texto: #991B1B;
-  --cor-ambar: #D97706;
-  --cor-ambar-suave: #FFFBEB;
-  --cor-ambar-texto: #92400E;
-  --cor-verde: #16A34A;
-  --cor-verde-suave: #F0FDF4;
-  --cor-verde-texto: #14532d;
-  --cor-azul: #2563EB;
-  --cor-azul-suave: #EFF6FF;
+  --cor-coral: #cc0301;
+  --cor-coral-suave: rgba(204, 3, 1, 0.08);
+  --cor-coral-texto: #cc0301;
+  --cor-ambar: #e2891b;
+  --cor-ambar-suave: rgba(226, 137, 27, 0.16);
+  --cor-ambar-texto: #a35f05;
+  --cor-verde: #2f9e6e;
+  --cor-verde-suave: rgba(47, 158, 110, 0.14);
+  --cor-verde-texto: #1f7a52;
 
   /* Espaçamento */
   --espaco-xs: 4px;
@@ -70,7 +69,6 @@ html { line-height: 1.5; -webkit-text-size-adjust: 100%; }
 body.dashboard-page {
   margin: 0;
   padding: 0;
-  background: var(--cor-fundo);
   color: var(--cor-texto);
   font: var(--fonte-tamanho-base)/var(--linha-base)
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -163,7 +161,7 @@ img, svg { display: block; max-width: 100%; }
   width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--cor-verde);
-  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+  box-shadow: 0 0 0 2px rgba(47, 158, 110, 0.15);
 }
 
 .processos-atualizado {
@@ -275,7 +273,7 @@ img, svg { display: block; max-width: 100%; }
 
 .badge-ativo { background: var(--cor-coral-suave); color: var(--cor-coral-texto); }
 .badge-atencao { background: var(--cor-ambar-suave); color: var(--cor-ambar-texto); }
-.badge-normal { background: var(--cor-verde-suave); color: #14532d; }
+.badge-normal { background: var(--cor-verde-suave); color: var(--cor-verde-texto); }
 
 /* ---------- Botões ---------- */
 .btn {
@@ -326,7 +324,7 @@ img, svg { display: block; max-width: 100%; }
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--espaco-m);
   min-width: 0;
 }
@@ -369,11 +367,6 @@ img, svg { display: block; max-width: 100%; }
 .kpi-icone--atencao {
   background: var(--cor-ambar-suave);
   color: var(--cor-ambar-texto);
-}
-
-.kpi-icone--azul {
-  background: var(--cor-azul-suave);
-  color: var(--cor-azul);
 }
 
 .kpi-conteudo {
@@ -1009,7 +1002,7 @@ img, svg { display: block; max-width: 100%; }
   .filtro-select input { min-width: 110px; font-size: 13px; }
   .processos-conteudo { padding: var(--espaco-l); }
 
-  .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .graficos { grid-template-columns: 1fr; }
   .grafico-svg { min-height: 200px; }
 

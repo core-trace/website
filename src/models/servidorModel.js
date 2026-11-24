@@ -23,12 +23,32 @@ function buscarPorMac(enderecoMac) {
 }
 
 function cadastrar(enderecoMac, idPerfilServidor) {
-    const instrucaoSql = `
-        INSERT INTO servidores (nome, status, endereco_mac, fk_perfil_servidor)
-        VALUES (?, 'ATIVO', ?, ?);
-    `;
+    return database.transacao(async function (executar) {
+        // Espera outro cadastro no mesmo perfil terminar para não repetir o número.
+        const perfis = await executar(`
+            SELECT nome FROM perfil_servidor
+            WHERE id_perfil_servidor = ? FOR UPDATE;
+        `, [idPerfilServidor]);
+        if (perfis.length === 0) throw new Error("Perfil de servidor não encontrado.");
 
-    return database.executar(instrucaoSql, [`Servidor ${enderecoMac}`, enderecoMac, idPerfilServidor]);
+        const servidores = await executar(`
+            SELECT nome FROM servidores WHERE fk_perfil_servidor = ?;
+        `, [idPerfilServidor]);
+        const prefixo = perfis[0].nome + "-";
+        let maiorNumero = servidores.length;
+        for (const servidor of servidores) {
+            if (!servidor.nome.startsWith(prefixo)) continue;
+            const numero = servidor.nome.slice(prefixo.length);
+            if (/^\d+$/.test(numero)) maiorNumero = Math.max(maiorNumero, Number(numero));
+        }
+
+        // O nome é só para exibição. O MAC continua identificando as coletas.
+        const nome = prefixo + (maiorNumero + 1);
+        return executar(`
+            INSERT INTO servidores (nome, status, endereco_mac, fk_perfil_servidor)
+            VALUES (?, 'ATIVO', ?, ?);
+        `, [nome, enderecoMac, idPerfilServidor]);
+    });
 }
 
 function ativar(idServidor, idPerfilServidor) {

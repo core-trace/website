@@ -49,11 +49,8 @@ app.use("/empresa", empresaRouter);
 app.use("/s3Routes", s3Routes);
 app.use("/alertas", alertaRouter);
 app.use("/geral", geralRouter);
-<<<<<<< HEAD
 app.use("/processos", processosRouter);
-=======
 app.use("/api/assistente", assistenteRouter);
->>>>>>> 77b2c9ec4958ac1b060dbce0807bf8e0a8e41e42
 
 // Mantem o resumo da dashboard Geral atualizado em segundo plano, em vez de buscar
 // no S3 a cada requisicao (ver comentario no topo de resumoGeralService.js).

@@ -1,11 +1,8 @@
-const processosModel = require("../models/processosModel");
-
-// Limiares simples para classificar anormalidade de processo
-const LIMITE_CRITICO_CPU = 90;
-const LIMITE_CRITICO_RAM = 90;
+const processosService = require("../services/processosService");
 
 async function listarServidores(req, res) {
     try {
+        const processosModel = require("../models/processosModel");
         const servidores = await processosModel.listarServidores();
         return res.json({ servidores });
     } catch (erro) {
@@ -22,7 +19,7 @@ async function buscarResumo(req, res) {
             return res.status(400).json({ erro: "Parâmetros 'mac' e 'data' são obrigatórios." });
         }
 
-        const resumo = await processosModel.buscarResumoDiario(mac, data);
+        const resumo = await require("../models/processosModel").buscarResumoDiario(mac, data);
         return res.json(resumo);
     } catch (erro) {
         console.error("Erro ao buscar resumo diário:", erro);
@@ -38,37 +35,12 @@ async function buscarDadosProcessos(req, res) {
             return res.status(400).json({ erro: "Parâmetros 'mac' e 'data' são obrigatórios." });
         }
 
-        const chaves = await processosModel.listarLotesDoDia(mac, data);
-        const processos = [];
-        let ultimoLote = null;
-
-        for (const chave of chaves) {
-            if (!chave.endsWith("capturas.json")) continue;
-
-            const lote = await processosModel.buscarConteudoLote(chave);
-            if (!lote || !Array.isArray(lote.processos)) continue;
-
-            processos.push(...lote.processos);
-            ultimoLote = lote;
-        }
-
-        // Ordena por timestamp
-        processos.sort((a, b) => {
-            const ta = new Date(a.timestamp).getTime();
-            const tb = new Date(b.timestamp).getTime();
-            return ta - tb;
-        });
-
+        const amostras = await processosService.carregarAmostras(mac, data);
         return res.json({
             mac,
             data,
-            processos,
-            total: processos.length,
-            ultimoLote: ultimoLote ? {
-                lote_id: ultimoLote.lote_id,
-                inicio: ultimoLote.resumos?.inicio,
-                fim: ultimoLote.resumos?.fim
-            } : null
+            processos: amostras,
+            total: amostras.length
         });
     } catch (erro) {
         console.error("Erro ao buscar dados de processos:", erro);
@@ -76,8 +48,29 @@ async function buscarDadosProcessos(req, res) {
     }
 }
 
+async function obterDashboard(req, res) {
+    try {
+        const { mac, data, idEmpresa, idUsuario } = req.query;
+
+        if (!mac || !data) {
+            return res.status(400).json({ erro: "Parâmetros 'mac' e 'data' são obrigatórios." });
+        }
+
+        const filtros = { mac, data };
+        if (idEmpresa) filtros.idEmpresa = Number(idEmpresa);
+        if (idUsuario) filtros.idUsuario = Number(idUsuario);
+
+        const dashboard = await processosService.obterDashboard(filtros);
+        return res.json(dashboard);
+    } catch (erro) {
+        console.error("Erro ao obter dashboard de processos:", erro.message);
+        return res.status(500).json({ erro: "Não foi possível carregar o dashboard de processos." });
+    }
+}
+
 module.exports = {
     listarServidores,
     buscarResumo,
-    buscarDadosProcessos
+    buscarDadosProcessos,
+    obterDashboard
 };

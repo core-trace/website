@@ -10,27 +10,44 @@ const s3 = new S3Client({
 
 const BUCKET = process.env.BUCKET_DADOS_GOLD || "bucket-coretrace";
 
+const PREFIXO_LOTES = "client/lotes/";
+const PREFIXO_RESUMOS = "client/resumos/";
+
+function normalizarMac(enderecoMac) {
+    return String(enderecoMac || "").trim().toUpperCase();
+}
+
 /**
- * Lista endereços MAC únicos que possuem resumo diário no S3.
- * Prefixo: client/resumos/maquina=<MAC>/data=<DATA>/resumo.json
+ * Lista todos os endereços MAC únicos que possuem dados no S3.
+ * Olha tanto os lotes de captura (client/lotes/maquina=<MAC>/...)
+ * quanto os resumos diários (client/resumos/maquina=<MAC>/...),
+ * para que apareçam servidores que tenham processos mesmo sem
+ * resumo diário gerado ainda.
  */
 async function listarServidores() {
-    const resposta = await s3.send(
-        new ListObjectsV2Command({
-            Bucket: BUCKET,
-            Prefix: "client/resumos/maquina="
-        })
-    );
-
-    const arquivos = resposta.Contents || [];
     const macs = new Set();
 
-    for (const arquivo of arquivos) {
-        const chave = arquivo.Key;
-        const match = chave.match(/maquina=([^/]+)/);
-        if (match) {
-            macs.add(match[1]);
-        }
+    for (const prefixo of [PREFIXO_LOTES, PREFIXO_RESUMOS]) {
+        let token;
+        do {
+            const resposta = await s3.send(
+                new ListObjectsV2Command({
+                    Bucket: BUCKET,
+                    Prefix: `${prefixo}maquina=`,
+                    ContinuationToken: token
+                })
+            );
+
+            for (const arquivo of resposta.Contents || []) {
+                const chave = arquivo.Key;
+                const match = chave.match(/maquina=([^/]+)/);
+                if (match) {
+                    macs.add(normalizarMac(match[1]));
+                }
+            }
+
+            token = resposta.IsTruncated ? resposta.NextContinuationToken : undefined;
+        } while (token);
     }
 
     return Array.from(macs).sort();
@@ -41,7 +58,8 @@ async function listarServidores() {
  * Caminho: client/resumos/maquina=<MAC>/data=<DATA>/resumo.json
  */
 async function buscarResumoDiario(enderecoMac, data) {
-    const chave = `client/resumos/maquina=${enderecoMac}/data=${data}/resumo.json`;
+    const mac = normalizarMac(enderecoMac);
+    const chave = `${PREFIXO_RESUMOS}maquina=${mac}/data=${data}/resumo.json`;
     const resposta = await s3.send(
         new GetObjectCommand({ Bucket: BUCKET, Key: chave })
     );
@@ -54,15 +72,28 @@ async function buscarResumoDiario(enderecoMac, data) {
  * Prefixo: client/lotes/maquina=<MAC>/data=<DATA>/
  */
 async function listarLotesDoDia(enderecoMac, data) {
-    const prefixo = `client/lotes/maquina=${enderecoMac}/data=${data}/`;
-    const resposta = await s3.send(
-        new ListObjectsV2Command({
-            Bucket: BUCKET,
-            Prefix: prefixo
-        })
-    );
+    const mac = normalizarMac(enderecoMac);
+    const prefixo = `${PREFIXO_LOTES}maquina=${mac}/data=${data}/`;
+    const chaves = [];
+    let token;
 
-    return (resposta.Contents || []).map(item => item.Key);
+    do {
+        const resposta = await s3.send(
+            new ListObjectsV2Command({
+                Bucket: BUCKET,
+                Prefix: prefixo,
+                ContinuationToken: token
+            })
+        );
+
+        for (const arquivo of resposta.Contents || []) {
+            chaves.push(arquivo.Key);
+        }
+
+        token = resposta.IsTruncated ? resposta.NextContinuationToken : undefined;
+    } while (token);
+
+    return chaves.sort();
 }
 
 /**
@@ -80,5 +111,6 @@ module.exports = {
     listarServidores,
     buscarResumoDiario,
     listarLotesDoDia,
-    buscarConteudoLote
+    buscarConteudoLote,
+    normalizarMac
 };

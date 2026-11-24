@@ -20,6 +20,7 @@ async function obterServidoresEmAlerta() {
 
     const dados = await resposta.json();
     HORA_ATUALIZACAO = dados.horaAtualizacao || HORA_ATUALIZACAO;
+    estado.resolucaoChamados = dados.resolucaoChamados || null;
     return dados.servidores || [];
 }
 
@@ -30,7 +31,7 @@ function mostrarMensagem(texto, papel = 'status') {
     mensagem.setAttribute('role', papel);
 }
 
-const estado = { perfilAtual: 'todos', metricaAtual: '', servidoresSelecionados: [], servidores: [] };
+const estado = { perfilAtual: 'todos', metricaAtual: '', servidoresSelecionados: [], servidores: [], resolucaoChamados: null };
 
 function minutosDaHora(hora) {
     if (!hora || !hora.includes(':')) return 0;
@@ -51,13 +52,6 @@ function minutosSemDados(servidor) {
     const ref = minutosDaHora(HORA_ATUALIZACAO);
     const ult = minutosDaHora(servidor.ultimaColeta);
     return ref >= ult ? ref - ult : (24 * 60 - ult) + ref;
-}
-
-function formatarDuracao(minutos) {
-    if (minutos < 60) return `${minutos} min`;
-    const horas = Math.floor(minutos / 60);
-    const resto = minutos % 60;
-    return resto ? `${horas}h ${resto}min` : `${horas}h`;
 }
 
 function servidoresDoPerfil(perfil, servidores = estado.servidores) {
@@ -159,19 +153,6 @@ function contarNormais(servidores) { return contarSituacao(servidores, 'normal')
 function contarSemDados(servidores) { return contarSituacao(servidores, 'semdados'); }
 function contarEmAlerta(servidores) { return contarCriticos(servidores) + contarAtencao(servidores) + contarSemDados(servidores); }
 
-function maiorTempoEmCritico(servidores) {
-    const criticos = servidores.filter((s) => s.status === 'critico');
-    if (!criticos.length) return { servidor: null, minutos: 0 };
-    const maior = criticos.reduce((a, b) => (minutosEmAlerta(a) >= minutosEmAlerta(b) ? a : b));
-    return { servidor: maior, minutos: minutosEmAlerta(maior) };
-}
-
-function tempoMedioEmAlerta(servidores) {
-    const emAlerta = servidoresEmAlerta(servidores);
-    if (!emAlerta.length) return 0;
-    return Math.round(emAlerta.reduce((soma, s) => soma + minutosEmAlerta(s), 0) / emAlerta.length);
-}
-
 function ordenarPorCriticidade(servidores) {
     const peso = { critico: 0, atencao: 1, semdados: 2, normal: 3 };
     return [...servidores].sort((a, b) => (
@@ -215,15 +196,14 @@ function formatarValorComUnidade(valor, unidade) {
 }
 
 function descricaoDoServidor(servidor) {
-    const duracao = formatarDuracao(minutosEmAlerta(servidor));
-    if (servidor.status === 'critico') return `desde ${servidor.desde} · ${duracao} em alerta crítico`;
-    if (servidor.status === 'atencao') return `desde ${servidor.desde} · ${duracao} em atenção`;
     if (servidor.status === 'semdados') {
         return servidor.ultimaColeta
             ? `último dado ${ultimaColetaDe(servidor)} · sem dados há ${minutosSemDados(servidor)} min`
             : 'nenhuma coleta registrada hoje';
     }
-    return `última coleta às ${ultimaColetaDe(servidor)}`;
+    if (servidor.status === 'normal') return `última coleta às ${ultimaColetaDe(servidor)}`;
+    // Critico e atencao ja estao no selo: nao repetir o tempo em alerta na linha.
+    return '';
 }
 
 function criarElemento(tag, classe, texto) {
@@ -231,6 +211,21 @@ function criarElemento(tag, classe, texto) {
     if (classe) el.className = classe;
     if (texto !== undefined) el.textContent = texto;
     return el;
+}
+
+function criarIconeJira() {
+    const icone = document.createElement('img');
+    icone.className = 'alertas-icone-jira';
+    icone.src = '../assets/icons/jira.png';
+    icone.alt = '';
+    icone.setAttribute('aria-hidden', 'true');
+    return icone;
+}
+
+function definirTextoBotaoChamado(link, texto) {
+    const icone = link.querySelector('.alertas-icone-jira');
+    link.textContent = texto;
+    if (icone) link.prepend(icone);
 }
 
 function criarSvg(tag, atributos = {}) {
@@ -245,19 +240,34 @@ function criarSvgTexto(x, y, conteudo, atributos = {}) {
     return texto;
 }
 
+function resumoResolucaoAtual() {
+    const vazio = { texto: '—', quantidade: 0, vazio: true };
+    const dados = estado.resolucaoChamados;
+    if (!dados) return vazio;
+    if (estado.perfilAtual === 'todos') return dados.geral || vazio;
+
+    const servidor = estado.servidores.find((s) => s.perfil === estado.perfilAtual);
+    const idPerfil = servidor?.perfilId;
+    return (idPerfil !== undefined && idPerfil !== null && dados.porPerfil?.[String(idPerfil)]) || vazio;
+}
+
 function desenharCards() {
     const container = document.getElementById('alertas-resumo');
     const escopo = servidoresDoPerfil(estado.perfilAtual);
-    const emPerfil = estado.perfilAtual !== 'todos';
-    const maior = maiorTempoEmCritico(escopo);
+    const resolucao = resumoResolucaoAtual();
 
     const cartoes = [
         { rotulo: 'Críticos', valor: String(contarCriticos(escopo)), cor: 'critico', legenda: 'servidores' },
         { rotulo: 'Atenção', valor: String(contarAtencao(escopo)), cor: 'atencao', legenda: 'servidores em atenção' },
         { rotulo: 'Sem envio de dados', valor: String(contarSemDados(escopo)), cor: 'semdados', legenda: 'servidores sem coleta' },
-        emPerfil
-            ? { rotulo: 'Maior tempo em crítico', valor: `${maior.minutos} min`, cor: 'critico', legenda: maior.servidor ? maior.servidor.nome : 'sem servidores críticos' }
-            : { rotulo: 'Tempo médio em alerta', valor: `${tempoMedioEmAlerta(escopo)} min`, cor: 'critico', legenda: 'por servidor em alerta' },
+        {
+            rotulo: 'Tempo médio de resolução de chamado',
+            valor: resolucao.texto,
+            cor: resolucao.vazio ? 'semdados' : 'normal',
+            legenda: resolucao.vazio
+                ? 'sem chamados concluídos'
+                : `${resolucao.quantidade} chamado${resolucao.quantidade === 1 ? '' : 's'} concluído${resolucao.quantidade === 1 ? '' : 's'}`
+        },
         { rotulo: 'Normal', valor: String(contarNormais(escopo)), cor: 'normal', legenda: 'servidores' }
     ];
 
@@ -314,7 +324,8 @@ function criarLinhaServidor(servidor) {
 
     const celulaSituacao = criarElemento('td');
     celulaSituacao.append(criarElemento('span', `alertas-badge ${servidor.status}`, TEXTO_SITUACAO[servidor.status]));
-    celulaSituacao.append(criarElemento('p', 'alertas-desde', descricaoDoServidor(servidor)));
+    const descricao = descricaoDoServidor(servidor);
+    if (descricao) celulaSituacao.append(criarElemento('p', 'alertas-descricao', descricao));
 
     const celulaMetricas = criarElemento('td');
     const metricas = criarElemento('div', 'alertas-metricas');
@@ -336,6 +347,7 @@ function criarLinhaServidor(servidor) {
     const celulaAcoes = criarElemento('td', 'alertas-acoes');
     const rotuloChamado = servidor.chamado?.chave ? `Chamado ${servidor.chamado.chave}` : 'Acessar o chamado';
     const botaoChamado = criarElemento('a', 'alertas-botao-chamado', rotuloChamado);
+    botaoChamado.prepend(criarIconeJira());
     botaoChamado.href = servidor.chamado?.url || '#';
     if (servidor.chamado?.url) {
         botaoChamado.target = '_blank';
@@ -564,12 +576,16 @@ function atualizarAbas() {
 }
 
 function limparSecaoPerfil() {
-    ['alertas-legend', 'alertas-grafico-area', 'alertas-lateral-lista', 'alertas-grafico-aviso'].forEach((id) => { document.getElementById(id).innerHTML = ''; });
+    ['alertas-legend', 'alertas-grafico-area', 'alertas-lateral-lista', 'alertas-grafico-aviso', 'alertas-abas'].forEach((id) => { document.getElementById(id).innerHTML = ''; });
     document.getElementById('alertas-grafico-aviso').hidden = true;
     ['alertas-selo-grafico', 'alertas-resumo-grafico', 'alertas-selo-lateral', 'alertas-resumo-lateral'].forEach((id) => { document.getElementById(id).textContent = ''; });
 }
 
 function atualizarTudo() {
+    // Um servidor pode ter saido da resposta porque todos os chamados foram concluidos.
+    const idsDisponiveis = new Set(estado.servidores.map((s) => s.id));
+    estado.servidoresSelecionados = estado.servidoresSelecionados.filter((id) => idsDisponiveis.has(id));
+
     const emPerfil = estado.perfilAtual !== 'todos';
     document.getElementById('alertas-painel-geral').hidden = emPerfil;
     document.getElementById('alertas-painel-perfil').hidden = !emPerfil;
@@ -634,7 +650,7 @@ async function tratarCliqueChamado(link, servidor) {
         return;
     }
     const textoOriginal = link.textContent;
-    link.textContent = 'Buscando chamado...';
+    definirTextoBotaoChamado(link, 'Buscando chamado...');
     try {
         const resp = await fetch('/alertas/chamado', {
             method: 'POST',
@@ -651,15 +667,15 @@ async function tratarCliqueChamado(link, servidor) {
         if (dados.url) {
             servidor.chamado = dados;
             link.href = dados.url;
-            link.textContent = `Chamado ${dados.chave}`;
+            definirTextoBotaoChamado(link, `Chamado ${dados.chave}`);
             window.open(dados.url, '_blank', 'noopener,noreferrer');
         } else {
-            link.textContent = textoOriginal;
+            definirTextoBotaoChamado(link, textoOriginal);
             alert('Integração com o Jira ainda não configurada no servidor.');
         }
     } catch (erro) {
         console.error(erro);
-        link.textContent = textoOriginal;
+        definirTextoBotaoChamado(link, textoOriginal);
         alert('Não foi possível acessar ou abrir o chamado no Jira.');
     }
 }

@@ -2,10 +2,8 @@
 // dos resumos diarios reais que o pipeline Python deixa no S3, um por servidor.
 //
 // Cobre os campos "estado", "cobertura", "indicadores", "perfis", "resumo", "acoes",
-// "evolucao" e "evolucaoLegenda". Os demais campos que a dashboard usa (riscos e
-// perguntasProntas) continuam vindo do mock (public/scripts/geralMock.js) porque
-// dependem de hipoteses ainda nao implementadas (assistente, previsao de tendencia) -
-// isso e intencional, nao uma lacuna esquecida.
+// "riscos", "evolucao" e "evolucaoLegenda". So "perguntasProntas" continua vindo do
+// mock (public/scripts/geralMock.js)
 const servidorModel = require("../models/servidorModel");
 const resumoGoldService = require("./resumoGoldService");
 const sinaisExternosService = require("./sinaisExternosService");
@@ -66,13 +64,17 @@ function formatarHorarioDeInstante(instante) {
     return `${campos.hour}h${campos.minute}`;
 }
 
-function formatarDuracaoDesde(instante) {
-    const agora = resumoGoldService.agoraOuReferenciaDemo();
-    const minutos = Math.max(0, Math.round((agora.getTime() - instante.getTime()) / 60000));
+function formatarMinutos(minutos) {
     if (minutos < 60) return `${minutos} min`;
     const horas = Math.floor(minutos / 60);
     const minutosRestantes = minutos % 60;
     return minutosRestantes === 0 ? `${horas}h` : `${horas}h ${minutosRestantes}min`;
+}
+
+function formatarDuracaoDesde(instante) {
+    const agora = resumoGoldService.agoraOuReferenciaDemo();
+    const minutos = Math.max(0, Math.round((agora.getTime() - instante.getTime()) / 60000));
+    return formatarMinutos(minutos);
 }
 
 // Junta nomes em texto corrido: "A", "A e B" ou "A, B e C".
@@ -501,6 +503,43 @@ function montarAcoes(servidores, perfis) {
     return acoes;
 }
 
+// Riscos em acompanhamento: percorre as leituras de cada servidor avaliado procurando
+// o campo previsao_limite, que a Gold ja calcula e injeta (resumos_gold.calcular_previsao,
+// por metrica). So pega os 3 mais urgentes (menor minutosEstimados primeiro).
+function montarRiscos(servidores) {
+    const riscos = [];
+
+    for (const servidor of servidores) {
+        if (servidor.semDados || !servidor.resumo) continue;
+
+        percorrerMedidas(servidor.resumo.resumos, function (leitura) {
+            const previsao = leitura.previsao_limite;
+            if (!previsao) return;
+
+            const categoria = categoriaDaMetrica(leitura.metrica) ?? "Métrica";
+            const valorRecente = leitura.maximo ?? leitura.ultimo_valor;
+            const unidadeBruta = leitura.unidade ?? "";
+            const unidade = unidadeBruta === "%" ? unidadeBruta : ` ${unidadeBruta}`;
+
+            riscos.push({
+                tag: "Projeção de limite",
+                tom: previsao.proximo_estado === "critico" ? "critico" : "neutro",
+                titulo: `${categoria} · ${servidor.nome}`,
+                detalhe: `${valorRecente != null ? `${valorRecente.toFixed(0)}${unidade} hoje · ` : ""}`
+                    + `pode cruzar ${previsao.limite}${unidade} em ~${formatarMinutos(previsao.minutos_estimados)}.`,
+                acao: `Revisar ${categoria.toLowerCase()} de ${servidor.nome}.`,
+                nome_perfil: servidor.nome_perfil,
+                minutosEstimados: previsao.minutos_estimados
+            });
+        });
+    }
+
+    return riscos
+        .sort((a, b) => a.minutosEstimados - b.minutosEstimados)
+        .slice(0, 3)
+        .map(({ minutosEstimados, ...risco }) => risco);
+}
+
 // Monta um resumo vazio, usado quando ainda nao conseguimos buscar nenhum dado real
 // (ex.: na primeira tentativa, se o bucket estiver fora do ar). Assim a rota sempre
 // devolve um formato valido, em vez de travar ou devolver undefined.
@@ -516,6 +555,7 @@ function resumoSemDados() {
         perfis: [],
         resumo: montarResumo([], { avaliados: 0, esperados: 0 }),
         acoes: [],
+        riscos: [],
         sinaisExternos: sinaisExternosService.obterSinaisExternos(),
         evolucao: { horarios: [], porServidor: [] },
         evolucaoLegenda: montarLegendaEvolucao({ horarios: [], porServidor: [] })
@@ -552,6 +592,7 @@ async function construirResumoGeral() {
         perfis,
         resumo: montarResumo(perfis, cobertura),
         acoes: montarAcoes(servidores, perfis),
+        riscos: montarRiscos(servidores),
         sinaisExternos: sinaisExternosService.obterSinaisExternos(),
         evolucao,
         evolucaoLegenda

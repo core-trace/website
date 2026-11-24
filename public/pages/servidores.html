@@ -4,26 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreTrace - Visão geral</title>
+    <title>CoreTrace - Servidores</title>
     <link rel="stylesheet" href="../css/fonts.css">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/inicioDashboard.css">
-    <link rel="stylesheet" href="../css/detalheServidor.css">
     <link rel="stylesheet" href="../css/servidores.css">
-    <script src="../scripts/vendor/chart.umd.js" defer></script>
     <script src="../scripts/navbarDashboard.js" defer></script>
-    <script src="../scripts/cenario/cenario-coretrace-7dias.js" defer></script>
-    <script src="../scripts/cenario/detalhamento-servidor.js" defer></script>
-    <script src="../scripts/monitoramentoMock.js" defer></script>
-    <script src="../scripts/dashboardDados.js" defer></script>
-    <script src="../scripts/dashboardSimulacao.js" defer></script>
-    <script src="../scripts/dashboardAlertasMock.js" defer></script>
-    <script src="../data/dashboard-resumo.js" defer></script>
-    <script src="../scripts/dashboardCenario.js" defer></script>
-    <script src="../scripts/dashboardGraficos.js" defer></script>
-    <script src="../scripts/detalheServidor.js" defer></script>
-    <script src="../scripts/inicioDashboard.js" defer></script>
     <script src="../scripts/servidores.js" defer></script>
 </head>
 
@@ -79,92 +66,78 @@
                 </div>
             </div>
         </header>
-        <main class="principal" id="conteudo-principal" tabindex="-1">
 
-            <div class="visao-geral">
-                <h1 class="titulo-visao-geral">Visão geral dos servidores</h1>
-                <p class="texto-visao-geral">Localize as prioridades atuais e siga para a investigação.</p>
-            </div>
-            <span class="visao-select-campo">
-                        <select class="visao-select" id="filtro-perfil-servidor" aria-label="Filtrar por perfil">
+        <main class="principal" id="conteudo-principal" tabindex="-1">
+            <div class="servidores-tela">
+                <div class="visao-geral">
+                    <h1 class="titulo-visao-geral">Visão geral dos servidores</h1>
+                    <p class="texto-visao-geral">Localize as prioridades atuais e siga para a investigação.</p>
+                </div>
+
+                <section class="servidores-resumo" aria-label="Resumo dos servidores">
+                    <article class="servidores-resumo-item servidores-resumo-total">
+                        <h2 class="servidores-resumo-titulo">Servidores</h2>
+                        <p class="servidores-resumo-valor" id="servidores-total">–</p>
+                        <p class="servidores-resumo-sub" id="servidores-reportando">Carregando…</p>
+                    </article>
+                    <article class="servidores-resumo-item servidores-resumo-critico">
+                        <h2 class="servidores-resumo-titulo">Críticos</h2>
+                        <p class="servidores-resumo-valor" id="servidores-criticos">–</p>
+                        <p class="servidores-resumo-sub" id="servidores-criticos-nomes">Carregando…</p>
+                    </article>
+                    <article class="servidores-resumo-item servidores-resumo-atencao">
+                        <h2 class="servidores-resumo-titulo">Em atenção</h2>
+                        <p class="servidores-resumo-valor" id="servidores-atencao">–</p>
+                        <p class="servidores-resumo-sub" id="servidores-atencao-tendencia">Carregando…</p>
+                    </article>
+                    <article class="servidores-resumo-item servidores-resumo-normal">
+                        <h2 class="servidores-resumo-titulo">Estáveis</h2>
+                        <p class="servidores-resumo-valor" id="servidores-estaveis">–</p>
+                        <p class="servidores-resumo-sub" id="servidores-estaveis-sub">dentro do esperado</p>
+                    </article>
+                </section>
+
+                <section class="servidores-filtros" aria-label="Filtros de servidores">
+                    <label class="visao-busca-servidores servidores-busca">
+                        <span class="dashboard-lupa" aria-hidden="true"></span>
+                        <input type="search" id="busca-servidores" placeholder="Pesquisar servidor por nome…"
+                            aria-label="Pesquisar servidor por nome" aria-controls="servidores-grid" autocomplete="off"
+                            spellcheck="false">
+                        <button type="button" class="servidores-limpar-busca" id="limpar-busca"
+                            aria-label="Limpar pesquisa" hidden>×</button>
+                    </label>
+                    <span class="visao-select-campo">
+                        <select class="visao-select" id="filtro-perfil" aria-label="Filtrar por perfil">
                             <option value="">Todos os perfis</option>
                         </select>
                     </span>
-            <div class="KPIs">
-                <div class="KPI">
-                    <h3 class="titulo-KPI">Servidores reportando</h3>
-                    <h1 class="dado-principal-KPI" id="servidoresAtivos%">?%</h1>
-                    <p class="descricao-KPI"><span id="servidoresAtivos">?</span>/<span id="servidoresTotais"></span> dos servidores estão reportando.</p>
-                </div>
-                <div class="KPI">
-                    <h3 class="titulo-KPI">Componente mais crítico</h3>
-                    <h1 class="dado-principal-KPI" id="componenteMaisCritico">?</h1>
-                    <p class="descricao-KPI">Está com crítico em <span id="componenteMaisCritico%NosServidores">?</span>% dos servidores.</p>
-                </div>
-                <div class="KPI">
-                    <h3 class="titulo-KPI">Componente mais alertante</h3>
-                    <h1 class="dado-principal-KPI" id="componenteMaisAlertante">?</h1>
-                    <p class="descricao-KPI">Está com alerta em <span id="componenteMaisAlertante%NosServidores">?</span>% dos servidores.</p>
-                </div>
-                <div class="KPI">
-                    <h3 class="titulo-KPI">Servidores estáveis</h3>
-                    <h1 class="dado-principal-KPI"><span id="%servidoresEstaveis">?</span>%</h1>
-                    <p class="descricao-KPI"><span id="ServidoresEstaveis">?</span> Servidores estão estáveis</p>
-                </div>
-                <div class="KPI">
-                    <h3 class="titulo-KPI">Servidores atenção</h3>
-                    <h1 class="dado-principal-KPI"><span id="%servidoresAtencao">?</span>%</h1>
-                    <p class="descricao-KPI"><span id="ServidoresAtencao">?</span> Servidores estão estáveis</p>
-                </div>
-                <div class="KPI">
-                    <h3 class="titulo-KPI">Servidores críticoss</h3>
-                    <h1 class="dado-principal-KPI"><span id="%servidoresCriticos">?</span>%</h1>
-                    <p class="descricao-KPI"><span id="servidoresCriticos">?</span> Servidores estão críticos</p>
-                </div>
-            </div>
-
-
-            <section class="visao-card visao-servidores" aria-labelledby="titulo-servidores">
-                <div class="visao-tabela-cabecalho">
-                    <h2 id="titulo-servidores">Servidores (<span id="servidoresTotaisTabela">0</span>)</h2>
-                    <label class="visao-busca-servidores">
-                        <span class="dashboard-lupa" aria-hidden="true"></span>
-                        <input type="search" id="busca-servidores-componentes" aria-label="Buscar servidor, perfil ou MAC"
-                            placeholder="Buscar servidor, perfil ou MAC..." aria-controls="lista-servidores">
-                    </label>
-                    <span class="visao-select-campo"><select class="visao-select visao-select-situacao"
-                            id="filtro-situacao" aria-label="Filtrar por situação">
-                            <option value="">Todas as situações</option>
+                    <span class="visao-select-campo">
+                        <select class="visao-select" id="filtro-indicador" aria-label="Filtrar por indicador">
+                            <option value="">Todos os indicadores</option>
+                            <option value="sem-dados">Sem dados</option>
                             <option value="critico">Crítico</option>
                             <option value="atencao">Atenção</option>
                             <option value="normal">Normal</option>
-                        </select></span>
-                </div>
-                <div class="visao-tabela-scroll" role="region" aria-label="Lista de servidores" tabindex="0">
-                    <table class="visao-tabela">
-                        <thead>
-                            <tr>
-                                <th scope="col">Servidor</th>
-                                <th scope="col">Perfil</th>
-                                <th scope="col">Situação</th>
-                                <th scope="col">CPU</th>
-                                <th scope="col">RAM</th>
-                                <th scope="col">Disco</th>
-                                <th scope="col">Recebimento de rede</th>
-                                <th scope="col">Escrita de rede</th>
-                                <th scope="col">Último registro</th>
-                                <th scope="col"><span class="visao-sr-only">Ações</span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-servidores-componentes"></tbody>
-                    </table>
-                </div>
+                        </select>
+                    </span>
+                    <ul class="servidores-legenda" aria-label="Legenda de status">
+                        <li><span class="servidores-legenda-ponto sem-dados" aria-hidden="true"></span>Sem dados</li>
+                        <li><span class="servidores-legenda-ponto critico" aria-hidden="true"></span>Crítico</li>
+                        <li><span class="servidores-legenda-ponto atencao" aria-hidden="true"></span>Atenção</li>
+                        <li><span class="servidores-legenda-ponto normal" aria-hidden="true"></span>Normal</li>
+                    </ul>
+                </section>
 
-            </section>
+                <p class="servidores-estado" id="servidores-carregando" role="status">Carregando servidores…</p>
+                <p class="servidores-estado" id="servidores-vazio" role="status" hidden>Nenhum servidor encontrado
+                    para esses filtros.</p>
+                <p class="servidores-estado servidores-estado-erro" id="servidores-erro" role="alert" hidden>Não foi
+                    possível atualizar os servidores. Nova tentativa em 30 segundos.</p>
+
+                <div class="servidores-grid" id="servidores-grid" aria-busy="true"></div>
+            </div>
         </main>
-
-        <body>
-
-        </body>
+    </div>
+</body>
 
 </html>

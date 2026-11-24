@@ -9,14 +9,13 @@
 
 <body>
     <h1>Teste de conexão AWS S3</h1>
-    <button id="botao-listar-arquivos">Listar dados do client</button>
+    <button id="botao-listar-arquivos">Listar resumos do client</button>
     <h2>Arquivos encontrados:</h2>
     <select id="arquivos-s3">
         <option value="">Selecione um arquivo</option>
     </select>
     <button id="botao-buscar-dados">Buscar dados JSON</button>
     <h2>Resultado:</h2>
-    <pre id="resultado">Aguardando consulta...</pre>
     <!--O "<pre>" é muito útil para testes e depuração, pois permite visualizar objetos JSON e respostas da API de maneira organizada.-->
     <pre id="resultado">Aguardando consulta...</pre>
     <script>
@@ -50,10 +49,10 @@
                 // recebido para um objeto JavaScript no formato JSON
                 const arquivos = await resposta.json();
 
-                // Filtra os arquivos retornados, mantendo apenas aqueles
-                // que correspondem ao padrão dos arquivos de captura do client
+                // Filtra os arquivos retornados, mantendo apenas os resumos diários
+                // Exemplo: client/resumos/maquina=AA:BB:CC:DD:EE:FF/data=2026-11-22/resumo.json
                 const arquivosClient = arquivos.filter(arquivo =>
-                    /^client\/lotes\/maquina=[^/]+\/data=[^/]+\/lote=[^/]+\/capturas\.json$/.test(arquivo.Key)
+                    /^client\/resumos\/maquina=[^/]+\/data=[^/]+\/resumo\.json$/.test(arquivo.Key)
                 );
 
                 // Retorna apenas os arquivos que passaram pelo filtro
@@ -66,8 +65,9 @@
                 // Exibe a mensagem de erro na página
                 resultado.textContent = erro.message;
 
-                // Retorna um array vazio caso ocorra algum erro
-                return [];
+                // Retorna null para quem chamou saber que deu erro
+                // (um array vazio pareceria "nenhum arquivo" e apagaria a mensagem de erro)
+                return null;
             }
         }
 
@@ -87,25 +87,23 @@
 
                 // Define o valor da opção como o caminho completo do arquivo no S3
                 // Esse caminho será utilizado posteriormente para buscar o conteúdo
-                // Key == nome completo do objeto, exemplo: "client/lotes/maquina=cart-api-1/data=2026-11-17/lote=001/capturas.json"
+                // Key == nome completo do objeto, exemplo: "client/resumos/maquina=AA:BB:CC:DD:EE:FF/data=2026-11-22/resumo.json"
                 opcao.value = arquivos[i].Key;
 
                 // Divide o caminho do arquivo utilizando "/" como separador
                 // para permitir acessar individualmente as informações do caminho
+                // partes: [client, resumos, maquina=..., data=..., resumo.json]
                 const partes = arquivos[i].Key.split("/");
 
-                // Extrai o nome da máquina, removendo o prefixo "maquina="
+                // Extrai o endereço MAC da máquina, removendo o prefixo "maquina="
                 const maquina = partes[2].replace("maquina=", "");
 
                 // Extrai a data, removendo o prefixo "data="
                 const data = partes[3].replace("data=", "");
 
-                // Extrai o identificador do lote, removendo o prefixo "lote="
-                const lote = partes[4].replace("lote=", "");
-
                 // Define o texto que será exibido na opção do select,
-                // utilizando o nome da máquina, a data e o lote
-                opcao.textContent = `${maquina} | ${data} | ${lote}`;
+                // utilizando a máquina e a data (o resumo é um por máquina e dia)
+                opcao.textContent = `${maquina} | ${data}`;
 
                 // Adiciona a opção criada ao select da página
                 arquivosS3.appendChild(opcao);
@@ -127,7 +125,7 @@
                 resultado.textContent = "Selecione um arquivo primeiro.";
 
                 // Interrompe a execução da função para evitar uma consulta desnecessária
-                return;
+                return null;
             }
 
             try {
@@ -135,7 +133,7 @@
                 // Realiza uma requisição HTTP GET para a rota do servidor responsável
                 // por buscar o conteúdo do arquivo selecionado no S3
                 // encodeURIComponent codifica caracteres especiais do caminho
-                // para que ele possa ser enviado corretamente como parâmetro da URL
+                // (o MAC tem ":") para que ele possa ser enviado corretamente na URL
                 const resposta = await fetch(
                     `/s3Routes/conteudo?arquivo=${encodeURIComponent(arquivoSelecionado)}`
                 );
@@ -178,8 +176,8 @@
                 // Exibe a mensagem de erro na página
                 resultado.textContent = erro.message;
 
-                // Retorna um array vazio caso ocorra algum erro
-                return [];
+                // Retorna null para não apagar a mensagem de erro ao renderizar
+                return null;
             }
         }
 
@@ -199,9 +197,17 @@
         // Adiciona um evento de clique ao botão de listar arquivos
         botaoListarArquivos.addEventListener("click", function () {
 
+            // Avisa que a consulta começou (a listagem pode demorar com muitos arquivos)
+            resultado.textContent = "Listando arquivos...";
+
             // Executa a função que consulta os arquivos no S3
             // O then aguarda a resolução da Promise e recebe os arquivos retornados
             ListarArquivosS3().then(arquivos => {
+
+                // null significa que deu erro e a mensagem já está na página
+                if (arquivos === null) {
+                    return;
+                }
 
                 // Armazena os arquivos encontrados na variável global
                 arquivosCarregados = arquivos;
@@ -212,7 +218,7 @@
 
                 // Exibe a quantidade de arquivos encontrados na página
                 resultado.textContent =
-                    `${arquivosCarregados.length} arquivos JSON do client encontrados.`;
+                    `${arquivosCarregados.length} resumos JSON do client encontrados.`;
 
                 // Exibe todos os arquivos encontrados no console do navegador
                 // facilitando a conferência dos resultados da consulta
@@ -230,6 +236,12 @@
             // Executa a função que busca o conteúdo do arquivo selecionado
             // O then aguarda a resolução da Promise e recebe os dados retornados
             BuscarDadosS3().then(dados => {
+
+                // null significa que nada foi selecionado ou que deu erro,
+                // e a mensagem já está na página
+                if (dados === null) {
+                    return;
+                }
 
                 // Armazena os dados JSON retornados pela consulta
                 dadosJSON = dados;

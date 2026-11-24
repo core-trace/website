@@ -87,8 +87,6 @@
     let historico = [];
     let historicoHorario = [];
     let historicoAtivo = [];
-    let demonstracao = false;
-    let anonimizado = false;
     let periodoDias = 30;
     let periodoPersonalizado = null;
     let intervaloAtivo = null;
@@ -196,8 +194,6 @@
             historico = documentos.filter((doc) => !doc.intervalo).sort((a, b) => a.data.localeCompare(b.data));
             historicoHorario = documentos.filter((doc) => doc.intervalo)
                 .sort((a, b) => Date.parse(a.intervalo.fim) - Date.parse(b.intervalo.fim));
-            demonstracao = false;
-            anonimizado = false;
             atualizarPeriodo();
         } catch (erro) {
             if (requisicao !== requisicaoHistorico) return;
@@ -277,7 +273,7 @@
     function filtrarPeriodo(lista, dias) {
         if (!lista.length) return [];
         // Âncora na última data realmente disponível, não no dia de hoje:
-        // isso permite testar o histórico mesmo com arquivos antigos.
+        // isso mantém a janela relativa aos resumos disponíveis no S3.
         const dataFinal = Date.parse(lista.at(-1).data + "T00:00:00Z");
         const dataInicial = new Date(dataFinal - (dias - 1) * 86400000).toISOString().slice(0, 10);
         return lista.filter((doc) => doc.data >= dataInicial);
@@ -524,8 +520,8 @@
     }
 
     function renderizarContexto() {
-        // Um MAC mascarado identifica a amostra de desenvolvimento, não um servidor real.
-        const nomeServidor = dados.mac && dados.mac !== "00:00:00:00:00:00"
+        // Identifica o servidor associado aos resumos carregados.
+        const nomeServidor = dados.mac
             ? `Servidor · ${dados.mac}` : "Servidor selecionado";
         if (!servidoresDisponiveis.length) $("docker-servidor").replaceChildren(new Option(nomeServidor, dados.mac || ""));
         const primeiro = historicoAtivo[0]?.data.split("-").reverse().join("/") || "—";
@@ -963,7 +959,7 @@
             ...r, nivel: String(r.nivel || "unknown").toLowerCase().trim().replace(/^err$/, "error").replace(/^warning$/, "warn")
         }));
         if (logsUltimas24h) {
-            logsPeriodo = A.ultimas24HorasLogs(registros, demonstracao);
+            logsPeriodo = A.ultimas24HorasLogs();
             const formatarCampo = (timestamp) => {
                 const partes = new Intl.DateTimeFormat("en-CA", {
                     timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",

@@ -346,3 +346,19 @@ A API do site atende também os endpoints de captura, na mesma porta de `npm sta
 As respostas de consulta são listas JSON; consultas sem resultados retornam `[]`. Headers ausentes ou malformados retornam 401, IDs inválidos retornam 400 e falhas de banco retornam 500.
 
 O agente distribuído pelo site usa `API_BASE_URL` em `src/agente/capturas/captura.py` para ativação e consulta das métricas. Não é necessário iniciar uma API na porta 3334. Em instalações antigas do agente, atualize essa URL para o endereço e a porta da API do site, ou baixe novamente o pacote.
+
+### Dados da dashboard Docker
+
+A página `public/pages/dockerDashboard.html` consulta os endpoints existentes
+`GET /s3Routes/arquivos?prefixo=...` e `GET /s3Routes/conteudo?arquivo=...`.
+Os resumos ficam em `client/resumos/maquina=<MAC>/data=<DIA>/resumo.json`,
+no bucket configurado por `BUCKET_DADOS_GOLD`, com fallback para `S3_BUCKET`
+e `bucket-coretrace`. A listagem é paginada e filtrada pelo MAC selecionado.
+Não há fallback para arquivos locais de demonstração.
+
+Os filtros de 7 e 30 dias usam resumos diários. Os filtros de horas e o período
+personalizado dependem de resumos com `granularidade: "hora"` e intervalo válido
+de uma hora; sem esses documentos, a tela mostra ausência de dados.
+As janelas rápidas são relativas ao último resumo disponível. O filtro exclusivo
+de últimas 24 horas dos logs usa o relógio atual. Falhas de leitura da API/S3
+são apresentadas na tela, sem reaproveitar dados do servidor anterior.

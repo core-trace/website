@@ -167,10 +167,8 @@
         return { inicio: a, fim: b };
     }
 
-    function ultimas24HorasLogs(registros, demonstracao = false, agora = Date.now()) {
-        const fim = demonstracao && registros.length
-            ? registros.reduce((ultimo, r) => Math.max(ultimo, r.timestamp), -Infinity) : agora;
-        return { inicio: fim - 86400000, fim };
+    function ultimas24HorasLogs(agora = Date.now()) {
+        return { inicio: agora - 86400000, fim: agora };
     }
 
     function filtrarLogs(lista, { inicio = null, fim = null, nivel = "", busca = "", maisRecentes = true } = {}) {

@@ -142,8 +142,10 @@
             throw new Error("A API retornou uma lista inválida de perfis ou servidores.");
         }
 
-        perfilSelect.replaceChildren(new Option("Todos os perfis", ""), ...perfisDisponiveis.map((perfil) =>
+        perfilSelect.replaceChildren(...perfisDisponiveis.map((perfil) =>
             new Option(perfil.nome, String(perfil.id_perfil_servidor))));
+        if (!perfisDisponiveis.length) perfilSelect.replaceChildren(new Option("Nenhum perfil disponível", ""));
+        perfilSelect.disabled = !perfisDisponiveis.length;
         servidorSelect.replaceChildren(new Option("Selecione um servidor", ""), ...servidoresDisponiveis.map((servidor) =>
             new Option(servidor.nome, servidor.endereco_mac)));
 
@@ -159,7 +161,7 @@
         const perfilId = $("docker-perfil").value;
         const disponiveis = perfilId
             ? servidoresDisponiveis.filter((servidor) => String(servidor.id_perfil_servidor) === perfilId)
-            : servidoresDisponiveis;
+            : [];
         const atual = $("docker-servidor").value;
         $("docker-servidor").replaceChildren(new Option("Selecione um servidor", ""), ...disponiveis.map((servidor) =>
             new Option(servidor.nome, servidor.endereco_mac)));
@@ -181,6 +183,7 @@
     async function trocarServidorSelecionado() {
         atualizarServidorSelecionado();
         const requisicao = ++requisicaoHistorico;
+        selecionadoId = null;
         historico = [];
         historicoHorario = [];
         atualizarPeriodo();
@@ -540,6 +543,14 @@
     }
 
     function renderizarKpis() {
+        if (!indicadores) {
+            for (const id of ["kpi-falhas", "kpi-reinicios", "kpi-erros", "kpi-pico"]) $(id).textContent = "—";
+            for (const id of ["kpi-falhas-nota", "kpi-reinicios-nota", "kpi-erros-nota", "kpi-pico-descricao"]) {
+                $(id).textContent = "Selecione um contêiner para visualizar.";
+            }
+            $("kpi-erros-nota").removeAttribute("title");
+            return;
+        }
         $("kpi-falhas").textContent = n(indicadores.falhasConhecidas);
         $("kpi-falhas-nota").textContent = "Erros ou falta de memória (OOM)";
         $("kpi-reinicios").textContent = n(indicadores.reiniciosNoPeriodo);
@@ -1057,9 +1068,9 @@
         if (!dados) return;
         const container = dados.containers.find((c) => c.container_id === id);
         selecionadoId = container?.container_id || null;
-        indicadores = calcularIndicadores(container);
+        indicadores = container ? calcularIndicadores(container) : null;
         renderizarKpis();
-        $("docker-resumo-titulo").textContent = container ? `Visão do contêiner — ${container.nome || container.container_id.slice(0, 12)}` : "Visão do servidor";
+        $("docker-resumo-titulo").textContent = container ? `Visão do contêiner — ${container.nome || container.container_id.slice(0, 12)}` : "Visão do contêiner";
         $("docker-escopo-servidor").textContent = `${dados.containers.length} containers monitorados`;
         renderizarLista();
         if (!container) { limparDetalhe(); return; }
@@ -1085,13 +1096,13 @@
             $("docker-linhas").replaceChildren();
             const linha = adicionarTexto($("docker-linhas"), "tr", "");
             adicionarTexto(linha, "td", "Sem dados no período selecionado.").colSpan = 5;
-            indicadores = calcularIndicadores();
+            indicadores = null;
             renderizarKpis();
             $("kpi-falhas").textContent = "—";
             $("kpi-erros").textContent = "—";
             $("docker-total-containers").textContent = "(0)";
             $("docker-escopo-servidor").textContent = "Nenhum contêiner no período";
-            $("docker-resumo-titulo").textContent = "Visão do servidor";
+            $("docker-resumo-titulo").textContent = "Visão do contêiner";
             $("docker-ultima-coleta").textContent = "Sem leitura no período";
             $("docker-periodo-info").textContent = "Não há resumos disponíveis nesse período. Selecione outro intervalo.";
             $("docker-desempenho-descricao").textContent = "Sem dados no período selecionado.";
@@ -1106,6 +1117,7 @@
     }
 
     async function iniciar() {
+        renderizarKpis();
         try {
             await carregarContextos();
             await trocarServidorSelecionado();

@@ -80,19 +80,29 @@
                 <label class="docker-campo">Servidor<select id="docker-servidor">
                         <option value="">Carregando servidores...</option>
                     </select></label>
-                <div class="docker-campo docker-periodos"><span>Período</span>
-                    <div class="docker-botoes-periodo" role="group" aria-label="Período de análise">
-                        <button type="button" data-periodo="1" aria-pressed="false">Últimas 24 horas</button>
-                        <button type="button" data-periodo="7" aria-pressed="false">7 dias</button>
-                        <button type="button" data-periodo="30" class="ativo" aria-pressed="true">30 dias</button>
-                    </div>
-                </div>
+                <label class="docker-campo docker-periodos" for="docker-periodo">Período
+                    <select id="docker-periodo" aria-controls="docker-periodo-personalizado">
+                        <option value="0.041666666666666664">Última hora</option>
+                        <option value="0.25">6 horas</option>
+                        <option value="1">24 horas</option>
+                        <option value="7">7 dias</option>
+                        <option value="30" selected>30 dias</option>
+                        <option value="personalizado">Personalizado</option>
+                    </select>
+                </label>
                 <div class="docker-atualizacao">
                     <span id="docker-ultima-coleta">Aguardando resumo</span>
                 </div>
             </section>
+            <form id="docker-periodo-personalizado" class="docker-periodo-personalizado" hidden>
+                <label class="docker-campo">Início (Brasília)<input id="docker-periodo-inicio" type="datetime-local" required></label>
+                <label class="docker-campo">Fim (Brasília)<input id="docker-periodo-fim" type="datetime-local" required></label>
+                <button type="submit" class="docker-botao">Aplicar período</button>
+                <p>Intervalo máximo de 30 dias. Exibe apenas resumos horários inteiramente contidos no período.</p>
+                <p id="docker-periodo-erro" role="alert" hidden></p>
+            </form>
             <p id="docker-contexto-resultado" class="docker-contexto-resultado" role="status" hidden></p>
-            <p class="docker-periodo-info docker-visualmente-oculto" id="docker-periodo-info" role="status">Preparando resumo...</p>
+            <p class="docker-periodo-info" id="docker-periodo-info" role="status" hidden></p>
             <div class="docker-feedback" id="docker-feedback" role="alert" hidden></div>
 
             <section class="docker-card docker-lista" aria-labelledby="docker-lista-titulo">

@@ -141,7 +141,7 @@
 
 .docker-controles {
     display: grid;
-    grid-template-columns: minmax(130px, .8fr) minmax(180px, 1fr) minmax(310px, 2.1fr) minmax(190px, 1.15fr);
+    grid-template-columns: minmax(130px, .8fr) repeat(2, minmax(180px, 1fr)) minmax(190px, 1.15fr);
     gap: 16px;
     align-items: end;
 }
@@ -174,7 +174,7 @@
 }
 
 .docker-campo select,
-.docker-botoes-periodo button {
+.docker-periodo-personalizado button {
     min-height: 41px;
     padding: 8px 12px;
     border: 1px solid #dfdddb;
@@ -188,26 +188,9 @@
     width: 100%;
 }
 
-.docker-botoes-periodo {
-    display: flex;
-    gap: 12px;
-}
-
-.docker-botoes-periodo button {
-    flex: 1;
-    min-width: 0;
-}
-
-.docker-botoes-periodo button.ativo {
-    border-color: #ce0704;
-    background: #ce0704;
-    color: #fff;
-    font-weight: 600;
-}
-
-.docker-botoes-periodo button:disabled {
-    opacity: .5;
-    cursor: not-allowed;
+.docker-periodos {
+    width: 100%;
+    justify-self: start;
 }
 
 .docker-periodo-info {
@@ -1027,7 +1010,7 @@
 
 @media (max-width: 1500px) {
     .docker-controles {
-        grid-template-columns: minmax(130px, 1fr) minmax(180px, 1.2fr) minmax(310px, 2fr);
+        grid-template-columns: minmax(130px, 1fr) repeat(2, minmax(180px, 1.2fr));
     }
 
     .docker-atualizacao {
@@ -1056,7 +1039,7 @@
     }
 
     .docker-periodos {
-        grid-column: 1/-1;
+        grid-column: auto;
     }
 }
 
@@ -1110,13 +1093,7 @@
         grid-column: auto;
     }
 
-    .docker-botoes-periodo {
-        flex-wrap: wrap;
-    }
 
-    .docker-botoes-periodo button {
-        min-width: 110px;
-    }
 
     .docker-kpis {
         grid-template-columns: 1fr;
@@ -1191,4 +1168,27 @@
 #docker-logs-recolher[aria-expanded="true"] .docker-seta-botao,
 #docker-logs-ordem[aria-pressed="false"] .docker-seta-botao {
     transform: rotate(-90deg);
+}
+
+/* Campos do intervalo personalizado acompanham a largura disponível. */
+.docker-periodo-personalizado:not([hidden]) { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; margin: 16px 0; }
+.docker-periodo-personalizado .docker-campo { flex: 1 1 220px; }
+.docker-periodo-personalizado input { width: 100%; min-height: 44px; padding: 8px; border: 1px solid #dfdddb; border-radius: 8px; font: inherit; }
+.docker-periodo-personalizado p { flex-basis: 100%; margin: 0; }
+#docker-periodo-erro { color: #b00000; }
+
+.docker-periodo-personalizado button[type="submit"] {
+    min-height: 44px;
+    padding: 10px 20px;
+    background-color: #ce0704;
+    border-color: #ce0704;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+.docker-periodo-personalizado button[type="submit"]:hover {
+    background-color: #a90603;
+    border-color: #a90603;
 }

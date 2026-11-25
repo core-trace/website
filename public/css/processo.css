@@ -564,6 +564,19 @@ img, svg { display: block; max-width: 100%; }
   height: 100%;
 }
 
+.historico-consumo .card-acoes {
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.graficos-filtro {
+  min-width: 0;
+}
+
+.graficos-filtro .filtro-select select {
+  min-width: 120px;
+}
+
 .grafico-valor-atual {
   font-size: var(--fonte-subtitulo);
   font-weight: 700;

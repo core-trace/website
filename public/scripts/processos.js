@@ -3,6 +3,7 @@
     // Elementos do DOM
     // ------------------------------------------------------------------
     const filtroServidor = document.getElementById("filtro-servidor");
+    const filtroPeriodo = document.getElementById("periodo-graficos-processos");
     const btnComparar = document.getElementById("btn-comparar-momentos");
     const tbodyRecorrencia = document.getElementById("tbody-recorrencia");
 
@@ -54,6 +55,9 @@
     let dataSelecionada = "";
     let momentoASelecionado = null;
     let momentoBSelecionado = null;
+    // null = dia inteiro; os KPIs continuam diários, só as séries são recortadas.
+    let periodoAtual = null;
+    let processoEmFoco = null;
 
     // ------------------------------------------------------------------
     // Utilitários
@@ -78,6 +82,19 @@
         return new Date().toLocaleDateString("en-CA", {
             timeZone: "America/Sao_Paulo"
         });
+    }
+
+    /**
+     * Recorte dos gráficos: últimos N minutos a partir da última captura do dia.
+     * Null significa dia inteiro. Os KPIs e a tabela não usam este limite.
+     */
+    function limiteDoPeriodo() {
+        if (periodoAtual == null) return null;
+        const instantes = processosDoDia
+            .map(p => Date.parse(p.timestamp))
+            .filter(Number.isFinite);
+        if (instantes.length === 0) return null;
+        return Math.max(...instantes) - periodoAtual * 60000;
     }
 
     function urlComAcesso(caminho, filtros = {}) {
@@ -178,6 +195,7 @@
     }
 
     function limparGraficos() {
+        processoEmFoco = null;
         definirTexto(cpuValor, "--");
         definirTexto(cpuCaption, "--");
         definirTexto(memoriaValor, "--");
@@ -587,10 +605,16 @@
             return;
         }
 
+        processoEmFoco = { nome: nomeProcesso, pid };
+        const limite = limiteDoPeriodo();
+        const semLeitura = limite !== null ? "sem leitura no período" : "--";
         const pontosCpu = [];
         const pontosMem = [];
 
         for (const p of filtrados) {
+            const instante = Date.parse(p.timestamp);
+            if (limite !== null && (!Number.isFinite(instante) || instante < limite)) continue;
+
             const cpu = extrairValorLeitura(p.cpu);
             const mem = extrairValorLeitura(p.memoria);
 
@@ -604,12 +628,12 @@
         definirTexto(cpuValor, ultimoCpu ? formatarPercentual(ultimoCpu.v) : "--");
         definirTexto(cpuCaption, ultimoCpu
             ? `Última leitura: ${formatoBrasileiro(ultimoCpu.t)}`
-            : "--");
+            : semLeitura);
 
         definirTexto(memoriaValor, ultimoMem ? formatarPercentual(ultimoMem.v) : "--");
         definirTexto(memoriaCaption, ultimoMem
             ? `Última leitura: ${formatoBrasileiro(ultimoMem.t)}`
-            : "--");
+            : semLeitura);
 
         const picoCpu = picoDoProcesso(kpisDoDia && kpisDoDia.picoCpu, nomeProcesso, pid);
         const picoMemoria = picoDoProcesso(kpisDoDia && kpisDoDia.picoMemoria, nomeProcesso, pid);
@@ -626,6 +650,15 @@
         if (!servidorSelecionado) return;
         dataSelecionada = dataHojeSaoPaulo();
         await carregarDados();
+    });
+
+    filtroPeriodo.addEventListener("change", function () {
+        periodoAtual = this.value === "dia" ? null : Number(this.value);
+        if (!processoEmFoco) {
+            limparGraficos();
+            return;
+        }
+        carregarHistoricoProcesso(processoEmFoco.nome, processoEmFoco.pid);
     });
 
     btnComparar.addEventListener("click", function () {

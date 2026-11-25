@@ -167,6 +167,17 @@
                         <header class="card-cabecalho">
                             <h2 class="card-titulo">Histórico de consumo por processo</h2>
                             <div class="card-acoes">
+                                <div class="filtro-campo graficos-filtro">
+                                    <label class="filtro-rotulo" for="periodo-graficos-processos">Período dos gráficos</label>
+                                    <div class="filtro-select">
+                                        <select id="periodo-graficos-processos" name="periodo">
+                                            <option value="30">30 minutos</option>
+                                            <option value="60">1 hora</option>
+                                            <option value="360">6 horas</option>
+                                            <option value="dia" selected>dia inteiro</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 <button class="btn btn--outline" id="btn-comparar-momentos" type="button">Comparar momentos</button>
                             </div>
                         </header>

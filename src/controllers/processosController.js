@@ -89,7 +89,9 @@ async function buscarDadosProcessos(req, res) {
 
 async function obterDashboard(req, res) {
     try {
-        const { mac, data, idEmpresa, idUsuario } = req.query;
+        const { mac, data } = req.query;
+        const idEmpresa = Number(req.query.idEmpresa || req.query.empresa);
+        const idUsuario = Number(req.query.idUsuario || req.query.usuario);
 
         if (!mac || !data) {
             return res.status(400).json({ erro: "Parâmetros 'mac' e 'data' são obrigatórios." });

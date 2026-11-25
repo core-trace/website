@@ -53,6 +53,9 @@
     let kpisDoDia = null;
     let servidorSelecionado = "";
     let dataSelecionada = "";
+    // TEMPORÁRIO: force uma data específica para validar com AWS.
+    // Comente esta linha para voltar ao comportamento padrão (dia atual).
+    const OVERRIDE_DATA = "2026-11-27";
     let momentoASelecionado = null;
     let momentoBSelecionado = null;
     // null = dia inteiro; os KPIs continuam diários, só as séries são recortadas.
@@ -533,7 +536,7 @@
                     ? servidores[0]
                     : servidores[0].mac;
                 servidorSelecionado = filtroServidor.value;
-                dataSelecionada = dataHojeSaoPaulo();
+                dataSelecionada = OVERRIDE_DATA || dataHojeSaoPaulo();
                 await carregarDados();
             } else {
                 renderizar({ processos: [], recorrencia: [], kpis: null, comparacao: null });
@@ -648,7 +651,7 @@
     filtroServidor.addEventListener("change", async function () {
         servidorSelecionado = this.value;
         if (!servidorSelecionado) return;
-        dataSelecionada = dataHojeSaoPaulo();
+        dataSelecionada = OVERRIDE_DATA || dataHojeSaoPaulo();
         await carregarDados();
     });
 

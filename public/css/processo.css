@@ -324,7 +324,7 @@ img, svg { display: block; max-width: 100%; }
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--espaco-m);
   min-width: 0;
 }
@@ -395,6 +395,37 @@ img, svg { display: block; max-width: 100%; }
 .kpi-subtitulo {
   font-size: var(--fonte-subtitulo);
   color: var(--cor-texto-suave);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Estados dos KPIs: carregando, sem leitura válida e erro de consulta. */
+@keyframes kpi-carregando {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.kpi-card--carregando .kpi-valor {
+  color: var(--cor-texto-menor);
+  animation: kpi-carregando 1.2s ease-in-out infinite;
+}
+
+.kpi-card--sem-dado .kpi-valor {
+  color: var(--cor-texto-menor);
+}
+
+.kpi-card--sem-dado .kpi-icone {
+  background: var(--cor-surface-muted);
+  color: var(--cor-texto-menor);
+}
+
+.kpi-card--erro {
+  border-color: var(--cor-coral);
+}
+
+.kpi-card--erro .kpi-subtitulo {
+  color: var(--cor-coral-texto);
 }
 
 /* ---------- Card genérico ---------- */

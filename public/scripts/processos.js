@@ -99,6 +99,12 @@
         alertaBanner.hidden = true;
     }
 
+    // Os cards antigos saíram da página; enquanto a integração não é feita,
+    // gravar em elemento inexistente não pode interromper o cálculo do restante.
+    function definirTexto(elemento, texto) {
+        if (elemento) elemento.textContent = texto;
+    }
+
     function limparTabela() {
         tbodyRecorrencia.innerHTML = "";
     }
@@ -220,24 +226,24 @@
             // ignora
         }
 
-        kpiOom.textContent = oomTotal;
-        kpiOomSub.textContent = oomTotal > 0 ? "processos finalizados pelo OOM hoje" : "sem registros de OOM";
+        definirTexto(kpiOom, oomTotal);
+        definirTexto(kpiOomSub, oomTotal > 0 ? "processos finalizados pelo OOM hoje" : "sem registros de OOM");
 
-        kpiCriticos.textContent = criticos;
-        kpiCriticosSub.textContent =
-            criticos > 0 ? "processos acima do limite crítico" : "sem processos críticos";
+        definirTexto(kpiCriticos, criticos);
+        definirTexto(kpiCriticosSub,
+            criticos > 0 ? "processos acima do limite crítico" : "sem processos críticos");
 
-        kpiRam.textContent = ramMax.valor >= 0 ? ramMax.valor.toFixed(1) + "%" : "--";
-        kpiRamSub.textContent =
+        definirTexto(kpiRam, ramMax.valor >= 0 ? ramMax.valor.toFixed(1) + "%" : "--");
+        definirTexto(kpiRamSub,
             ramMax.valor >= 0
                 ? `${ramMax.nome} (PID ${ramMax.pid}) · ${formatoBrasileiro(ramMax.ts)}`
-                : "--";
+                : "--");
 
-        kpiCpu.textContent = cpuMax.valor >= 0 ? cpuMax.valor.toFixed(1) + "%" : "--";
-        kpiCpuSub.textContent =
+        definirTexto(kpiCpu, cpuMax.valor >= 0 ? cpuMax.valor.toFixed(1) + "%" : "--");
+        definirTexto(kpiCpuSub,
             cpuMax.valor >= 0
                 ? `${cpuMax.nome} (PID ${cpuMax.pid}) · ${formatoBrasileiro(cpuMax.ts)}`
-                : "--";
+                : "--");
 
         return { ramMax, cpuMax };
     }

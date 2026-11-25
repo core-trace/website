@@ -320,48 +320,87 @@ function calcularReiniciandoLoop(amostras) {
 }
 
 /**
- * Maior leitura válida de memória (%) e de CPU (%) do período, com a
- * identidade do processo responsável. RSS em bytes entra quando o lote traz.
+ * Os picos de CPU/RAM são consolidados na Gold e gravados em resumo.json.
+ * O service apenas converte para o formato da tela; não recalcula os picos.
+ * Quando o resumo ainda não tem kpis_processos, os picos ficam vazios.
  */
-function calcularPicos(amostras) {
-    let memoria = null;
-    let cpu = null;
-
-    for (const amostra of amostras) {
-        if (amostra.memoriaValida && amostra.memoria != null &&
-            (memoria === null || amostra.memoria > memoria.valor)) {
-            memoria = {
-                valor: Number(amostra.memoria.toFixed(1)),
-                unidade: "%",
-                rssBytes: amostra.rssBytes,
-                nome: amostra.nome || null,
-                pid: amostra.pid,
-                usuario: amostra.usuario || null,
-                timestamp: amostra.timestamp || null
-            };
-        }
-
-        if (amostra.valido && amostra.cpu != null &&
-            (cpu === null || amostra.cpu > cpu.valor)) {
-            cpu = {
-                valor: Number(amostra.cpu.toFixed(1)),
-                unidade: "%",
-                nome: amostra.nome || null,
-                pid: amostra.pid,
-                usuario: amostra.usuario || null,
-                timestamp: amostra.timestamp || null
-            };
-        }
+async function carregarKpisGold(mac, data) {
+    try {
+        const resumo = await processosModel.buscarResumoDiario(
+            processosModel.normalizarMac(mac),
+            data
+        );
+        return resumo && resumo.kpis_processos ? resumo.kpis_processos : null;
+    } catch (erro) {
+        console.warn("Não foi possível ler kpis_processos do resumo diário:", erro.message);
+        return null;
     }
+}
 
-    return { memoria, cpu };
+function campoGold(destaque, nome) {
+    if (!destaque || destaque[nome] === undefined || destaque[nome] === null) return null;
+    const numero = Number(destaque[nome]);
+    return Number.isFinite(numero) ? numero : null;
 }
 
 /**
- * Calcula os três KPIs da tela de processos a partir das amostras reais.
+ * O resumo Gold não repete o usuário nem o RSS do pico; quando o lote da mesma
+ * captura traz esses campos, usamos apenas para completar o que a tela mostra.
  */
-function calcularKpis(amostras) {
-    const picos = calcularPicos(amostras);
+function amostraDoPico(amostras, destaque) {
+    if (!destaque) return null;
+    const instante = Date.parse(destaque.instante_pico);
+    return amostras.find((amostra) =>
+        String(amostra.pid) === String(destaque.pid) &&
+        Number.isFinite(instante) &&
+        Date.parse(amostra.timestamp) === instante
+    ) || amostras.find((amostra) =>
+        String(amostra.pid) === String(destaque.pid)
+    ) || null;
+}
+
+function picoDaGold(destaque, amostras, campoValor, comRss = false) {
+    const valor = campoGold(destaque, campoValor);
+    if (valor === null) return null;
+
+    const amostra = amostraDoPico(amostras, destaque);
+    const pico = {
+        valor,
+        unidade: "%",
+        nome: (destaque && destaque.nome) || (amostra && amostra.nome) || null,
+        pid: campoGold(destaque, "pid"),
+        usuario: (amostra && amostra.usuario) || null,
+        timestamp: (destaque && destaque.instante_pico) || null
+    };
+    if (comRss && amostra && amostra.rssBytes != null) {
+        pico.rssBytes = amostra.rssBytes;
+    }
+    return pico;
+}
+
+function picosDaGold(kpisGold, amostras) {
+    if (!kpisGold || typeof kpisGold !== "object") return { memoria: null, cpu: null };
+
+    return {
+        memoria: picoDaGold(
+            kpisGold.pico_memoria && kpisGold.pico_memoria.destaque,
+            amostras,
+            "pico_memoria_percent",
+            true
+        ),
+        cpu: picoDaGold(
+            kpisGold.pico_cpu && kpisGold.pico_cpu.destaque,
+            amostras,
+            "pico_cpu_percent"
+        )
+    };
+}
+
+/**
+ * Calcula os KPIs da tela: loop vem das amostras; picos vêm da Gold.
+ */
+function calcularKpis(amostras, kpisGold = null) {
+    const picos = picosDaGold(kpisGold, amostras);
 
     return {
         reiniciandoLoop: calcularReiniciandoLoop(amostras),
@@ -503,8 +542,9 @@ async function obterDashboard(filtros = {}) {
 
     const limiares = await resolverLimites(filtros);
     const amostras = await carregarAmostras(mac, data);
+    const kpisGold = await carregarKpisGold(mac, data);
 
-    const kpis = calcularKpis(amostras);
+    const kpis = calcularKpis(amostras, kpisGold);
     const recorrencia = calcularRecorrencia(amostras, limiares);
     const comparacao = compararMomentos(amostras);
 
@@ -527,7 +567,6 @@ module.exports = {
     resolverLimites,
     calcularKpis,
     calcularReiniciandoLoop,
-    calcularPicos,
     calcularRecorrencia,
     obterSerie,
     compararMomentos,

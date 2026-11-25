@@ -49,6 +49,7 @@
     let graficoCpu = null;
     let graficoMemoria = null;
     let processosDoDia = [];
+    let kpisDoDia = null;
     let servidorSelecionado = "";
     let dataSelecionada = "";
     let momentoASelecionado = null;
@@ -119,6 +120,14 @@
     function identidadeProcesso(item) {
         if (!item || !item.nome) return "processo não identificado";
         return `${item.nome} (PID ${item.pid != null ? item.pid : "--"})`;
+    }
+
+    // O pico da Gold é do dia inteiro; só faz sentido marcá-lo se for o processo aberto.
+    function picoDoProcesso(pico, nomeProcesso, pid) {
+        if (!pico || pico.pid == null) return null;
+        if (String(pico.pid) !== String(pid)) return null;
+        if (pico.nome && pico.nome !== nomeProcesso) return null;
+        return pico;
     }
 
     function definirTexto(elemento, texto) {
@@ -280,7 +289,7 @@
         graficoMemoria = null;
     }
 
-    function atualizarGrafico(id, pontos, rotuloY, cor) {
+    function atualizarGrafico(id, pontos, rotuloY, cor, pico = null) {
         if (typeof Chart === "undefined") return;
 
         const canvas = document.getElementById(id);
@@ -295,21 +304,40 @@
         }
 
         const serie = pontosDoGrafico(pontos);
+        const datasets = [{
+            label: rotuloY,
+            data: serie,
+            borderColor: cor,
+            backgroundColor: cor,
+            borderWidth: 3,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            tension: 0,
+            spanGaps: false
+        }];
+
+        // Ponto destacado da Gold: só entra se o instante existir na série aberta.
+        const instantePico = pico ? Date.parse(pico.timestamp) : NaN;
+        const valorPico = pico ? Number(pico.valor) : NaN;
+        if (Number.isFinite(instantePico) && Number.isFinite(valorPico) &&
+            serie.some(p => p.x === instantePico)) {
+            datasets.push({
+                label: `Pico ${rotuloY} · ${identidadeProcesso(pico)}`,
+                data: [{ x: instantePico, y: valorPico }],
+                borderColor: cor,
+                backgroundColor: cor,
+                pointRadius: 6,
+                pointHoverRadius: 7,
+                pointBorderColor: "#ffffff",
+                pointBorderWidth: 2,
+                showLine: false,
+                order: -1
+            });
+        }
+
         const grafico = new Chart(canvas, {
             type: "line",
-            data: {
-                datasets: [{
-                    label: rotuloY,
-                    data: serie,
-                    borderColor: cor,
-                    backgroundColor: cor,
-                    borderWidth: 3,
-                    pointRadius: 0,
-                    pointHoverRadius: 4,
-                    tension: 0,
-                    spanGaps: false
-                }]
-            },
+            data: { datasets },
             options: configuracaoComum(serie)
         });
 
@@ -414,6 +442,7 @@
 
         processosDoDia = Array.isArray(dados.processos) ? dados.processos : [];
         const kpis = dados.kpis;
+        kpisDoDia = kpis || null;
         renderizarKpis(kpis, processosDoDia.length === 0);
 
         const recorrencia = Array.isArray(dados.recorrencia)
@@ -582,8 +611,11 @@
             ? `Última leitura: ${formatoBrasileiro(ultimoMem.t)}`
             : "--");
 
-        atualizarGrafico("grafico-cpu-area", pontosCpu, "CPU", COR_GRAFICO.cpu);
-        atualizarGrafico("grafico-memoria-area", pontosMem, "RAM", COR_GRAFICO.memoria);
+        const picoCpu = picoDoProcesso(kpisDoDia && kpisDoDia.picoCpu, nomeProcesso, pid);
+        const picoMemoria = picoDoProcesso(kpisDoDia && kpisDoDia.picoMemoria, nomeProcesso, pid);
+
+        atualizarGrafico("grafico-cpu-area", pontosCpu, "CPU", COR_GRAFICO.cpu, picoCpu);
+        atualizarGrafico("grafico-memoria-area", pontosMem, "RAM", COR_GRAFICO.memoria, picoMemoria);
     }
 
     // ------------------------------------------------------------------

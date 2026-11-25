@@ -173,73 +173,158 @@
         definirTexto(cpuCaption, "--");
         definirTexto(memoriaValor, "--");
         definirTexto(memoriaCaption, "--");
-        atualizarGrafico(graficoCpu, [], "CPU");
-        atualizarGrafico(graficoMemoria, [], "RAM");
+        atualizarGrafico("grafico-cpu-area", [], "CPU", COR_GRAFICO.cpu);
+        atualizarGrafico("grafico-memoria-area", [], "RAM", COR_GRAFICO.memoria);
     }
 
     // ------------------------------------------------------------------
-    // Inicialização dos gráficos Chart.js
+    // Gráficos Chart.js (mesmo padrão de detalheServidor.js, com dados reais)
     // ------------------------------------------------------------------
-    function inicializarGraficos() {
-        const configuracaoComum = {
+    const FONTE_GRAFICO = { family: "Poppins", size: 12 };
+    const COR_TEXTO_GRAFICO = "#4b4350";
+    const COR_GRAFICO = { cpu: "#cc0301", memoria: "#477da7" };
+
+    function numeroGrafico(valor) {
+        return Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+    }
+
+    function horarioGrafico(instante) {
+        return new Date(instante).toLocaleTimeString("pt-BR", {
+            timeZone: "America/Sao_Paulo",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    function dataHoraGrafico(instante) {
+        return new Date(instante).toLocaleString("pt-BR", {
+            timeZone: "America/Sao_Paulo",
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    function pontosDoGrafico(pontos) {
+        return pontos
+            .map(p => ({ x: Date.parse(p.t), y: Number(p.v) }))
+            .filter(p => Number.isFinite(p.x) && Number.isFinite(p.y))
+            .sort((a, b) => a.x - b.x);
+    }
+
+    function configuracaoComum(serie) {
+        const instantes = serie.map(p => p.x);
+        const inicio = instantes[0];
+        const fim = instantes[instantes.length - 1];
+        // Eixo linear precisa de limites distintos; uma leitura única ganha 30 s para cada lado.
+        const mesmoInstante = inicio != null && inicio === fim;
+        const maisDeUmDia = inicio != null && (fim - inicio) >= 86400000;
+
+        return {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
+            locale: "pt-BR",
+            interaction: { mode: "index", intersect: false },
             plugins: {
                 legend: { display: false },
-                tooltip: { enabled: true }
+                tooltip: {
+                    titleFont: { size: 13, family: "Poppins" },
+                    bodyFont: { size: 13, family: "Poppins" },
+                    padding: 10,
+                    callbacks: {
+                        title: itens => dataHoraGrafico(itens[0].parsed.x),
+                        label: contexto => `${contexto.dataset.label}: ${numeroGrafico(contexto.parsed.y)}%`
+                    }
+                }
             },
             scales: {
                 x: {
-                    type: "category",
-                    title: { display: true, text: "Horário" },
-                    ticks: { maxRotation: 45, minRotation: 45 }
+                    type: "linear",
+                    ...(inicio != null
+                        ? { min: mesmoInstante ? inicio - 30000 : inicio, max: mesmoInstante ? fim + 30000 : fim }
+                        : {}),
+                    grid: { display: false },
+                    border: { display: false },
+                    ticks: {
+                        maxTicksLimit: 4,
+                        maxRotation: 0,
+                        callback: valor => maisDeUmDia ? dataHoraGrafico(valor) : horarioGrafico(valor),
+                        color: COR_TEXTO_GRAFICO,
+                        font: FONTE_GRAFICO
+                    }
                 },
                 y: {
-                    beginAtZero: true,
-                    title: { display: true, text: "%" },
-                    ticks: { stepSize: 25 }
+                    min: 0,
+                    // CPU de processo pode ultrapassar 100% em servidor multinúcleo.
+                    suggestedMax: 100,
+                    border: { display: false },
+                    grid: { color: "#d6dbe3" },
+                    ticks: {
+                        maxTicksLimit: 4,
+                        callback: valor => `${numeroGrafico(valor)}%`,
+                        color: COR_TEXTO_GRAFICO,
+                        font: FONTE_GRAFICO
+                    }
                 }
             }
         };
-
-        graficoCpu = new Chart(document.getElementById("grafico-cpu-area"), {
-            type: "line",
-            data: { labels: [], datasets: [] },
-            options: {
-                ...configuracaoComum,
-                scales: {
-                    ...configuracaoComum.scales,
-                    // CPU de processo pode ultrapassar 100% em servidor multinúcleo.
-                    y: { ...configuracaoComum.scales.y, suggestedMax: 100 }
-                }
-            }
-        });
-
-        graficoMemoria = new Chart(document.getElementById("grafico-memoria-area"), {
-            type: "line",
-            data: { labels: [], datasets: [] },
-            options: configuracaoComum
-        });
     }
 
-    function atualizarGrafico(grafico, pontos, rotuloY) {
-        if (!grafico) return;
+    function destruirGraficos() {
+        for (const grafico of [graficoCpu, graficoMemoria]) {
+            if (grafico) grafico.destroy();
+        }
+        graficoCpu = null;
+        graficoMemoria = null;
+    }
 
-        const labels = pontos.map(p => p.t);
-        const valores = pontos.map(p => p.v);
+    function atualizarGrafico(id, pontos, rotuloY, cor) {
+        if (typeof Chart === "undefined") return;
 
-        grafico.data.labels = labels;
-        grafico.data.datasets = [{
-            label: rotuloY,
-            data: valores,
-            borderColor: rotuloY === "CPU" ? "#cc0301" : "#2563eb",
-            backgroundColor: rotuloY === "CPU" ? "rgba(204, 3, 1, 0.15)" : "rgba(37, 99, 235, 0.15)",
-            fill: true,
-            tension: 0.3,
-            pointRadius: 0
-        }];
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
 
-        grafico.update();
+        if (id === "grafico-cpu-area" && graficoCpu) {
+            graficoCpu.destroy();
+            graficoCpu = null;
+        } else if (id === "grafico-memoria-area" && graficoMemoria) {
+            graficoMemoria.destroy();
+            graficoMemoria = null;
+        }
+
+        const serie = pontosDoGrafico(pontos);
+        const grafico = new Chart(canvas, {
+            type: "line",
+            data: {
+                datasets: [{
+                    label: rotuloY,
+                    data: serie,
+                    borderColor: cor,
+                    backgroundColor: cor,
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    tension: 0,
+                    spanGaps: false
+                }]
+            },
+            options: configuracaoComum(serie)
+        });
+
+        if (id === "grafico-cpu-area") graficoCpu = grafico;
+        else graficoMemoria = grafico;
+    }
+
+    function inicializarGraficos() {
+        if (typeof Chart === "undefined") {
+            mostrarErro("Não foi possível carregar os gráficos. Recarregue a página.");
+            return;
+        }
+        destruirGraficos();
+        atualizarGrafico("grafico-cpu-area", [], "CPU", COR_GRAFICO.cpu);
+        atualizarGrafico("grafico-memoria-area", [], "RAM", COR_GRAFICO.memoria);
     }
 
     // ------------------------------------------------------------------
@@ -497,8 +582,8 @@
             ? `Última leitura: ${formatoBrasileiro(ultimoMem.t)}`
             : "--");
 
-        atualizarGrafico(graficoCpu, pontosCpu, "CPU");
-        atualizarGrafico(graficoMemoria, pontosMem, "RAM");
+        atualizarGrafico("grafico-cpu-area", pontosCpu, "CPU", COR_GRAFICO.cpu);
+        atualizarGrafico("grafico-memoria-area", pontosMem, "RAM", COR_GRAFICO.memoria);
     }
 
     // ------------------------------------------------------------------

@@ -11,8 +11,8 @@
     <link rel="stylesheet" href="../css/navbarDashboard.css">
     <link rel="stylesheet" href="../css/processo.css">
     <script src="../scripts/navbarDashboard.js" defer></script>
-    <script src="../scripts/vendor/chart.umd.js"></script>
-    <script src="../scripts/processos.js"></script>
+    <script src="../scripts/vendor/chart.umd.js" defer></script>
+    <script src="../scripts/processos.js" defer></script>
 </head>
 
 <body class="dashboard-page">
@@ -183,13 +183,17 @@
                             <figure class="grafico-card" id="grafico-cpu">
                                 <div class="grafico-rotulo">CPU do processo</div>
                                 <div class="grafico-valor-atual" id="grafico-cpu-valor">--</div>
-                                <div class="grafico-area" id="grafico-cpu-area" role="img" aria-label="CPU do processo"></div>
+                                <div class="grafico-area">
+                                    <canvas id="grafico-cpu-area" role="img" aria-label="CPU do processo"></canvas>
+                                </div>
                                 <figcaption class="grafico-caption" id="grafico-cpu-caption">--</figcaption>
                             </figure>
                             <figure class="grafico-card" id="grafico-memoria">
                                 <div class="grafico-rotulo">Memória RAM</div>
                                 <div class="grafico-valor-atual" id="grafico-memoria-valor">--</div>
-                                <div class="grafico-area" id="grafico-memoria-area" role="img" aria-label="Memória RSS"></div>
+                                <div class="grafico-area">
+                                    <canvas id="grafico-memoria-area" role="img" aria-label="Memória RSS"></canvas>
+                                </div>
                                 <figcaption class="grafico-caption" id="grafico-memoria-caption">--</figcaption>
                             </figure>
                         </div>

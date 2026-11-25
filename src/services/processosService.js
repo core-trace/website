@@ -30,6 +30,31 @@ function toNumber(valor) {
 }
 
 /**
+ * O Gold guarda em "extras" as colunas que não tem métrica no catálogo
+ * (CREATE_TIME, RSS_BYTES etc.). Capturas mais antigas podem trazer o campo
+ * direto na raiz do registro, então os dois formatos são aceitos.
+ */
+function campoAuxiliar(registro, nomes) {
+    for (const nome of nomes) {
+        if (registro[nome] !== undefined && registro[nome] !== null) {
+            return registro[nome];
+        }
+    }
+
+    if (Array.isArray(registro.extras)) {
+        const procurados = nomes.map(nome => String(nome).toUpperCase());
+        for (const extra of registro.extras) {
+            const origem = String((extra && extra.campo_origem) || "").toUpperCase();
+            if (procurados.includes(origem)) {
+                return extra.valor;
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
  * Normaliza uma amostra de processo vinda do lote JSON do Gold.
  * O Gold grava: cpu.uso (metrica/valor/status) e
  * memoria.uso_percentual (metrica/valor/status).
@@ -46,6 +71,8 @@ function normalizarAmostra(registro) {
     const memoriaPercent = toNumber(extrairValor(memoriaLeitura));
     const cpuStatus = statusDaLeitura(cpuLeitura);
     const memoriaStatus = statusDaLeitura(memoriaLeitura);
+    const createTimeBruto = campoAuxiliar(registro, ["CREATE_TIME", "create_time"]);
+    const rssBruto = campoAuxiliar(registro, ["RSS_BYTES", "rss_bytes"]);
 
     // Limita RAM a 0..100; CPU de processo não tem teto (multinúcleo).
     let memoriaLimitada = memoriaPercent;
@@ -62,6 +89,10 @@ function normalizarAmostra(registro) {
         memoria: memoriaLimitada != null ? memoriaLimitada : null,
         cpuStatus,
         memoriaStatus,
+        createTime: createTimeBruto != null && String(createTimeBruto).trim()
+            ? String(createTimeBruto).trim()
+            : null,
+        rssBytes: rssBruto == null ? null : toNumber(rssBruto),
         valido: cpuLeitura ? cpuLeitura.status === "ok" : false,
         memoriaValida: memoriaLeitura ? memoriaLeitura.status === "ok" : false
     };
@@ -179,76 +210,163 @@ function ehAtencao(cpu, memoria, limiares) {
 }
 
 /**
- * Calcula os KPIs da tela: OOM, processos críticos, pico de RAM, pico de CPU.
+ * Identifica processos que reiniciaram em loop no período.
+ *
+ * Quando o lote traz CREATE_TIME (campo do psutil preservado em "extras"), uma
+ * mudança entre janelas consecutivas da mesma chave nome+PID é um reinício.
+ * Nos lotes atuais o agente não grava CREATE_TIME; nesse caso usamos o fallback
+ * por troca de PID entre janelas, apenas para nomes com um PID por janela —
+ * assim não confundimos reinício com processos multi-instância (ex.: navegador).
  */
-function calcularKpis(amostras, resumo, limiares) {
-    let criticos = 0;
-    let ramMax = { valor: -1, nome: "--", pid: "--", ts: "--" };
-    let cpuMax = { valor: -1, nome: "--", pid: "--", ts: "--" };
+function calcularReiniciandoLoop(amostras) {
+    const porIdentidade = new Map();
+    const porNome = new Map();
 
-    for (const a of amostras) {
-        const ehCrit =
-            ehCritico(a.cpu, a.memoria, limiares) &&
-            a.cpuStatus === "ok" &&
-            a.memoriaStatus === "ok";
-        if (ehCrit) criticos++;
+    for (const amostra of amostras) {
+        if (!amostra.nome || amostra.pid == null) continue;
 
-        if (a.memoria != null && a.memoria > ramMax.valor) {
-            ramMax = {
-                valor: a.memoria,
-                nome: a.nome || "--",
-                pid: a.pid || "--",
-                ts: a.timestamp || "--"
+        const chave = `${amostra.nome} | PID ${amostra.pid}`;
+        if (!porIdentidade.has(chave)) porIdentidade.set(chave, []);
+        porIdentidade.get(chave).push(amostra);
+
+        if (!porNome.has(amostra.nome)) porNome.set(amostra.nome, new Map());
+        const janelas = porNome.get(amostra.nome);
+        if (!janelas.has(amostra.timestamp)) janelas.set(amostra.timestamp, new Set());
+        janelas.get(amostra.timestamp).add(String(amostra.pid));
+    }
+
+    const candidatos = [];
+
+    for (const lista of porIdentidade.values()) {
+        let primeiroCreate = null;
+        let ultimoCreate = null;
+        let reinicios = 0;
+        let ultimoReinicio = null;
+
+        for (const amostra of lista) {
+            if (!amostra.createTime) continue;
+            if (primeiroCreate === null) primeiroCreate = amostra.createTime;
+            if (ultimoCreate !== null && amostra.createTime !== ultimoCreate) {
+                reinicios++;
+                ultimoReinicio = amostra.timestamp;
+            }
+            ultimoCreate = amostra.createTime;
+        }
+
+        if (reinicios > 0) {
+            candidatos.push({
+                nome: lista[0].nome,
+                pid: lista[lista.length - 1].pid,
+                reinicios,
+                metodo: "create_time",
+                ultimoReinicio,
+                createTimeInicial: primeiroCreate,
+                createTimeAtual: ultimoCreate,
+                pidsObservados: []
+            });
+        }
+    }
+
+    for (const [nome, janelas] of porNome) {
+        // Nomes com mais de um PID na mesma janela não permitem distinguir
+        // reinício de concorrência sem CREATE_TIME.
+        let multiInstancia = false;
+        for (const pids of janelas.values()) {
+            if (pids.size > 1) {
+                multiInstancia = true;
+                break;
+            }
+        }
+        if (multiInstancia) continue;
+        if (candidatos.some(c => c.nome === nome && c.metodo === "create_time")) continue;
+
+        const tempos = Array.from(janelas.keys()).sort();
+        const pids = tempos.map(tempo => Array.from(janelas.get(tempo))[0]);
+        let reinicios = 0;
+        let ultimoReinicio = null;
+
+        for (let i = 1; i < pids.length; i++) {
+            if (pids[i] !== pids[i - 1]) {
+                reinicios++;
+                ultimoReinicio = tempos[i];
+            }
+        }
+
+        if (reinicios > 0) {
+            candidatos.push({
+                nome,
+                pid: toNumber(pids[pids.length - 1]),
+                reinicios,
+                metodo: "troca_de_pid",
+                ultimoReinicio,
+                createTimeInicial: null,
+                createTimeAtual: null,
+                pidsObservados: Array.from(new Set(pids)).map(pid => toNumber(pid))
+            });
+        }
+    }
+
+    // Troca de PID isolada pode ser só substituição eventual; uma variação de
+    // CREATE_TIME, por ser medida direta da criação, já basta para sinalizar.
+    const emLoop = candidatos.filter(
+        c => c.reinicios >= 2 || (c.metodo === "create_time" && c.reinicios >= 1)
+    );
+
+    emLoop.sort(
+        (a, b) => b.reinicios - a.reinicios || String(a.nome).localeCompare(String(b.nome))
+    );
+
+    return { total: emLoop.length, processos: emLoop };
+}
+
+/**
+ * Maior leitura válida de memória (%) e de CPU (%) do período, com a
+ * identidade do processo responsável. RSS em bytes entra quando o lote traz.
+ */
+function calcularPicos(amostras) {
+    let memoria = null;
+    let cpu = null;
+
+    for (const amostra of amostras) {
+        if (amostra.memoriaValida && amostra.memoria != null &&
+            (memoria === null || amostra.memoria > memoria.valor)) {
+            memoria = {
+                valor: Number(amostra.memoria.toFixed(1)),
+                unidade: "%",
+                rssBytes: amostra.rssBytes,
+                nome: amostra.nome || null,
+                pid: amostra.pid,
+                usuario: amostra.usuario || null,
+                timestamp: amostra.timestamp || null
             };
         }
 
-        if (a.cpu != null && a.cpu > cpuMax.valor) {
-            cpuMax = {
-                valor: a.cpu,
-                nome: a.nome || "--",
-                pid: a.pid || "--",
-                ts: a.timestamp || "--"
+        if (amostra.valido && amostra.cpu != null &&
+            (cpu === null || amostra.cpu > cpu.valor)) {
+            cpu = {
+                valor: Number(amostra.cpu.toFixed(1)),
+                unidade: "%",
+                nome: amostra.nome || null,
+                pid: amostra.pid,
+                usuario: amostra.usuario || null,
+                timestamp: amostra.timestamp || null
             };
         }
     }
 
-    let oomTotal = 0;
-    let ultimoOom = null;
-    try {
-        const ramResumo = resumo && resumo.resumos && resumo.resumos.ram;
-        if (ramResumo && ramResumo.oom) {
-            oomTotal = ramResumo.oom.total_observado || 0;
-            ultimoOom = ramResumo.oom.ultimo_oom_iso || null;
-        }
-        if (!ultimoOom && resumo && resumo.ultimo_oom_em) {
-            ultimoOom = resumo.ultimo_oom_em;
-        }
-    } catch (e) {
-        // ignora; resumo é opcional
-    }
+    return { memoria, cpu };
+}
+
+/**
+ * Calcula os três KPIs da tela de processos a partir das amostras reais.
+ */
+function calcularKpis(amostras) {
+    const picos = calcularPicos(amostras);
 
     return {
-        oomTotal,
-        ultimoOom,
-        criticos,
-        ramMax:
-            ramMax.valor >= 0
-                ? {
-                      valor: ramMax.valor.toFixed(1),
-                      nome: ramMax.nome,
-                      pid: ramMax.pid,
-                      ts: ramMax.ts
-                  }
-                : null,
-        cpuMax:
-            cpuMax.valor >= 0
-                ? {
-                      valor: cpuMax.valor.toFixed(1),
-                      nome: cpuMax.nome,
-                      pid: cpuMax.pid,
-                      ts: cpuMax.ts
-                  }
-                : null
+        reiniciandoLoop: calcularReiniciandoLoop(amostras),
+        picoMemoria: picos.memoria,
+        picoCpu: picos.cpu
     };
 }
 
@@ -386,14 +504,7 @@ async function obterDashboard(filtros = {}) {
     const limiares = await resolverLimites(filtros);
     const amostras = await carregarAmostras(mac, data);
 
-    let resumo = null;
-    try {
-        resumo = await processosModel.buscarResumoDiario(mac, data);
-    } catch (e) {
-        // resumo opcional (pode ainda não existir para o dia)
-    }
-
-    const kpis = calcularKpis(amostras, resumo, limiares);
+    const kpis = calcularKpis(amostras);
     const recorrencia = calcularRecorrencia(amostras, limiares);
     const comparacao = compararMomentos(amostras);
 
@@ -415,6 +526,8 @@ module.exports = {
     carregarAmostras,
     resolverLimites,
     calcularKpis,
+    calcularReiniciandoLoop,
+    calcularPicos,
     calcularRecorrencia,
     obterSerie,
     compararMomentos,

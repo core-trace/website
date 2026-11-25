@@ -7,14 +7,18 @@
     const tbodyRecorrencia = document.getElementById("tbody-recorrencia");
 
     // KPIs
-    const kpiOom = document.getElementById("kpi-processos-oom");
-    const kpiOomSub = document.getElementById("kpi-processos-oom-sub");
-    const kpiCriticos = document.getElementById("kpi-processos-criticos");
-    const kpiCriticosSub = document.getElementById("kpi-processos-criticos-sub");
-    const kpiRam = document.getElementById("kpi-ram-elevada");
-    const kpiRamSub = document.getElementById("kpi-ram-elevada-sub");
-    const kpiCpu = document.getElementById("kpi-cpu-elevada");
-    const kpiCpuSub = document.getElementById("kpi-cpu-elevada-sub");
+    const kpiLoop = document.getElementById("kpi-loop");
+    const kpiLoopSub = document.getElementById("kpi-loop-sub");
+    const kpiMemoria = document.getElementById("kpi-pico-memoria");
+    const kpiMemoriaSub = document.getElementById("kpi-pico-memoria-sub");
+    const kpiCpu = document.getElementById("kpi-pico-cpu");
+    const kpiCpuSub = document.getElementById("kpi-pico-cpu-sub");
+
+    const cardsKpi = {
+        loop: document.getElementById("kpi-card-loop"),
+        memoria: document.getElementById("kpi-card-pico-memoria"),
+        cpu: document.getElementById("kpi-card-pico-cpu")
+    };
 
     // Meta chips do histórico
     const metaProcesso = document.getElementById("meta-processo");
@@ -35,13 +39,16 @@
     const momentoA = document.getElementById("momento-a");
     const momentoB = document.getElementById("momento-b");
 
+    // A API não usa sessão por cookie: identidade vem do sessionStorage.
+    const idEmpresa = sessionStorage.getItem("ID_EMPRESA");
+    const idUsuario = sessionStorage.getItem("ID_USUARIO");
+
     // ------------------------------------------------------------------
     // Estado
     // ------------------------------------------------------------------
     let graficoCpu = null;
     let graficoMemoria = null;
     let processosDoDia = [];
-    let resumoDiario = null;
     let servidorSelecionado = "";
     let dataSelecionada = "";
     let momentoASelecionado = null;
@@ -66,15 +73,26 @@
         }
     }
 
-    function apenasData(iso) {
-        if (!iso) return "";
-        return iso.split("T")[0];
-    }
-
     function dataHojeSaoPaulo() {
         return new Date().toLocaleDateString("en-CA", {
             timeZone: "America/Sao_Paulo"
         });
+    }
+
+    function urlComAcesso(caminho, filtros = {}) {
+        const params = new URLSearchParams();
+        if (idEmpresa) {
+            params.set("empresa", idEmpresa);
+            params.set("idEmpresa", idEmpresa);
+        }
+        if (idUsuario) {
+            params.set("usuario", idUsuario);
+            params.set("idUsuario", idUsuario);
+        }
+        for (const [chave, valor] of Object.entries(filtros)) {
+            params.set(chave, valor);
+        }
+        return `${caminho}?${params.toString()}`;
     }
 
     function extrairValorLeitura(leitura) {
@@ -84,10 +102,57 @@
         return null;
     }
 
-    function statusDaLeitura(leitura) {
-        if (!leitura) return "indisponivel";
-        if (typeof leitura === "string") return leitura;
-        return leitura.status || "indisponivel";
+    function formatarPercentual(valor) {
+        const numero = Number(valor);
+        if (!Number.isFinite(numero)) return "--";
+        return `${numero.toFixed(1).replace(".", ",")}%`;
+    }
+
+    function formatarBytes(valor) {
+        const numero = Number(valor);
+        if (!Number.isFinite(numero) || numero <= 0) return null;
+        const gib = numero / (1024 ** 3);
+        if (gib >= 1) return `${gib.toFixed(1).replace(".", ",")} GiB`;
+        return `${Math.round(numero / (1024 ** 2))} MiB`;
+    }
+
+    function identidadeProcesso(item) {
+        if (!item || !item.nome) return "processo não identificado";
+        return `${item.nome} (PID ${item.pid != null ? item.pid : "--"})`;
+    }
+
+    function definirTexto(elemento, texto) {
+        if (elemento) elemento.textContent = texto;
+    }
+
+    // Os rótulos são cortados com elipse no CSS; o título guarda o texto completo.
+    function definirSubtitulo(elemento, texto) {
+        definirTexto(elemento, texto);
+        if (elemento) elemento.title = texto;
+    }
+
+    function definirEstadoCard(card, estado) {
+        if (!card) return;
+        card.classList.remove(
+            "kpi-card--carregando",
+            "kpi-card--sem-dado",
+            "kpi-card--erro"
+        );
+        if (estado) card.classList.add(`kpi-card--${estado}`);
+    }
+
+    function definirEstadoKpis(estado) {
+        Object.values(cardsKpi).forEach(card => definirEstadoCard(card, estado));
+    }
+
+    function marcarErroKpis() {
+        definirEstadoKpis("erro");
+        definirSubtitulo(kpiLoopSub, "erro ao carregar capturas");
+        definirSubtitulo(kpiMemoriaSub, "erro ao carregar capturas");
+        definirSubtitulo(kpiCpuSub, "erro ao carregar capturas");
+        definirTexto(kpiLoop, "--");
+        definirTexto(kpiMemoria, "--");
+        definirTexto(kpiCpu, "--");
     }
 
     function mostrarErro(mensagem) {
@@ -99,14 +164,17 @@
         alertaBanner.hidden = true;
     }
 
-    // Os cards antigos saíram da página; enquanto a integração não é feita,
-    // gravar em elemento inexistente não pode interromper o cálculo do restante.
-    function definirTexto(elemento, texto) {
-        if (elemento) elemento.textContent = texto;
-    }
-
     function limparTabela() {
         tbodyRecorrencia.innerHTML = "";
+    }
+
+    function limparGraficos() {
+        definirTexto(cpuValor, "--");
+        definirTexto(cpuCaption, "--");
+        definirTexto(memoriaValor, "--");
+        definirTexto(memoriaCaption, "--");
+        atualizarGrafico(graficoCpu, [], "CPU");
+        atualizarGrafico(graficoMemoria, [], "RAM");
     }
 
     // ------------------------------------------------------------------
@@ -141,7 +209,8 @@
                 ...configuracaoComum,
                 scales: {
                     ...configuracaoComum.scales,
-                    y: { ...configuracaoComum.scales.y, max: 100 }
+                    // CPU de processo pode ultrapassar 100% em servidor multinúcleo.
+                    y: { ...configuracaoComum.scales.y, suggestedMax: 100 }
                 }
             }
         });
@@ -174,130 +243,57 @@
     }
 
     // ------------------------------------------------------------------
-    // Cálculos de KPI e recorrência
+    // KPIs (calculados no service, a partir das capturas reais)
     // ------------------------------------------------------------------
-    function calcularKPIs(processos, resumo) {
-        // Processos críticos: CPU >= 90% ou RAM >= 90%
-        let criticos = 0;
-        let ramMax = { valor: -1, nome: "--", pid: "--", usuario: "--", ts: "--" };
-        let cpuMax = { valor: -1, nome: "--", pid: "--", usuario: "--", ts: "--" };
-
-        for (const p of processos) {
-            const cpuUso = extrairValorLeitura(p.cpu);
-            const ramUso = extrairValorLeitura(p.memoria);
-
-            const ehCritico =
-                (cpuUso != null && cpuUso >= LIMITE_CRITICO_CPU) ||
-                (ramUso != null && ramUso >= LIMITE_CRITICO_RAM);
-
-            if (ehCritico) criticos++;
-
-            if (ramUso != null && ramUso > ramMax.valor) {
-                ramMax = {
-                    valor: ramUso,
-                    nome: p.nome || "--",
-                    pid: p.pid || "--",
-                    usuario: p.usuario || "--",
-                    ts: p.timestamp || "--"
-                };
-            }
-
-            if (cpuUso != null && cpuUso > cpuMax.valor) {
-                cpuMax = {
-                    valor: cpuUso,
-                    nome: p.nome || "--",
-                    pid: p.pid || "--",
-                    usuario: p.usuario || "--",
-                    ts: p.timestamp || "--"
-                };
-            }
+    function renderizarKpis(kpis, semCapturas) {
+        if (!kpis) {
+            definirEstadoKpis("sem-dado");
+            definirTexto(kpiLoop, "--");
+            definirTexto(kpiMemoria, "--");
+            definirTexto(kpiCpu, "--");
+            definirSubtitulo(kpiLoopSub, "sem capturas no período");
+            definirSubtitulo(kpiMemoriaSub, "sem capturas no período");
+            definirSubtitulo(kpiCpuSub, "sem capturas no período");
+            return;
         }
 
-        // OOM: tenta pegar do resumo diário (métrica ram_oom_kills)
-        let oomTotal = 0;
-        try {
-            const ramResumo = resumo?.ram;
-            if (ramResumo && ramResumo.uso) {
-                // uso é o resumo da métrica ram_percent, não o OOM.
-                // O OOM vem de outro lugar; tentamos procurar no contexto_oom
-                // ou deixamos 0 se não houver dado estruturado.
-            }
-        } catch (e) {
-            // ignora
-        }
+        const reiniciando = kpis.reiniciandoLoop || { total: 0, processos: [] };
+        const primeiroLoop = Array.isArray(reiniciando.processos) && reiniciando.processos.length > 0
+            ? reiniciando.processos[0]
+            : null;
 
-        definirTexto(kpiOom, oomTotal);
-        definirTexto(kpiOomSub, oomTotal > 0 ? "processos finalizados pelo OOM hoje" : "sem registros de OOM");
+        definirTexto(kpiLoop, String(reiniciando.total != null ? reiniciando.total : 0));
+        definirSubtitulo(kpiLoopSub, primeiroLoop
+            ? `${identidadeProcesso(primeiroLoop)} · ${primeiroLoop.reinicios} reinícios`
+            : "nenhum reinício recorrente no período");
+        definirEstadoCard(cardsKpi.loop, semCapturas ? "sem-dado" : null);
 
-        definirTexto(kpiCriticos, criticos);
-        definirTexto(kpiCriticosSub,
-            criticos > 0 ? "processos acima do limite crítico" : "sem processos críticos");
+        const picoMemoria = kpis.picoMemoria;
+        definirTexto(kpiMemoria, picoMemoria ? formatarPercentual(picoMemoria.valor) : "--");
+        const detalheMemoria = picoMemoria
+            ? `${identidadeProcesso(picoMemoria)} · ${formatoBrasileiro(picoMemoria.timestamp)}`
+            : "sem leitura válida de memória";
+        definirSubtitulo(kpiMemoriaSub,
+            picoMemoria && picoMemoria.rssBytes != null
+                ? `${detalheMemoria} · ${formatarBytes(picoMemoria.rssBytes)}`
+                : detalheMemoria);
+        definirEstadoCard(cardsKpi.memoria, !picoMemoria || semCapturas ? "sem-dado" : null);
 
-        definirTexto(kpiRam, ramMax.valor >= 0 ? ramMax.valor.toFixed(1) + "%" : "--");
-        definirTexto(kpiRamSub,
-            ramMax.valor >= 0
-                ? `${ramMax.nome} (PID ${ramMax.pid}) · ${formatoBrasileiro(ramMax.ts)}`
-                : "--");
-
-        definirTexto(kpiCpu, cpuMax.valor >= 0 ? cpuMax.valor.toFixed(1) + "%" : "--");
-        definirTexto(kpiCpuSub,
-            cpuMax.valor >= 0
-                ? `${cpuMax.nome} (PID ${cpuMax.pid}) · ${formatoBrasileiro(cpuMax.ts)}`
-                : "--");
-
-        return { ramMax, cpuMax };
+        const picoCpu = kpis.picoCpu;
+        definirTexto(kpiCpu, picoCpu ? formatarPercentual(picoCpu.valor) : "--");
+        definirSubtitulo(kpiCpuSub, picoCpu
+            ? `${identidadeProcesso(picoCpu)} · ${formatoBrasileiro(picoCpu.timestamp)}`
+            : "sem leitura válida de CPU");
+        definirEstadoCard(cardsKpi.cpu, !picoCpu || semCapturas ? "sem-dado" : null);
     }
 
-    function calcularRecorrencia(processos) {
-        // Agrupa por nome + PID
-        const grupos = new Map();
-
-        for (const p of processos) {
-            const chave = `${p.nome || "desconhecido"} | PID ${p.pid || "--"}`;
-            if (!grupos.has(chave)) {
-                grupos.set(chave, {
-                    nome: p.nome || "desconhecido",
-                    pid: p.pid || "--",
-                    ocorrencias: 0,
-                    tipo: "normal",
-                    ultima: null,
-                    duracoes: []
-                });
-            }
-
-            const grupo = grupos.get(chave);
-            grupo.ocorrencias++;
-
-            const cpuUso = extrairValorLeitura(p.cpu);
-            const ramUso = extrairValorLeitura(p.memoria);
-
-            if (
-                (cpuUso != null && cpuUso >= LIMITE_CRITICO_CPU) ||
-                (ramUso != null && ramUso >= LIMITE_CRITICO_RAM)
-            ) {
-                grupo.tipo = "crítico";
-            } else if (
-                (cpuUso != null && cpuUso >= 70) ||
-                (ramUso != null && ramUso >= 70)
-            ) {
-                grupo.tipo = "atenção";
-            }
-
-            if (!grupo.ultima || new Date(p.timestamp) > new Date(grupo.ultima)) {
-                grupo.ultima = p.timestamp;
-            }
-        }
-
-        const resultado = Array.from(grupos.values()).map(g => ({
-            ...g,
-            duracaoMedia: g.duracoes.length > 0
-                ? (g.duracoes.reduce((a, b) => a + b, 0) / g.duracoes.length).toFixed(1) + " s"
-                : "--",
-            frequencia: g.ocorrencias > 1 ? "recorrente" : "única"
-        }));
-
-        resultado.sort((a, b) => b.ocorrencias - a.ocorrencias);
-        return resultado;
+    // ------------------------------------------------------------------
+    // Recorrência (linhas do service)
+    // ------------------------------------------------------------------
+    function novaCelula(texto) {
+        const td = document.createElement("td");
+        td.textContent = texto != null ? texto : "--";
+        return td;
     }
 
     function renderizarTabelaRecorrencia(lista) {
@@ -305,9 +301,8 @@
 
         if (!lista || lista.length === 0) {
             const tr = document.createElement("tr");
-            const td = document.createElement("td");
+            const td = novaCelula("Nenhum processo encontrado.");
             td.colSpan = 6;
-            td.textContent = "Nenhum processo encontrado.";
             td.style.textAlign = "center";
             tr.appendChild(td);
             tbodyRecorrencia.appendChild(tr);
@@ -316,16 +311,12 @@
 
         for (const item of lista) {
             const tr = document.createElement("tr");
-
-            tr.innerHTML = `
-                <td>${item.nome} <span style="font-weight:normal;color:#666;">(PID ${item.pid})</span></td>
-                <td>${item.ocorrencias}</td>
-                <td><span style="text-transform:uppercase;font-weight:600;">${item.tipo}</span></td>
-                <td>${formatoBrasileiro(item.ultima)}</td>
-                <td>${item.duracaoMedia}</td>
-                <td>${item.frequencia}</td>
-            `;
-
+            tr.appendChild(novaCelula(`${item.nome || "desconhecido"} (PID ${item.pid != null ? item.pid : "--"})`));
+            tr.appendChild(novaCelula(item.ocorrencias));
+            tr.appendChild(novaCelula(String(item.tipo || "").toUpperCase() || "--"));
+            tr.appendChild(novaCelula(formatoBrasileiro(item.ultima)));
+            tr.appendChild(novaCelula(item.duracaoMedia || "--"));
+            tr.appendChild(novaCelula(item.frequencia));
             tbodyRecorrencia.appendChild(tr);
         }
     }
@@ -333,144 +324,152 @@
     // ------------------------------------------------------------------
     // Renderização principal
     // ------------------------------------------------------------------
-    function renderizar() {
+    function renderizar(dados) {
         esconderErro();
 
-        const { ramMax, cpuMax } = calcularKPIs(processosDoDia, resumoDiario);
-        const recorrencia = calcularRecorrencia(processosDoDia);
+        processosDoDia = Array.isArray(dados.processos) ? dados.processos : [];
+        const kpis = dados.kpis;
+        renderizarKpis(kpis, processosDoDia.length === 0);
 
+        const recorrencia = Array.isArray(dados.recorrencia)
+            ? [...dados.recorrencia].sort(
+                (a, b) => (b.ocorrencias || 0) - (a.ocorrencias || 0)
+            )
+            : [];
         renderizarTabelaRecorrencia(recorrencia);
 
-        // Plota automaticamente o gráfico do primeiro processo da recorrência
-        // (o que teve mais ocorrências acima do limite, ou o primeiro da lista).
+        // Plota automaticamente o processo com mais ocorrências.
         if (recorrencia.length > 0) {
-            const primeiro = recorrencia[0];
-            carregarHistoricoProcesso(primeiro.nome, primeiro.pid);
+            carregarHistoricoProcesso(recorrencia[0].nome, recorrencia[0].pid);
         } else {
-            cpuValor.textContent = "--";
-            cpuCaption.textContent = "--";
-            memoriaValor.textContent = "--";
-            memoriaCaption.textContent = "--";
-            atualizarGrafico(graficoCpu, [], "CPU");
-            atualizarGrafico(graficoMemoria, [], "RAM");
+            limparGraficos();
         }
 
-        // Meta chips (usa o processo com maior RAM como destaque, se existir)
-        if (ramMax.valor >= 0) {
-            metaProcesso.textContent = `${ramMax.nome} (PID ${ramMax.pid})`;
-            metaUsuario.textContent = ramMax.usuario || "--";
-            metaStatus.textContent = ramMax.valor >= LIMITE_CRITICO_RAM ? "crítico" : "estável";
-        } else {
-            metaProcesso.textContent = "--";
-            metaUsuario.textContent = "--";
-            metaStatus.textContent = "--";
-        }
+        // Meta chips do histórico usam o mesmo pico de memória do KPI.
+        const picoMemoria = kpis && kpis.picoMemoria;
+        definirTexto(metaProcesso, picoMemoria ? identidadeProcesso(picoMemoria) : "--");
+        definirTexto(metaUsuario, picoMemoria && picoMemoria.usuario ? picoMemoria.usuario : "--");
+        definirTexto(metaStatus, picoMemoria
+            ? (picoMemoria.valor >= 90 ? "crítico" : "estável")
+            : "--");
 
-        // Comparativo de momentos (últimos dois timestamps distintos)
-        const temposUnicos = [...new Set(processosDoDia.map(p => p.timestamp))].sort();
-        if (temposUnicos.length >= 2) {
-            const b = temposUnicos[temposUnicos.length - 1];
-            const a = temposUnicos[temposUnicos.length - 2];
-            momentoA.textContent = formatoBrasileiro(a);
-            momentoB.textContent = formatoBrasileiro(b);
-            momentoASelecionado = a;
-            momentoBSelecionado = b;
+        // Comparativo de momentos: usa o cálculo do service, com fallback local.
+        const comparacao = dados.comparacao;
+        if (comparacao && comparacao.momentoA && comparacao.momentoB) {
+            momentoASelecionado = comparacao.momentoA;
+            momentoBSelecionado = comparacao.momentoB;
         } else {
-            momentoA.textContent = "--";
-            momentoB.textContent = "--";
-            momentoASelecionado = null;
-            momentoBSelecionado = null;
+            const temposUnicos = [...new Set(processosDoDia.map(p => p.timestamp))].sort();
+            momentoASelecionado = temposUnicos.length >= 2 ? temposUnicos[temposUnicos.length - 2] : null;
+            momentoBSelecionado = temposUnicos.length >= 2 ? temposUnicos[temposUnicos.length - 1] : null;
         }
+        definirTexto(momentoA, momentoASelecionado ? formatoBrasileiro(momentoASelecionado) : "--");
+        definirTexto(momentoB, momentoBSelecionado ? formatoBrasileiro(momentoBSelecionado) : "--");
     }
 
     // ------------------------------------------------------------------
     // Carregamento de dados
     // ------------------------------------------------------------------
     async function carregarServidores() {
+        if (!idEmpresa || !idUsuario) {
+            marcarErroKpis();
+            mostrarErro("Sessão inválida. Faça login novamente para ver os dados.");
+            return;
+        }
+
         try {
-            const resposta = await fetch(`/processos/servidores`);
+            const resposta = await fetch(urlComAcesso("/processos/servidores"));
             if (!resposta.ok) throw new Error("Falha ao listar servidores");
 
             const dados = await resposta.json();
-            const servidores = dados.servidores || [];
+            const servidores = Array.isArray(dados.servidores) ? dados.servidores : [];
 
             filtroServidor.innerHTML = '<option value="" selected disabled hidden>--</option>';
 
-            for (const mac of servidores) {
+            for (const servidor of servidores) {
+                const mac = typeof servidor === "string" ? servidor : servidor.mac;
+                if (!mac) continue;
+
                 const option = document.createElement("option");
                 option.value = mac;
-                option.textContent = mac;
+                option.textContent = typeof servidor === "string" ? mac : (servidor.nome || mac);
                 filtroServidor.appendChild(option);
             }
 
             if (servidores.length > 0) {
-                filtroServidor.value = servidores[0];
-                servidorSelecionado = servidores[0];
+                filtroServidor.value = typeof servidores[0] === "string"
+                    ? servidores[0]
+                    : servidores[0].mac;
+                servidorSelecionado = filtroServidor.value;
                 dataSelecionada = dataHojeSaoPaulo();
                 await carregarDados();
+            } else {
+                renderizar({ processos: [], recorrencia: [], kpis: null, comparacao: null });
             }
         } catch (erro) {
             console.error(erro);
+            marcarErroKpis();
             mostrarErro("Não foi possível carregar a lista de servidores.");
         }
+    }
+
+    /**
+     * Busca o dashboard na API em até 7 dias, do dia selecionado para trás.
+     * Capturas antigas continuam aparecendo quando o dia atual ainda não tem lote.
+     */
+    async function buscarDashboardNoPeriodo() {
+        const [ano, mes, dia] = dataSelecionada.split("-").map(Number);
+        const referencia = Date.UTC(ano, mes - 1, dia);
+
+        for (let i = 0; i < 7; i++) {
+            const data = new Date(referencia - i * 86400000).toISOString().slice(0, 10);
+            const resposta = await fetch(urlComAcesso("/processos/dashboard", {
+                mac: servidorSelecionado,
+                data
+            }));
+
+            if (!resposta.ok) {
+                const corpo = await resposta.json().catch(() => ({}));
+                throw new Error(corpo.erro || `Falha ao consultar capturas (${resposta.status}).`);
+            }
+
+            const dados = await resposta.json();
+            if ((dados.total || 0) > 0) return dados;
+        }
+
+        return null;
     }
 
     async function carregarDados() {
         if (!servidorSelecionado || !dataSelecionada) return;
 
+        definirEstadoKpis("carregando");
         try {
-            const resposta = await fetch(
-                `/processos/dados?mac=${encodeURIComponent(servidorSelecionado)}&data=${encodeURIComponent(dataSelecionada)}`
-            );
+            const dados = await buscarDashboardNoPeriodo();
 
-            if (!resposta.ok) throw new Error("Falha ao buscar dados de processos");
-
-            const dados = await resposta.json();
-            processosDoDia = dados.processos || [];
-
-            // Tenta carregar resumo diário para KPI de OOM
-            try {
-                const respostaResumo = await fetch(
-                    `/processos/resumo?mac=${encodeURIComponent(servidorSelecionado)}&data=${encodeURIComponent(dataSelecionada)}`
-                );
-                if (respostaResumo.ok) {
-                    resumoDiario = await respostaResumo.json();
-                }
-            } catch (e) {
-                // resumo opcional
+            if (!dados) {
+                renderizar({ processos: [], recorrencia: [], kpis: null, comparacao: null });
+                mostrarErro("Nenhuma captura encontrada para este servidor nos últimos 7 dias.");
+                return;
             }
 
-            if (processosDoDia.length === 0) {
-                limparTabela();
-                const tr = document.createElement("tr");
-                const td = document.createElement("td");
-                td.colSpan = 6;
-                td.textContent = "Nenhum processo capturado neste dia.";
-                td.style.textAlign = "center";
-                tr.appendChild(td);
-                tbodyRecorrencia.appendChild(tr);
-            }
-
-            renderizar();
+            renderizar(dados);
         } catch (erro) {
             console.error(erro);
-            mostrarErro("Não foi possível carregar os dados de processos.");
+            marcarErroKpis();
+            renderizarTabelaRecorrencia([]);
+            limparGraficos();
+            mostrarErro(`Não foi possível carregar os dados de processos. ${erro.message || ""}`.trim());
         }
     }
 
     function carregarHistoricoProcesso(nomeProcesso, pid) {
-        // Filtra os processos do dia pelo nome/pid selecionado
         const filtrados = processosDoDia.filter(
             p => (p.nome || "") === nomeProcesso && String(p.pid) === String(pid)
         );
 
         if (filtrados.length === 0) {
-            cpuValor.textContent = "--";
-            cpuCaption.textContent = "--";
-            memoriaValor.textContent = "--";
-            memoriaCaption.textContent = "--";
-            atualizarGrafico(graficoCpu, [], "CPU");
-            atualizarGrafico(graficoMemoria, [], "RAM");
+            limparGraficos();
             return;
         }
 
@@ -481,22 +480,22 @@
             const cpu = extrairValorLeitura(p.cpu);
             const mem = extrairValorLeitura(p.memoria);
 
-            if (cpu != null) pontosCpu.push({ t: p.timestamp, v: cpu });
-            if (mem != null) pontosMem.push({ t: p.timestamp, v: mem });
+            if (cpu != null && p.valido !== false) pontosCpu.push({ t: p.timestamp, v: cpu });
+            if (mem != null && p.memoriaValida !== false) pontosMem.push({ t: p.timestamp, v: mem });
         }
 
         const ultimoCpu = pontosCpu[pontosCpu.length - 1];
         const ultimoMem = pontosMem[pontosMem.length - 1];
 
-        cpuValor.textContent = ultimoCpu ? ultimoCpu.v.toFixed(1) + "%" : "--";
-        cpuCaption.textContent = ultimoCpu
+        definirTexto(cpuValor, ultimoCpu ? formatarPercentual(ultimoCpu.v) : "--");
+        definirTexto(cpuCaption, ultimoCpu
             ? `Última leitura: ${formatoBrasileiro(ultimoCpu.t)}`
-            : "--";
+            : "--");
 
-        memoriaValor.textContent = ultimoMem ? ultimoMem.v.toFixed(1) + "%" : "--";
-        memoriaCaption.textContent = ultimoMem
+        definirTexto(memoriaValor, ultimoMem ? formatarPercentual(ultimoMem.v) : "--");
+        definirTexto(memoriaCaption, ultimoMem
             ? `Última leitura: ${formatoBrasileiro(ultimoMem.t)}`
-            : "--";
+            : "--");
 
         atualizarGrafico(graficoCpu, pontosCpu, "CPU");
         atualizarGrafico(graficoMemoria, pontosMem, "RAM");

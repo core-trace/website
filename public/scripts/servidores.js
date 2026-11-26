@@ -2,6 +2,7 @@
 
 const LIMITE_SEM_DADOS_SEGUNDOS = 15 * 60;
 const INTERVALO_ATUALIZACAO_MS = 30 * 1000;
+const ORDEM_COMPONENTES = ['CPU', 'RAM', 'DISCO', 'REDE'];
 
 const ROTULO_STATUS = {
     critico: 'crítico',
@@ -25,7 +26,8 @@ const elementos = {
     criticosNomes: document.getElementById('servidores-criticos-nomes'),
     atencao: document.getElementById('servidores-atencao'),
     atencaoSub: document.getElementById('servidores-atencao-tendencia'),
-    estaveis: document.getElementById('servidores-estaveis'),
+    componente: document.getElementById('servidores-componente-critico'),
+    componenteSub: document.getElementById('servidores-componente-critico-sub'),
     busca: document.getElementById('busca-servidores'),
     limparBusca: document.getElementById('limpar-busca'),
     filtroPerfil: document.getElementById('filtro-perfil'),
@@ -141,6 +143,25 @@ function renderizarMetrica(rotulo, dados) {
 
 }
 
+function renderizarExtras(extras) {
+
+    if (!extras?.length) {
+        return '';
+    }
+
+    const linhas = extras.map(extra => {
+
+        const valor = typeof extra.valor === 'number' ? `${extra.valor}%` : (extra.valor ?? '');
+        const texto = [valor, extra.detalhe].filter(Boolean).join(' · ');
+
+        return `<li class="servidores-extra servidores-extra-${extra.nivel}"><b>${escaparHtml(extra.rotulo)}</b> ${escaparHtml(texto)}</li>`;
+
+    }).join('');
+
+    return `<ul class="servidores-extras" aria-label="Outras métricas em alerta">${linhas}</ul>`;
+
+}
+
 function renderizarCartao(servidor) {
 
     const status = classificarServidor(servidor);
@@ -161,6 +182,7 @@ function renderizarCartao(servidor) {
                 ${renderizarMetrica('DSK', dsk)}
                 ${renderizarMetrica('NET', net)}
             </div>
+            ${status === 'sem-dados' ? '' : renderizarExtras(servidor.extras)}
             <p class="servidores-card-coleta">Última coleta: <b>${formatarColeta(servidor.coletaSegundos)}</b></p>
         </article>
     `;
@@ -174,6 +196,31 @@ function renderizarServidores(lista) {
     for (const servidor of lista) {
         elementos.grid.innerHTML += renderizarCartao(servidor);
     }
+
+}
+
+// Entre os servidores críticos, acha o componente que mais aparece.
+// No empate, devolve todos (ex.: CPU e DISCO com 1 servidor cada).
+function calcularComponenteCritico(criticos) {
+
+    const contagem = {};
+
+    for (const servidor of criticos) {
+        for (const componente of servidor.componentesCriticos ?? []) {
+            contagem[componente] = (contagem[componente] ?? 0) + 1;
+        }
+    }
+
+    const quantidade = Math.max(0, ...Object.values(contagem));
+
+    if (quantidade === 0) {
+        return null;
+    }
+
+    return {
+        componentes: ORDEM_COMPONENTES.filter(componente => contagem[componente] === quantidade),
+        quantidade
+    };
 
 }
 
@@ -196,7 +243,12 @@ function renderizarResumo() {
     elementos.atencao.textContent = grupos.atencao.length;
     elementos.atencaoSub.textContent = grupos.atencao.length ? 'requer acompanhamento' : 'nenhum em atenção';
 
-    elementos.estaveis.textContent = grupos.normal.length;
+        const destaque = calcularComponenteCritico(grupos.critico);
+
+    elementos.componente.textContent = destaque ? destaque.componentes.join(' · ') : '—';
+    elementos.componenteSub.textContent = destaque
+        ? `${destaque.quantidade} ${destaque.quantidade === 1 ? 'servidor crítico' : 'servidores críticos'} por componente`
+        : 'nenhum componente crítico';
 
 }
 
@@ -213,6 +265,13 @@ function carregarPerfis() {
 
     elementos.filtroPerfil.value = selecionado;
 
+}
+
+function aplicarFiltroDaURL() {
+    const parametros = new URLSearchParams(location.search);
+    if (parametros.get('perfil')) elementos.filtroPerfil.value = parametros.get('perfil');
+    if (parametros.get('indicador')) elementos.filtroIndicador.value = parametros.get('indicador');
+    if (parametros.get('busca')) elementos.busca.value = parametros.get('busca');
 }
 
 function filtrarServidores() {

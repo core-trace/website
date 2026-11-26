@@ -10,19 +10,20 @@ body.dashboard-legivel {
     --wall-borda: #e5e3e0;
     --wall-texto: var(--cor-preto);
     --wall-suave: #6b5a60;
-    --wall-critico: var(--cor-vermelho);
+    --wall-critico: rgba(204, 3, 1, 1);
     --wall-critico-fundo: rgba(204, 3, 1, .10);
-    --wall-atencao: #875700;
-    --wall-atencao-fundo: rgba(135, 87, 0, .12);
-    --wall-normal: #213f34;
-    --wall-normal-fundo: rgba(21, 134, 92, .10);
-    --wall-sem-dados: #dcd9d6;
+    --wall-atencao: rgba(147, 90, 7, 1);
+    --wall-atencao-fundo: rgba(147, 90, 7, .12);
+    --wall-normal: rgba(19, 116, 79, 1);
+    --wall-normal-fundo: rgba(19, 116, 79, .10);
+    --wall-sem-dados: rgba(107, 101, 109, 1);
+    --wall-sem-dados-fundo: rgba(107, 101, 109, .10);
     --wall-monospace: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
     color: var(--wall-texto);
 }
 
-/* Cartões de resumo — os números vêm dos dados, nunca fixos no HTML. */
+/* Cartões de resumo — os números vêm dos dados, exceto a KPI provisória de componente. */
 .servidores-resumo {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -65,6 +66,15 @@ body.dashboard-legivel {
 .servidores-resumo-critico .servidores-resumo-valor { color: var(--wall-critico); }
 .servidores-resumo-atencao .servidores-resumo-valor { color: var(--wall-atencao); }
 .servidores-resumo-normal .servidores-resumo-valor { color: var(--wall-normal); }
+
+/* A KPI de componente pode ter mais de um nome, então o valor é menor que um número. */
+.servidores-resumo-componente .servidores-resumo-valor {
+    color: var(--wall-critico);
+    font-size: clamp(22px, 2.2vw, 30px);
+    line-height: 1.15;
+    min-height: clamp(30.8px, 3.3vw, 46.2px);
+    overflow-wrap: anywhere;
+}
 
 /* Busca, filtros e legenda. */
 .servidores-filtros {
@@ -148,33 +158,31 @@ body.dashboard-legivel {
 /* Grid de servidores. */
 .servidores-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 12px;
     margin-bottom: 20px;
 }
 
 .servidores-card {
+    display: flex;
+    flex-direction: column;
     min-width: 0;
     padding: 12px 13px;
-    border: 1px solid var(--wall-borda);
-    border-left: 4px solid var(--wall-normal);
+    border: 3px solid var(--wall-normal);
     border-radius: 11px;
-    background: linear-gradient(180deg, var(--wall-normal-fundo), var(--wall-fundo) 45%);
+    background-color: var(--wall-fundo);
 }
 
 .servidores-card-critico {
-    border-left-color: var(--wall-critico);
-    background: linear-gradient(180deg, var(--wall-critico-fundo), var(--wall-fundo) 55%);
+    border-color: var(--wall-critico);
 }
 
 .servidores-card-atencao {
-    border-left-color: var(--wall-atencao);
-    background: linear-gradient(180deg, var(--wall-atencao-fundo), var(--wall-fundo) 55%);
+    border-color: var(--wall-atencao);
 }
 
 .servidores-card-sem-dados {
-    border-left-color: var(--wall-sem-dados);
-    background: linear-gradient(180deg, var(--wall-sem-dados-fundo), #a07a2d 70%);
+    border-color: var(--wall-sem-dados);
 }
 
 .servidores-card-cabecalho {
@@ -184,18 +192,23 @@ body.dashboard-legivel {
     gap: 8px;
 }
 
+/* O container do nome precisa encolher no flex para a elipse funcionar. */
+.servidores-card-cabecalho > div { min-width: 0; }
+
 .servidores-card-nome {
     font-family: var(--wall-monospace);
-    font-size: 14px;
+    font-size: 17.5px;
     font-weight: 700;
     letter-spacing: -.01em;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .servidores-card-perfil {
     margin-top: 1px;
     color: var(--wall-suave);
-    font-size: 10px;
+    font-size: 12.5px;
     font-weight: 600;
     letter-spacing: .04em;
     text-transform: uppercase;
@@ -207,7 +220,7 @@ body.dashboard-legivel {
     border-radius: 5px;
     background: var(--wall-normal-fundo);
     color: var(--wall-normal);
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: .05em;
     text-transform: uppercase;
@@ -224,8 +237,8 @@ body.dashboard-legivel {
 }
 
 .servidores-card-sem-dados .servidores-card-status {
-    background: rgba(107, 90, 96, .16);
-    color: #4a3b41;
+    background: var(--wall-sem-dados-fundo);
+    color: var(--wall-sem-dados);
 }
 
 .servidores-metricas {
@@ -233,23 +246,24 @@ body.dashboard-legivel {
     grid-template-columns: 1fr 1fr;
     gap: 8px 12px;
     margin-top: 12px;
+    margin-bottom: 12px;
 }
 
 .servidores-metrica { min-width: 0; }
 
 .servidores-metrica-rotulo {
     color: var(--wall-suave);
-    font-size: 9px;
+    font-size: 11.25px;
     font-weight: 700;
     letter-spacing: .05em;
 }
 
 .servidores-metrica-detalhe {
     display: block;
-    min-height: 12px;
+    min-height: 15px;
     margin-top: 1px;
     color: var(--wall-suave);
-    font-size: 9px;
+    font-size: 11.25px;
     font-style: italic;
     font-weight: 600;
 }
@@ -257,14 +271,14 @@ body.dashboard-legivel {
 .servidores-metrica-valor {
     margin-top: 1px;
     font-family: var(--wall-monospace);
-    font-size: 15px;
+    font-size: 18.75px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
 
 .servidores-metrica-barra {
-    height: 4px;
+    height: 5px;
     margin-top: 5px;
     overflow: hidden;
     border-radius: 3px;
@@ -284,31 +298,61 @@ body.dashboard-legivel {
 .servidores-metrica-atencao .servidores-metrica-barra-preenchimento { background: var(--wall-atencao); }
 
 .servidores-metrica-sem-dados .servidores-metrica-valor {
-    color: var(--wall-suave);
-    font-size: 12px;
+    color: var(--wall-sem-dados);
+    font-size: 15px;
     font-style: italic;
     font-weight: 600;
 }
 
 .servidores-metrica-desligada { opacity: .4; }
-.servidores-metrica-desligada .servidores-metrica-valor { font-size: 13px; font-weight: 600; }
+.servidores-metrica-desligada .servidores-metrica-valor { font-size: 16.25px; font-weight: 600; }
 
 .servidores-card-sem-dados .servidores-metrica { opacity: .65; }
 .servidores-card-sem-dados .servidores-metrica-valor { color: var(--wall-texto); }
-.servidores-card-sem-dados .servidores-metrica-barra-preenchimento { background: #9a8a8f; }
+.servidores-card-sem-dados .servidores-metrica-barra-preenchimento { background: var(--wall-sem-dados); }
 
 .servidores-card-coleta {
-    margin-top: 12px;
+    margin-top: auto;
     padding-top: 8px;
     border-top: 1px dashed var(--wall-borda);
     color: var(--wall-suave);
     font-family: var(--wall-monospace);
-    font-size: 10px;
+    font-size: 12.5px;
     font-variant-numeric: tabular-nums;
 }
 
 .servidores-card-coleta b { color: var(--wall-texto); font-weight: 700; }
 .servidores-card-sem-dados .servidores-card-coleta b { color: var(--wall-critico); }
+
+/* Linhas extras: swap e carga em alerta (categorias sem posição fixa no card) */
+/* A margem inferior mantém o respiro mínimo até o rodapé com margin-top: auto. */
+.servidores-extras {
+    display: grid;
+    gap: 4px;
+    margin: 0 0 12px;
+    padding: 0;
+    list-style: none;
+}
+
+.servidores-extra {
+    overflow: hidden;
+    color: var(--wall-suave);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.servidores-extra b { font-weight: 700; letter-spacing: .05em; }
+.servidores-extra-critico { color: var(--wall-critico); }
+.servidores-extra-atencao { color: var(--wall-atencao); }
+
+/* Detalhes mais longos ("espera I/O · 42%") não podem estourar a coluna */
+.servidores-metrica-detalhe {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 @media (max-width: 1100px) {
     .servidores-resumo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -316,5 +360,5 @@ body.dashboard-legivel {
 
 @media (max-width: 760px) {
     .servidores-legenda { margin-left: 0; }
-    .servidores-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    .servidores-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 }

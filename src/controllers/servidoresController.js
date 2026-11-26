@@ -2,8 +2,72 @@ const servidoresModel = require('../models/servidoresModel');
 const s3Model = require('../models/s3Model');
 
 const RANK_ESTADO = { normal: 0, atencao: 1, critico: 2 };
-const ROTULO_REDE = { net_errors: 'erros', net_drops: 'descartes' };
-const METRICAS_REDE = ['net_traffic', 'net_errors', 'net_drops'];
+const LIMITE_SEM_DADOS_SEGUNDOS = 15 * 60; // mesma regra do front
+
+// Métrica principal de cada categoria: é a que o card mostra quando nada está em alerta.
+const PRINCIPAL = {
+    cpu: 'cpu_percent',
+    ram: 'ram_percent',
+    disco: 'disk_percent',
+    rede: 'net_traffic'
+};
+
+// Nome curto de cada métrica do catálogo (cabe no detalhe do card).
+// A ordem das chaves é o critério de desempate entre métricas no mesmo estado.
+// '' = o nome do recurso já basta (ex.: "núcleo 3").
+const ROTULO_METRICA = {
+    cpu_percent_percpu: '',
+    cpu_percent: 'uso total',
+    cpu_iowait: 'espera I/O',
+    cpu_user: 'modo usuário',
+    cpu_system: 'modo sistema',
+    cpu_idle: 'ociosa',
+    cpu_interrupts_per_second: 'interrupções',
+    cpu_context_switches_per_second: 'trocas de contexto',
+    cpu_freq_current: 'frequência',
+    ram_percent: 'uso',
+    ram_available: 'disponível',
+    ram_used: 'em uso',
+    ram_free: 'livre',
+    ram_cached: 'cache',
+    ram_oom_kills: 'OOM kill',
+    disk_percent: 'ocupação',
+    disk_inodes_percent: 'inodes',
+    disk_free: 'livre',
+    disk_used: 'ocupado',
+    disk_queue: 'fila I/O',
+    disk_io_time: 'latência I/O',
+    disk_read_bytes: 'leitura',
+    disk_write_bytes: 'escrita',
+    disk_read_count: 'IOPS leitura',
+    disk_write_count: 'IOPS escrita',
+    net_traffic: 'tráfego',
+    net_errors: 'erros',
+    net_drops: 'descartes',
+    net_isup: 'estado',
+    net_packets_recv: 'pacotes recebidos',
+    net_packets_sent: 'pacotes enviados',
+    swap_percent: 'uso de swap',
+    swap_used: 'swap em uso',
+    swap_free: 'swap livre',
+    swap_sin: 'entrada de swap',
+    swap_sout: 'saída de swap',
+    load_avg_1: 'carga 1 min',
+    load_avg_5: 'carga 5 min',
+    load_avg_15: 'carga 15 min'
+};
+
+// Sufixos curtos: o valor do card tem white-space: nowrap e a coluna é estreita.
+const SUFIXO_UNIDADE = {
+    GB: ' GB', ms: ' ms', MHz: ' MHz', IOPS: ' IOPS',
+    'eventos/s': '/s', 'pacotes/s': '/s'
+};
+
+// Componentes que entram na KPI "Componente mais crítico"
+const COMPONENTE_KPI = { cpu: 'CPU', ram: 'RAM', disco: 'DISCO', rede: 'REDE' };
+
+// Categorias sem slot no card: viram uma linha extra
+const ROTULO_EXTRA = { swap: 'SWAP', carga: 'CARGA' };
 
 function rank(estado) {
 
@@ -23,57 +87,259 @@ function semDados() {
 
 }
 
-// Maior gravidade primeiro; no empate, o maior valor
-function piorRecurso(recursos) {
+function rotuloDe(metrica) {
 
-    return recursos.reduce((pior, atual) => {
+    return ROTULO_METRICA[metrica] ?? metrica.replace(/_/g, ' ');
 
-        const diferenca = rank(atual.estado) - rank(pior.estado);
+}
 
-        return diferenca > 0 || (diferenca === 0 && atual.valor_atual > pior.valor_atual)
-            ? atual
-            : pior;
+// A Silver põe as colunas em maiúsculas, então devolvemos uma forma legível
+function formatarInterface(nome) {
 
-    });
+    const texto = String(nome);
+
+    return texto.toUpperCase() === 'WI-FI' ? 'Wi-Fi' : texto.toLowerCase();
+
+}
+
+function nomeDoRecurso(recurso) {
+
+    if (!recurso) {
+        return '';
+    }
+
+    if (recurso.tipo === 'nucleo') {
+        return recurso.descricao; // "núcleo 3"
+    }
+
+    if (recurso.tipo === 'interface') {
+        return formatarInterface(recurso.identificador);
+    }
+
+    return String(recurso.identificador); // volume ("/") ou dispositivo ("nvme1n1")
+
+}
+
+function formatarValor(valor, unidade) {
+
+    if (typeof valor !== 'number') {
+        return '–';
+    }
+
+    if (unidade === '%') {
+        return `${Math.round(valor)}%`;
+    }
+
+    if (unidade === 'bytes/s') {
+        return formatarTrafego(valor);
+    }
+
+    if (unidade === 'estado') {
+        return valor === 1 ? 'ativa' : 'inativa';
+    }
+
+    return `${Math.round(valor * 10) / 10}${SUFIXO_UNIDADE[unidade] ?? ''}`;
+
+}
+
+// Percentual vira número (o front desenha a barra); o resto vira texto já formatado
+function valorDoCartao(valor, unidade) {
+
+    return unidade === '%' ? Math.round(valor) : formatarValor(valor, unidade);
+
+}
+
+// Em métricas com operador "<" (espaço livre, RAM disponível, interface ativa) quanto MENOR, pior
+function gravidadeNumerica(causa) {
+
+    const menorEPior = ['<', '<='].includes(String(causa.operador ?? '').trim());
+
+    return menorEPior ? -causa.valor_atual : causa.valor_atual;
+
+}
+
+function ordemDaMetrica(metrica) {
+
+    const indice = Object.keys(ROTULO_METRICA).indexOf(metrica);
+
+    return indice === -1 ? 999 : indice;
+
+}
+
+// Mais grave primeiro; no empate, ordem do catálogo; depois o pior valor da mesma métrica
+function compararCausas(a, b) {
+
+    return rank(b.estado) - rank(a.estado)
+        || ordemDaMetrica(a.metrica) - ordemDaMetrica(b.metrica)
+        || gravidadeNumerica(b) - gravidadeNumerica(a);
+
+}
+
+function textoDaCausa(causa) {
+
+    const alvo = nomeDoRecurso(causa.recurso);
+
+    // Métrica principal e núcleo: o nome do recurso basta ("/", "núcleo 3", "eth0")
+    if (causa.principal || causa.metrica === 'cpu_percent_percpu') {
+        return alvo;
+    }
+
+    const rotulo = rotuloDe(causa.metrica);
+
+    return alvo ? `${rotulo} · ${alvo}` : rotulo;
+
+}
+
+// Todas as métricas em atenção/crítico, de todas as categorias. Só existem aqui métricas
+// com limite no perfil, porque a Gold só classifica essas. A interface de loopback é ignorada.
+function listarCausas(resumo) {
+
+    const causas = [];
+
+    for (const recurso of resumo.recursos_estado || []) {
+
+        if (rank(recurso.estado) === 0) {
+            continue;
+        }
+
+        if (recurso.categoria === 'rede' && ehLoopback(recurso.recurso?.identificador)) {
+            continue;
+        }
+
+        causas.push({
+            categoria: recurso.categoria,
+            metrica: recurso.metrica,
+            estado: recurso.estado,
+            valor_atual: recurso.valor_atual,
+            unidade: recurso.unidade,
+            operador: recurso.limites?.operador,
+            recurso: recurso.recurso,
+            desde: recurso.estado === 'critico' ? recurso.em_critico_desde : recurso.em_atencao_desde,
+            principal: PRINCIPAL[recurso.categoria] === recurso.metrica
+        });
+
+    }
+
+    // OOM não tem limite no catálogo, mas a Gold já torna o servidor crítico por ele
+    const oom = resumo.resumos?.ram?.oom?.total_observado;
+
+    if (typeof oom === 'number' && oom > 0) {
+
+        causas.push({
+            categoria: 'ram',
+            metrica: 'ram_oom_kills',
+            estado: 'critico',
+            valor_atual: oom,
+            unidade: 'ocorrências',
+            recurso: null,
+            desde: resumo.ultimo_oom_em ?? null,
+            principal: false
+        });
+
+    }
+
+    return causas.sort(compararCausas);
+
+}
+
+// Valor normal (nada em alerta): o maior valor da métrica principal da categoria
+function valorNormal(resumo, metrica, ausente = semDados()) {
+
+    const recursos = filtrarRecursos(resumo, metrica)
+        .filter(recurso => !(recurso.categoria === 'rede' && ehLoopback(recurso.recurso?.identificador)));
+
+    if (recursos.length === 0) {
+        return ausente;
+    }
+
+    const maior = recursos.reduce((pior, atual) => atual.valor_atual > pior.valor_atual ? atual : pior);
+
+    return { valor: valorDoCartao(maior.valor_atual, maior.unidade), nivel: 'normal', detalhe: '' };
+
+}
+
+// Um slot mostra a pior causa da categoria; as outras viram "(+N)"
+function montarSlot(causas, normal) {
+
+    if (causas.length === 0) {
+        return normal;
+    }
+
+    const [causa] = causas;
+    const mais = causas.length > 1 ? ` (+${causas.length - 1})` : '';
+
+    return {
+        valor: valorDoCartao(causa.valor_atual, causa.unidade),
+        nivel: nivelDe(causa),
+        detalhe: textoDaCausa(causa) + mais
+    };
+
+}
+
+function montarMetricasClassificadas(resumo, causas) {
+
+    const de = categoria => causas.filter(causa => causa.categoria === categoria);
+    const redeDesligada = { valor: '–', nivel: 'desligada', detalhe: '' };
+
+    return {
+        cpu: montarSlot(de('cpu'), valorNormal(resumo, PRINCIPAL.cpu)),
+        ram: montarSlot(de('ram'), valorNormal(resumo, PRINCIPAL.ram)),
+        dsk: montarSlot(de('disco'), valorNormal(resumo, PRINCIPAL.disco)),
+        net: montarSlot(de('rede'), valorNormal(resumo, PRINCIPAL.rede, redeDesligada))
+    };
+
+}
+
+// Swap e carga não têm slot: uma linha por categoria que estiver em alerta
+function montarExtras(causas) {
+
+    const extras = [];
+
+    for (const [categoria, rotulo] of Object.entries(ROTULO_EXTRA)) {
+
+        const lista = causas.filter(causa => causa.categoria === categoria);
+
+        if (lista.length > 0) {
+            extras.push({ rotulo, ...montarSlot(lista) });
+        }
+
+    }
+
+    return extras;
+
+}
+
+// Lista completa, sem descartar nada (serve para tooltip ou drill-down)
+function montarAlertas(causas) {
+
+    return causas.map(causa => ({
+        categoria: causa.categoria,
+        metrica: causa.metrica,
+        rotulo: rotuloDe(causa.metrica),
+        recurso: nomeDoRecurso(causa.recurso),
+        estado: causa.estado,
+        valor: formatarValor(causa.valor_atual, causa.unidade),
+        desde: causa.desde ?? null
+    }));
+
+}
+
+// A KPI usa a mesma lista do card, então os dois não discordam
+function montarComponentesCriticos(causas) {
+
+    const categorias = new Set(
+        causas.filter(causa => causa.estado === 'critico').map(causa => causa.categoria)
+    );
+
+    return Object.keys(COMPONENTE_KPI)
+        .filter(categoria => categorias.has(categoria))
+        .map(categoria => COMPONENTE_KPI[categoria]);
 
 }
 
 function filtrarRecursos(resumo, metrica) {
 
     return (resumo.recursos_estado || []).filter(recurso => recurso.metrica === metrica);
-
-}
-
-function metricaPercentual(resumo, metrica, detalharSeAlerta = false) {
-
-    const recursos = filtrarRecursos(resumo, metrica);
-
-    if (recursos.length === 0) {
-        return semDados();
-    }
-
-    const pior = piorRecurso(recursos);
-    const nivel = nivelDe(pior);
-
-    return {
-        valor: Math.round(pior.valor_atual),
-        nivel,
-        detalhe: detalharSeAlerta && nivel !== 'normal' ? (pior.recurso?.descricao ?? '') : ''
-    };
-
-}
-
-function montarCpu(resumo) {
-
-    const cpu = metricaPercentual(resumo, 'cpu_percent');
-    const nucleosEmAlerta = filtrarRecursos(resumo, 'cpu_percent_percpu')
-        .filter(nucleo => rank(nucleo.estado) > 0);
-
-    if (nucleosEmAlerta.length > 0) {
-        cpu.detalhe = piorRecurso(nucleosEmAlerta).recurso.descricao;
-    }
-
-    return cpu;
 
 }
 
@@ -92,46 +358,8 @@ function formatarTrafego(bytesPorSegundo) {
 
 }
 
-// Erro ou descarte em alerta tem prioridade sobre o tráfego (como "erros · eth0" no Figma).
-// A interface de loopback (LO) é ignorada.
-function montarRede(resumo) {
 
-    const desligada = { valor: '–', nivel: 'desligada', detalhe: '' };
 
-    const recursos = (resumo.recursos_estado || []).filter(recurso =>
-        METRICAS_REDE.includes(recurso.metrica)
-        && String(recurso.recurso?.identificador).toUpperCase() !== 'LO'
-    );
-
-    const emAlerta = recursos.filter(recurso => rank(recurso.estado) > 0);
-
-    if (emAlerta.length > 0) {
-
-        const pior = piorRecurso(emAlerta);
-        const rotulo = ROTULO_REDE[pior.metrica];
-        const interfaceRede = pior.recurso.identificador;
-
-        return {
-            valor: rotulo ? `${pior.valor_atual}/s` : formatarTrafego(pior.valor_atual),
-            nivel: nivelDe(pior),
-            detalhe: rotulo ? `${rotulo} · ${interfaceRede}` : interfaceRede
-        };
-
-    }
-
-    const trafegos = recursos.filter(recurso => recurso.metrica === 'net_traffic');
-
-    if (trafegos.length === 0) {
-        return desligada;
-    }
-
-    return {
-        valor: formatarTrafego(piorRecurso(trafegos).valor_atual),
-        nivel: 'normal',
-        detalhe: ''
-    };
-
-}
 
 function segundosDesde(instante) {
 
@@ -204,21 +432,15 @@ async function montarCartao(servidor, data) {
         endereco_mac: servidor.endereco_mac,
         status: 'sem-dados',
         coletaSegundos: null,
+        componentesCriticos: [],
+        extras: [],
+        alertas: [],
         metricas: {}
     };
 
-    
     try {
 
         const resumo = await buscarResumoRecente(servidor.endereco_mac, data);
-        console.log(
-        servidor.nome,
-        '| classificacao_disponivel:', resumo.classificacao_disponivel,
-        '| recursos_estado:', resumo.recursos_estado?.length,
-    '| severidade:', resumo.severidade,
-    '| data:', resumo.data,
-    '| ultima_coleta:', resumo.ultima_coleta
-    );
 
         if (!resumo) {
 
@@ -228,20 +450,42 @@ async function montarCartao(servidor, data) {
 
         }
 
-                const classificado = resumo.classificacao_disponivel && resumo.recursos_estado?.length > 0;
+        const coletaSegundos = resumo.ultima_coleta ? segundosDesde(resumo.ultima_coleta) : null;
+        const desatualizado = coletaSegundos === null || coletaSegundos > LIMITE_SEM_DADOS_SEGUNDOS;
+
+        const classificado = resumo.classificacao_disponivel
+            && resumo.recursos_estado?.length > 0
+            && !desatualizado;
+
+        // Sem classificação ou com coleta velha: só o último valor, sem estado nem detalhe
+        if (!classificado) {
+
+            return {
+                ...cartao,
+                coletaSegundos,
+                metricas: montarMetricasBrutas(resumo)
+            };
+
+        }
+
+        const causas = listarCausas(resumo);
+        const extras = montarExtras(causas);
+        const status = resumo.severidade ?? 'sem-dados';
+
+        // Servidor em alerta cuja causa não tem posição no card (ex.: métrica de inventário
+        // com limite): não deixamos o card vermelho sem explicação
+        if (rank(status) > 0 && causas.length === 0) {
+            extras.push({ rotulo: 'CAUSA', valor: '', nivel: status, detalhe: 'métrica sem posição no card' });
+        }
 
         return {
             ...cartao,
-            status: classificado ? resumo.severidade : 'sem-dados',
-            coletaSegundos: resumo.ultima_coleta ? segundosDesde(resumo.ultima_coleta) : null,
-            metricas: classificado
-                ? {
-                    cpu: montarCpu(resumo),
-                    ram: metricaPercentual(resumo, 'ram_percent'),
-                    dsk: metricaPercentual(resumo, 'disk_percent', true),
-                    net: montarRede(resumo)
-                }
-                : montarMetricasBrutas(resumo)
+            status,
+            coletaSegundos,
+            componentesCriticos: montarComponentesCriticos(causas),
+            extras,
+            alertas: montarAlertas(causas),
+            metricas: montarMetricasClassificadas(resumo, causas)
         };
 
     } catch (erro) {

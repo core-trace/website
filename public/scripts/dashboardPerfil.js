@@ -299,6 +299,21 @@ async function carregarDashboard() {
         if (!empresa || !usuario) throw new Error("Faça login para consultar os dados.");
         const url = "/servidor/dashboard-perfil?empresa=" + encodeURIComponent(empresa) +
             "&usuario=" + encodeURIComponent(usuario);
+        // Mostra primeiro o que vem do banco; os indicadores de coleta chegam depois.
+        const respostaCadastros = await fetch(url + "&cadastros=1");
+        if (!respostaCadastros.ok) throw new Error("Não foi possível carregar os cadastros da dashboard.");
+        const cadastros = await respostaCadastros.json();
+        perfisDashboard = cadastros.perfis;
+        atualizarIndicadores(cadastros.kpis);
+        atualizarGraficoServidores();
+        preencherFiltroCustos();
+        preencherFiltro();
+        atualizarTabelaStatus();
+        if (perfisDashboard.length === 0) {
+            feedback.textContent = "Nenhum perfil disponível para este usuário.";
+            return;
+        }
+        feedback.textContent = "Carregando status e críticos...";
         const resposta = await fetch(url);
         if (!resposta.ok) throw new Error("Não foi possível consultar os dados. Confira o terminal do servidor.");
         const dados = await resposta.json();
@@ -314,9 +329,10 @@ async function carregarDashboard() {
                 : "Status atual";
         atualizarGraficoCriticos(dados.rankingCriticos);
         atualizarGraficoServidores();
-        preencherFiltroCustos();
+        // Mantém o perfil escolhido enquanto as capturas estavam carregando.
+        atualizarCustos();
         atualizarTabelaStatus();
-        preencherFiltro();
+        atualizarLimites();
         if (perfisDashboard.length === 0) {
             feedback.textContent = "Nenhum perfil disponível para este usuário.";
         } else {

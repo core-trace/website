@@ -28,6 +28,11 @@ function mostrarUsuarioLogado() {
     document.querySelector(".dashboard-avatar").textContent = iniciais.toUpperCase();
     document.querySelector(".dashboard-avatar").setAttribute("aria-label", nome);
     document.querySelector(".dashboard-conta-email").textContent = email;
+
+    // Aquece o cache de alertas em segundo plano para a primeira abertura da dash não esperar Jira/S3.
+    if (!window.location.pathname.endsWith("alertas.html")) {
+        fetch(`/alertas/servidores?idEmpresa=${sessionStorage.ID_EMPRESA}&idUsuario=${sessionStorage.ID_USUARIO}`).catch(() => {});
+    }
 }
 
 function criarItemNavegacao(item) {

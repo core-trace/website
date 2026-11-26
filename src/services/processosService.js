@@ -410,9 +410,11 @@ function calcularKpis(amostras, kpisGold = null) {
 }
 
 /**
- * Agrupa amostras por nome + PID e calcula recorrência de anormalidades.
+ * Agrupa amostras por nome + PID e calcula o Top 5 processos que mais
+ * utilizam recursos no dia, com base no valor máximo observado de CPU e
+ * memória. Não depende de limiares de atenção/crítico.
  */
-function calcularRecorrencia(amostras, limiares) {
+function calcularTop5Recursos(amostras) {
     const grupos = new Map();
 
     for (const a of amostras) {
@@ -421,47 +423,50 @@ function calcularRecorrencia(amostras, limiares) {
             grupos.set(chave, {
                 nome: a.nome || "desconhecido",
                 pid: a.pid || "--",
-                ocorrencias: 0,
-                tipo: "normal",
-                ultima: null,
-                acimaLimite: 0
+                cpuMax: 0,
+                cpuSoma: 0,
+                cpuCount: 0,
+                memoriaMax: 0,
+                memoriaSoma: 0,
+                memoriaCount: 0,
+                ultimoPico: null
             });
         }
 
         const grupo = grupos.get(chave);
-        grupo.ocorrencias++;
 
-        const ehCrit =
-            ehCritico(a.cpu, a.memoria, limiares) &&
-            a.cpuStatus === "ok" &&
-            a.memoriaStatus === "ok";
-        const ehAtenc =
-            ehAtencao(a.cpu, a.memoria, limiares) &&
-            a.cpuStatus === "ok" &&
-            a.memoriaStatus === "ok";
+        if (a.cpu != null && a.valido !== false) {
+            grupo.cpuMax = Math.max(grupo.cpuMax, a.cpu);
+            grupo.cpuSoma += a.cpu;
+            grupo.cpuCount += 1;
+        }
+        if (a.memoria != null && a.memoriaValida !== false) {
+            grupo.memoriaMax = Math.max(grupo.memoriaMax, a.memoria);
+            grupo.memoriaSoma += a.memoria;
+            grupo.memoriaCount += 1;
+        }
 
-        if (ehCrit) grupo.tipo = "crítico";
-        else if (ehAtenc && grupo.tipo !== "crítico") grupo.tipo = "atenção";
-
-        if (ehCrit || ehAtenc) grupo.acimaLimite++;
-
-        if (!grupo.ultima || new Date(a.timestamp) > new Date(grupo.ultima)) {
-            grupo.ultima = a.timestamp;
+        if (
+            a.cpu != null && a.valido !== false &&
+            (!grupo.ultimoPico || a.cpu >= grupo.cpuMax)
+        ) {
+            grupo.ultimoPico = a.timestamp;
         }
     }
 
     const resultado = Array.from(grupos.values()).map((g) => ({
         nome: g.nome,
         pid: g.pid,
-        ocorrencias: g.ocorrencias,
-        acimaLimite: g.acimaLimite,
-        tipo: g.tipo,
-        ultima: g.ultima,
-        frequencia: g.ocorrencias > 1 ? "recorrente" : "única"
+        cpuMax: g.cpuMax,
+        cpuMedia: g.cpuCount > 0 ? g.cpuSoma / g.cpuCount : 0,
+        memoriaMax: g.memoriaMax,
+        memoriaMedia: g.memoriaCount > 0 ? g.memoriaSoma / g.memoriaCount : 0,
+        ultimoPico: g.ultimoPico
     }));
 
-    resultado.sort((a, b) => b.acimaLimite - a.acimaLimite || b.ocorrencias - a.ocorrencias);
-    return resultado;
+    // Ordena por CPU máxima descrescente; desempate por memória máxima.
+    resultado.sort((a, b) => b.cpuMax - a.cpuMax || b.memoriaMax - a.memoriaMax);
+    return resultado.slice(0, 5);
 }
 
 /**
@@ -545,7 +550,7 @@ async function obterDashboard(filtros = {}) {
     const kpisGold = await carregarKpisGold(mac, data);
 
     const kpis = calcularKpis(amostras, kpisGold);
-    const recorrencia = calcularRecorrencia(amostras, limiares);
+    const top5Recursos = calcularTop5Recursos(amostras);
     const comparacao = compararMomentos(amostras);
 
     return {
@@ -553,7 +558,7 @@ async function obterDashboard(filtros = {}) {
         data,
         limiares,
         kpis,
-        recorrencia,
+        top5Recursos,
         comparacao,
         total: amostras.length,
         ultimaColeta: amostras.length > 0 ? amostras[amostras.length - 1].timestamp : null,
@@ -567,7 +572,7 @@ module.exports = {
     resolverLimites,
     calcularKpis,
     calcularReiniciandoLoop,
-    calcularRecorrencia,
+    calcularTop5Recursos,
     obterSerie,
     compararMomentos,
     obterDashboard,

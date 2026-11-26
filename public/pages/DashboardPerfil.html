@@ -75,19 +75,10 @@
                 <article class="indicador"><img class="icone-indicador" src="../assets/images/dashboard-perfis-configurados.png" alt="" width="34" height="34"><div><strong id="indicador-perfis-configurados">—</strong><p>Perfis configurados</p></div></article>
             </section>
             <div class="grade-paineis">
-                <section class="painel criticos"><h2><img src="../assets/images/Alerta — triângulo contornado.png" alt="" width="18" height="18"> Perfis com maior % de servidores críticos</h2><div class="lista-criticos"><canvas id="grafico-perfis-criticos" role="img" aria-label="Aguardando dados do dashboard">Aguardando dados do dashboard.</canvas></div></section>
+                <section class="painel criticos"><h2><img src="../assets/images/Alerta — triângulo contornado.png" alt="" width="18" height="18"> Percentual de servidores críticos por perfil</h2><div class="lista-criticos"><canvas id="grafico-perfis-criticos" role="img" aria-label="Aguardando dados do dashboard">Aguardando dados do dashboard.</canvas></div></section>
                 <section class="painel situacao">
                     <div class="cabecalho-painel">
-                        <div><h2>Status dos servidores por perfil</h2><p id="descricao-historico-status">Status atual</p></div>
-                        <label class="seletor-perfil">Período:
-                            <select id="historico-status" aria-label="Período do histórico de status">
-                                <option value="0" selected>Agora</option>
-                                <option value="30">Há 30 minutos</option>
-                                <option value="60">Há 1 hora</option>
-                                <option value="420">Há 7 horas</option>
-                                <option value="1440">Há 24 horas</option>
-                            </select>
-                        </label>
+                        <div><h2>Status dos servidores por perfil</h2><p id="descricao-status">Status atual</p></div>
                     </div>
                     <table><thead><tr><th>Perfil</th><th>Ativos</th><th>Inativos</th></tr></thead><tbody id="status-perfis"></tbody></table></section>
                 <section class="painel servidores"><h2>Servidores por perfil</h2><div class="grafico-barras"><canvas id="grafico-servidores-perfil" role="img" aria-label="Aguardando dados do dashboard">Aguardando dados do dashboard.</canvas></div></section>

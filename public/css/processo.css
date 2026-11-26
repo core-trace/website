@@ -909,6 +909,7 @@ img, svg { display: block; max-width: 100%; }
 /* ---------- Tabela: Top 5 processos que mais utilizam recursos ---------- */
 .top5-recursos {
   margin-top: var(--espaco-xl);
+  margin-bottom: var(--espaco-xl);
 }
 
 .tabela-top5 {

@@ -13,9 +13,11 @@ async function obterDashboard(req, res) {
     try {
         // O banco informa os cadastros e quais perfis o usuário pode consultar.
         const cadastros = await dashboardPerfilModel.buscarDados(empresa, usuario);
-        const servidores = await servidorModel.listarServidoresPorEmpresa(empresa, usuario);
+        // A primeira consulta da tela mostra os cadastros sem esperar pelo S3.
+        const somenteCadastros = req.query.cadastros === "1";
+        const servidores = somenteCadastros ? [] : await servidorModel.listarServidoresPorEmpresa(empresa, usuario);
         // O service lê a Gold e compara as medições com os limites do banco.
-        const dados = await dashboardPerfilService.montarDashboard(cadastros.perfis, servidores);
+        const dados = await dashboardPerfilService.montarDashboard(cadastros.perfis, servidores, !somenteCadastros);
         return res.json(dados);
     } catch (erro) {
         console.error("Erro na DashboardPerfil:", erro.message);

@@ -436,7 +436,7 @@
         if (!lista || lista.length === 0) {
             const tr = document.createElement("tr");
             const td = novaCelula("Nenhum processo encontrado.");
-            td.colSpan = 6;
+            td.colSpan = 4;
             td.style.textAlign = "center";
             tr.appendChild(td);
             tbodyTop5Recursos.appendChild(tr);
@@ -447,9 +447,7 @@
             const tr = document.createElement("tr");
             tr.appendChild(novaCelula(`${item.nome || "desconhecido"} (PID ${item.pid != null ? item.pid : "--"})`));
             tr.appendChild(novaCelula(item.cpuMax != null ? item.cpuMax.toFixed(1) : "--"));
-            tr.appendChild(novaCelula(item.cpuMedia != null ? item.cpuMedia.toFixed(1) : "--"));
             tr.appendChild(novaCelula(item.memoriaMax != null ? item.memoriaMax.toFixed(1) : "--"));
-            tr.appendChild(novaCelula(item.memoriaMedia != null ? item.memoriaMedia.toFixed(1) : "--"));
             tr.appendChild(novaCelula(formatoBrasileiro(item.ultimoPico)));
             tbodyTop5Recursos.appendChild(tr);
         }

@@ -324,7 +324,7 @@ img, svg { display: block; max-width: 100%; }
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--espaco-m);
   min-width: 0;
 }
@@ -395,6 +395,37 @@ img, svg { display: block; max-width: 100%; }
 .kpi-subtitulo {
   font-size: var(--fonte-subtitulo);
   color: var(--cor-texto-suave);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Estados dos KPIs: carregando, sem leitura válida e erro de consulta. */
+@keyframes kpi-carregando {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.kpi-card--carregando .kpi-valor {
+  color: var(--cor-texto-menor);
+  animation: kpi-carregando 1.2s ease-in-out infinite;
+}
+
+.kpi-card--sem-dado .kpi-valor {
+  color: var(--cor-texto-menor);
+}
+
+.kpi-card--sem-dado .kpi-icone {
+  background: var(--cor-surface-muted);
+  color: var(--cor-texto-menor);
+}
+
+.kpi-card--erro {
+  border-color: var(--cor-coral);
+}
+
+.kpi-card--erro .kpi-subtitulo {
+  color: var(--cor-coral-texto);
 }
 
 /* ---------- Card genérico ---------- */
@@ -514,50 +545,36 @@ img, svg { display: block; max-width: 100%; }
   align-self: flex-start;
 }
 
-.grafico-svg,
-.grafico-area {
+.grafico-svg {
   width: 100%;
-  height: auto;
   display: block;
   min-height: 220px;
 }
 
-/* Container vazio dos gráficos (placeholder para renderização futura) */
+/* Area com altura fixa para o canvas do Chart.js (maintainAspectRatio: false). */
 .grafico-area {
-  position: relative;
-  background: var(--cor-surface-muted);
-  border: var(--borda-s);
-  border-radius: var(--raio-m);
+  width: 100%;
+  height: 250px;
+  display: block;
 }
 
-.grafico-area::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--cor-card);
-  border-radius: var(--raio-m);
-  opacity: 0.6;
+.grafico-area canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-.grafico-area::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120px;
-  height: 72px;
-  transform: translate(-50%, -50%);
-  border-radius: var(--raio-m);
-  background: var(--cor-surface-hover);
+.historico-consumo .card-acoes {
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
-.grafico-area::after {
-  background-image: radial-gradient(circle at 30% 30%, var(--cor-texto-suave) 12%, transparent 12.5%),
-    radial-gradient(circle at 70% 30%, var(--cor-texto-suave) 12%, transparent 12.5%),
-    radial-gradient(circle at 50% 60%, var(--cor-texto-suave) 12%, transparent 12.5%);
-  background-repeat: no-repeat;
-  background-size: 24px 24px;
-  background-position: 24px 12px, 72px 12px, 48px 48px;
+.graficos-filtro {
+  min-width: 0;
+}
+
+.graficos-filtro .filtro-select select {
+  min-width: 120px;
 }
 
 .grafico-valor-atual {
@@ -850,12 +867,12 @@ img, svg { display: block; max-width: 100%; }
   border-bottom-color: var(--cor-coral);
 }
 
-/* ---------- Tabela: Recorrência de anormalidades ---------- */
-.recorrencia-anormalidades {
+/* ---------- Tabela: Top 5 processos que mais utilizam recursos ---------- */
+.top5-recursos {
   margin-top: var(--espaco-xl);
 }
 
-.tabela-recorrencia {
+.tabela-top5 {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--fonte-campo);
@@ -863,7 +880,7 @@ img, svg { display: block; max-width: 100%; }
   white-space: nowrap;
 }
 
-.tabela-recorrencia th {
+.tabela-top5 th {
   padding: var(--espaco-s) var(--espaco-m);
   background: var(--cor-surface-muted);
   color: var(--cor-texto-menor);
@@ -874,17 +891,17 @@ img, svg { display: block; max-width: 100%; }
   border-bottom: var(--borda-s);
 }
 
-.tabela-recorrencia td {
+.tabela-top5 td {
   padding: var(--espaco-m);
   border-bottom: var(--borda-s);
   color: var(--cor-texto);
 }
 
-.tabela-recorrencia tbody tr:last-child td {
+.tabela-top5 tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.tabela-recorrencia tbody tr:hover {
+.tabela-top5 tbody tr:hover {
   background: var(--cor-surface-hover);
 }
 
@@ -907,7 +924,7 @@ img, svg { display: block; max-width: 100%; }
   background: var(--cor-borda);
 }
 
-.recorrencia-nota {
+.top5-nota {
   margin-top: var(--espaco-s);
   padding: 0 var(--espaco-xl) var(--espaco-xl);
   font-size: var(--fonte-rotulo);
@@ -1004,21 +1021,19 @@ img, svg { display: block; max-width: 100%; }
 
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .graficos { grid-template-columns: 1fr; }
-  .grafico-svg { min-height: 200px; }
+  .grafico-area { height: 200px; }
 
   .filtros-eventos { flex-direction: column; align-items: stretch; }
   .filtros-eventos .filtro-campo { min-width: unset; width: 100%; }
   .janela-investigacao { flex-direction: column; align-items: flex-start; gap: var(--espaco-xs); }
   .evento-item { grid-template-columns: 56px 1fr auto; gap: var(--espaco-s); padding: var(--espaco-xs) 0; }
 
-  .todos-processos .card-acoes,
-  .recorrencia-anormalidades .card-acoes {
+  .todos-processos .card-acoes {
     flex-direction: column;
     align-items: stretch;
     gap: var(--espaco-m);
   }
-  .todos-processos .card-acoes .filtro-select,
-  .recorrencia-anormalidades .card-acoes .filtro-select {
+  .todos-processos .card-acoes .filtro-select {
     width: 100%;
   }
   .paginacao {
@@ -1043,21 +1058,19 @@ img, svg { display: block; max-width: 100%; }
 
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .graficos { grid-template-columns: 1fr; }
-  .grafico-svg { min-height: 180px; }
+  .grafico-area { height: 180px; }
 
   .filtros-eventos { flex-direction: column; align-items: stretch; }
   .filtros-eventos .filtro-campo { min-width: unset; width: 100%; }
   .janela-investigacao { flex-direction: column; align-items: flex-start; gap: var(--espaco-xs); }
   .evento-item { grid-template-columns: 56px 1fr auto; gap: var(--espaco-s); padding: var(--espaco-xs) 0; }
 
-  .todos-processos .card-acoes,
-  .recorrencia-anormalidades .card-acoes {
+  .todos-processos .card-acoes {
     flex-direction: column;
     align-items: stretch;
     gap: var(--espaco-m);
   }
-  .todos-processos .card-acoes .filtro-select,
-  .recorrencia-anormalidades .card-acoes .filtro-select {
+  .todos-processos .card-acoes .filtro-select {
     width: 100%;
   }
   .paginacao {

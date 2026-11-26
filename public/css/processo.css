@@ -4,33 +4,35 @@
    (Sidebar 100% gerada por navbarDashboard.js)
    ========================================= */
 
+@import url('./fonts.css');
+
 /* ---------- Design Tokens ---------- */
-/* Paleta alinhada à tela de alertas (alertas.css). */
+/* Paleta alinhada ao dashboard (inicioDashboard.css / geralDashboard.css). */
 :root {
   /* Superfícies */
   --cor-fundo: #f7f7f2;
   --cor-card: #ffffff;
   --cor-surface-muted: #fafaf8;
   --cor-surface-hover: #f4f5f7;
-  --cor-borda: #d9dee7;
-  --cor-borda-strong: #b6bdca;
+  --cor-borda: #e5e3e0;
+  --cor-borda-strong: #c9c6c0;
   --cor-borda-foco: #cc0301;
 
   /* Textos */
-  --cor-texto: #141115;
-  --cor-texto-suave: #4b4350;
-  --cor-texto-menor: #8a8f9c;
+  --cor-texto: #211e22;
+  --cor-texto-suave: #777279;
+  --cor-texto-menor: #777279;
 
-  /* Acentos semânticos */
+  /* Acentos semânticos (alinhados ao dashboard) */
   --cor-coral: #cc0301;
   --cor-coral-suave: rgba(204, 3, 1, 0.08);
   --cor-coral-texto: #cc0301;
-  --cor-ambar: #e2891b;
-  --cor-ambar-suave: rgba(226, 137, 27, 0.16);
-  --cor-ambar-texto: #a35f05;
-  --cor-verde: #2f9e6e;
-  --cor-verde-suave: rgba(47, 158, 110, 0.14);
-  --cor-verde-texto: #1f7a52;
+  --cor-ambar: #a96808;
+  --cor-ambar-suave: rgba(169, 104, 8, 0.12);
+  --cor-ambar-texto: #85500c;
+  --cor-verde: #17885e;
+  --cor-verde-suave: rgba(23, 136, 94, 0.12);
+  --cor-verde-texto: #156b48;
 
   /* Espaçamento */
   --espaco-xs: 4px;
@@ -48,17 +50,22 @@
   --borda-s: 1px solid var(--cor-borda);
 
   /* Sombra / movimento */
-  --sombra-s: 0 1px 2px rgba(0, 0, 0, 0.04), 0 0 1px rgba(0, 0, 0, 0.03);
+  --sombra-s: 0 2px 8px rgb(20 17 21 / 5%);
   --transicao: 0.2s ease;
 
-  /* Tipografia */
-  --fonte-tamanho-base: 14px;
-  --fonte-titulo: 26px;
-  --fonte-subtitulo: 15px;
-  --fonte-rotulo: 11px;
-  --fonte-campo: 14px;
+  /* Tipografia (alinhada ao dashboard inicioDashboard.html) */
+  --fonte-principal: "Poppins", Arial, sans-serif;
+  --fonte-tamanho-base: 16px;
+  --fonte-titulo: 34px;
+  --fonte-subtitulo: 17px;
+  --fonte-rotulo: 14px;
+  --fonte-campo: 16px;
   --linha-titulo: 1.25;
   --linha-base: 1.5;
+}
+
+.dashboard-page {
+  background-color: var(--cor-fundo);
 }
 
 /* ---------- Reset base ---------- */
@@ -70,8 +77,9 @@ body.dashboard-page {
   margin: 0;
   padding: 0;
   color: var(--cor-texto);
-  font: var(--fonte-tamanho-base)/var(--linha-base)
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--fonte-principal);
+  font-size: var(--fonte-tamanho-base);
+  line-height: var(--linha-base);
 }
 
 a { color: inherit; text-decoration: none; }
@@ -118,6 +126,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .processos-trilha {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   font-weight: 800;
   text-transform: uppercase;
@@ -126,6 +135,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .processos-titulo {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-titulo);
   font-weight: 800;
   line-height: var(--linha-titulo);
@@ -135,6 +145,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .processos-subtitulo {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-subtitulo);
   color: var(--cor-texto-suave);
   margin: 0;
@@ -151,6 +162,7 @@ img, svg { display: block; max-width: 100%; }
   display: inline-flex;
   align-items: center;
   gap: var(--espaco-s);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-campo);
   font-weight: 700;
   color: var(--cor-texto);
@@ -161,10 +173,11 @@ img, svg { display: block; max-width: 100%; }
   width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--cor-verde);
-  box-shadow: 0 0 0 2px rgba(47, 158, 110, 0.15);
+  box-shadow: 0 0 0 2px var(--cor-verde-suave);
 }
 
 .processos-atualizado {
+  font-family: var(--fonte-principal);
   font-size: 12px;
   color: var(--cor-texto-suave);
   white-space: nowrap;
@@ -176,7 +189,7 @@ img, svg { display: block; max-width: 100%; }
   gap: var(--espaco-l);
   padding: var(--espaco-m) var(--espaco-xl);
   border-bottom: var(--borda-s);
-  background: var(--cor-card);
+  background: var(--cor-fundo);
   flex-wrap: wrap;
   align-items: center;
 }
@@ -189,6 +202,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .filtro-rotulo {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   font-weight: 800;
   text-transform: uppercase;
@@ -203,7 +217,7 @@ img, svg { display: block; max-width: 100%; }
   gap: var(--espaco-s);
   border: var(--borda-s);
   border-radius: var(--raio-m);
-  background: var(--cor-fundo);
+  background: var(--cor-card);
   padding: 0 var(--espaco-s);
   min-height: 38px;
 }
@@ -213,6 +227,7 @@ img, svg { display: block; max-width: 100%; }
   border: none;
   background: transparent;
   color: var(--cor-texto);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-campo);
   min-width: 140px;
   cursor: pointer;
@@ -223,6 +238,7 @@ img, svg { display: block; max-width: 100%; }
   border: none;
   background: transparent;
   color: var(--cor-texto);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-campo);
   min-width: 130px;
   width: 100%;
@@ -262,6 +278,7 @@ img, svg { display: block; max-width: 100%; }
 .badge {
   display: inline-flex;
   align-items: center;
+  font-family: var(--fonte-principal);
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
@@ -287,6 +304,7 @@ img, svg { display: block; max-width: 100%; }
   border-radius: var(--raio-m);
   background: var(--cor-card);
   color: var(--cor-texto);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-campo);
   font-weight: 600;
   cursor: pointer;
@@ -377,6 +395,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .kpi-rotulo {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   font-weight: 800;
   text-transform: uppercase;
@@ -385,6 +404,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .kpi-valor {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-titulo);
   font-weight: 800;
   line-height: var(--linha-titulo);
@@ -393,6 +413,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .kpi-subtitulo {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-subtitulo);
   color: var(--cor-texto-suave);
   overflow: hidden;
@@ -451,6 +472,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .card-titulo {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-titulo);
   font-weight: 800;
   line-height: var(--linha-titulo);
@@ -482,6 +504,7 @@ img, svg { display: block; max-width: 100%; }
   gap: var(--espaco-xs);
   padding: 4px 10px;
   border-radius: var(--raio-pill);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   font-weight: 700;
   color: var(--cor-texto-suave);
@@ -506,6 +529,7 @@ img, svg { display: block; max-width: 100%; }
   padding: var(--espaco-s) var(--espaco-xl);
   background: var(--cor-coral-suave);
   color: var(--cor-coral-texto);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-subtitulo);
 }
 
@@ -537,6 +561,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .grafico-rotulo {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   font-weight: 800;
   text-transform: uppercase;
@@ -578,12 +603,14 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .grafico-valor-atual {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-subtitulo);
   font-weight: 700;
   color: var(--cor-texto);
 }
 
 .grafico-caption {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-subtitulo);
   color: var(--cor-texto-suave);
   margin: 0;
@@ -602,6 +629,7 @@ img, svg { display: block; max-width: 100%; }
   padding: var(--espaco-s) var(--espaco-xl);
   border-top: var(--borda-s);
   color: var(--cor-texto-suave);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-subtitulo);
   font-weight: 600;
 }
@@ -612,6 +640,7 @@ img, svg { display: block; max-width: 100%; }
 
 .comparativo-seta {
   color: var(--cor-texto-menor);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
 }
 
@@ -630,6 +659,7 @@ img, svg { display: block; max-width: 100%; }
 .tabela-variacao {
   width: 100%;
   border-collapse: collapse;
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-campo);
   text-align: left;
   white-space: nowrap;
@@ -639,6 +669,7 @@ img, svg { display: block; max-width: 100%; }
   padding: var(--espaco-s) var(--espaco-m);
   background: var(--cor-surface-muted);
   color: var(--cor-texto-menor);
+  font-family: var(--fonte-principal);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -665,6 +696,7 @@ img, svg { display: block; max-width: 100%; }
   display: inline-flex;
   align-items: center;
   gap: var(--espaco-xs);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -692,6 +724,7 @@ img, svg { display: block; max-width: 100%; }
   gap: var(--espaco-xs);
   padding: 2px 8px;
   border-radius: var(--raio-pill);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   font-weight: 700;
   text-transform: uppercase;
@@ -745,6 +778,7 @@ img, svg { display: block; max-width: 100%; }
   padding: var(--espaco-s) var(--espaco-xl);
   background: var(--cor-ambar-suave);
   color: var(--cor-ambar-texto);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   font-weight: 700;
   text-transform: uppercase;
@@ -786,6 +820,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .evento-hora {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-campo);
   font-weight: 600;
   color: var(--cor-texto);
@@ -794,6 +829,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .evento-detalhe {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-campo);
   color: var(--cor-texto);
   line-height: 1.5;
@@ -804,6 +840,7 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .evento-severidade {
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   font-weight: 700;
   text-transform: uppercase;
@@ -828,6 +865,7 @@ img, svg { display: block; max-width: 100%; }
 .tabela-todos {
   width: 100%;
   border-collapse: collapse;
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-campo);
   text-align: left;
   white-space: nowrap;
@@ -837,6 +875,7 @@ img, svg { display: block; max-width: 100%; }
   padding: var(--espaco-s) var(--espaco-m);
   background: var(--cor-surface-muted);
   color: var(--cor-texto-menor);
+  font-family: var(--fonte-principal);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -870,11 +909,13 @@ img, svg { display: block; max-width: 100%; }
 /* ---------- Tabela: Top 5 processos que mais utilizam recursos ---------- */
 .top5-recursos {
   margin-top: var(--espaco-xl);
+  margin-bottom: var(--espaco-xl);
 }
 
 .tabela-top5 {
   width: 100%;
   border-collapse: collapse;
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-campo);
   text-align: left;
   white-space: nowrap;
@@ -884,6 +925,7 @@ img, svg { display: block; max-width: 100%; }
   padding: var(--espaco-s) var(--espaco-m);
   background: var(--cor-surface-muted);
   color: var(--cor-texto-menor);
+  font-family: var(--fonte-principal);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -927,6 +969,7 @@ img, svg { display: block; max-width: 100%; }
 .top5-nota {
   margin-top: var(--espaco-s);
   padding: 0 var(--espaco-xl) var(--espaco-xl);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   color: var(--cor-texto-suave);
 }
@@ -940,6 +983,7 @@ img, svg { display: block; max-width: 100%; }
   padding: var(--espaco-m) var(--espaco-xl);
   border-top: var(--borda-s);
   flex-wrap: wrap;
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   color: var(--cor-texto-suave);
 }
@@ -965,6 +1009,7 @@ img, svg { display: block; max-width: 100%; }
   border-radius: var(--raio-s);
   background: var(--cor-card);
   color: var(--cor-texto);
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-campo);
   font-weight: 600;
   cursor: pointer;
@@ -993,6 +1038,7 @@ img, svg { display: block; max-width: 100%; }
 
 .rodape-texto {
   margin: 0;
+  font-family: var(--fonte-principal);
   font-size: var(--fonte-rotulo);
   color: var(--cor-texto-suave);
   text-align: center;

@@ -54,7 +54,6 @@
     let dataSelecionada = "";
     // TEMPORÁRIO: force uma data específica para validar com AWS.
     // Comente esta linha para voltar ao comportamento padrão (dia atual).
-    const OVERRIDE_DATA = "2026-11-27";
     let momentoASelecionado = null;
     let momentoBSelecionado = null;
     // Em minutos. null = sem recorte (todos os pontos disponíveis).
@@ -193,7 +192,7 @@
     }
 
     function limparTabela() {
-        tbodyRecorrencia.innerHTML = "";
+        tbodyTop5Recursos.innerHTML = "";
     }
 
     function limparGraficos() {
@@ -391,7 +390,7 @@
                 label: "Área acima do crítico",
                 data: pontosSombra,
                 borderColor: "transparent",
-                backgroundColor: "rgba(204, 3, 1, 0.12)",
+                backgroundColor: "rgba(204, 3, 1, 0.08)",
                 borderWidth: 0,
                 pointRadius: 0,
                 fill: "-1",
@@ -424,8 +423,8 @@
             datasets.push({
                 label: "Uso medio-alto (Atencao)",
                 data: [{ x: primeiroX, y: atencao }, { x: ultimoX, y: atencao }],
-                borderColor: "#e8a100",
-                backgroundColor: "#e8a100",
+                borderColor: "#a96808",
+                backgroundColor: "#a96808",
                 borderWidth: 2,
                 borderDash: [6, 4],
                 pointRadius: 0,
@@ -647,7 +646,7 @@
                     ? servidores[0]
                     : servidores[0].mac;
                 servidorSelecionado = filtroServidor.value;
-                dataSelecionada = OVERRIDE_DATA || dataHojeSaoPaulo();
+                dataSelecionada = dataHojeSaoPaulo();
                 await carregarDados();
             } else {
                 renderizar({ processos: [], top5Recursos: [], kpis: null, comparacao: null });
@@ -703,7 +702,7 @@
         } catch (erro) {
             console.error(erro);
             marcarErroKpis();
-            renderizarTabelaRecorrencia([]);
+            renderizarTabelaTop5Recursos([]);
             limparGraficos();
             mostrarErro(`Não foi possível carregar os dados de processos. ${erro.message || ""}`.trim());
         }
@@ -779,7 +778,7 @@
     });
 
     // Seleção de processo na tabela de recorrência (clique na linha)
-    tbodyRecorrencia.addEventListener("click", function (evento) {
+    tbodyTop5Recursos.addEventListener("click", function (evento) {
         const linha = evento.target.closest("tr");
         if (!linha) return;
 

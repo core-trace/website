@@ -242,13 +242,58 @@
             .sort((a, b) => a.x - b.x);
     }
 
-    function configuracaoComum(serie) {
+    function configuracaoComum(serie, limiares = {}) {
         const instantes = serie.map(p => p.x);
         const inicio = instantes[0];
         const fim = instantes[instantes.length - 1];
         // Eixo linear precisa de limites distintos; uma leitura única ganha 30 s para cada lado.
         const mesmoInstante = inicio != null && inicio === fim;
         const maisDeUmDia = inicio != null && (fim - inicio) >= 86400000;
+
+        const pluginLimites = {
+            id: "limitesGrafico",
+            afterDraw: grafico => {
+                const ctx = grafico.ctx;
+                const yAxe = grafico.scales.y;
+                const xAxe = grafico.scales.x;
+                if (!yAxe || !xAxe) return;
+
+                ctx.save();
+                ctx.font = "600 11px Poppins, sans-serif";
+                ctx.textBaseline = "middle";
+                ctx.textAlign = "left";
+
+                const desenharLinhaLabel = (valor, texto, cor) => {
+                    if (valor == null) return;
+                    const yPixel = yAxe.getPixelForValue(valor);
+                    const xPixel = xAxe.getPixelForValue(xAxe.min) + 6;
+                    if (yPixel == null || xPixel == null) return;
+
+                    // Fundo branco para legibilidade
+                    const medida = ctx.measureText(texto);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(xPixel - 3, yPixel - 8, medida.width + 6, 16);
+
+                    // Texto
+                    ctx.fillStyle = cor;
+                    ctx.fillText(texto, xPixel, yPixel);
+                    ctx.restore();
+                };
+
+                if (limiares.critico != null) {
+                    ctx.save();
+                    desenharLinhaLabel(limiares.critico, "Uso Severo (Critico)", "#cc0301");
+                    ctx.restore();
+                }
+                if (limiares.atencao != null) {
+                    ctx.save();
+                    desenharLinhaLabel(limiares.atencao, "Uso medio-alto (Atencao)", "#e8a100");
+                    ctx.restore();
+                }
+
+                ctx.restore();
+            }
+        };
 
         return {
             responsive: true,
@@ -266,7 +311,10 @@
                         title: itens => dataHoraGrafico(itens[0].parsed.x),
                         label: contexto => `${contexto.dataset.label}: ${numeroGrafico(contexto.parsed.y)}%`
                     }
-                }
+                },
+                ...(limiares && (limiares.atencao != null || limiares.critico != null)
+                    ? { limitesGrafico: pluginLimites }
+                    : {})
             },
             scales: {
                 x: {
@@ -309,7 +357,7 @@
         graficoMemoria = null;
     }
 
-    function atualizarGrafico(id, pontos, rotuloY, cor, pico = null) {
+    function atualizarGrafico(id, pontos, rotuloY, cor, pico = null, limiares = null) {
         if (typeof Chart === "undefined") return;
 
         const canvas = document.getElementById(id);
@@ -324,7 +372,73 @@
         }
 
         const serie = pontosDoGrafico(pontos);
-        const datasets = [{
+        const primeiroX = serie.length > 0 ? serie[0].x : 0;
+        const ultimoX = serie.length > 0 ? serie[serie.length - 1].x : 0;
+
+        const datasets = [];
+
+        // Limites de atenção e crítico
+        const atencao = limiares && limiares.atencao != null ? Number(limiares.atencao) : null;
+        const critico = limiares && limiares.critico != null ? Number(limiares.critico) : null;
+
+        // Área sombreada acima do crítico: preenche entre o valor e o crítico apenas quando acima.
+        if (critico != null) {
+            const pontosSombra = serie.map(p => ({
+                x: p.x,
+                y: p.y > critico ? p.y : critico
+            }));
+            datasets.push({
+                label: "Área acima do crítico",
+                data: pontosSombra,
+                borderColor: "transparent",
+                backgroundColor: "rgba(204, 3, 1, 0.12)",
+                borderWidth: 0,
+                pointRadius: 0,
+                fill: "-1",
+                tension: 0,
+                spanGaps: false,
+                order: 0
+            });
+        }
+
+        // Linha horizontal do crítico
+        if (critico != null) {
+            datasets.push({
+                label: "Uso Severo (Critico)",
+                data: [{ x: primeiroX, y: critico }, { x: ultimoX, y: critico }],
+                borderColor: "#cc0301",
+                backgroundColor: "#cc0301",
+                borderWidth: 2,
+                borderDash: [6, 4],
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                fill: false,
+                tension: 0,
+                spanGaps: true,
+                order: 1
+            });
+        }
+
+        // Linha horizontal de atenção
+        if (atencao != null) {
+            datasets.push({
+                label: "Uso medio-alto (Atencao)",
+                data: [{ x: primeiroX, y: atencao }, { x: ultimoX, y: atencao }],
+                borderColor: "#e8a100",
+                backgroundColor: "#e8a100",
+                borderWidth: 2,
+                borderDash: [6, 4],
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                fill: false,
+                tension: 0,
+                spanGaps: true,
+                order: 2
+            });
+        }
+
+        // Série principal do processo
+        datasets.push({
             label: rotuloY,
             data: serie,
             borderColor: cor,
@@ -333,8 +447,9 @@
             pointRadius: 0,
             pointHoverRadius: 4,
             tension: 0,
-            spanGaps: false
-        }];
+            spanGaps: false,
+            order: 3
+        });
 
         // Ponto destacado da Gold: só entra se o instante existir na série aberta.
         const instantePico = pico ? Date.parse(pico.timestamp) : NaN;
@@ -358,7 +473,7 @@
         const grafico = new Chart(canvas, {
             type: "line",
             data: { datasets },
-            options: configuracaoComum(serie)
+            options: configuracaoComum(serie, { atencao, critico })
         });
 
         if (id === "grafico-cpu-area") graficoCpu = grafico;
@@ -461,6 +576,7 @@
         processosDoDia = Array.isArray(dados.processos) ? dados.processos : [];
         const kpis = dados.kpis;
         kpisDoDia = kpis || null;
+        if (dados.limiares && kpisDoDia) kpisDoDia.limiares = dados.limiares;
         renderizarKpis(kpis, processosDoDia.length === 0);
 
         const top5Recursos = Array.isArray(dados.top5Recursos)
@@ -636,8 +752,11 @@
         const picoCpu = picoDoProcesso(kpisDoDia && kpisDoDia.picoCpu, nomeProcesso, pid);
         const picoMemoria = picoDoProcesso(kpisDoDia && kpisDoDia.picoMemoria, nomeProcesso, pid);
 
-        atualizarGrafico("grafico-cpu-area", pontosCpu, "CPU", COR_GRAFICO.cpu, picoCpu);
-        atualizarGrafico("grafico-memoria-area", pontosMem, "RAM", COR_GRAFICO.memoria, picoMemoria);
+        const limiaresCpu = kpisDoDia && kpisDoDia.limiares ? kpisDoDia.limiares.cpu : null;
+        const limiaresMem = kpisDoDia && kpisDoDia.limiares ? kpisDoDia.limiares.rssGb : null;
+
+        atualizarGrafico("grafico-cpu-area", pontosCpu, "CPU", COR_GRAFICO.cpu, picoCpu, limiaresCpu);
+        atualizarGrafico("grafico-memoria-area", pontosMem, "RAM", COR_GRAFICO.memoria, picoMemoria, limiaresMem);
     }
 
     // ------------------------------------------------------------------

@@ -5,7 +5,7 @@
     const filtroServidor = document.getElementById("filtro-servidor");
     const filtroPeriodo = document.getElementById("periodo-graficos-processos");
     const btnComparar = document.getElementById("btn-comparar-momentos");
-    const tbodyRecorrencia = document.getElementById("tbody-recorrencia");
+    const tbodyTop5Recursos = document.getElementById("tbody-top5-recursos");
 
     // KPIs
     const kpiLoop = document.getElementById("kpi-loop");
@@ -430,7 +430,7 @@
         return td;
     }
 
-    function renderizarTabelaRecorrencia(lista) {
+    function renderizarTabelaTop5Recursos(lista) {
         limparTabela();
 
         if (!lista || lista.length === 0) {
@@ -439,19 +439,19 @@
             td.colSpan = 6;
             td.style.textAlign = "center";
             tr.appendChild(td);
-            tbodyRecorrencia.appendChild(tr);
+            tbodyTop5Recursos.appendChild(tr);
             return;
         }
 
         for (const item of lista) {
             const tr = document.createElement("tr");
             tr.appendChild(novaCelula(`${item.nome || "desconhecido"} (PID ${item.pid != null ? item.pid : "--"})`));
-            tr.appendChild(novaCelula(item.ocorrencias));
-            tr.appendChild(novaCelula(String(item.tipo || "").toUpperCase() || "--"));
-            tr.appendChild(novaCelula(formatoBrasileiro(item.ultima)));
-            tr.appendChild(novaCelula(item.duracaoMedia || "--"));
-            tr.appendChild(novaCelula(item.frequencia));
-            tbodyRecorrencia.appendChild(tr);
+            tr.appendChild(novaCelula(item.cpuMax != null ? item.cpuMax.toFixed(1) : "--"));
+            tr.appendChild(novaCelula(item.cpuMedia != null ? item.cpuMedia.toFixed(1) : "--"));
+            tr.appendChild(novaCelula(item.memoriaMax != null ? item.memoriaMax.toFixed(1) : "--"));
+            tr.appendChild(novaCelula(item.memoriaMedia != null ? item.memoriaMedia.toFixed(1) : "--"));
+            tr.appendChild(novaCelula(formatoBrasileiro(item.ultimoPico)));
+            tbodyTop5Recursos.appendChild(tr);
         }
     }
 
@@ -466,16 +466,14 @@
         kpisDoDia = kpis || null;
         renderizarKpis(kpis, processosDoDia.length === 0);
 
-        const recorrencia = Array.isArray(dados.recorrencia)
-            ? [...dados.recorrencia].sort(
-                (a, b) => (b.ocorrencias || 0) - (a.ocorrencias || 0)
-            )
+        const top5Recursos = Array.isArray(dados.top5Recursos)
+            ? [...dados.top5Recursos]
             : [];
-        renderizarTabelaRecorrencia(recorrencia);
+        renderizarTabelaTop5Recursos(top5Recursos);
 
-        // Plota automaticamente o processo com mais ocorrências.
-        if (recorrencia.length > 0) {
-            carregarHistoricoProcesso(recorrencia[0].nome, recorrencia[0].pid);
+        // Plota automaticamente o processo com maior CPU máxima.
+        if (top5Recursos.length > 0) {
+            carregarHistoricoProcesso(top5Recursos[0].nome, top5Recursos[0].pid);
         } else {
             limparGraficos();
         }
@@ -539,7 +537,7 @@
                 dataSelecionada = OVERRIDE_DATA || dataHojeSaoPaulo();
                 await carregarDados();
             } else {
-                renderizar({ processos: [], recorrencia: [], kpis: null, comparacao: null });
+                renderizar({ processos: [], top5Recursos: [], kpis: null, comparacao: null });
             }
         } catch (erro) {
             console.error(erro);
@@ -583,7 +581,7 @@
             const dados = await buscarDashboardNoPeriodo();
 
             if (!dados) {
-                renderizar({ processos: [], recorrencia: [], kpis: null, comparacao: null });
+                renderizar({ processos: [], top5Recursos: [], kpis: null, comparacao: null });
                 mostrarErro("Nenhuma captura encontrada para este servidor nos últimos 7 dias.");
                 return;
             }

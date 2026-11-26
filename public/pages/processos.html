@@ -126,38 +126,30 @@
                     </div>
                 </section>
 
-                 <section class="recorrencia-anormalidades" aria-label="Recorrência de anormalidades">
+                 <section class="top5-recursos" aria-label="Top 5 processos que mais utilizam recursos">
                     <article class="card">
                         <header class="card-cabecalho">
-                            <h2 class="card-titulo">Recorrência de anormalidades</h2>
-                            <div class="card-acoes">
-                                <label class="filtro-rotulo ordenacao-rotulo" for="ordenacao-recorrencia">Ordenar</label>
-                                <div class="filtro-select">
-                                    <select id="ordenacao-recorrencia" name="ordenacao" aria-label="Ordenar por ocorrências">
-                                        <option value="ocorrencias-desc" selected>ocorrências ↓</option>
-                                    </select>
-                                </div>
-                            </div>
+                            <h2 class="card-titulo">Top 5 processos que mais utilizam recursos</h2>
                         </header>
-                        <div class="tabela-scroll" role="region" aria-label="Tabela de recorrência de anormalidades">
-                            <table class="tabela-recorrencia">
+                        <div class="tabela-scroll" role="region" aria-label="Tabela dos 5 processos com maior consumo de CPU e memória">
+                            <table class="tabela-top5">
                                 <thead>
                                     <tr>
                                         <th scope="col">Processo / PID</th>
-                                        <th scope="col">Ocorrências</th>
-                                        <th scope="col">Tipo de anormalidade</th>
-                                        <th scope="col">Última ocorrência</th>
-                                        <th scope="col">Duração média</th>
-                                        <th scope="col">Frequência</th>
+                                        <th scope="col">CPU Máxima (%)</th>
+                                        <th scope="col">CPU Média (%)</th>
+                                        <th scope="col">Memória Máxima (%)</th>
+                                        <th scope="col">Memória Média (%)</th>
+                                        <th scope="col">Último pico</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tbody-recorrencia" aria-live="polite">
+                                <tbody id="tbody-top5-recursos" aria-live="polite">
                                     <!-- Linhas injetadas dinamicamente -->
                                 </tbody>
                             </table>
                         </div>
-                        <p class="recorrencia-nota" id="recorrencia-nota">
-                            A duração média considera apenas ocorrências encerradas.
+                        <p class="top5-nota" id="top5-nota">
+                            Os valores consideram apenas leituras válidas (status "ok") do dia selecionado.
                         </p>
                     </article>
                 </section>

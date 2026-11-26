@@ -867,12 +867,12 @@ img, svg { display: block; max-width: 100%; }
   border-bottom-color: var(--cor-coral);
 }
 
-/* ---------- Tabela: Recorrência de anormalidades ---------- */
-.recorrencia-anormalidades {
+/* ---------- Tabela: Top 5 processos que mais utilizam recursos ---------- */
+.top5-recursos {
   margin-top: var(--espaco-xl);
 }
 
-.tabela-recorrencia {
+.tabela-top5 {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--fonte-campo);
@@ -880,7 +880,7 @@ img, svg { display: block; max-width: 100%; }
   white-space: nowrap;
 }
 
-.tabela-recorrencia th {
+.tabela-top5 th {
   padding: var(--espaco-s) var(--espaco-m);
   background: var(--cor-surface-muted);
   color: var(--cor-texto-menor);
@@ -891,17 +891,17 @@ img, svg { display: block; max-width: 100%; }
   border-bottom: var(--borda-s);
 }
 
-.tabela-recorrencia td {
+.tabela-top5 td {
   padding: var(--espaco-m);
   border-bottom: var(--borda-s);
   color: var(--cor-texto);
 }
 
-.tabela-recorrencia tbody tr:last-child td {
+.tabela-top5 tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.tabela-recorrencia tbody tr:hover {
+.tabela-top5 tbody tr:hover {
   background: var(--cor-surface-hover);
 }
 
@@ -924,7 +924,7 @@ img, svg { display: block; max-width: 100%; }
   background: var(--cor-borda);
 }
 
-.recorrencia-nota {
+.top5-nota {
   margin-top: var(--espaco-s);
   padding: 0 var(--espaco-xl) var(--espaco-xl);
   font-size: var(--fonte-rotulo);
@@ -1028,14 +1028,12 @@ img, svg { display: block; max-width: 100%; }
   .janela-investigacao { flex-direction: column; align-items: flex-start; gap: var(--espaco-xs); }
   .evento-item { grid-template-columns: 56px 1fr auto; gap: var(--espaco-s); padding: var(--espaco-xs) 0; }
 
-  .todos-processos .card-acoes,
-  .recorrencia-anormalidades .card-acoes {
+  .todos-processos .card-acoes {
     flex-direction: column;
     align-items: stretch;
     gap: var(--espaco-m);
   }
-  .todos-processos .card-acoes .filtro-select,
-  .recorrencia-anormalidades .card-acoes .filtro-select {
+  .todos-processos .card-acoes .filtro-select {
     width: 100%;
   }
   .paginacao {
@@ -1067,14 +1065,12 @@ img, svg { display: block; max-width: 100%; }
   .janela-investigacao { flex-direction: column; align-items: flex-start; gap: var(--espaco-xs); }
   .evento-item { grid-template-columns: 56px 1fr auto; gap: var(--espaco-s); padding: var(--espaco-xs) 0; }
 
-  .todos-processos .card-acoes,
-  .recorrencia-anormalidades .card-acoes {
+  .todos-processos .card-acoes {
     flex-direction: column;
     align-items: stretch;
     gap: var(--espaco-m);
   }
-  .todos-processos .card-acoes .filtro-select,
-  .recorrencia-anormalidades .card-acoes .filtro-select {
+  .todos-processos .card-acoes .filtro-select {
     width: 100%;
   }
   .paginacao {

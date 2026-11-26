@@ -418,8 +418,8 @@ function desenharLateral() {
 function desenharLegenda() {
     const legenda = document.getElementById('alertas-legend');
     legenda.innerHTML = '';
-    const { unidade, definidos } = limitesAtuais();
-    const usarLimiares = unidade === '%' && definidos;
+    const { definidos } = limitesAtuais();
+    const usarLimiares = definidos;
     servidoresSelecionados().forEach((s) => {
         const item = criarElemento('li', 'alertas-legend-item');
         const nivel = s.status === 'semdados' ? 'semdados' : (usarLimiares ? nivelDoValor(ultimoValor(s)) : 'normal');
@@ -461,8 +461,8 @@ function desenharGrafico() {
     const limiteCriticoNum = numeroOuNulo(limiteCritico);
     const metricaPercentual = unidade === '%';
     const menorEhPior = operador === '<' || operador === '<=';
-    // Só desenha limiares para métricas percentuais que realmente têm os dois valores configurados.
-    const usarLimiares = metricaPercentual && definidos;
+    // Desenha limiares para qualquer unidade desde que os dois valores estejam configurados na API.
+    const usarLimiares = definidos;
     const exibirAtencao = usarLimiares && limiteAtencaoNum !== null;
     const exibirCritico = usarLimiares && limiteCriticoNum !== null;
     const exibirFaixas = exibirAtencao && exibirCritico;
@@ -494,8 +494,13 @@ function desenharGrafico() {
         maxEscala = Math.max(100, Math.ceil(maior / 10) * 10);
         if (maxEscala <= minEscala) maxEscala = minEscala + 10;
     } else {
-        const maior = valores.length ? Math.max(...valores) : 100;
-        maxEscala = Math.ceil((maior * 1.2) / 10) * 10 || 100;
+        // Inclui os limiares na escala e arredonda uma única vez, antes de desenhar as faixas.
+        const maior = candidatosEscala.length ? Math.max(...candidatosEscala) : 100;
+        const escalaBase = Math.ceil((maior * 1.2) / 10) * 10 || 100;
+        const passoIdeal = escalaBase / 5;
+        const magnitude = 10 ** Math.floor(Math.log10(passoIdeal || 1));
+        const passo = Math.max(1, Math.ceil(passoIdeal / magnitude) * magnitude);
+        maxEscala = Math.ceil(escalaBase / passo) * passo;
         minEscala = 0;
     }
 
@@ -568,7 +573,6 @@ function desenharGrafico() {
         const passoIdeal = maxEscala / 5;
         const magnitude = 10 ** Math.floor(Math.log10(passoIdeal || 1));
         const passo = Math.max(1, Math.ceil(passoIdeal / magnitude) * magnitude);
-        maxEscala = Math.ceil(maxEscala / passo) * passo;
         for (let valor = 0; valor <= maxEscala; valor += passo) ticksY.push(valor);
     }
 
@@ -1038,7 +1042,15 @@ async function iniciar() {
     mostrarMensagem('Carregando alertas…');
     estado.servidores = await obterServidoresEmAlerta();
     document.getElementById('alertas-hora-atualizacao').textContent = HORA_ATUALIZACAO;
-    atualizarTudo();
+
+    // chegando com ?perfil=Financeiro (ex.: vindo da Geral), ja abre filtrado nesse perfil
+    const perfilDaURL = new URLSearchParams(location.search).get('perfil');
+    if (perfilDaURL) {
+        trocarPerfil(perfilDaURL);
+    } else {
+        atualizarTudo();
+    }
+
     mostrarMensagem('');
 }
 

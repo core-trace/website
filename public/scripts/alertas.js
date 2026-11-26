@@ -521,6 +521,28 @@ function desenharGrafico() {
         return margem.topo + areaAltura - limitada * areaAltura;
     };
 
+    // Um horário fica sem dados quando qualquer servidor selecionado não tem coleta nele.
+    const horariosSemDados = new Set();
+    tempos.forEach((hora) => {
+        const semColeta = series.some(({ pontos }) => {
+            const valor = pontos.find((ponto) => ponto.hora === hora)?.valor;
+            return valor === null || valor === undefined;
+        });
+        if (semColeta) horariosSemDados.add(hora);
+    });
+
+    const lacunas = [];
+    let inicioLacuna = -1;
+    tempos.forEach((hora, indice) => {
+        if (horariosSemDados.has(hora)) {
+            if (inicioLacuna === -1) inicioLacuna = indice;
+        } else if (inicioLacuna !== -1) {
+            lacunas.push([inicioLacuna, indice - 1]);
+            inicioLacuna = -1;
+        }
+    });
+    if (inicioLacuna !== -1) lacunas.push([inicioLacuna, tempos.length - 1]);
+
     const classificar = (valor) => (usarLimiares ? nivelDoValor(valor) : 'normal');
 
     const svg = criarSvg('svg', { viewBox: `0 0 ${largura} ${altura}`, class: 'alertas-svg', role: 'img' });
@@ -595,6 +617,23 @@ function desenharGrafico() {
     });
 
     svg.append(criarSvgTexto(4, 16, tituloEixoY, { fill: '#6b7280', 'font-size': 13 }));
+
+    // Intervalos sem coleta: linha tracejada cinza na base do gráfico (ponto zero).
+    const passoX = tempos.length > 1 ? areaLargura / (tempos.length - 1) : areaLargura;
+    const yZero = valueToY(0);
+    lacunas.forEach(([inicio, fim]) => {
+        const x1 = Math.max(margem.esquerda, timeToX(tempos[inicio]) - passoX / 2);
+        const x2 = Math.min(margem.esquerda + areaLargura, timeToX(tempos[fim]) + passoX / 2);
+        svg.append(criarSvg('line', {
+            x1,
+            y1: yZero,
+            x2,
+            y2: yZero,
+            stroke: '#8a8f9c',
+            'stroke-width': 2,
+            'stroke-dasharray': '6 5'
+        }));
+    });
 
     // Linhas tracejadas dos limiares, com o rótulo dentro da área e logo acima de cada linha.
     const limites = [];
@@ -810,11 +849,10 @@ function desenharGrafico() {
         }));
     });
 
-    const servidoresComDados = series.some(({ servidor, pontos }) =>
-        servidor.status !== 'semdados' && pontos.some((ponto) => ponto.valor !== null)
-    );
+    const periodoInteiroSemDados = tempos.length === 0 ||
+        (lacunas.length === 1 && lacunas[0][0] === 0 && lacunas[0][1] === tempos.length - 1);
 
-    if (!servidoresComDados) {
+    if (periodoInteiroSemDados) {
         svg.append(criarSvgTexto(margem.esquerda + areaLargura / 2, margem.topo + areaAltura / 2, 'Sem coletas no período', {
             'text-anchor': 'middle',
             fill: '#8a8f9c',

@@ -4,7 +4,6 @@
     // ------------------------------------------------------------------
     const filtroServidor = document.getElementById("filtro-servidor");
     const filtroPeriodo = document.getElementById("periodo-graficos-processos");
-    const btnComparar = document.getElementById("btn-comparar-momentos");
     const tbodyTop5Recursos = document.getElementById("tbody-top5-recursos");
 
     // KPIs
@@ -58,8 +57,8 @@
     const OVERRIDE_DATA = "2026-11-27";
     let momentoASelecionado = null;
     let momentoBSelecionado = null;
-    // null = dia inteiro; os KPIs continuam diários, só as séries são recortadas.
-    let periodoAtual = null;
+    // Em minutos. null = sem recorte (todos os pontos disponíveis).
+    let periodoAtual = 43200;
     let processoEmFoco = null;
 
     // ------------------------------------------------------------------
@@ -652,18 +651,12 @@
     });
 
     filtroPeriodo.addEventListener("change", function () {
-        periodoAtual = this.value === "dia" ? null : Number(this.value);
+        periodoAtual = Number(this.value);
         if (!processoEmFoco) {
             limparGraficos();
             return;
         }
         carregarHistoricoProcesso(processoEmFoco.nome, processoEmFoco.pid);
-    });
-
-    btnComparar.addEventListener("click", function () {
-        if (!momentoASelecionado || !momentoBSelecionado) return;
-        alertaTexto.textContent = `Comparando ${formatoBrasileiro(momentoASelecionado)} → ${formatoBrasileiro(momentoBSelecionado)}`;
-        alertaBanner.hidden = false;
     });
 
     // Seleção de processo na tabela de recorrência (clique na linha)

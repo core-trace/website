@@ -2,6 +2,8 @@ let LIMITE_ATENCAO = 70;
 let LIMITE_CRITICO = 85;
 let HORA_ATUALIZACAO = '--:--';
 
+const MAX_SERVIDORES_SELECIONADOS = 3;
+
 const TEXTO_SITUACAO = { critico: 'Crítico', atencao: 'Atenção', normal: 'Normal', semdados: 'Sem dados' };
 const COR_SITUACAO = { critico: '#cc0301', atencao: '#e2891b', normal: '#2f9e6e', semdados: '#8a8f9c' };
 const MENSAGEM_ERRO_ALERTAS = 'Não foi possível carregar os alertas de servidores. Tente novamente pelo botão Atualizar.';
@@ -959,8 +961,12 @@ function trocarPerfil(perfil, servidorPreferido = null) {
 
 function alternarSelecao(id) {
     const pos = estado.servidoresSelecionados.indexOf(id);
-    if (pos >= 0) estado.servidoresSelecionados.splice(pos, 1);
-    else estado.servidoresSelecionados.push(id);
+    if (pos >= 0) {
+        estado.servidoresSelecionados.splice(pos, 1);
+    } else {
+        if (estado.servidoresSelecionados.length >= MAX_SERVIDORES_SELECIONADOS) return;
+        estado.servidoresSelecionados.push(id);
+    }
     desenharLateral();
     desenharLegenda();
     desenharGrafico();

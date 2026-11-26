@@ -80,6 +80,16 @@
                         <p class="servidores-resumo-valor" id="servidores-total">–</p>
                         <p class="servidores-resumo-sub" id="servidores-reportando">Carregando…</p>
                     </article>
+                    <!--
+                        Entre CPU, RAM, DISCO e REDE, mostra o componente que mais aparece como crítico nos servidores.
+                        Em caso de empate entre 2 ou 3 componentes, exibe todos separados por " · " (ex.: "CPU · DISCO").
+                        Os valores abaixo são mockados e serão substituídos pelo JS.
+                    -->
+                    <article class="servidores-resumo-item servidores-resumo-componente">
+                        <h2 class="servidores-resumo-titulo">Componente mais crítico</h2>
+                        <p class="servidores-resumo-valor" id="servidores-componente-critico">-</p>
+                        <p class="servidores-resumo-sub" id="servidores-componente-critico-sub">1 servidor crítico por componente</p>
+                    </article>
                     <article class="servidores-resumo-item servidores-resumo-critico">
                         <h2 class="servidores-resumo-titulo">Críticos</h2>
                         <p class="servidores-resumo-valor" id="servidores-criticos">–</p>
@@ -89,11 +99,6 @@
                         <h2 class="servidores-resumo-titulo">Em atenção</h2>
                         <p class="servidores-resumo-valor" id="servidores-atencao">–</p>
                         <p class="servidores-resumo-sub" id="servidores-atencao-tendencia">Carregando…</p>
-                    </article>
-                    <article class="servidores-resumo-item servidores-resumo-normal">
-                        <h2 class="servidores-resumo-titulo">Estáveis</h2>
-                        <p class="servidores-resumo-valor" id="servidores-estaveis">–</p>
-                        <p class="servidores-resumo-sub" id="servidores-estaveis-sub">dentro do esperado</p>
                     </article>
                 </section>
 

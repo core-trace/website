@@ -424,11 +424,7 @@ function calcularTop5Recursos(amostras) {
                 nome: a.nome || "desconhecido",
                 pid: a.pid || "--",
                 cpuMax: 0,
-                cpuSoma: 0,
-                cpuCount: 0,
                 memoriaMax: 0,
-                memoriaSoma: 0,
-                memoriaCount: 0,
                 ultimoPico: null
             });
         }
@@ -437,13 +433,9 @@ function calcularTop5Recursos(amostras) {
 
         if (a.cpu != null && a.valido !== false) {
             grupo.cpuMax = Math.max(grupo.cpuMax, a.cpu);
-            grupo.cpuSoma += a.cpu;
-            grupo.cpuCount += 1;
         }
         if (a.memoria != null && a.memoriaValida !== false) {
             grupo.memoriaMax = Math.max(grupo.memoriaMax, a.memoria);
-            grupo.memoriaSoma += a.memoria;
-            grupo.memoriaCount += 1;
         }
 
         if (
@@ -458,9 +450,7 @@ function calcularTop5Recursos(amostras) {
         nome: g.nome,
         pid: g.pid,
         cpuMax: g.cpuMax,
-        cpuMedia: g.cpuCount > 0 ? g.cpuSoma / g.cpuCount : 0,
         memoriaMax: g.memoriaMax,
-        memoriaMedia: g.memoriaCount > 0 ? g.memoriaSoma / g.memoriaCount : 0,
         ultimoPico: g.ultimoPico
     }));
 

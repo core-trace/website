@@ -34,6 +34,7 @@ function cadastrar(enderecoMac, idPerfilServidor) {
         const servidores = await executar(`
             SELECT nome FROM servidores WHERE fk_perfil_servidor = ?;
         `, [idPerfilServidor]);
+        
         const prefixo = perfis[0].nome + "-";
         let maiorNumero = servidores.length;
         for (const servidor of servidores) {

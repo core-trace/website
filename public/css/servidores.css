@@ -1,55 +1,364 @@
-.visao-geral{
-    display: flex;
-    height: 10vh;
-    width: 100%;
-    justify-content: start;
-    align-items: start;
-    flex-direction: column;
+/* Servidores — wallboard da tela de servidores (persona: Marcelo) */
+
+body.dashboard-legivel {
+    /* Esta folha só é carregada pela tela de servidores. */
+    background-color: rgba(247, 247, 242, 1);
 }
 
-/* .titulo-visao-geral{} */
+.servidores-tela {
+    --wall-fundo: #fff;
+    --wall-borda: #e5e3e0;
+    --wall-texto: var(--cor-preto);
+    --wall-suave: #6b5a60;
+    --wall-critico: rgba(204, 3, 1, 1);
+    --wall-critico-fundo: rgba(204, 3, 1, .10);
+    --wall-atencao: rgba(147, 90, 7, 1);
+    --wall-atencao-fundo: rgba(147, 90, 7, .12);
+    --wall-normal: rgba(19, 116, 79, 1);
+    --wall-normal-fundo: rgba(19, 116, 79, .10);
+    --wall-sem-dados: rgba(107, 101, 109, 1);
+    --wall-sem-dados-fundo: rgba(107, 101, 109, .10);
+    --wall-monospace: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-.texto-visao-geral{
-    display: flex;
-    padding-top: 1vh;
-    color: rgba(55, 47, 53, 1);
+    color: var(--wall-texto);
 }
 
-.KPIs{
+/* Cartões de resumo — os números vêm dos dados, exceto a KPI provisória de componente. */
+.servidores-resumo {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.servidores-resumo-item {
+    min-width: 0;
+    padding: 14px 16px;
+    border: 1px solid var(--wall-borda);
+    border-radius: 12px;
+    background-color: var(--wall-fundo);
+}
+
+.servidores-resumo-titulo {
+    color: var(--wall-suave);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.servidores-resumo-valor {
+    margin-top: 4px;
+    font-family: var(--wall-monospace);
+    font-size: clamp(28px, 3vw, 42px);
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.servidores-resumo-sub {
+    margin-top: 2px;
+    color: var(--wall-suave);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.servidores-resumo-critico .servidores-resumo-valor { color: var(--wall-critico); }
+.servidores-resumo-atencao .servidores-resumo-valor { color: var(--wall-atencao); }
+.servidores-resumo-normal .servidores-resumo-valor { color: var(--wall-normal); }
+
+/* A KPI de componente pode ter mais de um nome, então o valor é menor que um número. */
+.servidores-resumo-componente .servidores-resumo-valor {
+    color: var(--wall-critico);
+    font-size: clamp(22px, 2.2vw, 30px);
+    line-height: 1.15;
+    min-height: clamp(30.8px, 3.3vw, 46.2px);
+    overflow-wrap: anywhere;
+}
+
+/* Busca, filtros e legenda. */
+.servidores-filtros {
     display: flex;
-    height: 25vh;
-    width: 100%;
-    justify-content: space-evenly;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin-bottom: 14px;
 }
 
-.KPI{
+.servidores-busca {
+    flex: 1 1 280px;
+    max-width: 420px;
+}
+
+.servidores-busca:focus-within {
+    border-color: var(--cor-vermelho-claro);
+    box-shadow: 0 0 0 1px rgba(255, 51, 51, .18);
+}
+
+.servidores-limpar-busca {
+    padding: 0 2px;
+    border: 0;
+    background: transparent;
+    color: var(--wall-suave);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.servidores-limpar-busca[hidden] { display: none; }
+
+.servidores-filtros .visao-select {
+    min-width: 150px;
+    font-size: 16px;
+}
+
+.servidores-legenda {
     display: flex;
-    height: 80%;
-    width: 14.12%;
-    background-color: rgba(255, 255, 255, 1);
-    border-radius: 15px;
-    border: 2px solid rgba(229, 227, 226, 1);
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-left: auto;
+    padding: 0;
+    color: var(--wall-suave);
+    font-size: 13px;
+    list-style: none;
+}
+
+.servidores-legenda li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.servidores-legenda-ponto {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.servidores-legenda-ponto.sem-dados { background: var(--wall-sem-dados); }
+.servidores-legenda-ponto.critico { background: var(--wall-critico); }
+.servidores-legenda-ponto.atencao { background: var(--wall-atencao); }
+.servidores-legenda-ponto.normal { background: var(--wall-normal); }
+
+/* Carregando, vazio e erro. */
+.servidores-estado {
+    padding: 26px 16px;
+    margin-bottom: 20px;
+    border: 1px dashed var(--wall-borda);
+    border-radius: 11px;
+    background-color: var(--wall-fundo);
+    color: var(--wall-suave);
+    font-size: 16px;
+    text-align: center;
+}
+
+.servidores-estado[hidden] { display: none; }
+.servidores-estado-erro { border-color: var(--wall-critico); color: var(--wall-critico); }
+
+/* Grid de servidores. */
+.servidores-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.servidores-card {
+    display: flex;
     flex-direction: column;
+    min-width: 0;
+    padding: 12px 13px;
+    border: 3px solid var(--wall-normal);
+    border-radius: 11px;
+    background-color: var(--wall-fundo);
 }
 
-.titulo-KPI{
+.servidores-card-critico {
+    border-color: var(--wall-critico);
+}
+
+.servidores-card-atencao {
+    border-color: var(--wall-atencao);
+}
+
+.servidores-card-sem-dados {
+    border-color: var(--wall-sem-dados);
+}
+
+.servidores-card-cabecalho {
     display: flex;
-    padding-left: 8%;
-    padding-top: 10%;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
 }
 
-.dado-principal-KPI{
-    display: flex;
-    padding-left: 8%;
-    padding-top: 5%;
-    font-size: 5vh;
-    color: rgba(55, 47, 53, 1);;
+/* O container do nome precisa encolher no flex para a elipse funcionar. */
+.servidores-card-cabecalho > div { min-width: 0; }
+
+.servidores-card-nome {
+    font-family: var(--wall-monospace);
+    font-size: 17.5px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.descricao-KPI{
+.servidores-card-perfil {
+    margin-top: 1px;
+    color: var(--wall-suave);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.servidores-card-status {
+    flex-shrink: 0;
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: var(--wall-normal-fundo);
+    color: var(--wall-normal);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.servidores-card-critico .servidores-card-status {
+    background: var(--wall-critico-fundo);
+    color: var(--wall-critico);
+}
+
+.servidores-card-atencao .servidores-card-status {
+    background: var(--wall-atencao-fundo);
+    color: var(--wall-atencao);
+}
+
+.servidores-card-sem-dados .servidores-card-status {
+    background: var(--wall-sem-dados-fundo);
+    color: var(--wall-sem-dados);
+}
+
+.servidores-metricas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+.servidores-metrica { min-width: 0; }
+
+.servidores-metrica-rotulo {
+    color: var(--wall-suave);
+    font-size: 11.25px;
+    font-weight: 700;
+    letter-spacing: .05em;
+}
+
+.servidores-metrica-detalhe {
     display: block;
-    padding-left: 8%;
-    padding-top: 5%;
-    color: rgba(55, 47, 53, 1);
+    min-height: 15px;
+    margin-top: 1px;
+    color: var(--wall-suave);
+    font-size: 11.25px;
+    font-style: italic;
+    font-weight: 600;
+}
+
+.servidores-metrica-valor {
+    margin-top: 1px;
+    font-family: var(--wall-monospace);
+    font-size: 18.75px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.servidores-metrica-barra {
+    height: 5px;
+    margin-top: 5px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--wall-borda);
+}
+
+.servidores-metrica-barra-preenchimento {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--wall-normal);
+}
+
+.servidores-metrica-critico .servidores-metrica-valor { color: var(--wall-critico); }
+.servidores-metrica-critico .servidores-metrica-barra-preenchimento { background: var(--wall-critico); }
+.servidores-metrica-atencao .servidores-metrica-valor { color: var(--wall-atencao); }
+.servidores-metrica-atencao .servidores-metrica-barra-preenchimento { background: var(--wall-atencao); }
+
+.servidores-metrica-sem-dados .servidores-metrica-valor {
+    color: var(--wall-sem-dados);
+    font-size: 15px;
+    font-style: italic;
+    font-weight: 600;
+}
+
+.servidores-metrica-desligada { opacity: .4; }
+.servidores-metrica-desligada .servidores-metrica-valor { font-size: 16.25px; font-weight: 600; }
+
+.servidores-card-sem-dados .servidores-metrica { opacity: .65; }
+.servidores-card-sem-dados .servidores-metrica-valor { color: var(--wall-texto); }
+.servidores-card-sem-dados .servidores-metrica-barra-preenchimento { background: var(--wall-sem-dados); }
+
+.servidores-card-coleta {
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px dashed var(--wall-borda);
+    color: var(--wall-suave);
+    font-family: var(--wall-monospace);
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+.servidores-card-coleta b { color: var(--wall-texto); font-weight: 700; }
+.servidores-card-sem-dados .servidores-card-coleta b { color: var(--wall-critico); }
+
+/* Linhas extras: swap e carga em alerta (categorias sem posição fixa no card) */
+/* A margem inferior mantém o respiro mínimo até o rodapé com margin-top: auto. */
+.servidores-extras {
+    display: grid;
+    gap: 4px;
+    margin: 0 0 12px;
+    padding: 0;
+    list-style: none;
+}
+
+.servidores-extra {
+    overflow: hidden;
+    color: var(--wall-suave);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.servidores-extra b { font-weight: 700; letter-spacing: .05em; }
+.servidores-extra-critico { color: var(--wall-critico); }
+.servidores-extra-atencao { color: var(--wall-atencao); }
+
+/* Detalhes mais longos ("espera I/O · 42%") não podem estourar a coluna */
+.servidores-metrica-detalhe {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+    .servidores-resumo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+    .servidores-legenda { margin-left: 0; }
+    .servidores-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 }

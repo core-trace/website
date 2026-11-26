@@ -11,7 +11,6 @@ const path = require("path");
 
 const PORTA_APP = process.env.APP_PORT;
 const HOST_APP = process.env.APP_HOST;
-
 const app = express();
 
 const indexRouter = require("./src/routes/index");
@@ -46,6 +45,7 @@ app.use("/agente", agenteRouter);
 app.use("/servidor", servidorRouter);
 app.use("/contato", contatoRouter);
 app.use("/empresa", empresaRouter);
+app.use("/servidores", servidoresRouter)
 app.use("/s3Routes", s3Routes);
 app.use("/alertas", alertaRouter);
 app.use("/geral", geralRouter);

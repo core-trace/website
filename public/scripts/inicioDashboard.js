@@ -167,11 +167,27 @@
         return `<span class="geral-barra-segmento ${classe}" style="width:${largura}%"></span>`;
     }
 
+    // leva pra Servidores ja filtrado  mesmo padrao usado pelos KPIs e pelos riscos
+    function abrirServidoresFiltrado(parametros) {
+        window.location.href = `servidores.html?${new URLSearchParams(parametros).toString()}`;
+    }
+
     function mostrarPerfis(perfis, sinaisExternos) {
         const lista = document.getElementById("lista-perfis");
         lista.replaceChildren(...perfis.map(perfil => {
             const linha = document.createElement("div");
             linha.className = "geral-linha-perfil";
+            linha.tabIndex = 0;
+            linha.setAttribute("role", "button");
+            linha.setAttribute("aria-label", `Ver servidores do perfil ${perfil.nome} em Servidores`);
+            const irParaServidores = () => abrirServidoresFiltrado({ perfil: perfil.nome });
+            linha.addEventListener("click", irParaServidores);
+            linha.addEventListener("keydown", evento => {
+                if (evento.key === "Enter" || evento.key === " ") {
+                    evento.preventDefault();
+                    irParaServidores();
+                }
+            });
             const total = perfil.distribuicao.critico + perfil.distribuicao.atencao
                 + perfil.distribuicao.normal + perfil.distribuicao.semDados;
             const mostraSinalPagamento = perfil.nome === "Financeiro" && sinaisExternos?.statusPagamento;
@@ -220,6 +236,7 @@
             return;
         }
 
+       
         lista.replaceChildren(...riscos.map(risco => {
             const item = document.createElement("div");
             item.className = "geral-risco";
@@ -229,8 +246,7 @@
                     <strong>${risco.titulo}</strong>
                     <span>${risco.detalhe}</span>
                     <span class="geral-risco-acao"><strong>Ação recomendada:</strong> ${risco.acao}</span>
-                </span>
-                <img src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16">`;
+                </span>`;
             return item;
         }));
     }
@@ -269,6 +285,28 @@
         graficoEvolucao.data.datasets[0].data = contarServidoresPorBalde(evolucao, "atencao");
         graficoEvolucao.data.datasets[1].data = contarServidoresPorBalde(evolucao, "critico");
         graficoEvolucao.update();
+    }
+
+    // leva pra tela do carlos com filtro
+    function configurarNavegacao() {
+        document.getElementById("kpi-cobertura").addEventListener("click", () => {
+            window.location.href = "DashboardPerfil.html";
+        });
+        document.getElementById("kpi-criticos").addEventListener("click", () => {
+            abrirServidoresFiltrado({ indicador: "critico" });
+        });
+        document.getElementById("kpi-atencao").addEventListener("click", () => {
+            abrirServidoresFiltrado({ indicador: "atencao" });
+        });
+        document.getElementById("kpi-sem-dados").addEventListener("click", () => {
+            abrirServidoresFiltrado({ indicador: "sem-dados" });
+        });
+        document.getElementById("botao-historico-alertas").addEventListener("click", () => {
+            const perfil = document.getElementById("filtro-perfil").value;
+            window.location.href = perfil
+                ? `alertas.html?${new URLSearchParams({ perfil }).toString()}`
+                : "alertas.html";
+        });
     }
 
     function configurarExportar() {
@@ -333,4 +371,5 @@
     carregarDadosReais();
     configurarExportar();
     configurarAssistente();
+    configurarNavegacao();
 })();

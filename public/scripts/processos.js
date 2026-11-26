@@ -54,7 +54,6 @@
     let dataSelecionada = "";
     // TEMPORÁRIO: force uma data específica para validar com AWS.
     // Comente esta linha para voltar ao comportamento padrão (dia atual).
-    const OVERRIDE_DATA = "2026-11-27";
     let momentoASelecionado = null;
     let momentoBSelecionado = null;
     // Em minutos. null = sem recorte (todos os pontos disponíveis).
@@ -647,7 +646,7 @@
                     ? servidores[0]
                     : servidores[0].mac;
                 servidorSelecionado = filtroServidor.value;
-                dataSelecionada = OVERRIDE_DATA || dataHojeSaoPaulo();
+                dataSelecionada = dataHojeSaoPaulo();
                 await carregarDados();
             } else {
                 renderizar({ processos: [], top5Recursos: [], kpis: null, comparacao: null });

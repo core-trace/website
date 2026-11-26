@@ -193,7 +193,7 @@
     }
 
     function limparTabela() {
-        tbodyRecorrencia.innerHTML = "";
+        tbodyTop5Recursos.innerHTML = "";
     }
 
     function limparGraficos() {
@@ -703,7 +703,7 @@
         } catch (erro) {
             console.error(erro);
             marcarErroKpis();
-            renderizarTabelaRecorrencia([]);
+            renderizarTabelaTop5Recursos([]);
             limparGraficos();
             mostrarErro(`Não foi possível carregar os dados de processos. ${erro.message || ""}`.trim());
         }
@@ -779,7 +779,7 @@
     });
 
     // Seleção de processo na tabela de recorrência (clique na linha)
-    tbodyRecorrencia.addEventListener("click", function (evento) {
+    tbodyTop5Recursos.addEventListener("click", function (evento) {
         const linha = evento.target.closest("tr");
         if (!linha) return;
 

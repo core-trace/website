@@ -5,32 +5,32 @@
    ========================================= */
 
 /* ---------- Design Tokens ---------- */
-/* Paleta alinhada à tela de alertas (alertas.css). */
+/* Paleta alinhada ao dashboard (inicioDashboard.css / geralDashboard.css). */
 :root {
   /* Superfícies */
   --cor-fundo: #f7f7f2;
   --cor-card: #ffffff;
   --cor-surface-muted: #fafaf8;
   --cor-surface-hover: #f4f5f7;
-  --cor-borda: #d9dee7;
-  --cor-borda-strong: #b6bdca;
+  --cor-borda: #e5e3e0;
+  --cor-borda-strong: #c9c6c0;
   --cor-borda-foco: #cc0301;
 
   /* Textos */
-  --cor-texto: #141115;
-  --cor-texto-suave: #4b4350;
-  --cor-texto-menor: #8a8f9c;
+  --cor-texto: #211e22;
+  --cor-texto-suave: #777279;
+  --cor-texto-menor: #777279;
 
-  /* Acentos semânticos */
+  /* Acentos semânticos (alinhados ao dashboard) */
   --cor-coral: #cc0301;
   --cor-coral-suave: rgba(204, 3, 1, 0.08);
   --cor-coral-texto: #cc0301;
-  --cor-ambar: #e2891b;
-  --cor-ambar-suave: rgba(226, 137, 27, 0.16);
-  --cor-ambar-texto: #a35f05;
-  --cor-verde: #2f9e6e;
-  --cor-verde-suave: rgba(47, 158, 110, 0.14);
-  --cor-verde-texto: #1f7a52;
+  --cor-ambar: #a96808;
+  --cor-ambar-suave: rgba(169, 104, 8, 0.12);
+  --cor-ambar-texto: #85500c;
+  --cor-verde: #17885e;
+  --cor-verde-suave: rgba(23, 136, 94, 0.12);
+  --cor-verde-texto: #156b48;
 
   /* Espaçamento */
   --espaco-xs: 4px;
@@ -48,7 +48,7 @@
   --borda-s: 1px solid var(--cor-borda);
 
   /* Sombra / movimento */
-  --sombra-s: 0 1px 2px rgba(0, 0, 0, 0.04), 0 0 1px rgba(0, 0, 0, 0.03);
+  --sombra-s: 0 2px 8px rgb(20 17 21 / 5%);
   --transicao: 0.2s ease;
 
   /* Tipografia */
@@ -59,6 +59,10 @@
   --fonte-campo: 14px;
   --linha-titulo: 1.25;
   --linha-base: 1.5;
+}
+
+.dashboard-page {
+  background-color: var(--cor-fundo);
 }
 
 /* ---------- Reset base ---------- */
@@ -161,7 +165,7 @@ img, svg { display: block; max-width: 100%; }
   width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--cor-verde);
-  box-shadow: 0 0 0 2px rgba(47, 158, 110, 0.15);
+  box-shadow: 0 0 0 2px var(--cor-verde-suave);
 }
 
 .processos-atualizado {

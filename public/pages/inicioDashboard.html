@@ -97,7 +97,7 @@
             </p>
 
             <section class="geral-indicadores" aria-label="Situação atual">
-                <button class="geral-kpi" type="button">
+                <button class="geral-kpi" type="button" id="kpi-cobertura">
                     <span class="geral-kpi-cabecalho">
                         <span class="geral-kpi-titulo"><span class="geral-sinal geral-sinal-normal"></span>Cobertura da coleta</span>
                         <img src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16">
@@ -105,7 +105,7 @@
                     <span class="geral-kpi-valor" id="indicador-cobertura">—</span>
                     <span class="geral-kpi-legenda">Servidores com leitura recente</span>
                 </button>
-                <button class="geral-kpi" type="button">
+                <button class="geral-kpi" type="button" id="kpi-criticos">
                     <span class="geral-kpi-cabecalho">
                         <span class="geral-kpi-titulo"><span class="geral-sinal geral-sinal-critico"></span>Servidores críticos</span>
                         <img src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16">
@@ -113,7 +113,7 @@
                     <span class="geral-kpi-valor" id="indicador-criticos">—</span>
                     <span class="geral-kpi-legenda" id="indicador-criticos-legenda"></span>
                 </button>
-                <button class="geral-kpi" type="button">
+                <button class="geral-kpi" type="button" id="kpi-atencao">
                     <span class="geral-kpi-cabecalho">
                         <span class="geral-kpi-titulo"><span class="geral-sinal geral-sinal-atencao"></span>Em atenção</span>
                         <img src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16">
@@ -121,7 +121,7 @@
                     <span class="geral-kpi-valor" id="indicador-atencao">—</span>
                     <span class="geral-kpi-legenda" id="indicador-atencao-legenda"></span>
                 </button>
-                <button class="geral-kpi" type="button">
+                <button class="geral-kpi" type="button" id="kpi-sem-dados">
                     <span class="geral-kpi-cabecalho">
                         <span class="geral-kpi-titulo"><span class="geral-sinal geral-sinal-sem-dados"></span>Sem dados recentes</span>
                         <img src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16">
@@ -179,7 +179,7 @@
                     </div>
                     <p id="evolucao-legenda-texto"></p>
                     <div class="geral-acoes-grafico">
-                        <button type="button">Ver histórico em Alertas →</button>
+                        <button type="button" id="botao-historico-alertas">Ver histórico em Alertas →</button>
                         <button type="button" id="botao-pergunta-evolucao">
                             <img src="../assets/icons/icone-spark.svg" alt="" width="15" height="15">
                             Perguntar sobre a evolução
@@ -190,7 +190,7 @@
                     <h2>Riscos em acompanhamento</h2>
                     <p>Sinais que merecem atenção.</p>
                     <div id="lista-riscos"></div>
-                    <p class="geral-riscos-nota">Abra um risco para ver o histórico e os critérios.</p>
+                    <p class="geral-riscos-nota">Previsão calculada a partir da tendência recente de cada métrica.</p>
                 </article>
             </section>
         </main>

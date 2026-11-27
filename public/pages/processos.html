@@ -182,12 +182,13 @@
                         </div>
                         <div class="graficos" id="graficos-consumo">
                             <figure class="grafico-card" id="grafico-cpu">
-                                <div class="grafico-rotulo">Variação da CPU</div>
+                                <div class="grafico-rotulo">Distribuição da CPU</div>
                                 <div class="grafico-valor-atual" id="grafico-cpu-valor">--</div>
                                 <div class="grafico-area">
-                                    <canvas id="grafico-cpu-area" role="img" aria-label="Variação da CPU do processo por período"></canvas>
+                                    <canvas id="grafico-cpu-area" role="img" aria-label="Distribuição do tempo de CPU do processo por faixa de utilização"></canvas>
                                 </div>
                                 <figcaption class="grafico-caption" id="grafico-cpu-caption">--</figcaption>
+                                <span class="grafico-indicador" id="cpu-tempo-elevado">--</span>
                             </figure>
                             <figure class="grafico-card" id="grafico-memoria">
                                 <div class="grafico-rotulo">Variação da RAM</div>

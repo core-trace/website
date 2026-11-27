@@ -32,6 +32,7 @@
     // Valores dos gráficos
     const cpuValor = document.getElementById("grafico-cpu-valor");
     const cpuCaption = document.getElementById("grafico-cpu-caption");
+    const cpuTempoElevado = document.getElementById("cpu-tempo-elevado");
     const memoriaValor = document.getElementById("grafico-memoria-valor");
     const memoriaCaption = document.getElementById("grafico-memoria-caption");
 
@@ -124,6 +125,25 @@
         return `${numero.toFixed(1).replace(".", ",")}%`;
     }
 
+    // Durações vêm da agregação em milissegundos; aqui ausência não é zero.
+    function formatarDuracao(milisegundos) {
+        const numero = Number(milisegundos);
+        if (!Number.isFinite(numero)) return "--";
+        const totalSegundos = Math.max(0, Math.round(numero / 1000));
+        if (totalSegundos === 0) return "0 min";
+
+        const dias = Math.floor(totalSegundos / 86400);
+        const horas = Math.floor((totalSegundos % 86400) / 3600);
+        const minutos = Math.floor((totalSegundos % 3600) / 60);
+        const segundos = totalSegundos % 60;
+        const partes = [];
+        if (dias) partes.push(`${dias} d`);
+        if (horas) partes.push(`${horas} h`);
+        if (minutos) partes.push(`${minutos} min`);
+        if (segundos) partes.push(`${segundos} s`);
+        return partes.join(" ");
+    }
+
     function formatarBytes(valor) {
         const numero = Number(valor);
         if (!Number.isFinite(numero) || numero <= 0) return null;
@@ -196,6 +216,7 @@
         processoEmFoco = null;
         definirTexto(cpuValor, "--");
         definirTexto(cpuCaption, "--");
+        definirTexto(cpuTempoElevado, "--");
         definirTexto(memoriaValor, "--");
         definirTexto(memoriaCaption, "--");
         definirTexto(metaProcesso, "--");
@@ -204,7 +225,7 @@
         tbodyTop5Recursos.querySelectorAll("tr.linha-ativa").forEach(linha => {
             linha.classList.remove("linha-ativa");
         });
-        atualizarGrafico("grafico-cpu-area", [], "Variação CPU", COR_GRAFICO.cpu, null, null, true);
+        atualizarGraficoCpu([], "--");
         atualizarGrafico("grafico-memoria-area", [], "Variação RAM", COR_GRAFICO.memoria, null, null, true);
     }
 
@@ -213,7 +234,15 @@
     // ------------------------------------------------------------------
     const FONTE_GRAFICO = { family: "Poppins", size: 12 };
     const COR_TEXTO_GRAFICO = "#4b4350";
-    const COR_GRAFICO = { cpu: "#cc0301", memoria: "#477da7" };
+    const COR_GRAFICO = { memoria: "#477da7" };
+
+    // Ordem e chaves vêm da agregação; cores e rótulos são só apresentação.
+    const FAIXAS_CPU_VISUAL = {
+        ate25: { rotulo: "Até 25%", cor: "#c9d2dc" },
+        ate50: { rotulo: "25% a 50%", cor: "#e8a100" },
+        ate75: { rotulo: "50% a 75%", cor: "#a96808" },
+        acima75: { rotulo: "Acima de 75%", cor: "#cc0301" }
+    };
 
     function numeroGrafico(valor) {
         return Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
@@ -363,16 +392,139 @@
         graficoMemoria = null;
     }
 
+    /**
+     * Barras empilhadas da distribuição temporal de CPU. Cada segmento é a
+     * proporção do tempo observado em uma faixa; os dados vêm da Etapa 2.
+     */
+    function atualizarGraficoCpu(distribuicao, rotulo) {
+        if (typeof Chart === "undefined") return;
+
+        const canvas = document.getElementById("grafico-cpu-area");
+        if (!canvas) return;
+
+        if (graficoCpu) {
+            graficoCpu.destroy();
+            graficoCpu = null;
+        }
+
+        const buckets = Array.isArray(distribuicao) ? distribuicao : [];
+        const labels = buckets.map(bucket => bucket.inicio);
+        const ordemFaixas = ProcessosAgregacao.FAIXAS_CPU;
+
+        const datasets = ordemFaixas.map(chave => ({
+            label: FAIXAS_CPU_VISUAL[chave].rotulo,
+            faixa: chave,
+            data: buckets.map(bucket => bucket.proporcoes
+                ? Number(bucket.proporcoes[chave] || 0) * 100
+                : null),
+            backgroundColor: FAIXAS_CPU_VISUAL[chave].cor,
+            borderColor: "#ffffff",
+            borderWidth: 1,
+            borderSkipped: false,
+            barPercentage: 1,
+            categoryPercentage: 0.95
+        }));
+
+        graficoCpu = new Chart(canvas, {
+            type: "bar",
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                locale: "pt-BR",
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: "top",
+                        align: "start",
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: "rect",
+                            boxWidth: 10,
+                            boxHeight: 10,
+                            padding: 12,
+                            color: COR_TEXTO_GRAFICO,
+                            font: FONTE_GRAFICO
+                        }
+                    },
+                    tooltip: {
+                        titleFont: { size: 13, family: "Poppins" },
+                        bodyFont: { size: 12, family: "Poppins" },
+                        padding: 10,
+                        filter: item => item.parsed && item.parsed.y > 0,
+                        callbacks: {
+                            title: itens => {
+                                if (!itens || itens.length === 0) return "";
+                                const bucket = buckets[itens[0].dataIndex];
+                                if (!bucket) return "";
+                                return `${formatoBrasileiro(new Date(bucket.inicio).toISOString())} – ${horarioGrafico(bucket.fim)}`;
+                            },
+                            label: contexto => {
+                                const bucket = buckets[contexto.dataIndex];
+                                if (!bucket || !bucket.proporcoes) return "Sem dados no intervalo";
+
+                                const faixa = contexto.dataset.faixa;
+                                return [
+                                    `Faixa: ${FAIXAS_CPU_VISUAL[faixa].rotulo}`,
+                                    `Proporção: ${formatarPercentual(bucket.proporcoes[faixa] * 100)} do tempo observado`,
+                                    `Tempo na faixa: ${formatarDuracao(bucket.temposMs[faixa])}`,
+                                    `Total observado: ${formatarDuracao(bucket.observadoMs)}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            maxTicksLimit: 6,
+                            maxRotation: 0,
+                            autoSkip: true,
+                            callback: function (valor) {
+                                const bruto = typeof this.getLabelForValue === "function"
+                                    ? this.getLabelForValue(valor)
+                                    : valor;
+                                const instante = Number(bruto);
+                                return Number.isFinite(instante) ? horarioGrafico(instante) : "";
+                            },
+                            color: COR_TEXTO_GRAFICO,
+                            font: FONTE_GRAFICO
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        min: 0,
+                        max: 100,
+                        border: { display: false },
+                        grid: { color: "#d6dbe3" },
+                        ticks: {
+                            stepSize: 25,
+                            callback: valor => `${numeroGrafico(valor)}%`,
+                            color: COR_TEXTO_GRAFICO,
+                            font: FONTE_GRAFICO
+                        }
+                    }
+                }
+            }
+        });
+
+        // Referência da distribuição exibida, útil para inspeção e testes.
+        graficoCpu.configuracaoDistribuicao = { distribuicao, rotulo };
+        return graficoCpu;
+    }
+
     function atualizarGrafico(id, pontos, rotuloY, cor, pico = null, limiares = null, modoDelta = false) {
         if (typeof Chart === "undefined") return;
 
         const canvas = document.getElementById(id);
         if (!canvas) return;
 
-        if (id === "grafico-cpu-area" && graficoCpu) {
-            graficoCpu.destroy();
-            graficoCpu = null;
-        } else if (id === "grafico-memoria-area" && graficoMemoria) {
+        if (id === "grafico-memoria-area" && graficoMemoria) {
             graficoMemoria.destroy();
             graficoMemoria = null;
         }
@@ -483,8 +635,7 @@
             options: configuracaoComum(serie, { atencao, critico }, modoDelta)
         });
 
-        if (id === "grafico-cpu-area") graficoCpu = grafico;
-        else graficoMemoria = grafico;
+        if (id === "grafico-memoria-area") graficoMemoria = grafico;
     }
 
     function inicializarGraficos() {
@@ -493,7 +644,7 @@
             return;
         }
         destruirGraficos();
-        atualizarGrafico("grafico-cpu-area", [], "Variação CPU", COR_GRAFICO.cpu, null, null, true);
+        atualizarGraficoCpu([], "--");
         atualizarGrafico("grafico-memoria-area", [], "Variação RAM", COR_GRAFICO.memoria, null, null, true);
     }
 
@@ -795,7 +946,7 @@
         definirTexto(metaUsuario, usuario);
         definirTexto(metaStatus, picoMemoria != null && picoMemoria >= 90 ? "crítico" : "estável");
 
-        // Uma única passagem prepara as séries agregadas e a distribuição de CPU.
+        // Uma única passagem prepara a distribuição de CPU e a série de RAM.
         const historico = ProcessosAgregacao.prepararHistorico(filtrados, periodoAtual);
         const rotulo = ROTULOS_PASSO[historico.passoMinutos] || `${historico.passoMinutos} min`;
 
@@ -809,27 +960,35 @@
             });
         };
 
-        const pontosCpu = dentroDoPeriodo(ProcessosAgregacao.serieVariacao(historico.cpu.pontos));
-        const pontosMem = dentroDoPeriodo(ProcessosAgregacao.serieVariacao(historico.memoria.pontos));
-        const semLeitura = limite !== null ? "sem variação no período" : "--";
+        const distribuicaoCpu = (historico.cpu.distribuicao || []).filter(
+            bucket => limite == null || bucket.inicio >= limite
+        );
+        const bucketsComDados = distribuicaoCpu.filter(bucket => bucket.observadoMs > 0);
+        const tempoObservado = bucketsComDados.reduce((soma, bucket) => soma + bucket.observadoMs, 0);
+        const tempoElevado = bucketsComDados.reduce(
+            (soma, bucket) => soma + Number(bucket.temposMs.acima75 || 0), 0
+        );
 
-        const ultimoCpu = pontosCpu[pontosCpu.length - 1];
+        const pontosMem = dentroDoPeriodo(ProcessosAgregacao.serieVariacao(historico.memoria.pontos));
+        const semVariacao = limite !== null ? "sem variação no período" : "--";
         const ultimoMem = pontosMem[pontosMem.length - 1];
 
-        definirTexto(cpuValor, ultimoCpu ? formatarVariacao(ultimoCpu.v) : "--");
-        definirTexto(cpuCaption, ultimoCpu
-            ? `Última variação (${rotulo}): ${formatoBrasileiro(ultimoCpu.t)}`
-            : semLeitura);
+        definirTexto(cpuValor, bucketsComDados.length
+            ? `Tempo observado: ${formatarDuracao(tempoObservado)}`
+            : "sem dados no período");
+        definirTexto(cpuCaption, bucketsComDados.length
+            ? `Intervalos de ${rotulo} · ${bucketsComDados.length} com dados`
+            : "--");
+        definirTexto(cpuTempoElevado, bucketsComDados.length
+            ? `Acima de 75%: ${formatarDuracao(tempoElevado)}`
+            : "--");
 
         definirTexto(memoriaValor, ultimoMem ? formatarVariacao(ultimoMem.v) : "--");
         definirTexto(memoriaCaption, ultimoMem
             ? `Última variação (${rotulo}): ${formatoBrasileiro(ultimoMem.t)}`
-            : semLeitura);
+            : semVariacao);
 
-        atualizarGrafico(
-            "grafico-cpu-area", pontosCpu, `Variação CPU (${rotulo})`, COR_GRAFICO.cpu,
-            null, null, true
-        );
+        atualizarGraficoCpu(distribuicaoCpu, rotulo);
         atualizarGrafico(
             "grafico-memoria-area", pontosMem, `Variação RAM (${rotulo})`, COR_GRAFICO.memoria,
             null, null, true

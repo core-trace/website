@@ -1,5 +1,5 @@
 /* Dashboard de investigação de Docker.
- * Lê os resumos do servidor selecionado no S3 por meio dos endpoints Node.
+ * Lê os resumos da fonte configurada por meio dos endpoints Node.
  * Filtros superiores limitados a sete dias; personalizado escolhe a granularidade pela duração.
  * Nenhuma credencial AWS fica no navegador.
  */
@@ -305,8 +305,8 @@
             || doc.containers.find((c) => c.container_id === referencia.container_id);
     }
 
-    function reiniciosDetectados(lista, referencia, local = false) {
-        if (local) {
+    function reiniciosDetectados(lista, referencia) {
+        if (temTotaisObservados(lista, referencia, c => c.reinicios?.total)) {
             const medidas = lista.map(doc => containerNoDia(doc, referencia)?.reinicios?.total?.observado_local);
             if (!medidas.length || medidas.some(m => !m || m.intervalos_desconhecidos > 0 || m.total === null)) return null;
             return medidas.reduce((soma, m) => soma + m.total, 0);
@@ -523,8 +523,17 @@
         return resultado;
     }
 
-    const usarMinuto = () => (periodoPersonalizado ? P.granularidade(periodoPersonalizado) === "cinco" : periodoDias === 1 / 24) && referenciaLocal !== null
+    const usarMinuto = () => (periodoPersonalizado ? P.granularidade(periodoPersonalizado) === "cinco" : periodoDias === 1 / 24)
         && historicoHorario.some(doc => Array.isArray(doc.seriesMinuto));
+
+    // A capacidade pertence ao documento, não ao transporte ou ao relógio local.
+    // Em históricos mistos, os intervalos sem este campo permanecem desconhecidos.
+    function temTotaisObservados(lista, referencia, ler) {
+        return lista.some(doc => {
+            const c = containerNoDia(doc, referencia);
+            return c && ler(c)?.observado_local != null;
+        });
+    }
 
     function pontosVolumesLocais(lista, referencia, ler, divisor) {
         return lista.map(doc => {
@@ -590,14 +599,14 @@
             ? errosConfirmados : null;
         const picos = (tipo) => registros.map(({ container, data, doc }) => ({
             container, data, intervalo: doc.intervalo,
-            instante: referenciaLocal !== null ? (tipo === "cpu" ? container.cpu : container.memoria)?.uso?.maximo_instante : null,
+            instante: (tipo === "cpu" ? container.cpu : container.memoria)?.uso?.maximo_instante ?? null,
             valor: D.numero(tipo === "cpu" ? container.cpu?.uso?.maximo : container.memoria?.uso?.maximo)
         })).filter((item) => item.valor !== null).sort((a, b) => b.valor - a.valor);
 
         // O primeiro resumo de um período não informa quantos reinícios houve
         // antes dele; somamos apenas aumentos observáveis entre dois resumos.
         const nomes = new Map(registros.map(({ container }) => [container.nome || container.container_id, container]));
-        const contagens = [...nomes.values()].map((c) => reiniciosDetectados(historicoAtivo, c, referenciaLocal !== null)).filter((v) => v !== null);
+        const contagens = [...nomes.values()].map((c) => reiniciosDetectados(historicoAtivo, c)).filter((v) => v !== null);
         return {
             falhasConhecidas,
             reiniciosNoPeriodo: contagens.length ? contagens.reduce((soma, v) => soma + v, 0) : null,
@@ -694,7 +703,7 @@
             adicionarTexto(tdStatus, "span", situacao.rotulo, `docker-estado ${situacao.classe}`);
             tr.appendChild(tdStatus);
             adicionarTexto(tr, "td", n(contarFalhas(historicoAtivo, container)));
-            adicionarTexto(tr, "td", n(reiniciosDetectados(historicoAtivo, container, referenciaLocal !== null)));
+            adicionarTexto(tr, "td", n(reiniciosDetectados(historicoAtivo, container)));
             adicionarTexto(tr, "td", n(contarErros(historicoAtivo, container)));
             tr.addEventListener("click", () => selecionar(container.container_id));
             corpo.appendChild(tr);
@@ -1040,17 +1049,19 @@
     }
 
     function graficoContadores(titulo, container, series, unidade, divisor, incluirZero = false, barras = false) {
-        if (referenciaLocal !== null) { titulo = titulo.replace("MB", "MiB"); unidade = unidade.replace("MB", "MiB"); }
+        const observados = serie => temTotaisObservados(historicoAtivo, container, serie.ler);
+        const usaCapturas = usarMinuto() || series.some(observados);
+        if (usaCapturas) { titulo = titulo.replace("MB", "MiB"); unidade = unidade.replace("MB", "MiB"); }
         let intervalos = series.map((serie) => ({
-            ...serie, pontos: usarMinuto()
+            ...serie, observado: observados(serie), pontos: usarMinuto()
                 ? agruparCincoMinutos(pontosMinuto(historicoHorario, container, intervaloAtivo.inicio, intervaloAtivo.fim, c => serie.ler(c)?.ultimo_valor, divisor), intervaloAtivo.inicio, intervaloAtivo.fim, true)
-                : referenciaLocal !== null ? pontosVolumesLocais(historicoAtivo, container, serie.ler, divisor)
+                : observados(serie) ? pontosVolumesLocais(historicoAtivo, container, serie.ler, divisor)
                 : criarPontosIntervalos(historicoAtivo, container, serie.ler, divisor)
         }));
-        if (!usarHorario() && referenciaLocal === null) {
+        if (!usarHorario()) {
             intervalos = intervalos.map((serie) => ({
                 ...serie, pontos: serie.pontos.map((ponto, indice) => {
-                    if (ponto.y === null) return ponto;
+                    if (serie.observado || ponto.y === null) return ponto;
                     const anterior = containerNoDia(historicoAtivo[indice - 1], container);
                     const atual = containerNoDia(historicoAtivo[indice], container);
                     const inicioObservado = D.instante(anterior.ultima_observacao);
@@ -1074,7 +1085,7 @@
         const destaque = intervalos.map((serie) => n(serie.pontos.at(-1)?.y, unidade)).join(" / ") + (diario ? " · último dia" : " · último intervalo");
         if (usarMinuto()) titulo = titulo.replace("por intervalo", "por 5 minutos");
         const tituloGrafico = diario ? titulo.replace("por intervalo", "por dia") + (incluirZero ? " (s por dia)" : "") : titulo;
-        grafico(tituloGrafico, referenciaLocal !== null ? "Soma dos deltas conhecidos das capturas por minuto" : diario ? "Total observado entre leituras, por data final" : usarMinuto() ? "Total observado em cada intervalo de 5 minutos" : "Diferenças entre leituras horárias consecutivas", destaque, container,
+        grafico(tituloGrafico, usaCapturas ? "Soma dos deltas conhecidos das capturas por minuto" : diario ? "Total observado entre leituras, por data final" : usarMinuto() ? "Total observado em cada intervalo de 5 minutos" : "Diferenças entre leituras horárias consecutivas", destaque, container,
             intervalos, unidade, false, null, {
                 intervalos: true, referencias, barras,
                 nota: [nota ? nota + "." : "", insuficientes.length ? `Histórico insuficiente para referência: ${insuficientes.join(", ")}.` : "",
@@ -1093,7 +1104,8 @@
         document.querySelector(".docker-aviso-medicoes").textContent = "Rede, disco e throttling mostram o total observado desde a última leitura do dia anterior, na data da leitura final. Os horários aparecem ao passar o mouse. Os resumos não permitem calcular totais exatos de meia-noite a meia-noite. O primeiro dia, lacunas, reinícios e resets detectados ficam sem valor. Referências são comparativas, sem limites de alerta.";
         if (usarHorario()) document.querySelector(".docker-aviso-medicoes").textContent = "Cada ponto resume uma hora. Rede, disco e throttling mostram diferenças entre leituras horárias consecutivas. A primeira leitura, lacunas e reinícios ficam sem valor; não são tratados como zero. Horários em BRT.";
         if (usarMinuto()) document.querySelector(".docker-aviso-medicoes").textContent = "CPU, memória e PIDs mostram média e pico a cada 5 minutos. Rede e disco mostram MiB transferidos em cada intervalo; throttling mostra segundos acumulados em 5 minutos. Lacunas, reinícios e uso após encerramento ficam sem valor. KPIs e referências de CPU, memória e PIDs continuam baseados nos resumos horários.";
-        if (referenciaLocal !== null) document.querySelector(".docker-aviso-medicoes").textContent = "Volumes em MiB e throttling em segundos somam os deltas conhecidos das capturas por minuto. Reinícios preservam o consumo medido; totais parciais são identificados no tooltip. Zero indica ausência de incremento observada; lacunas desconhecidas não são zero. CPU, RAM e PIDs mantêm médias e picos na granularidade selecionada.";
+        if ([v => v.rede?.recebidos, v => v.rede?.enviados, v => v.disco?.leitura_acumulada, v => v.disco?.escrita_acumulada, v => v.cpu?.tempo_throttled]
+            .some(ler => temTotaisObservados(historicoAtivo, c, ler))) document.querySelector(".docker-aviso-medicoes").textContent = "Volumes em MiB e throttling em segundos somam os deltas conhecidos das capturas por minuto. Reinícios preservam o consumo medido; totais parciais são identificados no tooltip. Zero indica ausência de incremento observada; lacunas desconhecidas não são zero. CPU, RAM e PIDs mantêm médias e picos na granularidade selecionada.";
         grafico("CPU (% da capacidade do host)", "Média e pico registrados em cada dia", n(c.cpu?.uso?.media, "%") + " média", c, [
             { nome: "Média diária", ler: (v) => v.cpu?.uso?.media },
             { nome: "Pico diário", ler: (v) => v.cpu?.uso?.maximo }

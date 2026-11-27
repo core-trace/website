@@ -44,7 +44,7 @@
                 // Delimiter lista somente as pastas de datas, nunca os objetos de todo o histórico.
                 signal?.throwIfAborted();
                 let descoberta = datasCache.get(prefixo);
-                if (!descoberta || agora() - descoberta.instante >= 60000) {
+                if (!descoberta || agora() - descoberta.instante >= 300000) {
                     const resultado = await requisitar('arquivos', { prefixo, pastas: '1' });
                     metricas.listagens++;
                     if (!Array.isArray(resultado.corpo)) throw new Error('Lista de datas inválida.');
@@ -62,7 +62,7 @@
                 const consultados = new Set();
                 async function listarPeriodo(inicio, fim) {
                     const selecionadas = datas.filter(d => d >= inicio && d <= fim);
-                    if (selecionadas.every(d => { const c = listasCache.get(`${escopo}${d}`); return c && agora() - c.instante < 60000; })) return;
+                    if (selecionadas.every(d => { const c = listasCache.get(`${escopo}${d}`); return c && agora() - c.instante < 300000; })) return;
                     const { corpo } = await requisitar('arquivos', { prefixo, inicio, fim });
                     metricas.listagens++;
                     if (!Array.isArray(corpo)) throw new Error('Lista de resumos inválida.');
@@ -75,7 +75,7 @@
                 async function listar(data) {
                     const chave = `${escopo}${data}`;
                     const cache = listasCache.get(chave);
-                    if (cache && agora() - cache.instante < 60000) return cache.itens;
+                    if (cache && agora() - cache.instante < 300000) return cache.itens;
                     const { corpo } = await requisitar('arquivos', { prefixo: `${prefixo}data=${data}/` });
                     metricas.listagens++;
                     if (!Array.isArray(corpo)) throw new Error('Lista de resumos inválida.');
@@ -91,7 +91,7 @@
                     const cache = arquivosCache.get(chave);
                     const primeiraConsulta = !consultados.has(chave);
                     if (primeiraConsulta) { metricas.arquivosConsultados++; consultados.add(chave); }
-                    if (cache && (versao ? cache.versao === versao : agora() - cache.instante < 60000)) {
+                    if (cache && (versao ? cache.versao === versao : agora() - cache.instante < 300000)) {
                         if (primeiraConsulta) metricas.acertosCache++;
                         return cache.documento;
                     }

@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/svg+xml" href="/assets/sidebar/logo-compacta.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoreTrace - Investigação de contêineres</title>
@@ -41,14 +42,7 @@
                 aria-expanded="false">
                 <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
             </button>
-            <label class="dashboard-pesquisa">
-                <span class="dashboard-lupa" aria-hidden="true"></span>
-                <input type="search" id="docker-pesquisa-contexto" placeholder="Buscar por servidor ou perfil..."
-                    aria-label="Buscar servidor ou perfil disponível" aria-controls="docker-contexto-resultado">
-            </label>
             <div class="dashboard-usuario">
-                <button class="dashboard-notificacoes" type="button" aria-label="Notificações"><img
-                        src="../assets/icons/sino.png" alt="" width="24" height="24"></button>
                 <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
                 <div class="dashboard-usuario-dados"><span class="dashboard-usuario-nome"></span><span
                         class="dashboard-usuario-cargo"></span></div>
@@ -64,15 +58,13 @@
         </header>
 
         <main id="conteudo-principal" class="docker-principal" tabindex="-1">
-            <div class="docker-breadcrumb">Monitoramento <span>/</span> Dashboards <span>/</span>
-                <strong>Docker</strong>
-            </div>
             <div class="docker-hero">
                 <div>
                     <div class="docker-titulo-com-icone">
                         <h1>Docker</h1>
                     </div>
-                    <p class="docker-visualmente-oculto">Monitoramento e análise dos contêineres do servidor selecionado.</p>
+                    <p>Desempenho dos contêineres e evolução dos recursos</p>
+                    <div class="docker-atualizacao" id="docker-ultima-coleta" role="status">Aguardando resumo</div>
                 </div>
             </div>
 
@@ -92,9 +84,6 @@
                         <option value="personalizado">Personalizado</option>
                     </select>
                 </label>
-                <div class="docker-atualizacao">
-                    <span id="docker-ultima-coleta">Aguardando resumo</span>
-                </div>
             </section>
             <form id="docker-periodo-personalizado" class="docker-periodo-personalizado" hidden>
                 <label class="docker-campo">Início (Brasília)<input id="docker-periodo-inicio" type="datetime-local" required></label>
@@ -103,7 +92,6 @@
                 <p>Máximo de 7 dias corridos (168 horas), até o instante de referência. Até 1h: 5 minutos; até 24h: horário; acima de 24h: diário. Só exibe dados inteiramente contidos no período.</p>
                 <p id="docker-periodo-erro" role="alert" hidden></p>
             </form>
-            <p id="docker-contexto-resultado" class="docker-contexto-resultado" role="status" hidden></p>
             <p class="docker-periodo-info" id="docker-periodo-info" role="status" hidden></p>
             <div class="docker-feedback" id="docker-feedback" role="alert" hidden></div>
 

@@ -197,9 +197,6 @@
         if (!servidor) return;
         const perfil = perfisDisponiveis.find((item) => String(item.id_perfil_servidor) === String(servidor.id_perfil_servidor));
         $("docker-perfil").value = perfil ? String(perfil.id_perfil_servidor) : "";
-        const resultado = $("docker-contexto-resultado");
-        resultado.hidden = true;
-        resultado.textContent = "";
     }
 
     async function trocarServidorSelecionado() {
@@ -622,10 +619,23 @@
             `métricas de contêineres em ${diasComMetricas} dia(s). ` +
             "Datas sem medições não são tratadas como zero.";
         $("docker-total-containers").textContent = `(${dados.containers.length})`;
-        $("docker-ultima-coleta").textContent = `Dados até ${ultimo}`;
+        const leituras = dados.containers.map(c => D.instante(c.ultima_observacao)?.getTime()).filter(Number.isFinite);
+        const ultimaLeitura = leituras.length ? new Date(Math.max(...leituras)) : null;
+        const atualizacao = $("docker-ultima-coleta");
+        atualizacao.replaceChildren();
+        if (ultimaLeitura) {
+            const horario = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" }).format(ultimaLeitura).replace(":", "h");
+            const data = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "short", year: "numeric" })
+                .format(ultimaLeitura).replaceAll(" de ", " ").replace(".", "");
+            adicionarTexto(atualizacao, "strong", `Estado às ${horario}`);
+            adicionarTexto(atualizacao, "span", `· ${data}`);
+            atualizacao.title = "Última leitura disponível no período selecionado · horário de Brasília";
+        } else {
+            atualizacao.textContent = `Resumo de ${ultimo} · horário indisponível`;
+            atualizacao.title = "O resumo não informa o horário da última leitura.";
+        }
         if (usarHorario()) {
             $("docker-periodo-info").textContent = `Período: ${formatoData.format(intervaloAtivo.inicio)} a ${formatoData.format(intervaloAtivo.fim)} · ${historicoAtivo.length} ${periodoPersonalizado && usarMinuto() ? "intervalos de 5 minutos disponíveis" : "resumos horários disponíveis"}. ${periodoPersonalizado ? "Horário de Brasília." : "Contado a partir da última leitura disponível."}`;
-            $("docker-ultima-coleta").textContent = `Dados até ${hora(dados.intervalo.fim)}`;
         }
         if (periodoPersonalizado) {
             $("docker-periodo-info").textContent += " Somente dados contidos no recorte; limites sem precisão suficiente ficam sem dados.";
@@ -827,7 +837,7 @@
         const texto = adicionarTexto(topo, "div", "");
         adicionarTexto(texto, "h3", titulo);
         adicionarTexto(texto, "p", subtitulo);
-        adicionarTexto(topo, "span", destaque, "docker-grafico-destaque");
+        adicionarTexto(topo, "span", destaque, `docker-grafico-destaque${opcoes.resumoThrottling ? " docker-throttling-resumo" : ""}`);
 
         // O x é uma data numérica: distâncias entre 28/10 e 30/10, por exemplo,
         // são proporcionais aos dias de diferença. Não inventamos datas nem zeros.
@@ -1038,7 +1048,21 @@
         return artigo;
     }
 
-    function graficoContadores(titulo, container, series, unidade, divisor, incluirZero = false, barras = false) {
+    function resumoThrottling(pontos, diario) {
+        // Os pontos já contêm deltas em segundos, com resets e lacunas tratados.
+        const validos = pontos.filter(p => D.numero(p.y) !== null && p.y >= 0);
+        if (!validos.length) return "— · Total do período\n— · Maior acúmulo";
+        const total = validos.reduce((soma, p) => soma + p.y, 0);
+        const maior = validos.reduce((a, b) => b.y > a.y ? b : a);
+        const parcial = validos.length < pontos.length || validos.some(p => p.parcial);
+        const data = diario
+            ? new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit" }).format(new Date(maior.x))
+            : maior.inicio && maior.fim ? `${hora(maior.inicio)} a ${hora(maior.fim)}` : hora(new Date(maior.x).toISOString());
+        const totalExibido = Number.isInteger(total) ? n(total, " s") : `≈ ${n(Math.round(total), " s")}`;
+        return `${totalExibido} · Total do período${parcial ? " (parcial)" : ""}\n${n(maior.y, " s")} · Maior acúmulo (${data})${maior.parcial ? " (parcial)" : ""}`;
+    }
+
+    function graficoContadores(titulo, container, series, unidade, divisor, incluirZero = false, barras = false, resumirThrottling = false) {
         const observados = serie => temTotaisObservados(historicoAtivo, container, serie.ler);
         const usaCapturas = usarMinuto() || series.some(observados);
         if (usaCapturas) { titulo = titulo.replace("MB", "MiB"); unidade = unidade.replace("MB", "MiB"); }
@@ -1072,12 +1096,13 @@
         const nota = historicas.map((serie) => `${serie.label}: ${n(serie.data[0].y, unidade)} (${serie.intervalos} intervalos anteriores)`).join(" · ");
         const insuficientes = intervalos.filter((serie) => !calcularMediaIntervalos(serie.pontos)).map((serie) => serie.nome);
         const diario = !usarHorario();
-        const destaque = intervalos.map((serie) => n(serie.pontos.at(-1)?.y, unidade)).join(" / ") + (diario ? " · último dia" : " · último intervalo");
+        const destaque = resumirThrottling ? resumoThrottling(intervalos[0].pontos, diario)
+            : intervalos.map((serie) => n(serie.pontos.at(-1)?.y, unidade)).join(" / ") + (diario ? " · último dia" : " · último intervalo");
         if (usarMinuto()) titulo = titulo.replace("por intervalo", "por 5 minutos");
         const tituloGrafico = diario ? titulo.replace("por intervalo", "por dia") + (incluirZero ? " (s por dia)" : "") : titulo;
         grafico(tituloGrafico, usaCapturas ? "Soma dos deltas conhecidos das capturas por minuto" : diario ? "Total observado entre leituras, por data final" : usarMinuto() ? "Total observado em cada intervalo de 5 minutos" : "Diferenças entre leituras horárias consecutivas", destaque, container,
             intervalos, unidade, false, null, {
-                intervalos: true, referencias, barras,
+                intervalos: true, referencias, barras, resumoThrottling: resumirThrottling,
                 nota: [nota ? nota + "." : "", insuficientes.length ? `Histórico insuficiente para referência: ${insuficientes.join(", ")}.` : "",
                     "Comparação por intervalo; exclui a última data do período. Lacunas e reinícios não são considerados zero."].filter(Boolean).join(" ")
             });
@@ -1118,7 +1143,7 @@
         ], "", false, (v) => v.pids?.atuais);
         graficoContadores("CPU Throttling", c, [
             { nome: "Tempo limitado", ler: (v) => v.cpu?.tempo_throttled }
-        ], " s", 1e9, true, true);
+        ], " s", 1e9, true, true, true);
     }
 
     function renderizarLogs(c) {
@@ -1303,6 +1328,7 @@
             $("docker-escopo-servidor").textContent = "Nenhum contêiner no período";
             $("docker-resumo-titulo").textContent = "Visão do contêiner";
             $("docker-ultima-coleta").textContent = "Sem leitura no período";
+            $("docker-ultima-coleta").title = "";
             $("docker-periodo-info").textContent = periodoPersonalizado ? "Não há dados com precisão suficiente dentro dos limites selecionados. Resumos que ultrapassam o período não são incluídos." : "Não há resumos disponíveis nesse período. Selecione outro intervalo.";
             $("docker-desempenho-descricao").textContent = "Sem dados no período selecionado.";
             return;
@@ -1344,20 +1370,6 @@
     if (typeof document === "undefined") return;
 
     $("docker-busca").addEventListener("input", () => { if (dados) renderizarLista(); });
-    $("docker-pesquisa-contexto").addEventListener("input", (evento) => {
-        const busca = evento.target.value.trim().toLocaleLowerCase("pt-BR");
-        const resultado = $("docker-contexto-resultado");
-        resultado.hidden = !busca;
-        const encontrados = servidoresDisponiveis.filter((servidor) => {
-            const perfil = perfisDisponiveis.find((item) => String(item.id_perfil_servidor) === String(servidor.id_perfil_servidor));
-            return `${servidor.nome} ${servidor.endereco_mac} ${perfil?.nome || servidor.nome_perfil || ""}`
-                .toLocaleLowerCase("pt-BR").includes(busca);
-        });
-        resultado.textContent = !servidoresDisponiveis.length ? "Aguardando a lista de servidores."
-            : encontrados.length
-                ? `${encontrados.length} servidor(es) encontrado(s): ${encontrados.map((servidor) => servidor.nome).join(", ")}`
-                : "Nenhum servidor ou perfil corresponde à busca.";
-    });
     $("docker-limpar").addEventListener("click", () => selecionar(null));
     const atualizarLogsSelecionado = () => {
         const c = dados?.containers.find((item) => item.container_id === selecionadoId);
@@ -1450,6 +1462,6 @@
     // Revalida as listagens recentes sem sobrepor uma carga em andamento.
     if (window.setInterval) window.setInterval(() => {
         if (!document.hidden && !carregando && $("docker-servidor").value) carregarPeriodo();
-    }, 60000);
+    }, 300000);
     iniciar();
 })();

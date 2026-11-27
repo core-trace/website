@@ -8,7 +8,13 @@ const s3 = new S3Client({
     region: process.env.AWS_REGION || "us-east-1"
 });
 
-const BUCKET = (process.env.S3_BUCKET || "bucket-coretrace").trim();
+// Mesmo bucket que o resto do projeto usa (s3Model.js, resumoGoldService.js) -
+// antes essa variável tinha outro nome e nunca existia em nenhum .env, então
+// toda consulta caía num bucket que não é o nosso e dava Access Denied.
+const BUCKET = process.env.BUCKET_DADOS_GOLD;
+if (!BUCKET) {
+    throw new Error("Variável BUCKET_DADOS_GOLD não configurada.");
+}
 const PREFIXO_LOTES = normalizarPrefixo(process.env.S3_PREFIX || "client/lotes/");
 
 const JANELA_GRAFICO_MINUTOS = 60;

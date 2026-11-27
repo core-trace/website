@@ -104,13 +104,16 @@ function normalizarAmostra(registro) {
  */
 async function carregarAmostras(mac, data) {
     const macNormalizado = processosModel.normalizarMac(mac);
-    const chaves = await processosModel.listarLotesDoDia(macNormalizado, data);
+    const chaves = (await processosModel.listarLotesDoDia(macNormalizado, data))
+        .filter(chave => chave.endsWith("capturas.json"));
+
+    // Busca todos os lotes do dia em paralelo em vez de um por vez - num dia
+    // com bastante captura (o dia do incidente, por exemplo), isso era
+    // dezenas de chamadas sequenciais ao S3 e deixava a tela bem lenta pra abrir.
+    const lotes = await Promise.all(chaves.map(chave => processosModel.buscarConteudoLote(chave)));
 
     const amostras = [];
-    for (const chave of chaves) {
-        if (!chave.endsWith("capturas.json")) continue;
-
-        const lote = await processosModel.buscarConteudoLote(chave);
+    for (const lote of lotes) {
         if (!lote || !Array.isArray(lote.processos)) continue;
 
         for (const registro of lote.processos) {

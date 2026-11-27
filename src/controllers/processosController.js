@@ -1,5 +1,15 @@
+arquivo processosController
+
 const processosService = require("../services/processosService");
 const servidorModel = require("../models/servidorModel");
+const resumoGoldService = require("../services/resumoGoldService");
+
+// Cache simples por servidor/dia - sem isso, toda abertura/troca de servidor na
+// tela de Processos busca tudo de novo no S3. Mesmo padrão já testado e usado
+// no Servidores (servidoresController.js) e já existente em Alertas
+// (alertaService.js, cachePontosMaquina).
+const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutos
+const cacheDashboardPorChave = new Map();
 
 async function listarServidores(req, res) {
     try {
@@ -14,6 +24,10 @@ async function listarServidores(req, res) {
         const servidores = await servidorModel.listarServidoresPorEmpresa(idEmpresa, idUsuario);
 
         return res.json({
+            // O front-end (processos.js) não tem como saber a data "de hoje" certa
+            // sozinho - ele roda no navegador, então calcular lá sempre pega a data
+            // real do relógio, não a DATA_DEMO_FIXA do cenário. Manda pronta aqui.
+            hoje: resumoGoldService.dataDeHojeSaoPaulo(),
             servidores: servidores.map(s => ({
                 mac: s.endereco_mac,
                 nome: s.nome || s.endereco_mac,
@@ -102,11 +116,18 @@ async function obterDashboard(req, res) {
             return res.status(403).json({ erro: "Usuário não tem acesso a este servidor." });
         }
 
+        const chaveCache = `${mac}|${data}`;
+        const emCache = cacheDashboardPorChave.get(chaveCache);
+        if (emCache && Date.now() - emCache.quando < CACHE_TTL_MS) {
+            return res.json(emCache.dashboard);
+        }
+
         const filtros = { mac, data };
         if (idEmpresa) filtros.idEmpresa = Number(idEmpresa);
         if (idUsuario) filtros.idUsuario = Number(idUsuario);
 
         const dashboard = await processosService.obterDashboard(filtros);
+        cacheDashboardPorChave.set(chaveCache, { quando: Date.now(), dashboard });
         return res.json(dashboard);
     } catch (erro) {
         console.error("Erro ao obter dashboard de processos:", erro.message);

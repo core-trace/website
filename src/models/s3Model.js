@@ -10,17 +10,12 @@ const s3 = new S3Client({
     region: process.env.AWS_REGION || "us-east-1"
 });
 
-const NOME_BUCKET = process.env.BUCKET_DADOS_GOLD;
+const NOME_BUCKET = process.env.BUCKET_DADOS_GOLD || process.env.S3_BUCKET || "bucket-coretrace";
 const PASTA = "client/";
 const PASTA_RESUMOS = `${PASTA}resumos/`;
 
-// Valida a configuração do bucket
-if (!NOME_BUCKET) {
-    throw new Error("Variável BUCKET_DADOS_GOLD não configurada.");
-}
-
 // Lista todos os resumos armazenados no S3
-async function listarResumosS3() {
+async function listarResumosS3(prefixo = PASTA_RESUMOS) {
 
     const arquivos = [];
 
@@ -28,16 +23,42 @@ async function listarResumosS3() {
         { client: s3 },
         {
             Bucket: NOME_BUCKET,
-            Prefix: PASTA_RESUMOS
+            Prefix: prefixo
         }
     );
 
     for await (const pagina of paginas) {
         for (const arquivo of pagina.Contents || []) {
-            arquivos.push(arquivo);
+            if (!arquivo.Key.endsWith("/")) arquivos.push(arquivo);
         }
     }
 
+    return arquivos;
+}
+
+// Descoberta leve de datas, exclusiva do carregamento sob demanda de Docker.
+async function listarPastasDocker(prefixo) {
+    const pastas = [];
+    for await (const pagina of paginateListObjectsV2({ client: s3 }, {
+        Bucket: NOME_BUCKET, Prefix: prefixo, Delimiter: "/"
+    })) {
+        pastas.push(...(pagina.CommonPrefixes || []));
+    }
+    return pastas;
+}
+
+// Recorte exclusivo de Docker: inicia na primeira data e para ao sair do período.
+async function listarPeriodoDocker(prefixo, inicio, fim) {
+    const arquivos = [];
+    for await (const pagina of paginateListObjectsV2({ client: s3 }, {
+        Bucket: NOME_BUCKET, Prefix: prefixo, StartAfter: `${prefixo}data=${inicio}/`
+    })) {
+        for (const arquivo of pagina.Contents || []) {
+            const data = arquivo.Key.slice(prefixo.length).match(/^data=(\d{4}-\d{2}-\d{2})\//)?.[1];
+            if (data > fim) return arquivos;
+            if (data >= inicio && data <= fim && !arquivo.Key.endsWith("/")) arquivos.push(arquivo);
+        }
+    }
     return arquivos;
 }
 
@@ -138,6 +159,8 @@ async function buscarArquivoBinarioS3(nomeArquivo) {
 
 module.exports = {
     listarResumosS3,
+    listarPastasDocker,
+    listarPeriodoDocker,
     buscarConteudoS3,
     buscarResumoServidor,
     buscarUltimoResumoServidor,

@@ -346,3 +346,41 @@ A API do site atende também os endpoints de captura, na mesma porta de `npm sta
 As respostas de consulta são listas JSON; consultas sem resultados retornam `[]`. Headers ausentes ou malformados retornam 401, IDs inválidos retornam 400 e falhas de banco retornam 500.
 
 O agente distribuído pelo site usa `API_BASE_URL` em `src/agente/capturas/captura.py` para ativação e consulta das métricas. Não é necessário iniciar uma API na porta 3334. Em instalações antigas do agente, atualize essa URL para o endereço e a porta da API do site, ou baixe novamente o pacote.
+
+### Dados da dashboard Docker
+
+A página usa `DOCKER_DATA_SOURCE=local|s3` (padrão: `s3`). A fonte local lê
+`data/docker`; a fonte S3 usa `BUCKET_DADOS_GOLD`, depois `S3_BUCKET` ou
+`bucket-coretrace`. As fontes não compartilham o cache nem têm fallback entre si.
+
+As consultas a `/s3Routes/arquivos` e `/s3Routes/conteudo` levam
+`dashboard=docker`. A descoberta usa o prefixo da máquina e `pastas=1`
+(`Delimiter: "/"` no S3), retornando somente as pastas de datas. As listagens
+seguintes usam prefixos de máquina/data. Em 7d, uma listagem do período usa
+o prefixo da máquina com `StartAfter` na primeira data e encerra a paginação
+a data final, substituindo sete listagens separadas. A tela baixa somente os resumos do
+período, os diários necessários à normalização do host e as leituras de apoio
+necessárias à referência temporal e aos deltas. Não baixa todo o histórico.
+
+Os filtros 1h, 6h e 24h usam resumos horários; 1h usa blocos de cinco minutos
+quando existem capturas por minuto. O filtro 7d usa diários. Personalizado
+mantém o limite de 168 horas e escolhe a granularidade pela duração. Resumos
+sem precisão suficiente não são repartidos para preencher lacunas.
+
+As requisições usam até seis operações simultâneas. O cache em memória da página
+reutiliza JSONs originais por fonte/máquina/chave. As listagens têm validade de
+60 segundos; `ETag`, `LastModified` e tamanho detectam alterações (a fonte local
+informa a data de modificação). Sem versão, o documento também expira em
+60 segundos. A página visível revalida o período a cada minuto. Trocas de
+máquina/período cancelam a carga anterior, sem reutilizar sua resposta na tela.
+
+O console do navegador registra `CoreTrace Docker · carregamento`, com tempo
+em milissegundos, fonte, máquina, listagens, objetos listados, arquivos consultados,
+JSONs baixados, acertos de cache e bytes dos corpos HTTP em UTF-8 (incluindo o
+envelope da API; não é uma medição de tráfego comprimido ou de headers).
+Compare a primeira carga e a repetição do mesmo filtro.
+
+Cada entrada em `requisicoes` registra o tempo total da chamada e `servidorMs`,
+informado por `Server-Timing`. Este último mede a leitura/listagem no servidor
+(incluindo a espera pela fonte); a diferença também inclui transferência e
+processamento no navegador, não somente latência de rede.

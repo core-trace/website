@@ -1,0 +1,1194 @@
+.docker-pagina {
+    font-size: 1.25rem;
+    background: #f8f8f5;
+    color: #201e20;
+}
+
+.docker-pagina .dashboard-menu {
+    background: #f8f8f5;
+    box-shadow: none;
+    border-right: 1px solid #e6e4e1;
+}
+
+.docker-pagina .dashboard-navbar {
+    margin: 0;
+    background: #fcfcfa;
+    border-bottom-color: #e7e6e3;
+}
+
+.docker-pagina .dashboard-pesquisa {
+    border-width: 1px;
+    max-width: 760px;
+    height: 48px;
+    gap: 16px;
+}
+
+.docker-pagina .dashboard-pesquisa input {
+    font-size: 18px;
+}
+
+.docker-pagina .dashboard-menu-grupo {
+    padding-block: 18px;
+}
+
+.docker-pagina .dashboard-menu-item {
+    font-size: 19px;
+}
+
+.docker-menu-rodape {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    padding: 20px 30px;
+    border-top: 1px solid #e5e3df;
+    font-size: 16px;
+    color: #5a5759;
+}
+
+.docker-ponto-online {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #39c993;
+}
+
+.docker-pagina .dashboard-usuario-nome {
+    font-size: 19px;
+}
+
+.docker-pagina .dashboard-usuario-cargo {
+    font-size: 16px;
+}
+
+.docker-pagina .dashboard-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 19px;
+}
+
+.docker-principal {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 30px 28px 40px;
+}
+
+.docker-breadcrumb {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    color: #8b8789;
+    font-size: 16px;
+}
+
+.docker-breadcrumb span {
+    color: #bcb8b9;
+}
+
+.docker-breadcrumb strong {
+    color: #625c60;
+    font-weight: 400;
+}
+
+.docker-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin: 14px 0 20px;
+}
+
+.docker-titulo-com-icone {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.docker-titulo-com-icone img {
+    width: 29px;
+    height: 29px;
+}
+
+.docker-hero h1 {
+    font-size: clamp(31px, 2.75vw, 38px);
+    letter-spacing: -.045em;
+    font-weight: 700;
+}
+
+.docker-hero p {
+    margin-top: 7px;
+    color: #726d70;
+    font-size: 18px;
+}
+
+.docker-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    padding: 5px 10px;
+    border-radius: 100px;
+    background: #fff0ec;
+    color: #ae2118;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.docker-tag.neutra {
+    background: #f1f0ee;
+    color: #706a6d;
+    white-space: normal;
+}
+
+.docker-controles {
+    display: grid;
+    grid-template-columns: minmax(130px, .8fr) repeat(2, minmax(180px, 1fr)) minmax(190px, 1.15fr);
+    gap: 16px;
+    align-items: end;
+}
+
+.docker-atualizacao {
+    display: grid;
+    gap: 5px;
+    align-self: end;
+    padding-bottom: 5px;
+    color: #554e52;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.docker-contexto-resultado {
+    margin-top: 12px;
+    color: #625c60;
+    font-size: 16px;
+}
+
+.docker-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    color: #625c60;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.docker-campo select,
+.docker-periodo-personalizado button {
+    min-height: 41px;
+    padding: 8px 12px;
+    border: 1px solid #dfdddb;
+    border-radius: 8px;
+    background: #fff;
+    color: #272226;
+    font-size: 18px;
+}
+
+.docker-campo select {
+    width: 100%;
+}
+
+.docker-periodos {
+    width: 100%;
+    justify-self: start;
+}
+
+.docker-periodo-info {
+    margin: 13px 0 20px;
+    color: #777073;
+    font-size: 18px;
+}
+
+.docker-feedback {
+    padding: 15px;
+    margin-bottom: 18px;
+    border-radius: 10px;
+    background: #ffe6e0;
+    color: #8b1816;
+    font-size: 18px;
+}
+
+.docker-kpis {
+    margin: 16px 0 24px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.docker-card {
+    border: 1px solid #e6e3e0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: none;
+}
+
+.docker-kpi {
+    --docker-kpi-acento: #e6e3e0;
+    --docker-kpi-valor: #231e21;
+    display: flex;
+    flex-direction: column;
+    min-height: 175px;
+    padding: 20px;
+    border-top: 3px solid var(--docker-kpi-acento);
+}
+
+.docker-kpi-falhas,
+.docker-kpi-erros {
+    --docker-kpi-acento: var(--cor-primaria);
+    --docker-kpi-valor: var(--cor-primaria);
+}
+
+.docker-kpi-reinicios {
+    --docker-kpi-acento: #ae7921;
+    --docker-kpi-valor: #ae7921;
+}
+
+.docker-resumo-topo {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-top: 20px;
+}
+
+.docker-resumo-topo h2 {
+    font-size: clamp(25px, 1.875vw, 28px);
+    font-weight: 650;
+}
+
+.docker-containers-badge {
+    padding: 5px 12px;
+    border: 1px solid #e4e0dd;
+    border-radius: 999px;
+    background: #eeece9;
+    color: #514a4e;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.docker-kpi h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #514a4e;
+    line-height: 1.35;
+}
+
+.docker-kpi-valor {
+    margin: 10px 0 8px;
+    font-weight: 700;
+    font-size: clamp(45px, 3.125vw, 50px);
+    line-height: 1.1;
+    letter-spacing: -.04em;
+    color: var(--docker-kpi-valor);
+}
+
+.docker-kpi p,
+.docker-kpi small {
+    display: block;
+    margin: 0;
+    color: #554e52;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.docker-kpi-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 8px;
+}
+
+.docker-kpi-medida {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 8px;
+}
+
+.docker-kpi-medida .docker-kpi-valor {
+    margin: 0;
+}
+
+.docker-pico-alternancia {
+    display: flex;
+    gap: 4px;
+}
+
+.docker-pico-alternancia button {
+    padding: 6px 9px;
+    border: 1px solid #ece8e6;
+    border-radius: 6px;
+    background: #fff;
+    color: #6c666a;
+    font-size: 16px;
+}
+
+.docker-pico-alternancia button.ativo {
+    border-color: #d00904;
+    background: #d00904;
+    color: #fff;
+}
+
+.docker-escopo {
+    margin: 11px 0 19px;
+    color: #777176;
+    font-size: 16px;
+}
+
+.docker-lista {
+    margin-top: 20px;
+    padding: 19px 18px 15px;
+}
+
+.docker-secao-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.docker-secao-topo h2,
+.docker-desempenho-titulo h2 {
+    font-size: 23px;
+    font-weight: 650;
+    letter-spacing: -.025em;
+}
+
+.docker-secao-topo h2 span {
+    color: #777075;
+    font-weight: 450;
+}
+
+.docker-secao-topo p {
+    margin-top: 6px;
+    color: #817b7e;
+    font-size: 15px;
+}
+
+.docker-lista-acoes {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+}
+
+.docker-botao-suave {
+    padding: 9px 12px;
+    border: 1px solid #f1ddda;
+    border-radius: 8px;
+    background: #fff0ee;
+    color: #bd1910;
+    font-size: 16px;
+}
+
+.docker-botao-suave:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.docker-busca {
+    display: flex;
+    gap: 11px;
+    align-items: center;
+    width: min(260px, 25vw);
+    min-height: 38px;
+    padding: 7px 12px;
+    border: 1px solid #e5e3e0;
+    border-radius: 8px;
+}
+
+.docker-busca .dashboard-lupa {
+    width: 13px;
+    height: 13px;
+    border-width: 1.5px;
+}
+
+.docker-busca .dashboard-lupa::after {
+    width: 6px;
+    right: -4px;
+    bottom: -2px;
+}
+
+.docker-busca input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    color: #282427;
+    font-size: 18px;
+}
+
+.docker-tabela-scroll {
+    overflow-x: auto;
+    margin-top: 18px;
+}
+
+.docker-tabela {
+    width: 100%;
+    min-width: 850px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.docker-tabela th {
+    padding: 12px;
+    background: #f8f7f4;
+    color: #777175;
+    font-weight: 500;
+    font-size: 16px;
+    white-space: nowrap;
+}
+
+.docker-tabela th:first-child {
+    border-radius: 5px 0 0 5px;
+}
+
+.docker-tabela th:last-child {
+    border-radius: 0 5px 5px 0;
+}
+
+.docker-tabela td {
+    padding: 11px 12px;
+    border-bottom: 0;
+    color: #464145;
+    font-size: 18px;
+}
+
+.docker-tabela tbody tr {
+    cursor: pointer;
+}
+
+.docker-tabela tbody tr:hover {
+    background: #fff7f5;
+}
+
+.docker-tabela tbody tr.selecionado {
+    background: #fff0ed;
+}
+
+.docker-tabela tbody tr.selecionado .docker-container-nome {
+    color: #c20c07;
+}
+
+.docker-tabela td:first-child {
+    width: 26%;
+}
+
+.docker-container-escolha {
+    display: grid;
+    gap: 3px;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: left;
+}
+
+.docker-container-nome {
+    color: #292327;
+    font-size: 18px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.docker-container-id {
+    color: #8c8588;
+    font-size: 15px;
+}
+
+.docker-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #16825d;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.docker-estado::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 100%;
+    background: currentColor;
+}
+
+.docker-estado.erro {
+    color: #d2211c;
+}
+
+.docker-estado.aviso {
+    color: #ae7921;
+}
+
+.docker-estado.parado {
+    color: #7a7478;
+}
+
+.docker-estado[hidden] {
+    display: none;
+}
+
+.docker-nota-tabela {
+    margin-top: 12px;
+    color: #8b8486;
+    font-size: 16px;
+}
+
+.docker-detalhe {
+    margin-top: 16px;
+    padding: 21px 18px;
+}
+
+.docker-detalhe-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 19px 16px;
+    margin: 18px 0 0;
+}
+
+.docker-detalhe-metricas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin: 22px 0 0;
+}
+
+.docker-detalhe-metricas .docker-atributo dd {
+    margin-top: 10px;
+    font-size: 23px;
+}
+
+.docker-atributo {
+    min-width: 0;
+}
+
+.docker-atributo dt {
+    color: #8a8387;
+    font-size: 15px;
+}
+
+.docker-atributo dd {
+    margin: 5px 0 0;
+    color: #242024;
+    font-size: 16px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.docker-desempenho-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin: 21px 0 14px;
+}
+
+.docker-desempenho-titulo p {
+    margin-top: 5px;
+    color: #817a7f;
+    font-size: 18px;
+}
+
+.docker-graficos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.docker-grafico-card {
+    min-width: 0;
+    min-height: 225px;
+    padding: 19px;
+}
+
+.docker-grafico-topo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.docker-grafico-topo h3 {
+    font-size: 20px;
+    font-weight: 650;
+}
+
+.docker-grafico-topo p {
+    color: #888083;
+    font-size: 16px;
+    margin-top: 6px;
+}
+
+.docker-grafico-destaque {
+    text-align: right;
+    color: #625c60;
+    font-weight: 650;
+    font-size: 16px;
+}
+
+/* Os canvas do Chart.js precisam de um pai com altura definida para
+   permanecerem legíveis e responsivos ao trocar o período ou o contêiner. */
+.docker-grafico-area {
+    position: relative;
+    height: 245px;
+    margin-top: 12px;
+}
+
+.docker-grafico-observacao {
+    margin-top: 10px;
+    color: #6f696d;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.docker-faixa-corpo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 128px;
+    padding: 19px 7px 2px;
+}
+
+.docker-faixa-etiquetas {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    font-size: 16px;
+    color: #827b7e;
+}
+
+.docker-faixa-etiquetas b {
+    display: block;
+    margin-top: 4px;
+    color: #312b2f;
+    font-size: 21px;
+}
+
+.docker-faixa-trilho {
+    position: relative;
+    height: 9px;
+    margin: 28px 3px 24px;
+    border-radius: 999px;
+    background: #eeeae7;
+}
+
+.docker-faixa-preenchimento {
+    position: absolute;
+    top: 0;
+    height: 9px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #fac9c0, #ce120b);
+}
+
+.docker-faixa-media {
+    position: absolute;
+    top: -7px;
+    width: 3px;
+    height: 23px;
+    border-radius: 4px;
+    background: #2c2629;
+}
+
+.docker-faixa-legenda {
+    font-size: 15px;
+    color: #817a7d;
+    text-align: center;
+}
+
+.docker-grafico-sem-serie {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 128px;
+    margin-top: 8px;
+    border-radius: 7px;
+    background: repeating-linear-gradient(0deg, #fff, #fff 34px, #f5f3f0 35px);
+    text-align: center;
+    color: #858084;
+    font-size: 16px;
+}
+
+.docker-grafico-sem-serie strong {
+    color: #655e62;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.docker-grafico-metricas {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    margin-top: 12px;
+    color: #6c6569;
+    font-size: 16px;
+}
+
+.docker-grafico-metricas strong {
+    display: block;
+    color: #2a2527;
+    font-size: 20px;
+}
+
+.docker-aviso-medicoes {
+    margin-top: 12px;
+}
+
+.docker-registros {
+    margin-top: 16px;
+    padding: 20px 18px;
+}
+
+.docker-registros-conteudo {
+    margin-top: 19px;
+}
+
+/* Os logs seguem a área de investigação do Figma: filtros e console textual.
+   O JSON Gold ainda traz apenas contagens por dia, sem mensagens individuais. */
+.docker-visualmente-oculto,
+.docker-grafico-topo p,
+.docker-grafico-observacao {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.docker-recolher {
+    background: #fff;
+    color: #554e52;
+    border-color: #e7e4e1;
+}
+
+.docker-logs-filtros {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.docker-logs-periodo {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.docker-logs-data {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    color: #6c666a;
+    font-size: 16px;
+}
+
+.docker-logs-data input {
+    width: 100%;
+    min-width: 0;
+}
+
+.docker-logs-periodo button {
+    min-height: 41px;
+}
+
+.docker-logs-periodo button.ativo {
+    background: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+    color: #fff;
+}
+
+.docker-logs-erro {
+    margin-top: 8px;
+    color: #bd1910;
+    font-size: 16px;
+}
+
+@media (max-width: 600px) {
+    .docker-logs-data { width: 100%; }
+}
+
+.docker-logs-filtro select,
+.docker-logs-filtro input {
+    min-height: 41px;
+    border: 1px solid #e7e4e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #3b363a;
+    padding: 9px 12px;
+    font-size: 18px;
+}
+
+.docker-logs-filtro select {
+    min-width: 175px;
+}
+
+.docker-logs-pesquisa {
+    flex: 1;
+    max-width: 420px;
+}
+
+.docker-logs-pesquisa input {
+    width: 100%;
+}
+
+.docker-logs-ordem {
+    min-height: 41px;
+}
+
+.docker-logs-filtros + .docker-registros-conteudo {
+    margin-top: 12px;
+}
+
+.docker-console {
+    min-height: 280px;
+    max-height: 430px;
+    overflow: auto;
+    padding: 18px 20px;
+    border-radius: 8px;
+    background: #211f23;
+    color: #d6d4d8;
+    font: 16px/1.65 "Consolas", "Liberation Mono", monospace;
+}
+
+.docker-console-cabecalho {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+    color: #aaa5ae;
+    font-size: 15px;
+}
+
+.docker-console-linha {
+    display: grid;
+    grid-template-columns: minmax(100px, 125px) minmax(75px, 105px) minmax(0, 1fr);
+    gap: 12px;
+    align-items: baseline;
+    padding: 5px 0;
+    overflow-wrap: anywhere;
+}
+
+.docker-console-data {
+    color: #aaa5ae;
+}
+
+.docker-console-nivel {
+    font-weight: 700;
+    color: #a4b3be;
+}
+
+.docker-console-nivel.erro {
+    color: #ff7773;
+}
+
+.docker-console-nivel.aviso {
+    color: #f3bb56;
+}
+
+.docker-console-nivel.info {
+    color: #b7d1c6;
+}
+
+.docker-console-linha:has(.docker-console-nivel.erro) :is(.docker-console-data, .docker-console-mensagem) {
+    color: #ff7773;
+}
+
+.docker-console-linha:has(.docker-console-nivel.aviso) :is(.docker-console-data, .docker-console-mensagem) {
+    color: #f3bb56;
+}
+
+.docker-console-mensagem {
+    white-space: pre-wrap;
+    color: #e0dee1;
+}
+
+.docker-console-vazio {
+    padding: 45px 12px;
+    color: #b8b1ba;
+    text-align: center;
+}
+
+.docker-console-nota {
+    margin-top: 11px;
+    color: #787176;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.docker-eventos-tabela {
+    border-top: 1px solid #e9e6e3;
+}
+
+.docker-evento-linha {
+    display: grid;
+    grid-template-columns: minmax(160px, 210px) minmax(100px, 160px) minmax(0, 1fr);
+    gap: 16px;
+    padding: 12px;
+    border-bottom: 1px solid #e9e6e3;
+    align-items: center;
+    font-size: 18px;
+}
+
+.docker-evento-data {
+    color: #817a7d;
+}
+
+.docker-evento-acao {
+    color: #188164;
+    font-weight: 650;
+}
+
+.docker-evento-acao::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 9px;
+    border-radius: 50%;
+    background: currentColor;
+    vertical-align: middle;
+}
+
+.docker-evento-descricao {
+    color: #504b4f;
+}
+
+.docker-niveis,
+.docker-acoes-eventos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.docker-nivel,
+.docker-acao {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 15px;
+    border: 1px solid #eae7e4;
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+.docker-nivel strong,
+.docker-acao strong {
+    color: #c82018;
+    font-size: 24px;
+}
+
+.docker-registro-vazio {
+    margin-top: 13px;
+    padding: 15px;
+    border-left: 3px solid #e1ada1;
+    background: #f9f6f3;
+    color: #6f666b;
+    font-size: 18px;
+    line-height: 1.65;
+}
+
+.docker-nenhum {
+    color: #857c81;
+    font-size: 18px;
+    padding: 19px 0;
+}
+
+@media (max-width: 1500px) {
+    .docker-controles {
+        grid-template-columns: minmax(130px, 1fr) repeat(2, minmax(180px, 1.2fr));
+    }
+
+    .docker-atualizacao {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+    }
+
+    .docker-detalhe-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1200px) {
+    .docker-principal {
+        padding-inline: 22px;
+    }
+
+    .docker-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .docker-controles {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .docker-periodos {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 900px) {
+    .docker-detalhe-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .docker-graficos {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .docker-secao-topo {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .docker-evento-linha {
+        grid-template-columns: 1fr 1fr;
+        gap: 5px 10px;
+    }
+
+    .docker-evento-descricao {
+        grid-column: 1 / -1;
+    }
+
+    .docker-console-linha {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 3px 10px;
+    }
+
+    .docker-console-mensagem {
+        grid-column: 1 / -1;
+    }
+
+    .docker-principal {
+        padding: 22px 14px 40px;
+    }
+
+    .docker-hero {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .docker-controles {
+        grid-template-columns: 1fr;
+    }
+
+    .docker-periodos {
+        grid-column: auto;
+    }
+
+
+
+    .docker-kpis {
+        grid-template-columns: 1fr;
+    }
+
+    .docker-kpi {
+        min-height: 155px;
+    }
+
+    .docker-secao-topo {
+        flex-direction: column;
+    }
+
+    .docker-lista-acoes {
+        width: 100%;
+    }
+
+    .docker-busca {
+        width: auto;
+        flex: 1;
+    }
+
+    .docker-detalhe-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 15px;
+    }
+
+    .docker-detalhe-metricas {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .docker-grafico-topo {
+        flex-wrap: wrap;
+    }
+
+    .docker-grafico-destaque {
+        text-align: left;
+    }
+
+    .docker-desempenho-titulo {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .docker-tag {
+        white-space: normal;
+    }
+}
+
+.docker-pagina :is(button, input, select, [tabindex]):focus-visible {
+    outline: 2px solid #b91c16;
+    outline-offset: 3px;
+}
+
+/* Ícones compartilhados com os demais dashboards. */
+.docker-recolher,
+.docker-logs-ordem {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.docker-seta-botao {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transform: rotate(90deg);
+}
+
+#docker-logs-recolher[aria-expanded="true"] .docker-seta-botao,
+#docker-logs-ordem[aria-pressed="false"] .docker-seta-botao {
+    transform: rotate(-90deg);
+}
+
+/* Campos do intervalo personalizado acompanham a largura disponível. */
+.docker-periodo-personalizado:not([hidden]) { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; margin: 16px 0; }
+.docker-periodo-personalizado .docker-campo { flex: 1 1 220px; }
+.docker-periodo-personalizado input { width: 100%; min-height: 44px; padding: 8px; border: 1px solid #dfdddb; border-radius: 8px; font: inherit; }
+.docker-periodo-personalizado p { flex-basis: 100%; margin: 0; }
+#docker-periodo-erro { color: #b00000; }
+
+.docker-periodo-personalizado button[type="submit"] {
+    min-height: 44px;
+    padding: 10px 20px;
+    background-color: #ce0704;
+    border-color: #ce0704;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+
+.docker-periodo-personalizado button[type="submit"]:hover {
+    background-color: #a90603;
+    border-color: #a90603;
+}

@@ -72,6 +72,7 @@ const document = {
 };
 const tbody = document.getElementById("tbody-top5-recursos");
 const filtroPeriodo = document.getElementById("periodo-graficos-processos");
+const filtroServidor = document.getElementById("filtro-servidor");
 
 const registrosChart = [];
 class Chart {
@@ -109,10 +110,25 @@ const acima100 = amostra("overload", 40, "4000", ["10:15"], [150], [60]);
 const processos = [...app, ...worker, ...comLacuna, ...acima100]
     .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
+// Controles do harness para exercitar carregamento, erro e ausência de capturas.
+let falharDashboards = false;
+let pausarDashboards = false;
+let semCapturas = false;
+const pendentesDashboards = [];
+
 async function fetchStub(url) {
     const parsed = new URL(url, "http://localhost");
     if (parsed.pathname === "/processos/servidores") {
         return { ok: true, json: async () => ({ servidores: [{ mac: "AA:BB", nome: "srv" }] }) };
+    }
+    if (pausarDashboards) {
+        await new Promise(resolve => pendentesDashboards.push(resolve));
+    }
+    if (falharDashboards) {
+        return { ok: false, status: 500, json: async () => ({ erro: "falha simulada na consulta" }) };
+    }
+    if (semCapturas) {
+        return { ok: true, json: async () => ({ total: 0, processos: [], kpis: null, top5Recursos: [] }) };
     }
     const data = parsed.searchParams.get("data");
     const corpo = data === hoje ? {
@@ -154,13 +170,20 @@ async function fetchStub(url) {
 }
 
 const agregacao = require("../public/scripts/processosAgregacao.js");
+// A falha simulada é esperada: não polui a saída com o console.error do app.
+const consoleStub = {
+    log: (...args) => console.log(...args),
+    error: mensagem => {
+        if (!String(mensagem).includes("falha simulada na consulta")) console.error(mensagem);
+    }
+};
 const sandbox = {
     document,
     Chart,
     ProcessosAgregacao: agregacao,
     fetch: fetchStub,
     sessionStorage: { getItem: () => "1" },
-    console,
+    console: consoleStub,
     URL,
     URLSearchParams,
     Date,
@@ -199,6 +222,9 @@ const pontoTooltip = (serie, indice) => ({
 });
 const linhas = () => tbody.querySelectorAll("tr");
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+const ultimaCaptura = Math.max(...processos.map(p => Date.parse(p.timestamp)));
+const limiteEsperado = periodo => ultimaCaptura - Number(periodo) * 60000;
+const valoresReaisApp = new Set(app.map(p => p.memoria));
 
 function selecionar(indice) {
     tbody.dispatch("click", { target: linhas()[indice].querySelectorAll("td")[0] });
@@ -246,6 +272,8 @@ function selecionar(indice) {
     const linhasTooltip = tooltip.callbacks.label(itemTooltip);
     const bucket = distribuicao()[indiceComDado];
     assert(tituloTooltip.includes(String(new Date(bucket.inicio).getFullYear())), "tooltip traz data do intervalo");
+    assert(tituloTooltip.includes(cfg.options.scales.x.ticks.callback(bucket.inicio)),
+        "tooltip da CPU e eixo usam o mesmo fuso horario");
     assert(linhasTooltip.some(linha => linha.includes("Faixa: Até 25%")), "tooltip identifica a faixa");
     assert(linhasTooltip.some(linha => linha.includes("Proporção: 100,0% do tempo observado")),
         "tooltip mostra a proporcao real da agregacao");
@@ -298,6 +326,9 @@ function selecionar(indice) {
     const tooltipRam = ramTooltip();
     const tituloRam = tooltipRam.callbacks.title([pontoTooltip(serieApp, 0)]);
     assert(/^\d{2}\/\d{2}\/\d{4}.*\d{2}:\d{2}$/.test(tituloRam), "tooltip da RAM traz data e horario");
+    assert(tituloRam.match(/(\d{2}:\d{2})$/)[1] ===
+        configRam.options.scales.x.ticks.callback(serieApp[0].x),
+        "tooltip da RAM e eixo usam o mesmo fuso horario");
     const corpoRam = tooltipRam.callbacks.label(pontoTooltip(serieApp, 0));
     assert(corpoRam[0] === "Utilização: 10,0%" && corpoRam[1] === "Memória utilizada: 1,0 GiB",
         "tooltip mostra percentual e memoria na unidade original");
@@ -348,6 +379,21 @@ function selecionar(indice) {
         assert(ramChart().configuracaoMemoria.rotulo === esperado, `granularidade da RAM no filtro ${valor}`);
         assert(ramDataset().label === `Utilização de RAM (${esperado})`,
             `rotulo da serie de RAM acompanha o filtro ${valor}`);
+
+        const serieFiltro = ramSerie();
+        const comDado = serieFiltro.filter(p => p.y != null);
+        const eixoX = ramConfig().options.scales.x;
+        assert(comDado.every(p => p.x >= limiteEsperado(valor) && p.x <= ultimaCaptura),
+            `filtro ${valor} nao mostra leitura fora da janela`);
+        assert(eixoX.min <= Math.min(...comDado.map(p => p.x)) &&
+            eixoX.max >= Math.max(...comDado.map(p => p.x)),
+            `eixo temporal do filtro ${valor} contem todos os pontos reais`);
+        assert(new Set(serieFiltro.map(p => p.x)).size === serieFiltro.length,
+            `filtro ${valor} nao gera ponto duplicado`);
+        assert(comDado.every(p => valoresReaisApp.has(p.y)),
+            `filtro ${valor} so exibe valores lidos do processo`);
+        assert(ramChart().configuracaoMemoria.eventos.every(e => e.tempo >= limiteEsperado(valor)),
+            `filtro ${valor} remove eventos fora da janela`);
     }
     filtroPeriodo.value = "60";
     filtroPeriodo.dispatch("change");
@@ -373,6 +419,7 @@ function selecionar(indice) {
 
     // --- Intervalos sem amostras não viram barra de baixo consumo ---
     selecionar(2);
+    assert(texto("meta-processo") === "gap (PID 30)", "PID exibido acompanha o terceiro processo");
     const vazios = distribuicao().filter(b => b.observadoMs === 0);
     assert(vazios.length > 0 && distribuicao().some(b => b.observadoMs > 0), "gap tem intervalos com e sem dados");
     const indiceVazio = distribuicao().findIndex(b => b.observadoMs === 0);
@@ -388,10 +435,15 @@ function selecionar(indice) {
 
     // --- CPU acima de 100% permanece na faixa crítica ---
     selecionar(3);
+    assert(texto("meta-processo") === "overload (PID 40)", "PID exibido acompanha o quarto processo");
     const indice150 = distribuicao().findIndex(b => b.observadoMs > 0);
     const acima75 = cpuDatasets().find(d => d.faixa === "acima75");
     assert(acima75.data[indice150] === 100, "CPU 150% vai integralmente para acima de 75%");
     assert(texto("cpu-tempo-elevado") === "Acima de 75%: 1 min", "indicador inclui CPU acima de 100%");
+    assert(ramSerie().filter(p => p.y != null).map(p => p.y).join(",") === "60",
+        "RAM do quarto processo nao guarda leitura dos anteriores");
+    assert(ramChart().configuracaoMemoria.eventos.length === 0,
+        "marcador do app nao aparece em outro processo");
 
     // --- Processo sem amostras limpa os dois gráficos ---
     const linhaInexistente = document.createElement("tr");
@@ -414,4 +466,37 @@ function selecionar(indice) {
     filtroPeriodo.value = "360";
     filtroPeriodo.dispatch("change");
     assert(texto("meta-processo") === "--", "troca de periodo sem processo em foco nao restaura dado antigo");
+
+    // --- Carregamento, erro de consulta e periodo sem capturas ---
+    pausarDashboards = true;
+    filtroServidor.dispatch("change");
+    assert(document.getElementById("kpi-card-loop").classList.contains("kpi-card--carregando"),
+        "KPIs entram em carregamento enquanto a consulta esta pendente");
+    pendentesDashboards.splice(0).forEach(resolve => resolve());
+    pausarDashboards = false;
+    for (let i = 0; i < 12; i++) await tick();
+    assert(!document.getElementById("kpi-card-loop").classList.contains("kpi-card--carregando"),
+        "estado de carregamento termina após a resposta");
+
+    falharDashboards = true;
+    filtroServidor.dispatch("change");
+    for (let i = 0; i < 12; i++) await tick();
+    assert(document.getElementById("alerta-banner").hidden === false &&
+        texto("alerta-texto").includes("falha simulada na consulta"),
+        "erro da consulta e exibido ao usuario");
+    assert(document.getElementById("kpi-card-loop").classList.contains("kpi-card--erro"),
+        "KPIs entram em estado de erro");
+    assert(cpuDatasets().every(d => d.data.length === 0) && ramSerie().length === 0,
+        "erro limpa os graficos sem deixar dados da selecao anterior");
+    assert(texto("cpu-tempo-elevado") === "--" && texto("grafico-memoria-valor") === "--",
+        "erro limpa os indicadores dos dois graficos");
+
+    falharDashboards = false;
+    semCapturas = true;
+    filtroServidor.dispatch("change");
+    for (let i = 0; i < 12; i++) await tick();
+    assert(texto("alerta-texto").includes("Nenhuma captura encontrada"),
+        "periodo sem capturas informa a ausencia de dados");
+    assert(cpuDatasets().every(d => d.data.length === 0) && ramSerie().length === 0 &&
+        texto("meta-processo") === "--", "sem capturas nenhum dado antigo permanece");
 })().catch(erro => { console.error(erro.message); process.exitCode = 1; });

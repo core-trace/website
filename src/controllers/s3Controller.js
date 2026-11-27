@@ -14,10 +14,27 @@ async function listarArquivos(req, res) {
     }
     try {
 
+        const inicioOperacao = performance.now();
         const usarLocal = dockerFonte.local(req);
-        const arquivos = usarLocal ? await dockerFonte.listar(prefixo) : await s3Model.listarResumosS3(prefixo);
+        const pastas = req.query.dashboard === "docker" && req.query.pastas === "1";
+        if (pastas && !/^client\/resumos\/maquina=[^/\\]+\/$/.test(prefixo)) {
+            return res.status(400).json({ erro: "Informe o prefixo da máquina." });
+        }
+        const periodo = req.query.dashboard === "docker" && (req.query.inicio !== undefined || req.query.fim !== undefined);
+        const { inicio, fim } = req.query;
+        if (periodo && (pastas || !/^client\/resumos\/maquina=[^/\\]+\/$/.test(prefixo)
+            || ![inicio, fim].every(d => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)
+                && Number.isFinite(Date.parse(d)) && new Date(d).toISOString().slice(0, 10) === d)
+            || fim < inicio || Date.parse(fim) - Date.parse(inicio) > 8 * 86400000)) {
+            return res.status(400).json({ erro: "Período de listagem inválido." });
+        }
+        const arquivos = periodo ? (usarLocal ? await dockerFonte.listarPeriodo(prefixo, inicio, fim)
+            : await s3Model.listarPeriodoDocker(prefixo, inicio, fim)) : usarLocal ? await dockerFonte.listar(prefixo, pastas)
+            : pastas ? await s3Model.listarPastasDocker(prefixo) : await s3Model.listarResumosS3(prefixo);
+        if (req.query.dashboard === "docker") res.set("X-Docker-Fonte", usarLocal ? "local" : "s3");
         if (usarLocal) await dockerFonte.referencia(res);
 
+        if (req.query.dashboard === "docker") res.set("Server-Timing", `fonte;dur=${(performance.now() - inicioOperacao).toFixed(1)}`);
         return res.status(200).json(arquivos);
 
     } catch (erro) {
@@ -45,8 +62,12 @@ async function buscarConteudo(req, res) {
 
     try {
 
-        const conteudo = dockerFonte.local(req) ? await dockerFonte.ler(nomeArquivo) : await s3Model.buscarConteudoS3(nomeArquivo);
+        const inicioOperacao = performance.now();
+        const usarLocal = dockerFonte.local(req);
+        if (req.query.dashboard === "docker") res.set("X-Docker-Fonte", usarLocal ? "local" : "s3");
+        const conteudo = usarLocal ? await dockerFonte.ler(nomeArquivo) : await s3Model.buscarConteudoS3(nomeArquivo);
 
+        if (req.query.dashboard === "docker") res.set("Server-Timing", `fonte;dur=${(performance.now() - inicioOperacao).toFixed(1)}`);
         return res.status(200).json({
             arquivo: nomeArquivo,
             conteudo: conteudo

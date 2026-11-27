@@ -36,6 +36,32 @@ async function listarResumosS3(prefixo = PASTA_RESUMOS) {
     return arquivos;
 }
 
+// Descoberta leve de datas, exclusiva do carregamento sob demanda de Docker.
+async function listarPastasDocker(prefixo) {
+    const pastas = [];
+    for await (const pagina of paginateListObjectsV2({ client: s3 }, {
+        Bucket: NOME_BUCKET, Prefix: prefixo, Delimiter: "/"
+    })) {
+        pastas.push(...(pagina.CommonPrefixes || []));
+    }
+    return pastas;
+}
+
+// Recorte exclusivo de Docker: inicia na primeira data e para ao sair do período.
+async function listarPeriodoDocker(prefixo, inicio, fim) {
+    const arquivos = [];
+    for await (const pagina of paginateListObjectsV2({ client: s3 }, {
+        Bucket: NOME_BUCKET, Prefix: prefixo, StartAfter: `${prefixo}data=${inicio}/`
+    })) {
+        for (const arquivo of pagina.Contents || []) {
+            const data = arquivo.Key.slice(prefixo.length).match(/^data=(\d{4}-\d{2}-\d{2})\//)?.[1];
+            if (data > fim) return arquivos;
+            if (data >= inicio && data <= fim && !arquivo.Key.endsWith("/")) arquivos.push(arquivo);
+        }
+    }
+    return arquivos;
+}
+
 // Busca o conteúdo de um arquivo no S3
 async function buscarConteudoS3(chave) {
 
@@ -133,6 +159,8 @@ async function buscarArquivoBinarioS3(nomeArquivo) {
 
 module.exports = {
     listarResumosS3,
+    listarPastasDocker,
+    listarPeriodoDocker,
     buscarConteudoS3,
     buscarResumoServidor,
     buscarUltimoResumoServidor,

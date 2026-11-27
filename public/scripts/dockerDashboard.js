@@ -11,6 +11,8 @@
 
     const P = typeof module !== "undefined" && module.exports ? require("./dockerPeriodos.js") : window.CoreTraceDockerPeriodos;
 
+    const C = typeof module !== "undefined" && module.exports ? require("./dockerCarregamento.js") : window.CoreTraceDockerCarregamento;
+
     // Funções locais: não precisamos importar dockerDados.js para ler o JSON.
     // Não convertemos null em zero, pois a ausência da métrica não significa 0%.
     const D = (() => {
@@ -92,6 +94,10 @@
     const formatoData = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
     let requisicaoHistorico = 0;
     let referenciaLocal = null;
+    let referenciaDados = null;
+    let controleCarga = null;
+    let carregando = false;
+    const carregador = C.criar({ validar: D.validar, normalizar: N.apresentar });
     let historico = [];
     let historicoHorario = [];
     let historicoAtivo = [];
@@ -101,6 +107,7 @@
     const usarHorario = () => periodoPersonalizado ? P.granularidade(periodoPersonalizado) !== "dia" : periodoDias <= 1;
     function referenciaSuperior() {
         if (Number.isFinite(referenciaLocal)) return referenciaLocal;
+        if (Number.isFinite(referenciaDados)) return referenciaDados;
         const instantes = [...historico, ...historicoHorario].flatMap(doc => doc.containers.map(c => D.instante(c.ultima_observacao)?.getTime())).filter(Number.isFinite);
         return instantes.length ? Math.max(...instantes) : null;
     }
@@ -197,18 +204,31 @@
 
     async function trocarServidorSelecionado() {
         atualizarServidorSelecionado();
-        const requisicao = ++requisicaoHistorico;
         selecionadoId = null;
+        referenciaLocal = null;
+        referenciaDados = null;
+        return carregarPeriodo();
+    }
+
+    async function carregarPeriodo() {
+        const requisicao = ++requisicaoHistorico;
+        controleCarga?.abort();
+        controleCarga = new AbortController();
+        const signal = controleCarga.signal;
         historico = [];
         historicoHorario = [];
         atualizarPeriodo();
         const feedback = $("docker-feedback");
-        if (!$("docker-servidor").value) return;
+        if (!$("docker-servidor").value) { carregando = false; return; }
         feedback.hidden = false;
         feedback.textContent = "Carregando resumos do servidor...";
+        carregando = true;
         try {
-            const documentos = await carregarHistorico();
+            const resultado = await carregador.carregar({ mac: $("docker-servidor").value, dias: periodoDias, personalizado: periodoPersonalizado, signal });
             if (requisicao !== requisicaoHistorico) return;
+            const { documentos } = resultado;
+            referenciaLocal = resultado.referenciaLocal;
+            referenciaDados = resultado.referenciaDados;
             historico = documentos.filter((doc) => !doc.intervalo).sort((a, b) => a.data.localeCompare(b.data));
             historicoHorario = documentos.filter((doc) => doc.intervalo)
                 .sort((a, b) => Date.parse(a.intervalo.fim) - Date.parse(b.intervalo.fim));
@@ -216,8 +236,10 @@
         } catch (erro) {
             if (requisicao !== requisicaoHistorico) return;
             feedback.hidden = false;
-            feedback.textContent = `Não foi possível carregar os resumos do S3: ${erro.message}`;
+            feedback.textContent = `Não foi possível carregar os resumos: ${erro.message}`;
             console.error("CoreTrace Docker:", erro);
+        } finally {
+            if (requisicao === requisicaoHistorico) carregando = false;
         }
     }
 
@@ -240,38 +262,6 @@
         elemento.textContent = texto;
         pai.appendChild(elemento);
         return elemento;
-    }
-
-    async function carregarHistorico() {
-        const mac = $("docker-servidor").value;
-        const prefixo = `client/resumos/maquina=${mac}/`;
-        const resposta = await fetch(`/s3Routes/arquivos?dashboard=docker&prefixo=${encodeURIComponent(prefixo)}`, { cache: "no-store" });
-        if (!resposta.ok) throw new Error(`HTTP ${resposta.status} ao listar os resumos.`);
-        referenciaLocal = D.instante(resposta.headers.get("X-Docker-Referencia"))?.getTime() ?? null;
-        const arquivos = await resposta.json();
-        if (!Array.isArray(arquivos)) throw new Error("A API retornou uma lista inválida de arquivos.");
-        const chaves = [...new Set(arquivos.map((arquivo) => arquivo.Key)
-            .filter((chave) => typeof chave === "string" && chave.startsWith(prefixo) && chave.endsWith(".json")))];
-        const documentos = [];
-        // Limita as consultas simultâneas ao carregar o histórico do servidor.
-        for (let indice = 0; indice < chaves.length; indice += 6) {
-            const lote = await Promise.all(chaves.slice(indice, indice + 6).map(async (chave) => {
-                const resultado = await fetch(`/s3Routes/conteudo?dashboard=docker&arquivo=${encodeURIComponent(chave)}`, { cache: "no-store" });
-                if (!resultado.ok) throw new Error(`HTTP ${resultado.status} ao buscar um resumo.`);
-                const corpo = await resultado.json();
-                const original = typeof corpo.conteudo === "string" ? JSON.parse(corpo.conteudo) : corpo.conteudo;
-                const documento = D.validar(original);
-                if (documento.mac !== mac) throw new Error("O resumo não corresponde ao servidor selecionado.");
-                if (original.granularidade === "hora" && (!documento.intervalo
-                    || !D.instante(documento.intervalo.inicio) || !D.instante(documento.intervalo.fim)
-                    || Date.parse(documento.intervalo.fim) - Date.parse(documento.intervalo.inicio) !== 3600000)) {
-                    throw new Error("Resumo horário sem intervalo válido de uma hora.");
-                }
-                return documento;
-            }));
-            documentos.push(...lote);
-        }
-        return N.apresentar([...new Map(documentos.map((doc) => [doc.intervalo?.fim || doc.data, doc])).values()]);
     }
 
     function instanteResumo(doc) {
@@ -1439,7 +1429,7 @@
         }
         periodoPersonalizado = null;
         periodoDias = Number(evento.target.value);
-        atualizarPeriodo();
+        carregarPeriodo();
     });
     document.querySelectorAll("[data-pico]").forEach((botao) => botao.addEventListener("click", () => {
         tipoPico = botao.dataset.pico;
@@ -1451,11 +1441,15 @@
         try {
             periodoPersonalizado = validarPeriodoPersonalizado($("docker-periodo-inicio").value, $("docker-periodo-fim").value);
             erro.hidden = true;
-            atualizarPeriodo();
+            carregarPeriodo();
         } catch (falha) {
             erro.textContent = falha.message;
             erro.hidden = false;
         }
     });
+    // Revalida as listagens recentes sem sobrepor uma carga em andamento.
+    if (window.setInterval) window.setInterval(() => {
+        if (!document.hidden && !carregando && $("docker-servidor").value) carregarPeriodo();
+    }, 60000);
     iniciar();
 })();

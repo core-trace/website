@@ -349,16 +349,38 @@ O agente distribuído pelo site usa `API_BASE_URL` em `src/agente/capturas/captu
 
 ### Dados da dashboard Docker
 
-A página `public/pages/dockerDashboard.html` consulta os endpoints existentes
-`GET /s3Routes/arquivos?prefixo=...` e `GET /s3Routes/conteudo?arquivo=...`.
-Os resumos ficam em `client/resumos/maquina=<MAC>/data=<DIA>/resumo.json`,
-no bucket configurado por `BUCKET_DADOS_GOLD`, com fallback para `S3_BUCKET`
-e `bucket-coretrace`. A listagem é paginada e filtrada pelo MAC selecionado.
-Não há fallback para arquivos locais de demonstração.
+A página usa `DOCKER_DATA_SOURCE=local|s3` (padrão: `s3`). A fonte local lê
+`data/docker`; a fonte S3 usa `BUCKET_DADOS_GOLD`, depois `S3_BUCKET` ou
+`bucket-coretrace`. As fontes não compartilham o cache nem têm fallback entre si.
 
-Os filtros de 7 e 30 dias usam resumos diários. Os filtros de horas e o período
-personalizado dependem de resumos com `granularidade: "hora"` e intervalo válido
-de uma hora; sem esses documentos, a tela mostra ausência de dados.
-As janelas rápidas são relativas ao último resumo disponível. O filtro exclusivo
-de últimas 24 horas dos logs usa o relógio atual. Falhas de leitura da API/S3
-são apresentadas na tela, sem reaproveitar dados do servidor anterior.
+As consultas a `/s3Routes/arquivos` e `/s3Routes/conteudo` levam
+`dashboard=docker`. A descoberta usa o prefixo da máquina e `pastas=1`
+(`Delimiter: "/"` no S3), retornando somente as pastas de datas. As listagens
+seguintes usam prefixos de máquina/data. Em 7d, uma listagem do período usa
+o prefixo da máquina com `StartAfter` na primeira data e encerra a paginação
+a data final, substituindo sete listagens separadas. A tela baixa somente os resumos do
+período, os diários necessários à normalização do host e as leituras de apoio
+necessárias à referência temporal e aos deltas. Não baixa todo o histórico.
+
+Os filtros 1h, 6h e 24h usam resumos horários; 1h usa blocos de cinco minutos
+quando existem capturas por minuto. O filtro 7d usa diários. Personalizado
+mantém o limite de 168 horas e escolhe a granularidade pela duração. Resumos
+sem precisão suficiente não são repartidos para preencher lacunas.
+
+As requisições usam até seis operações simultâneas. O cache em memória da página
+reutiliza JSONs originais por fonte/máquina/chave. As listagens têm validade de
+60 segundos; `ETag`, `LastModified` e tamanho detectam alterações (a fonte local
+informa a data de modificação). Sem versão, o documento também expira em
+60 segundos. A página visível revalida o período a cada minuto. Trocas de
+máquina/período cancelam a carga anterior, sem reutilizar sua resposta na tela.
+
+O console do navegador registra `CoreTrace Docker · carregamento`, com tempo
+em milissegundos, fonte, máquina, listagens, objetos listados, arquivos consultados,
+JSONs baixados, acertos de cache e bytes dos corpos HTTP em UTF-8 (incluindo o
+envelope da API; não é uma medição de tráfego comprimido ou de headers).
+Compare a primeira carga e a repetição do mesmo filtro.
+
+Cada entrada em `requisicoes` registra o tempo total da chamada e `servidorMs`,
+informado por `Server-Timing`. Este último mede a leitura/listagem no servidor
+(incluindo a espera pela fonte); a diferença também inclui transferência e
+processamento no navegador, não somente latência de rede.

@@ -228,15 +228,21 @@ function montarPerfis(servidores) {
     return nomesPerfis.map(nome => montarPerfil(nome, servidores.filter(servidor => servidor.nome_perfil === nome)));
 }
 
+//2h de baldes de 5 min da 24 pontos pro grafico
+const JANELA_EVOLUCAO_MS = 2 * 60 * 60 * 1000;
+
 // a gold agora manda resumo.evolucao (lista de {instante, estado} por servidor, ja
 // classificado em baldes de 5 min - ver resumos_gold.AcumuladorEvolucao). mas nem
 // todo servidor tem leitura exatamente no mesmo balde que os outros, entao primeiro
 // preciso achar todos os instantes que apareceram em QUALQUER servidor, pra montar
 // um eixo de tempo so, compartilhado
-function construirEixoDeHorarios(servidores) {
+function construirEixoDeHorarios(servidores, agora) {
+    const corte = agora.getTime() - JANELA_EVOLUCAO_MS;
     const instantes = new Set();
     for (const servidor of servidores) {
-        for (const ponto of servidor.resumo?.evolucao ?? []) instantes.add(ponto.instante);
+        for (const ponto of servidor.resumo?.evolucao ?? []) {
+            if (Date.parse(ponto.instante) >= corte) instantes.add(ponto.instante);
+        }
     }
     return [...instantes].sort();
 }
@@ -244,8 +250,8 @@ function construirEixoDeHorarios(servidores) {
 // pra cada servidor, se ele nao tem leitura num balde que outro servidor tem, uso
 // "normal" como padrao (nao e "sem dados", e so que naquele balde nao achei nada
 // fora do normal pra registrar - se um dia isso virar problema a gente revisita)
-function montarEvolucao(servidores) {
-    const instantes = construirEixoDeHorarios(servidores);
+function montarEvolucao(servidores, agora) {
+    const instantes = construirEixoDeHorarios(servidores, agora);
     const horarios = instantes.map(instante => formatarHorarioDeInstante(new Date(instante)));
 
     const porServidor = servidores
@@ -565,6 +571,7 @@ function resumoSemDados() {
 async function construirResumoGeral() {
     const servidoresDaEmpresa = await servidorModel.listarServidoresParaMonitoramento(ID_EMPRESA_IFOOD);
     const dataDeHoje = resumoGoldService.dataDeHojeSaoPaulo();
+    const agora = resumoGoldService.agoraOuReferenciaDemo();
 
     const servidores = await Promise.all(servidoresDaEmpresa.map(async function (servidor) {
         try {
@@ -581,7 +588,7 @@ async function construirResumoGeral() {
 
     const perfis = montarPerfis(servidores);
     const cobertura = montarCobertura(servidores, servidoresDaEmpresa.length);
-    const evolucao = montarEvolucao(servidores);
+    const evolucao = montarEvolucao(servidores, agora);
     const evolucaoLegenda = montarLegendaEvolucao(evolucao);
     for (const perfil of perfis) perfil.evolucaoLegenda = montarLegendaEvolucao(evolucao, perfil.nome);
 

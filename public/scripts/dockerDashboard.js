@@ -1,11 +1,15 @@
 /* Dashboard de investigação de Docker.
  * Lê os resumos do servidor selecionado no S3 por meio dos endpoints Node.
- * Filtros de horas e personalizado usam resumos horários; 7 e 30 dias usam diários.
+ * Filtros superiores limitados a sete dias; personalizado escolhe a granularidade pela duração.
  * Nenhuma credencial AWS fica no navegador.
  */
 (function () {
     "use strict";
     const A = typeof module !== "undefined" && module.exports ? require("./dockerAnalise.js") : window.CoreTraceDockerAnalise;
+
+    const N = typeof module !== "undefined" && module.exports ? require("./dockerNormalizacao.js") : window.CoreTraceDockerNormalizacao;
+
+    const P = typeof module !== "undefined" && module.exports ? require("./dockerPeriodos.js") : window.CoreTraceDockerPeriodos;
 
     // Funções locais: não precisamos importar dockerDados.js para ler o JSON.
     // Não convertemos null em zero, pois a ausência da métrica não significa 0%.
@@ -71,6 +75,9 @@
                 data: documento.data,
                 intervalo: documento.granularidade === "hora" ? documento.intervalo : null,
                 mac: documento.endereco_mac,
+                hostOriginal: { cpu: documento.resumos.cpu?.inventario?.quantidade_logicas, ram: documento.resumos.ram?.capacidade_total },
+                coberturaLocal: documento.prototipo_docker,
+                seriesMinuto: documento.series_minuto?.versao === 1 ? documento.series_minuto.containers : null,
                 containers: documento.resumos.containers,
                 logs: documento.resumos.logs || [],
                 logsIndividuais: Array.isArray(documento.logs) ? documento.logs : [],
@@ -84,21 +91,29 @@
     const formatoNumero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
     const formatoData = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
     let requisicaoHistorico = 0;
+    let referenciaLocal = null;
     let historico = [];
     let historicoHorario = [];
     let historicoAtivo = [];
-    let periodoDias = 30;
+    let periodoDias = 7;
     let periodoPersonalizado = null;
     let intervaloAtivo = null;
-    const usarHorario = () => periodoPersonalizado !== null || periodoDias <= 1;
+    const usarHorario = () => periodoPersonalizado ? P.granularidade(periodoPersonalizado) !== "dia" : periodoDias <= 1;
+    function referenciaSuperior() {
+        if (Number.isFinite(referenciaLocal)) return referenciaLocal;
+        const instantes = [...historico, ...historicoHorario].flatMap(doc => doc.containers.map(c => D.instante(c.ultima_observacao)?.getTime())).filter(Number.isFinite);
+        return instantes.length ? Math.max(...instantes) : null;
+    }
 
-    function validarPeriodoPersonalizado(inicio, fim) {
+    function validarPeriodoPersonalizado(inicio, fim, referencia = referenciaSuperior()) {
         if (!inicio || !fim) throw new Error("Informe o início e o fim do período.");
         const periodo = A.periodoLogs(inicio, fim);
         // O formulário seleciona minutos exatos, sem estender o minuto final.
         periodo.fim -= 59999;
         if (periodo.fim <= periodo.inicio) throw new Error("O fim deve ser posterior ao início.");
-        if (periodo.fim - periodo.inicio > 30 * 86400000) throw new Error("Selecione um intervalo de no máximo 30 dias.");
+        if (periodo.fim - periodo.inicio > 7 * 86400000) throw new Error("Selecione um intervalo de no máximo 7 dias corridos (168 horas).");
+        if (!Number.isFinite(referencia)) throw new Error("Aguarde os dados do servidor para validar o período.");
+        if (periodo.fim > referencia) throw new Error(`O período não pode ultrapassar o instante de referência: ${hora(new Date(referencia).toISOString())}.`);
         return periodo;
     }
 
@@ -230,8 +245,9 @@
     async function carregarHistorico() {
         const mac = $("docker-servidor").value;
         const prefixo = `client/resumos/maquina=${mac}/`;
-        const resposta = await fetch(`/s3Routes/arquivos?prefixo=${encodeURIComponent(prefixo)}`, { cache: "no-store" });
+        const resposta = await fetch(`/s3Routes/arquivos?dashboard=docker&prefixo=${encodeURIComponent(prefixo)}`, { cache: "no-store" });
         if (!resposta.ok) throw new Error(`HTTP ${resposta.status} ao listar os resumos.`);
+        referenciaLocal = D.instante(resposta.headers.get("X-Docker-Referencia"))?.getTime() ?? null;
         const arquivos = await resposta.json();
         if (!Array.isArray(arquivos)) throw new Error("A API retornou uma lista inválida de arquivos.");
         const chaves = [...new Set(arquivos.map((arquivo) => arquivo.Key)
@@ -240,7 +256,7 @@
         // Limita as consultas simultâneas ao carregar o histórico do servidor.
         for (let indice = 0; indice < chaves.length; indice += 6) {
             const lote = await Promise.all(chaves.slice(indice, indice + 6).map(async (chave) => {
-                const resultado = await fetch(`/s3Routes/conteudo?arquivo=${encodeURIComponent(chave)}`, { cache: "no-store" });
+                const resultado = await fetch(`/s3Routes/conteudo?dashboard=docker&arquivo=${encodeURIComponent(chave)}`, { cache: "no-store" });
                 if (!resultado.ok) throw new Error(`HTTP ${resultado.status} ao buscar um resumo.`);
                 const corpo = await resultado.json();
                 const original = typeof corpo.conteudo === "string" ? JSON.parse(corpo.conteudo) : corpo.conteudo;
@@ -255,7 +271,7 @@
             }));
             documentos.push(...lote);
         }
-        return [...new Map(documentos.map((doc) => [doc.intervalo?.fim || doc.data, doc])).values()];
+        return N.apresentar([...new Map(documentos.map((doc) => [doc.intervalo?.fim || doc.data, doc])).values()]);
     }
 
     function instanteResumo(doc) {
@@ -289,7 +305,12 @@
             || doc.containers.find((c) => c.container_id === referencia.container_id);
     }
 
-    function reiniciosDetectados(lista, referencia) {
+    function reiniciosDetectados(lista, referencia, local = false) {
+        if (local) {
+            const medidas = lista.map(doc => containerNoDia(doc, referencia)?.reinicios?.total?.observado_local);
+            if (!medidas.length || medidas.some(m => !m || m.intervalos_desconhecidos > 0 || m.total === null)) return null;
+            return medidas.reduce((soma, m) => soma + m.total, 0);
+        }
         let anterior = null;
         let idAnterior = null;
         let diferencas = 0;
@@ -454,6 +475,72 @@
         });
     }
 
+    // Dados de origem opcionais; sem eles, os gráficos seguem usando resumos.
+    function pontosMinuto(lista, referencia, inicio, fim, ler, divisor = null) {
+        const linhas = lista.flatMap(doc => doc.seriesMinuto?.find(c => c.container_id === referencia.container_id)?.amostras || [])
+            .filter(r => Date.parse(r[0]) >= inicio - 60000 && Date.parse(r[0]) <= fim)
+            .sort((a, b) => Date.parse(a[0]) - Date.parse(b[0]));
+        const medida = v => ({ media: v, ultimo_valor: v });
+        const container = r => ({
+            cpu: { uso: medida(r[1]), tempo_throttled: medida(r[8]) },
+            memoria: { uso: medida(r[2]) }, pids: { atuais: medida(r[3]) },
+            rede: { recebidos: medida(r[4]), enviados: medida(r[5]) },
+            disco: { leitura_acumulada: medida(r[6]), escrita_acumulada: medida(r[7]) }
+        });
+        return linhas.flatMap((r, i) => {
+            const x = Date.parse(r[0]);
+            if (x <= inicio) return [];
+            const valor = D.numero(ler(container(r)));
+            if (divisor === null) return [{ x, y: valor }];
+            const anterior = linhas[i - 1];
+            const base = anterior ? D.numero(ler(container(anterior))) : null;
+            const continuo = anterior && x - Date.parse(anterior[0]) === 60000
+                && r[9] === anterior[9] && r[10] === anterior[10];
+            return [{ x, y: continuo && base !== null && valor !== null && valor >= base
+                ? (valor - base) / divisor : null, inicio: anterior?.[0], fim: r[0] }];
+        });
+    }
+    function agruparCincoMinutos(pontos, inicio, fim, somar = false) {
+        const grupos = new Map();
+        for (const ponto of pontos) {
+            const indice = Math.ceil((ponto.x - inicio) / 300000);
+            if (!grupos.has(indice)) grupos.set(indice, []);
+            grupos.get(indice).push(ponto);
+        }
+        const resultado = [];
+        for (let a = inicio; a < fim; a += 300000) {
+            const b = Math.min(a + 300000, fim);
+            const grupo = grupos.get(Math.round((a - inicio) / 300000) + 1) || [];
+            const completo = grupo.length === Math.floor((b - a) / 60000)
+                && grupo.length > 0 && grupo.every(p => D.numero(p.y) !== null);
+            const valores = grupo.map(p => p.y).filter(v => D.numero(v) !== null);
+            const disponivel = valores.length > 0;
+            resultado.push({ x: b, parcial: !completo, intervalosValidos: valores.length, intervalosDesconhecidos: Math.floor((b-a)/60000)-valores.length, y: disponivel ? valores.reduce((s, v) => s + v, 0) / (somar ? 1 : valores.length) : null,
+                minimo: disponivel ? Math.min(...valores) : null,
+                maximo: disponivel ? Math.max(...valores) : null,
+                inicio: new Date(a).toISOString(), fim: new Date(b).toISOString() });
+        }
+        return resultado;
+    }
+
+    const usarMinuto = () => (periodoPersonalizado ? P.granularidade(periodoPersonalizado) === "cinco" : periodoDias === 1 / 24) && referenciaLocal !== null
+        && historicoHorario.some(doc => Array.isArray(doc.seriesMinuto));
+
+    function pontosVolumesLocais(lista, referencia, ler, divisor) {
+        return lista.map(doc => {
+            const c = containerNoDia(doc, referencia);
+            const observado = c ? ler(c)?.observado_local : null;
+            return { x: instanteResumo(doc), y: observado?.total == null ? null : observado.total / divisor,
+                parcial: !observado || observado.intervalos_desconhecidos > 0 || Boolean(doc.coberturaLocal?.parcial),
+                intervalosValidos: observado?.intervalos_validos || 0,
+                intervalosDesconhecidos: observado?.intervalos_desconhecidos,
+                inicio: doc.intervalo?.inicio || doc.data + "T00:00:00-03:00",
+                fim: c?.ultima_observacao,
+                inicioObservado: c ? D.instante(c.primeira_observacao) : null,
+                fimObservado: c ? D.instante(c.ultima_observacao) : null };
+        });
+    }
+
     function calcularMediaIntervalos(pontos) {
         // Volumes por intervalo têm peso igual, não peso por número de coletas.
         // Excluímos o dia final do filtro, mesmo quando seu delta é indisponível.
@@ -503,13 +590,14 @@
             ? errosConfirmados : null;
         const picos = (tipo) => registros.map(({ container, data, doc }) => ({
             container, data, intervalo: doc.intervalo,
+            instante: referenciaLocal !== null ? (tipo === "cpu" ? container.cpu : container.memoria)?.uso?.maximo_instante : null,
             valor: D.numero(tipo === "cpu" ? container.cpu?.uso?.maximo : container.memoria?.uso?.maximo)
         })).filter((item) => item.valor !== null).sort((a, b) => b.valor - a.valor);
 
         // O primeiro resumo de um período não informa quantos reinícios houve
         // antes dele; somamos apenas aumentos observáveis entre dois resumos.
         const nomes = new Map(registros.map(({ container }) => [container.nome || container.container_id, container]));
-        const contagens = [...nomes.values()].map((c) => reiniciosDetectados(historicoAtivo, c)).filter((v) => v !== null);
+        const contagens = [...nomes.values()].map((c) => reiniciosDetectados(historicoAtivo, c, referenciaLocal !== null)).filter((v) => v !== null);
         return {
             falhasConhecidas,
             reiniciosNoPeriodo: contagens.length ? contagens.reduce((soma, v) => soma + v, 0) : null,
@@ -537,9 +625,18 @@
         $("docker-total-containers").textContent = `(${dados.containers.length})`;
         $("docker-ultima-coleta").textContent = `Dados até ${ultimo}`;
         if (usarHorario()) {
-            $("docker-periodo-info").textContent = `Período: ${formatoData.format(intervaloAtivo.inicio)} a ${formatoData.format(intervaloAtivo.fim)} · ${historicoAtivo.length} resumos horários disponíveis. ${periodoPersonalizado ? "Horário de Brasília." : "Contado a partir da última leitura disponível."}`;
+            $("docker-periodo-info").textContent = `Período: ${formatoData.format(intervaloAtivo.inicio)} a ${formatoData.format(intervaloAtivo.fim)} · ${historicoAtivo.length} ${periodoPersonalizado && usarMinuto() ? "intervalos de 5 minutos disponíveis" : "resumos horários disponíveis"}. ${periodoPersonalizado ? "Horário de Brasília." : "Contado a partir da última leitura disponível."}`;
             $("docker-ultima-coleta").textContent = `Dados até ${hora(dados.intervalo.fim)}`;
         }
+        if (periodoPersonalizado) {
+            $("docker-periodo-info").textContent += " Somente dados contidos no recorte; limites sem precisão suficiente ficam sem dados.";
+        }
+    }
+
+    function horarioPico(pico) {
+        return pico.instante ? hora(pico.instante)
+            : pico.intervalo ? `${hora(pico.intervalo.inicio)} a ${hora(pico.intervalo.fim)}`
+            : pico.data.split("-").reverse().join("/");
     }
 
     function renderizarKpis() {
@@ -562,7 +659,8 @@
             : "Registros ERROR no período";
         const pico = tipoPico === "ram" ? indicadores.picoRam : indicadores.picoCpu;
         $("kpi-pico").textContent = pico ? n(pico.valor, "%") : "—";
-        $("kpi-pico-descricao").textContent = pico ? `${pico.container.nome || pico.container.container_id.slice(0, 12)} · ${pico.intervalo ? hora(pico.intervalo.fim) : pico.data.split("-").reverse().join("/")}` : "Nenhuma medição válida para esta métrica.";
+        $("kpi-pico").title = pico ? ["Percentual da capacidade do host", ...N.detalhes(tipoPico, pico.valor, pico.container.apresentacaoHost)].join("\n") : "Métrica ou capacidade do host indisponível";
+        $("kpi-pico-descricao").textContent = pico ? `${pico.container.nome || pico.container.container_id.slice(0, 12)} · ${horarioPico(pico)}` : "Nenhuma medição válida para esta métrica.";
         document.querySelectorAll("[data-pico]").forEach((botao) => {
             const ativo = botao.dataset.pico === tipoPico;
             botao.classList.toggle("ativo", ativo);
@@ -596,7 +694,7 @@
             adicionarTexto(tdStatus, "span", situacao.rotulo, `docker-estado ${situacao.classe}`);
             tr.appendChild(tdStatus);
             adicionarTexto(tr, "td", n(contarFalhas(historicoAtivo, container)));
-            adicionarTexto(tr, "td", n(reiniciosDetectados(historicoAtivo, container)));
+            adicionarTexto(tr, "td", n(reiniciosDetectados(historicoAtivo, container, referenciaLocal !== null)));
             adicionarTexto(tr, "td", n(contarErros(historicoAtivo, container)));
             tr.addEventListener("click", () => selecionar(container.container_id));
             corpo.appendChild(tr);
@@ -613,9 +711,10 @@
         $("docker-limpar").disabled = !selecionadoId;
     }
 
-    function atributo(pai, titulo, valor) {
+    function atributo(pai, titulo, valor, detalhes = []) {
         const div = document.createElement("div");
         div.className = "docker-atributo";
+        if (detalhes.length) div.title = detalhes.join("\n");
         adicionarTexto(div, "dt", titulo);
         adicionarTexto(div, "dd", valor);
         pai.appendChild(div);
@@ -632,9 +731,9 @@
         campos.replaceChildren();
         const metricas = $("docker-detalhe-metricas");
         metricas.replaceChildren();
-        atributo(metricas, "CPU média", n(container.cpu?.uso?.media, "%"));
-        atributo(metricas, "Memória média", `${mb(container.memoria?.utilizada?.media)} (${n(container.memoria?.uso?.media, "%")})`);
-        atributo(metricas, "Limite de memória", mb(container.memoria?.limite?.ultimo_valor));
+        atributo(metricas, "CPU média (% do host)", n(container.cpu?.uso?.media, "%"), N.detalhes("cpu", container.cpu?.uso?.media, container.apresentacaoHost));
+        atributo(metricas, "Memória média (% do host)", n(container.memoria?.uso?.media, "%"), N.detalhes("ram", container.memoria?.uso?.media, container.apresentacaoHost));
+        atributo(metricas, "Limite de memória", container.apresentacaoHost?.limiteBytes ? n(container.apresentacaoHost.limiteBytes / 1024 ** 3, " GiB") : "—");
         const saude = { healthy: "Saudável", unhealthy: "Não saudável", starting: "Inicializando" }[container.health_status] || "Não informado";
         atributo(campos, "Imagem", container.imagem || "—");
         atributo(campos, "Healthcheck", saude);
@@ -661,8 +760,12 @@
                 { ...series[1], nome: "Faixa mínima–máxima", cor: "#e49b26" }
             ];
         }
-        const faixaHoraria = usarHorario() && lerMedidaReferencia;
+        const tipoRecurso = porcentagem ? (titulo.startsWith("CPU") ? "cpu" : "ram") : null;
+        const minuto = usarMinuto();
+        const faixaHoraria = usarHorario() && !minuto && lerMedidaReferencia;
         const faixa = Boolean(lerMedidaReferencia);
+        let historicoReferencia = historicoAtivo;
+        let lerReferencia = lerMedidaReferencia;
         const barrasDiarias = !usarHorario() && opcoes.barras;
         if (usarHorario()) {
             subtitulo = subtitulo.replaceAll("cada dia", "cada hora").replaceAll("dias consecutivos", "horas consecutivas");
@@ -693,9 +796,32 @@
                 if (maximo !== null && (pico === null || maximo > pico)) pico = maximo;
             }
             const mediaGeral = amostrasValidas ? somaPonderada / amostrasValidas : null;
-            const rotuloMedia = porcentagem ? "Média" : "Média geral";
-            const rotuloPico = porcentagem ? "Pico" : "Máximo dos resumos";
+            const rotuloMedia = "Média";
+            const rotuloPico = "Pico";
             destaque = `${rotuloMedia}: ${n(mediaGeral, unidade)} · ${rotuloPico}: ${n(pico, unidade)}`;
+        }
+        if (minuto && lerMedidaReferencia) {
+            const pontos = pontosMinuto(historicoHorario, referencia, intervaloAtivo.inicio, intervaloAtivo.fim,
+                c => lerMedidaReferencia(c)?.media);
+            const agrupados = agruparCincoMinutos(pontos, intervaloAtivo.inicio, intervaloAtivo.fim);
+            series = [
+                { ...series[0], nome: "Média · 5 minutos", pontos: agrupados },
+                { nome: "Mínimo · 5 minutos", pontos: agrupados.map(p => ({ ...p, y: p.minimo })) },
+                { ...series[1], nome: "Faixa mínima–máxima", pontos: agrupados.map(p => ({ ...p, y: p.maximo })) }
+            ];
+            subtitulo = "Média e faixa entre mínimo e máximo a cada 5 minutos · horário de Brasília";
+            // A mesma média ponderada do recorte, excluindo o último intervalo válido.
+            // Aqui os intervalos são de cinco minutos, derivados das capturas reais.
+            historicoReferencia = agrupados.map(p => ({
+                data: D.diaSaoPaulo(new Date(p.x)), intervalo: { inicio: p.inicio, fim: p.fim },
+                containers: [{ container_id: referencia.container_id, nome: referencia.nome,
+                    apresentacaoHost: N.hostComum(historicoHorario.filter(doc => Date.parse(doc.intervalo.inicio) < p.x
+                        && Date.parse(doc.intervalo.fim) > Date.parse(p.inicio)).map(doc => containerNoDia(doc, referencia)), tipoRecurso),
+                    medidaGrafico: { media: p.y, minimo: p.minimo, maximo: p.maximo, amostras_validas: p.intervalosValidos } }]
+            }));
+            lerReferencia = c => c.medidaGrafico;
+            const valores = pontos.map(p => p.y).filter(v => v !== null);
+            destaque = valores.length ? `Média: ${n(valores.reduce((a, b) => a + b, 0) / valores.length, unidade)} · Pico: ${n(Math.max(...valores), unidade)}` : "Sem capturas no período";
         }
         const artigo = adicionarTexto($("docker-graficos"), "article", "", "docker-card docker-grafico-card");
         const topo = adicionarTexto(artigo, "div", "", "docker-grafico-topo");
@@ -740,17 +866,40 @@
         }
         const temMedicoes = conjuntos.some((serie) => serie.data.some((ponto) => ponto.y !== null));
         if (lerMedidaReferencia) {
-            const mediaHistorica = calcularMediaHistorica(historicoAtivo, referencia, lerMedidaReferencia);
-            const datasetReferencia = criarDatasetReferencia(historicoAtivo, mediaHistorica);
+            const mediaHistorica = calcularMediaHistorica(historicoReferencia, referencia, lerReferencia);
+            const datasetReferencia = criarDatasetReferencia(historicoReferencia, mediaHistorica);
             if (datasetReferencia) conjuntos.push(datasetReferencia);
             adicionarTexto(artigo, "p", mediaHistorica
-                ? `Média histórica: ${n(mediaHistorica.valor, unidade)} · ponderada por ${n(mediaHistorica.amostras)} amostras em ${mediaHistorica.dias} ${usarHorario() ? "horas" : "dias"} anteriores, excluindo ${usarHorario() ? hora(mediaHistorica.dataExcluida) : mediaHistorica.dataExcluida.split("-").reverse().join("/")}. Referência de comparação, sem limite de alerta.`
+                ? `Média histórica: ${n(mediaHistorica.valor, unidade)} · ponderada por ${n(mediaHistorica.amostras)} amostras em ${mediaHistorica.dias} ${minuto ? "intervalos de 5 minutos" : usarHorario() ? "horas" : "dias"} anteriores, excluindo ${usarHorario() ? hora(mediaHistorica.dataExcluida) : mediaHistorica.dataExcluida.split("-").reverse().join("/")}. Referência de comparação, sem limite de alerta.`
                 : "Histórico insuficiente para calcular a média de referência.", "docker-grafico-observacao");
+        }
+        if (tipoRecurso) {
+            for (const conjunto of conjuntos) {
+                conjunto.data = conjunto.data.map((ponto, indice) => {
+                    let containers;
+                    if (conjunto.referenciaHistorica) {
+                        const validos = historicoReferencia.filter(doc => {
+                            const c = containerNoDia(doc, referencia);
+                            const m = c && lerReferencia(c);
+                            return D.numero(m?.media) !== null && m.amostras_validas > 0;
+                        }).slice(0, -1);
+                        containers = validos.map(doc => containerNoDia(doc, referencia));
+                    } else if (minuto) {
+                        containers = historicoHorario.filter(doc => Date.parse(doc.intervalo.inicio) < ponto.x
+                            && Date.parse(doc.intervalo.fim) >= Date.parse(ponto.inicio || ponto.x))
+                            .map(doc => containerNoDia(doc, referencia));
+                    } else containers = [containerNoDia(historicoAtivo[indice], referencia)];
+                    return { ...ponto, hostTooltip: N.hostComum(containers, tipoRecurso) };
+                });
+            }
+            if (conjuntos.some(c => c.data.some(p => p.y > 100))) {
+                adicionarTexto(artigo, "p", "Há medições acima da capacidade informada do host. Valores preservados para investigação.", "docker-grafico-observacao");
+            }
         }
         conjuntos.push(...(opcoes.referencias || []));
         if (opcoes.nota) adicionarTexto(artigo, "p", opcoes.nota, "docker-grafico-observacao");
         if (!temMedicoes) {
-            criarGraficoVazio(artigo, opcoes.intervalos ? "Sem pares de leituras válidas e contínuas no período. Ausência de dados não significa consumo zero." : "Nenhum resumo do período contém essa métrica.");
+            criarGraficoVazio(artigo, opcoes.intervalos ? "Sem pares de leituras válidas e contínuas no período. Ausência de dados não significa consumo zero." : (tipoRecurso ? "Métrica ou capacidade do host indisponível para normalização." : "Nenhum resumo do período contém essa métrica."));
             return artigo;
         }
         if (!usarHorario() && conjuntos.some((serie) => serie.data.some((ponto) => ponto.y === null))) {
@@ -842,9 +991,12 @@
                             },
                             label: (item) => {
                                 const nome = faixa && item.datasetIndex === 2
-                                    ? (horario ? "Máximo horário" : "Máximo diário") : item.dataset.label;
-                                const valor = n(item.parsed.y, unidade);
-                                return `${nome}: ${valor}${item.dataset.referenciaHistorica || item.dataset.referenciaComparativa ? " (referência de comparação)" : ""}`;
+                                    ? (minuto ? "Máximo · 5 minutos" : horario ? "Máximo horário" : "Máximo diário") : item.dataset.label;
+                                const valor = n(item.parsed.y, unidade) + (item.raw?.parcial ? ` · parcial (${item.raw.intervalosValidos} intervalos medidos; ${item.raw.intervalosDesconhecidos ?? "?"} desconhecidos)` : "");
+                                const linha = `${nome}: ${valor}${item.dataset.referenciaHistorica || item.dataset.referenciaComparativa ? " (referência de comparação)" : ""}`;
+                                return tipoRecurso ? [linha, ...(item.raw?.hostTooltip
+                                    ? N.detalhes(tipoRecurso, item.parsed.y, item.raw.hostTooltip)
+                                    : ["Capacidade variável ou indisponível no intervalo; detalhes técnicos não comparáveis."])] : linha;
                             }
                         }
                     }
@@ -869,7 +1021,7 @@
                     },
                     y: {
                         beginAtZero: true,
-                        suggestedMax: porcentagem ? 100 : undefined,
+                        max: porcentagem ? Math.max(100, ...conjuntos.flatMap(c => c.data.map(p => p.y ?? 0))) : undefined,
                         grid: { color: "#f0eeeb" },
                         ticks: { color: "#706b6d", callback: (valor) => `${formatoNumero.format(valor)}${unidade}` }
                     }
@@ -888,10 +1040,14 @@
     }
 
     function graficoContadores(titulo, container, series, unidade, divisor, incluirZero = false, barras = false) {
+        if (referenciaLocal !== null) { titulo = titulo.replace("MB", "MiB"); unidade = unidade.replace("MB", "MiB"); }
         let intervalos = series.map((serie) => ({
-            ...serie, pontos: criarPontosIntervalos(historicoAtivo, container, serie.ler, divisor)
+            ...serie, pontos: usarMinuto()
+                ? agruparCincoMinutos(pontosMinuto(historicoHorario, container, intervaloAtivo.inicio, intervaloAtivo.fim, c => serie.ler(c)?.ultimo_valor, divisor), intervaloAtivo.inicio, intervaloAtivo.fim, true)
+                : referenciaLocal !== null ? pontosVolumesLocais(historicoAtivo, container, serie.ler, divisor)
+                : criarPontosIntervalos(historicoAtivo, container, serie.ler, divisor)
         }));
-        if (!usarHorario()) {
+        if (!usarHorario() && referenciaLocal === null) {
             intervalos = intervalos.map((serie) => ({
                 ...serie, pontos: serie.pontos.map((ponto, indice) => {
                     if (ponto.y === null) return ponto;
@@ -916,8 +1072,9 @@
         const insuficientes = intervalos.filter((serie) => !calcularMediaIntervalos(serie.pontos)).map((serie) => serie.nome);
         const diario = !usarHorario();
         const destaque = intervalos.map((serie) => n(serie.pontos.at(-1)?.y, unidade)).join(" / ") + (diario ? " · último dia" : " · último intervalo");
+        if (usarMinuto()) titulo = titulo.replace("por intervalo", "por 5 minutos");
         const tituloGrafico = diario ? titulo.replace("por intervalo", "por dia") + (incluirZero ? " (s por dia)" : "") : titulo;
-        grafico(tituloGrafico, diario ? "Total observado entre leituras, por data final" : "Diferenças entre leituras horárias consecutivas", destaque, container,
+        grafico(tituloGrafico, referenciaLocal !== null ? "Soma dos deltas conhecidos das capturas por minuto" : diario ? "Total observado entre leituras, por data final" : usarMinuto() ? "Total observado em cada intervalo de 5 minutos" : "Diferenças entre leituras horárias consecutivas", destaque, container,
             intervalos, unidade, false, null, {
                 intervalos: true, referencias, barras,
                 nota: [nota ? nota + "." : "", insuficientes.length ? `Histórico insuficiente para referência: ${insuficientes.join(", ")}.` : "",
@@ -927,7 +1084,7 @@
 
     function renderizarGraficos(c) {
         $("docker-desempenho-titulo").textContent = `Desempenho — ${c.nome || c.container_id.slice(0, 12)}`;
-        $("docker-desempenho-descricao").textContent = `Histórico de ${c.nome || "contêiner"} · período compartilhado · resumos ${usarHorario() ? "horários · BRT" : "diários"}`;
+        $("docker-desempenho-descricao").textContent = `Histórico de ${c.nome || "contêiner"} · período compartilhado · resumos ${usarMinuto() ? "de 5 minutos · BRT" : usarHorario() ? "horários · BRT" : "diários"}`;
         // Chart.js mantém instâncias associadas aos canvas; destrua-as antes de
         // redesenhar quando mudar o contêiner ou o filtro de período.
         graficosAtivos.forEach((chart) => chart.destroy());
@@ -935,11 +1092,13 @@
         $("docker-graficos").replaceChildren();
         document.querySelector(".docker-aviso-medicoes").textContent = "Rede, disco e throttling mostram o total observado desde a última leitura do dia anterior, na data da leitura final. Os horários aparecem ao passar o mouse. Os resumos não permitem calcular totais exatos de meia-noite a meia-noite. O primeiro dia, lacunas, reinícios e resets detectados ficam sem valor. Referências são comparativas, sem limites de alerta.";
         if (usarHorario()) document.querySelector(".docker-aviso-medicoes").textContent = "Cada ponto resume uma hora. Rede, disco e throttling mostram diferenças entre leituras horárias consecutivas. A primeira leitura, lacunas e reinícios ficam sem valor; não são tratados como zero. Horários em BRT.";
-        grafico("CPU (%)", "Média e pico registrados em cada dia", n(c.cpu?.uso?.media, "%") + " média", c, [
+        if (usarMinuto()) document.querySelector(".docker-aviso-medicoes").textContent = "CPU, memória e PIDs mostram média e pico a cada 5 minutos. Rede e disco mostram MiB transferidos em cada intervalo; throttling mostra segundos acumulados em 5 minutos. Lacunas, reinícios e uso após encerramento ficam sem valor. KPIs e referências de CPU, memória e PIDs continuam baseados nos resumos horários.";
+        if (referenciaLocal !== null) document.querySelector(".docker-aviso-medicoes").textContent = "Volumes em MiB e throttling em segundos somam os deltas conhecidos das capturas por minuto. Reinícios preservam o consumo medido; totais parciais são identificados no tooltip. Zero indica ausência de incremento observada; lacunas desconhecidas não são zero. CPU, RAM e PIDs mantêm médias e picos na granularidade selecionada.";
+        grafico("CPU (% da capacidade do host)", "Média e pico registrados em cada dia", n(c.cpu?.uso?.media, "%") + " média", c, [
             { nome: "Média diária", ler: (v) => v.cpu?.uso?.media },
             { nome: "Pico diário", ler: (v) => v.cpu?.uso?.maximo }
         ], "%", true, (v) => v.cpu?.uso);
-        grafico("Memória (%)", "Média e pico registrados em cada dia", n(c.memoria?.uso?.media, "%") + " média", c, [
+        grafico("Memória (% da capacidade do host)", "Média e pico registrados em cada dia", n(c.memoria?.uso?.media, "%") + " média", c, [
             { nome: "Média diária", ler: (v) => v.memoria?.uso?.media },
             { nome: "Pico diário", ler: (v) => v.memoria?.uso?.maximo }
         ], "%", true, (v) => v.memoria?.uso);
@@ -970,7 +1129,7 @@
             ...r, nivel: String(r.nivel || "unknown").toLowerCase().trim().replace(/^err$/, "error").replace(/^warning$/, "warn")
         }));
         if (logsUltimas24h) {
-            logsPeriodo = A.ultimas24HorasLogs();
+            logsPeriodo = A.ultimas24HorasLogs(referenciaLocal ?? Date.now());
             const formatarCampo = (timestamp) => {
                 const partes = new Intl.DateTimeFormat("en-CA", {
                     timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
@@ -1015,30 +1174,54 @@
 
     }
 
+    function listarEventos(lista, c) {
+        const registros = A.registros(lista, "eventos", c);
+        const detalhados = registros.map(r => ({
+            data: D.diaSaoPaulo(new Date(r.timestamp)), timestamp: r.timestamp,
+            acao: r.tipo, quantidade: 1, descricao: r.descricao
+        }));
+        const agregados = lista.flatMap(doc => {
+            const grupo = doc.eventos.find(e => e.container_id === c.container_id || (c.nome && e.nome === c.nome));
+            if (!grupo) return [];
+            const individuais = A.registros([{ ...doc, eventos: [grupo] }], "eventos", c);
+            return Object.entries(grupo.acoes || {}).flatMap(([acao, medida]) => {
+                const total = D.total(medida);
+                const conhecidos = individuais.filter(r => r.tipo === acao).length;
+                // Mostra só o restante sem timestamp, sem contar eventos detalhados duas vezes.
+                const quantidade = total === null ? (conhecidos ? 0 : null) : Math.max(0, total - conhecidos);
+                return quantidade === 0 ? [] : [{ data: doc.data, timestamp: null, acao, quantidade }];
+            });
+        });
+        return [...detalhados, ...agregados].sort((a, b) => b.data.localeCompare(a.data)
+            || (b.timestamp ?? -Infinity) - (a.timestamp ?? -Infinity));
+    }
+
     function renderizarEventos(c) {
         $("docker-eventos-descricao").textContent = `Histórico do período · ${c.nome || "Contêiner"}`;
         const painel = $("docker-eventos-conteudo");
         painel.replaceChildren();
-        const eventos = historicoAtivo.flatMap((doc) => {
-            const evento = doc.eventos.find((item) => (c.nome && item.nome === c.nome)
-                || item.container_id === c.container_id);
-            if (!evento) return [];
-            return Object.entries(evento.acoes || {}).map(([acao, medida]) => ({
-                data: doc.data, acao, quantidade: D.total(medida)
-            }));
-        });
+        const eventos = listarEventos(historicoAtivo, c);
         if (!eventos.length) {
             adicionarTexto(painel, "p", "Não há registros de eventos disponíveis para este contêiner.", "docker-nenhum");
             return;
         }
         const lista = adicionarTexto(painel, "div", "", "docker-eventos-tabela");
-        for (const evento of eventos.sort((a, b) => b.data.localeCompare(a.data))) {
+        for (const evento of eventos) {
             const linha = adicionarTexto(lista, "div", "", "docker-evento-linha");
-            adicionarTexto(linha, "span", `${evento.data.split("-").reverse().join("/")} · horário indisponível`, "docker-evento-data");
+            const horario = evento.timestamp === null ? `${evento.data.split("-").reverse().join("/")} · horário indisponível`
+                : new Date(evento.timestamp).toLocaleString("pt-BR", {
+                    timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric",
+                    hour: "2-digit", minute: "2-digit", second: "2-digit"
+                }) + " BRT";
+            adicionarTexto(linha, "span", horario, "docker-evento-data");
             adicionarTexto(linha, "span", evento.acao, "docker-evento-acao");
-            adicionarTexto(linha, "span", `${n(evento.quantidade)} ocorrência(s) dessa ação no resumo diário`, "docker-evento-descricao");
+            adicionarTexto(linha, "span", evento.timestamp === null
+                ? `${n(evento.quantidade)} ocorrência(s) sem horário individual informado`
+                : evento.descricao || "1 ocorrência", "docker-evento-descricao");
         }
-        adicionarTexto(painel, "p", "As ações estão agrupadas por dia; os horários e a ordem de cada evento não vêm nos resumos enviados.", "docker-console-nota");
+        adicionarTexto(painel, "p", eventos.some(e => e.timestamp === null)
+            ? "A fonte não informa o horário individual de algumas ocorrências; elas permanecem agrupadas."
+            : "Horários de Brasília · eventos mais recentes primeiro.", "docker-console-nota");
     }
 
     function limparDetalhe() {
@@ -1085,9 +1268,23 @@
             fim: instanteResumo(historicoHorario.at(-1) || {}),
             inicio: instanteResumo(historicoHorario.at(-1) || {}) - periodoDias * 86400000
         };
-        historicoAtivo = usarHorario()
-            ? filtrarIntervalo(historicoHorario, intervaloAtivo.inicio, intervaloAtivo.fim)
-            : filtrarPeriodo(historico, periodoDias);
+        if (periodoPersonalizado) {
+            const tipo = P.granularidade(periodoPersonalizado);
+            const referencia = referenciaSuperior();
+            const valido = Number.isFinite(referencia) && periodoPersonalizado.fim <= referencia;
+            if (valido) $("docker-periodo-erro").hidden = true;
+            if (!valido) {
+                $("docker-periodo-erro").textContent = "O período ultrapassa a referência deste servidor ou seus dados ainda não foram carregados.";
+                $("docker-periodo-erro").hidden = false;
+            }
+            historicoAtivo = !valido ? [] : tipo === "cinco"
+                ? (usarMinuto() ? P.cincoMinutos(historicoHorario, periodoPersonalizado) : [])
+                : P.completos(tipo === "dia" ? historico : historicoHorario, periodoPersonalizado, tipo);
+        } else {
+            historicoAtivo = usarHorario()
+                ? filtrarIntervalo(historicoHorario, intervaloAtivo.inicio, intervaloAtivo.fim)
+                : filtrarPeriodo(historico, periodoDias);
+        }
         dados = historicoAtivo.at(-1) || null;
         $("docker-periodo").value = periodoPersonalizado ? "personalizado" : String(periodoDias);
         $("docker-feedback").hidden = true;
@@ -1095,7 +1292,7 @@
             limparDetalhe();
             $("docker-linhas").replaceChildren();
             const linha = adicionarTexto($("docker-linhas"), "tr", "");
-            adicionarTexto(linha, "td", "Sem dados no período selecionado.").colSpan = 5;
+            adicionarTexto(linha, "td", periodoPersonalizado ? "Não há dados com precisão suficiente dentro dos limites selecionados. Escolha outro intervalo." : "Sem dados no período selecionado.").colSpan = 5;
             indicadores = null;
             renderizarKpis();
             $("kpi-falhas").textContent = "—";
@@ -1104,7 +1301,7 @@
             $("docker-escopo-servidor").textContent = "Nenhum contêiner no período";
             $("docker-resumo-titulo").textContent = "Visão do contêiner";
             $("docker-ultima-coleta").textContent = "Sem leitura no período";
-            $("docker-periodo-info").textContent = "Não há resumos disponíveis nesse período. Selecione outro intervalo.";
+            $("docker-periodo-info").textContent = periodoPersonalizado ? "Não há dados com precisão suficiente dentro dos limites selecionados. Resumos que ultrapassam o período não são incluídos." : "Não há resumos disponíveis nesse período. Selecione outro intervalo.";
             $("docker-desempenho-descricao").textContent = "Sem dados no período selecionado.";
             return;
         }
@@ -1136,7 +1333,7 @@
     // sem depender de um navegador nem de credenciais da AWS.
     if (typeof module !== "undefined" && module.exports) {
         module.exports = {
-            validar: D.validar, resumoLog: D.resumoLog, filtrarPeriodo, filtrar24Horas, filtrarIntervalo, validarPeriodoPersonalizado,
+            listarEventos, referenciaSuperior, horarioPico, pontosVolumesLocais, agruparCincoMinutos, pontosMinuto, validar: D.validar, resumoLog: D.resumoLog, filtrarPeriodo, filtrar24Horas, filtrarIntervalo, validarPeriodoPersonalizado,
             containerNoDia, reiniciosDetectados, contarFalhas, contarErros,
             criarPontosDiarios, calcularMediaHistorica, criarDatasetReferencia,
             leiturasContinuas, criarPontosIntervalos, calcularMediaIntervalos, criarReferenciasIntervalos

@@ -12,6 +12,8 @@
     <script src="../scripts/navbarDashboard.js" defer></script>
     <script src="../scripts/vendor/chart.umd.js" defer></script>
     <script src="../scripts/dockerAnalise.js" defer></script>
+    <script src="../scripts/dockerNormalizacao.js" defer></script>
+    <script src="../scripts/dockerPeriodos.js" defer></script>
     <script src="../scripts/dockerDashboard.js" defer></script>
 </head>
 
@@ -85,8 +87,7 @@
                         <option value="0.041666666666666664">Última hora</option>
                         <option value="0.25">6 horas</option>
                         <option value="1">24 horas</option>
-                        <option value="7">7 dias</option>
-                        <option value="30" selected>30 dias</option>
+                        <option value="7" selected>7 dias</option>
                         <option value="personalizado">Personalizado</option>
                     </select>
                 </label>
@@ -98,7 +99,7 @@
                 <label class="docker-campo">Início (Brasília)<input id="docker-periodo-inicio" type="datetime-local" required></label>
                 <label class="docker-campo">Fim (Brasília)<input id="docker-periodo-fim" type="datetime-local" required></label>
                 <button type="submit" class="docker-botao">Aplicar período</button>
-                <p>Intervalo máximo de 30 dias. Exibe apenas resumos horários inteiramente contidos no período.</p>
+                <p>Máximo de 7 dias corridos (168 horas), até o instante de referência. Até 1h: 5 minutos; até 24h: horário; acima de 24h: diário. Só exibe dados inteiramente contidos no período.</p>
                 <p id="docker-periodo-erro" role="alert" hidden></p>
             </form>
             <p id="docker-contexto-resultado" class="docker-contexto-resultado" role="status" hidden></p>

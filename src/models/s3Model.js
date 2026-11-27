@@ -10,17 +10,12 @@ const s3 = new S3Client({
     region: process.env.AWS_REGION || "us-east-1"
 });
 
-const NOME_BUCKET = process.env.BUCKET_DADOS_GOLD;
+const NOME_BUCKET = process.env.BUCKET_DADOS_GOLD || process.env.S3_BUCKET || "bucket-coretrace";
 const PASTA = "client/";
 const PASTA_RESUMOS = `${PASTA}resumos/`;
 
-// Valida a configuração do bucket
-if (!NOME_BUCKET) {
-    throw new Error("Variável BUCKET_DADOS_GOLD não configurada.");
-}
-
 // Lista todos os resumos armazenados no S3
-async function listarResumosS3() {
+async function listarResumosS3(prefixo = PASTA_RESUMOS) {
 
     const arquivos = [];
 
@@ -28,13 +23,13 @@ async function listarResumosS3() {
         { client: s3 },
         {
             Bucket: NOME_BUCKET,
-            Prefix: PASTA_RESUMOS
+            Prefix: prefixo
         }
     );
 
     for await (const pagina of paginas) {
         for (const arquivo of pagina.Contents || []) {
-            arquivos.push(arquivo);
+            if (!arquivo.Key.endsWith("/")) arquivos.push(arquivo);
         }
     }
 

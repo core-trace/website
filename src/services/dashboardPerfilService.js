@@ -4,7 +4,7 @@ const s3 = new S3Client({});
 const TEMPO_INATIVO = 15 * 60000;
 
 // Reutiliza a lista de lotes por 30 segundos; os lotes com ID por conteúdo, por 5 minutos.
-// Os cadastros e limites continuam sendo consultados no banco em cada pedido.
+// O controller pode reutilizar a resposta completa por 2 minutos antes de chamar este service.
 const arquivosEmMemoria = new Map();
 async function lerJsonGold(chave) {
     const bucket = process.env.BUCKET_DADOS_GOLD;
@@ -16,14 +16,14 @@ async function lerJsonGold(chave) {
     // Limita a memória e reaproveita uma leitura que já estiver em andamento.
     if (arquivosEmMemoria.size >= 60) arquivosEmMemoria.delete(arquivosEmMemoria.keys().next().value);
     const consulta = { validoAte: Date.now() + duracao };
+ //mudou de 15 segundos para 90 segundos para tempo de esperar os arquivos s3 carregar antes de cancelar a tentativa
     consulta.leitura = s3.send(new GetObjectCommand({ Bucket: bucket, Key: chave }), {
-        abortSignal: AbortSignal.timeout(15000)
+        abortSignal: AbortSignal.timeout(90000)
     }).then(async resposta => {
         const documento = JSON.parse(await resposta.Body.transformToString());
         consulta.validoAte = Date.now() + duracao;
         return documento;
     }).catch(erro => {
-        // Uma falha não fica guardada: o próximo pedido tenta novamente.
         if (arquivosEmMemoria.get(identificacao) === consulta) arquivosEmMemoria.delete(identificacao);
         throw erro;
     });
@@ -140,7 +140,8 @@ async function lerServidor(servidor, agora) {
             lidos.add(lote.chave);
             chaves.push(lote.chave);
         }
-        // Lê até três lotes juntos, mantendo o limite de quatro servidores por grupo.
+        // isso aqui é só pra não abrir conexões demais de
+        // uma vez, o cache é quem realmente evita reler tudo de novo depois.
         for (let inicio = 0; inicio < chaves.length; inicio += 3) {
             const documentos = await Promise.all(chaves.slice(inicio, inicio + 3).map(lerJsonGold));
             for (const documento of documentos) {

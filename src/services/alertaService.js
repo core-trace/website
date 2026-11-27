@@ -8,12 +8,20 @@ const s3 = new S3Client({
     region: process.env.AWS_REGION || "us-east-1"
 });
 
-const BUCKET = (process.env.S3_BUCKET || "bucket-coretrace").trim();
+// Mesmo bucket que o resto do projeto usa (s3Model.js, resumoGoldService.js) -
+// antes essa variável tinha outro nome e nunca existia em nenhum .env, então
+// toda consulta caía num bucket que não é o nosso e dava Access Denied.
+const BUCKET = process.env.BUCKET_DADOS_GOLD;
+if (!BUCKET) {
+    throw new Error("Variável BUCKET_DADOS_GOLD não configurada.");
+}
 const PREFIXO_LOTES = normalizarPrefixo(process.env.S3_PREFIX || "client/lotes/");
 
 const JANELA_GRAFICO_MINUTOS = 60;
 const PASSO_GRADE_MINUTOS = 10;
 const LIMITE_SEM_DADOS_MINUTOS = 15;
+const CACHE_LOTES_MS = 5 * 60 * 1000;
+const cachePontosMaquina = new Map();
 
 function normalizarPrefixo(prefixo) {
     const limpo = String(prefixo || "").trim();
@@ -267,27 +275,41 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
     const servidoresProcessados = await Promise.all(servidoresBanco.map(async (srv) => {
         const mac = normalizarMac(srv.endereco_mac);
         const componentes = srv.componentes || [];
+        const chaveCache = `${mac}|${hoje}`;
+        const entradaCache = cachePontosMaquina.get(chaveCache);
+        const cacheValido = entradaCache && Date.now() < entradaCache.expiraEm;
 
-        let pontosBrutos = [];
-        try {
-            const chavesLotes = await listarLotesMaquina(mac, hoje);
-            const recentes = chavesLotes.slice(-6);
-            const conteudos = await Promise.all(recentes.map((chave) => lerJsonS3(chave).catch(() => null)));
+        let pontosBrutos = cacheValido ? entradaCache.pontosBrutos : [];
 
-            for (const doc of conteudos) {
-                if (!doc || !Array.isArray(doc.metricas)) continue;
-                for (const reg of doc.metricas) {
-                    const ts = Date.parse(reg.timestamp);
-                    if (Number.isNaN(ts)) continue;
-                    pontosBrutos.push({
-                        ts,
-                        hora: horaFormatada(new Date(ts)),
-                        leituras: extrairLeituras(reg)
-                    });
+        if (!cacheValido) {
+            try {
+                const chavesLotes = await listarLotesMaquina(mac, hoje);
+                const recentes = chavesLotes.slice(-6);
+                const conteudos = await Promise.all(recentes.map((chave) => lerJsonS3(chave).catch(() => null)));
+
+                for (const doc of conteudos) {
+                    if (!doc || !Array.isArray(doc.metricas)) continue;
+                    for (const reg of doc.metricas) {
+                        const ts = Date.parse(reg.timestamp);
+                        if (Number.isNaN(ts)) continue;
+                        pontosBrutos.push({
+                            ts,
+                            hora: horaFormatada(new Date(ts)),
+                            leituras: extrairLeituras(reg)
+                        });
+                    }
                 }
+
+                for (const chaveAntiga of cachePontosMaquina.keys()) {
+                    if (!chaveAntiga.endsWith(`|${hoje}`)) cachePontosMaquina.delete(chaveAntiga);
+                }
+                cachePontosMaquina.set(chaveCache, {
+                    expiraEm: Date.now() + CACHE_LOTES_MS,
+                    pontosBrutos
+                });
+            } catch (erroS3) {
+                console.warn(`[Alertas S3] Sem lotes disponíveis para ${mac}:`, erroS3.message);
             }
-        } catch (erroS3) {
-            console.warn(`[Alertas S3] Sem lotes disponíveis para ${mac}:`, erroS3.message);
         }
 
         pontosBrutos.sort((a, b) => a.ts - b.ts);

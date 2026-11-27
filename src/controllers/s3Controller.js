@@ -1,8 +1,7 @@
-
-const dockerFonte = require("../services/dockerFonteService");
 const s3Model = require("../models/s3Model");
 
-const BUCKET = process.env.BUCKET_DADOS_GOLD || process.env.S3_BUCKET || "bucket-coretrace";
+// Só deixa ler resumos: evita que a rota sirva qualquer objeto do bucket
+const PADRAO_RESUMO = /^client\/resumos\/maquina=[^/]+\/data=\d{4}-\d{2}-\d{2}\/resumo\.json$/;
 
 async function listarArquivos(req, res) {
 
@@ -11,9 +10,8 @@ async function listarArquivos(req, res) {
         return res.status(400).json({ erro: "Prefixo inválido" });
     }
     try {
-        const usarLocal = dockerFonte.local(req);
-        const arquivos = usarLocal ? await dockerFonte.listar(prefixo) : await s3Model.listarArquivosS3(BUCKET, prefixo);
-        if (usarLocal) await dockerFonte.referencia(res);
+
+        const arquivos = await s3Model.listarResumosS3();
 
         return res.status(200).json(arquivos);
 
@@ -32,7 +30,7 @@ async function buscarConteudo(req, res) {
 
     const nomeArquivo = req.query.arquivo;
 
-    if (!nomeArquivo || !nomeArquivo.startsWith("client/")) {
+    if (!nomeArquivo || !PADRAO_RESUMO.test(nomeArquivo)) {
 
         return res.status(400).json({
             erro: "Nome do arquivo inválido"

@@ -3,6 +3,34 @@ const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const s3 = new S3Client({});
 const TEMPO_INATIVO = 15 * 60000;
 
+// Reutiliza a lista de lotes por 30 segundos; os lotes com ID por conteúdo, por 5 minutos.
+// Os cadastros e limites continuam sendo consultados no banco em cada pedido.
+const arquivosEmMemoria = new Map();
+async function lerJsonGold(chave) {
+    const bucket = process.env.BUCKET_DADOS_GOLD;
+    const identificacao = bucket + "/" + chave;
+    const duracao = chave.startsWith("client/lotes/") ? 5 * 60000 : 30000;
+    const anterior = arquivosEmMemoria.get(identificacao);
+    if (anterior && anterior.validoAte > Date.now()) return anterior.leitura;
+
+    // Limita a memória e reaproveita uma leitura que já estiver em andamento.
+    if (arquivosEmMemoria.size >= 60) arquivosEmMemoria.delete(arquivosEmMemoria.keys().next().value);
+    const consulta = { validoAte: Date.now() + duracao };
+    consulta.leitura = s3.send(new GetObjectCommand({ Bucket: bucket, Key: chave }), {
+        abortSignal: AbortSignal.timeout(15000)
+    }).then(async resposta => {
+        const documento = JSON.parse(await resposta.Body.transformToString());
+        consulta.validoAte = Date.now() + duracao;
+        return documento;
+    }).catch(erro => {
+        // Uma falha não fica guardada: o próximo pedido tenta novamente.
+        if (arquivosEmMemoria.get(identificacao) === consulta) arquivosEmMemoria.delete(identificacao);
+        throw erro;
+    });
+    arquivosEmMemoria.set(identificacao, consulta);
+    return consulta.leitura;
+}
+
 // recebe o horario e transforma em milisegundos
 function horarioDaCaptura(texto) {
     if (typeof texto !== "string") throw new Error("Horário ausente na captura.");
@@ -79,24 +107,22 @@ function servidorCritico(captura, componentes) {
 }
 
 // verifica as capturas dos servidores na gold
-async function lerServidor(servidor, agora, referencia) {
+async function lerServidor(servidor, agora) {
     if (!process.env.BUCKET_DADOS_GOLD) throw new Error("Configure BUCKET_DADOS_GOLD.");
     //padroniza o endereco mac e o if ve se ele realmente esta no modelo certo
     const mac = String(servidor.endereco_mac).trim().toUpperCase().replace(/-/g, ":");
     if (!/^[0-9A-F]{2}(?::[0-9A-F]{2}){5}$/.test(mac)) throw new Error("MAC inválido no cadastro.");
     const datas = new Set([
-        dataSaoPaulo(agora), dataSaoPaulo(agora - TEMPO_INATIVO),
-        dataSaoPaulo(referencia), dataSaoPaulo(referencia - TEMPO_INATIVO)
+        dataSaoPaulo(agora), dataSaoPaulo(agora - TEMPO_INATIVO)
     ]);
     let ultimaAtual = null;
-    let ultimaHistorica = null;
     let ultimaMetrica = null;
     let horarioMetrica = null;
     const lidos = new Set();
     for (const data of datas) {
         let resumo;
         try {
-            resumo = await resumoGoldService.buscarResumoDoServidor(mac, data);
+            resumo = await lerJsonGold(`client/resumos/maquina=${mac}/data=${data}/resumo.json`);
         } catch (erro) {
             if (erro.name === "NoSuchKey" || erro.Code === "NoSuchKey") continue;
             throw erro;
@@ -104,6 +130,7 @@ async function lerServidor(servidor, agora, referencia) {
         if (resumo.endereco_mac !== mac || !Array.isArray(resumo.lotes_atuais)) {
             throw new Error("Resumo da Gold incompatível com o servidor.");
         }
+        const chaves = [];
         for (const lote of resumo.lotes_atuais) {
             const prefixo = `client/lotes/maquina=${mac}/data=${data}/`;
             if (typeof lote.chave !== "string" || !lote.chave.startsWith(prefixo)) {
@@ -111,40 +138,94 @@ async function lerServidor(servidor, agora, referencia) {
             }
             if (lidos.has(lote.chave)) continue;
             lidos.add(lote.chave);
-            const resposta = await s3.send(new GetObjectCommand({
-                Bucket: process.env.BUCKET_DADOS_GOLD, Key: lote.chave
-            }));
-            const documento = JSON.parse(await resposta.Body.transformToString());
-            if (documento.endereco_mac !== mac) throw new Error("Servidor diferente no lote.");
-            for (const campo of ["metricas", "processos", "containers", "eventos", "logs"]) {
-                if (documento[campo] != null && !Array.isArray(documento[campo])) throw new Error("Capturas inválidas na Gold.");
-                for (const captura of documento[campo] || []) {
-                    const horario = horarioDaCaptura(captura.timestamp);
-                    //ignora capturas do futuro
-                    if (horario > agora) continue;
-                    //ve se aquele é a captura mais nova
-                    if (ultimaAtual === null || horario > ultimaAtual) ultimaAtual = horario;
-                    //procura a captura mais recente ate o horario de referencia
-                    if (horario <= referencia && (ultimaHistorica === null || horario > ultimaHistorica)) ultimaHistorica = horario;
-                    if (campo === "metricas" && (horarioMetrica === null || horario > horarioMetrica ||
-                        (horario === horarioMetrica && String(captura.id_captura) > String(ultimaMetrica.id_captura)))) {
-                        ultimaMetrica = captura;
-                        horarioMetrica = horario;
+            chaves.push(lote.chave);
+        }
+        // Lê até três lotes juntos, mantendo o limite de quatro servidores por grupo.
+        for (let inicio = 0; inicio < chaves.length; inicio += 3) {
+            const documentos = await Promise.all(chaves.slice(inicio, inicio + 3).map(lerJsonGold));
+            for (const documento of documentos) {
+                if (documento.endereco_mac !== mac) throw new Error("Servidor diferente no lote.");
+                for (const campo of ["metricas", "processos", "containers", "eventos", "logs"]) {
+                    if (documento[campo] != null && !Array.isArray(documento[campo])) throw new Error("Capturas inválidas na Gold.");
+                    for (const captura of documento[campo] || []) {
+                        const horario = horarioDaCaptura(captura.timestamp);
+                        //ignora capturas do futuro
+                        if (horario > agora) continue;
+                        //ve se aquele é a captura mais nova
+                        if (ultimaAtual === null || horario > ultimaAtual) ultimaAtual = horario;
+                        if (campo === "metricas" && (horarioMetrica === null || horario > horarioMetrica ||
+                            (horario === horarioMetrica && String(captura.id_captura) > String(ultimaMetrica.id_captura)))) {
+                            ultimaMetrica = captura;
+                            horarioMetrica = horario;
+                        }
                     }
                 }
             }
         }
     }
-    return { ultimaAtual, ultimaHistorica, ultimaMetrica, horarioMetrica };
+    return { ultimaAtual, ultimaMetrica, horarioMetrica };
+}
+
+// Estima uma instância para cada servidor cadastrado, ligada desde o início do mês.
+function calcularCustos(perfil, agora) {
+    // Todos os perfis usam a mesma configuração; só a quantidade muda o custo.
+    const instancia = "m6i.xlarge";
+    const precoHoraDolar = 0.192;
+
+    // Hipótese: 200 GB gp3 por instância
+    // Referência de armazenamento: https://aws.amazon.com/ebs/pricing/
+    const discoGb = 200;
+    const precoGbMesDolar = 0.08;
+  
+
+    const dolarEmReais = 5.9708;
+
+    // Usa a mesma data do restante da dashboard, no horário de São Paulo.
+    const data = dataSaoPaulo(agora);
+    const ano = Number(data.slice(0, 4));
+    const mes = Number(data.slice(5, 7));
+    const diaAtual = Number(data.slice(8, 10));
+    const diasNoMes = new Date(Date.UTC(ano, mes, 0)).getUTCDate();
+    const inicioMes = Date.parse(data.slice(0, 7) + "-01T00:00:00-03:00");
+    const horasPassadas = (agora - inicioMes) / 3600000;
+    const horasNoMes = diasNoMes * 24;
+    const totalServidores = perfil.totalServidores;
+
+    // Soma o mês de EC2 e disco por servidor, depois multiplica pela quantidade.
+    // Um servidor sem coleta continua alocado neste cenário e mantém seu custo.
+    const custoMesDolar = (precoHoraDolar * horasNoMes + discoGb * precoGbMesDolar) * totalServidores;
+    const custoMesReais = custoMesDolar * dolarEmReais;
+    const custoHoraReais = custoMesReais / horasNoMes;
+    const gastoAteAgora = Math.round(custoHoraReais * horasPassadas * 100) / 100;
+    const previsaoFimMes = Math.round(custoMesReais * 100) / 100;
+
+    // Até hoje, mostra o acumulado estimado. Depois de hoje, mostra a projeção.
+    const serie = [];
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+        const horas = dia < diaAtual ? dia * 24 : horasPassadas;
+        serie.push({
+            data: data.slice(0, 7) + "-" + String(dia).padStart(2, "0"),
+            realizadoAcumulado: dia <= diaAtual ? Math.round(custoHoraReais * horas * 100) / 100 : null,
+            projetadoAcumulado: dia > diaAtual ? Math.round(custoHoraReais * dia * 24 * 100) / 100 : null
+        });
+    }
+    return {
+        moeda: "BRL", tipo: "estimativa", gastoAteAgora, previsaoFimMes, serie,
+        periodoRealizado: "01/" + data.slice(5, 7) + " até " + data.slice(8, 10) + "/" + data.slice(5, 7),
+        periodoMes: "Até " + diasNoMes + "/" + data.slice(5, 7) + "/" + ano,
+        base: { instancia, regiao: "us-east-1", sistema: "Linux", quantidade: totalServidores,
+            precoHoraDolar, discoGb, precoGbMesDolar, dolarEmReais, dataCambio: "2026-11-23",
+            horasPassadas, horasNoMes,
+            premissa: "Quantidade atual mantida desde o início do mês, 24h/dia; somente EC2 e EBS, sem impostos, tráfego ou serviços adicionais." }
+    };
 }
 
 // Junta as capturas com os perfis e limites do banco, preparando a resposta da tela.
-async function montarDashboard(cadastros, servidores, minutos) {
+async function montarDashboard(cadastros, servidores, incluirColetas = true) {
+    if (!incluirColetas) servidores = [];
     const agora = resumoGoldService.agoraOuReferenciaDemo().getTime();
     if (!Number.isFinite(agora)) throw new Error("Horário de referência inválido.");
-    const referencia = agora - minutos * 60000;
     const perfis = [];
-    const historico = [];
     // Busca até quatro servidores ao mesmo tempo para diminuir a espera pelo S3.
     const leituras = new Map();
     const servidoresDosPerfis = servidores.filter(servidor => cadastros.some(
@@ -153,20 +234,21 @@ async function montarDashboard(cadastros, servidores, minutos) {
     for (let inicio = 0; inicio < servidoresDosPerfis.length; inicio += 4) {
         const grupo = servidoresDosPerfis.slice(inicio, inicio + 4);
         const resultados = await Promise.allSettled(
-            grupo.map(servidor => lerServidor(servidor, agora, referencia))
+            grupo.map(servidor => lerServidor(servidor, agora))
         );
         for (let indice = 0; indice < grupo.length; indice++) {
             leituras.set(grupo[indice], resultados[indice]);
         }
     }
-    let disponivel = true;
+    let disponivel = incluirColetas;
     for (const cadastro of cadastros) {
         const perfil = {
             id: cadastro.id_perfil_servidor, nome: cadastro.nome,
             totalServidores: Number(cadastro.total_servidores), limites: cadastro.componentes,
-            ativos: 0, inativos: 0, criticos: 0, percentualCriticos: 0
+            ativos: incluirColetas ? 0 : null, inativos: incluirColetas ? 0 : null,
+            criticos: incluirColetas ? 0 : null, percentualCriticos: null
         };
-        const status = { id: perfil.id, nome: perfil.nome, ativos: 0, inativos: 0 };
+        perfil.custos = calcularCustos(perfil, agora);
         for (const servidor of servidores) {
             // so continua quandoo servidor pertence  ao perfil que esta sendo analisado
             if (String(servidor.id_perfil_servidor) !== String(perfil.id)) continue;
@@ -183,27 +265,22 @@ async function montarDashboard(cadastros, servidores, minutos) {
                     if (critico === null) perfil.criticos = null;
                     else if (critico && perfil.criticos !== null) perfil.criticos++;
                 }
-                const ativoAntes = estaAtivo(leitura.ultimaHistorica, referencia);
-                if (ativoAntes && status.ativos !== null) status.ativos++;
-                if (!ativoAntes && status.inativos !== null) status.inativos++;
             } catch (erro) {
                 console.error("Leitura da DashboardPerfil:", erro.name, erro.message);
                 perfil.ativos = null;
                 perfil.inativos = null;
                 perfil.criticos = null;
-                status.ativos = null;
-                status.inativos = null;
                 disponivel = false;
             }
         }
         if (perfil.criticos === null) {
             perfil.percentualCriticos = null;
             disponivel = false;
-        } else if (perfil.totalServidores > 0) {
-            perfil.percentualCriticos = Math.round(perfil.criticos / perfil.totalServidores * 10000) / 100;
+        } else {
+            perfil.percentualCriticos = perfil.totalServidores > 0
+                ? Math.round(perfil.criticos / perfil.totalServidores * 10000) / 100 : 0;
         }
         perfis.push(perfil);
-        historico.push(status);
     }
     let perfisComServidores = 0;
     let maior = 0;
@@ -225,8 +302,7 @@ async function montarDashboard(cadastros, servidores, minutos) {
     return {
         coletasDisponiveis: disponivel, geradoEm: new Date(agora).toISOString(), avisos: [],
         kpis: { perfisConfigurados: perfis.length, perfisAtivos: perfisComServidores, perfisComMaisCriticos: maisCriticos },
-        perfis, rankingCriticos: ranking,
-        historicoStatus: { minutos, referencia: new Date(referencia).toISOString(), perfis: historico }
+        perfis, rankingCriticos: ranking
     };
 }
 

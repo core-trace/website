@@ -60,13 +60,8 @@
     let periodoAtual = 10080;
     let processoEmFoco = null;
 
-    // Passo dos gráficos: cada filtro define de quanto em quanto tempo é a variação.
-    const PASSOS_GRAFICO = {
-        60: { minutos: 60, rotulo: "1h" },
-        360: { minutos: 120, rotulo: "2h" },
-        1440: { minutos: 360, rotulo: "6h" },
-        10080: { minutos: 720, rotulo: "12h" }
-    };
+    // A granularidade vem do módulo de agregação; aqui fica só o rótulo.
+    const ROTULOS_PASSO = { 1: "1 min", 5: "5 min", 15: "15 min", 60: "1 h" };
 
     // ------------------------------------------------------------------
     // Utilitários
@@ -121,13 +116,6 @@
             params.set(chave, valor);
         }
         return `${caminho}?${params.toString()}`;
-    }
-
-    function extrairValorLeitura(leitura) {
-        if (leitura == null) return null;
-        if (typeof leitura === "number") return leitura;
-        if (typeof leitura === "object" && leitura.valor !== undefined) return leitura.valor;
-        return null;
     }
 
     function formatarPercentual(valor) {
@@ -769,32 +757,6 @@
         }
     }
 
-    // ------------------------------------------------------------------
-    // Séries de variação por passo (diferença entre passos consecutivos)
-    // ------------------------------------------------------------------
-    function serieVariacaoHoraria(pontos, passoMinutos) {
-        const passoMs = passoMinutos * 60000;
-        const porPasso = new Map();
-
-        // As amostras já chegam ordenadas; a última leitura de cada passo prevalece.
-        for (const ponto of pontos) {
-            const instante = Date.parse(ponto.t);
-            if (!Number.isFinite(instante)) continue;
-            porPasso.set(Math.floor(instante / passoMs), ponto);
-        }
-
-        const passos = Array.from(porPasso.keys()).sort((a, b) => a - b);
-        const serie = [];
-
-        for (let i = 1; i < passos.length; i++) {
-            const atual = porPasso.get(passos[i]);
-            const anterior = porPasso.get(passos[i - 1]);
-            serie.push({ t: atual.t, v: atual.v - anterior.v });
-        }
-
-        return serie;
-    }
-
     function formatarVariacao(valor) {
         const numero = Number(valor);
         if (!Number.isFinite(numero)) return "--";
@@ -833,20 +795,11 @@
         definirTexto(metaUsuario, usuario);
         definirTexto(metaStatus, picoMemoria != null && picoMemoria >= 90 ? "crítico" : "estável");
 
-        const passo = PASSOS_GRAFICO[periodoAtual] || PASSOS_GRAFICO[10080];
+        // Uma única passagem prepara as séries agregadas e a distribuição de CPU.
+        const historico = ProcessosAgregacao.prepararHistorico(filtrados, periodoAtual);
+        const rotulo = ROTULOS_PASSO[historico.passoMinutos] || `${historico.passoMinutos} min`;
 
-        // Agrupa pelo passo antes de recortar o período para não perder o passo de referência.
-        const leiturasCpu = [];
-        const leiturasMem = [];
-
-        for (const p of filtrados) {
-            const cpu = extrairValorLeitura(p.cpu);
-            const mem = extrairValorLeitura(p.memoria);
-
-            if (cpu != null && p.valido !== false) leiturasCpu.push({ t: p.timestamp, v: cpu });
-            if (mem != null && p.memoriaValida !== false) leiturasMem.push({ t: p.timestamp, v: mem });
-        }
-
+        // Agrega antes de recortar para não perder o intervalo de referência.
         const limite = limiteDoPeriodo();
         const dentroDoPeriodo = serie => {
             if (limite === null) return serie;
@@ -856,8 +809,8 @@
             });
         };
 
-        const pontosCpu = dentroDoPeriodo(serieVariacaoHoraria(leiturasCpu, passo.minutos));
-        const pontosMem = dentroDoPeriodo(serieVariacaoHoraria(leiturasMem, passo.minutos));
+        const pontosCpu = dentroDoPeriodo(ProcessosAgregacao.serieVariacao(historico.cpu.pontos));
+        const pontosMem = dentroDoPeriodo(ProcessosAgregacao.serieVariacao(historico.memoria.pontos));
         const semLeitura = limite !== null ? "sem variação no período" : "--";
 
         const ultimoCpu = pontosCpu[pontosCpu.length - 1];
@@ -865,20 +818,20 @@
 
         definirTexto(cpuValor, ultimoCpu ? formatarVariacao(ultimoCpu.v) : "--");
         definirTexto(cpuCaption, ultimoCpu
-            ? `Última variação (${passo.rotulo}): ${formatoBrasileiro(ultimoCpu.t)}`
+            ? `Última variação (${rotulo}): ${formatoBrasileiro(ultimoCpu.t)}`
             : semLeitura);
 
         definirTexto(memoriaValor, ultimoMem ? formatarVariacao(ultimoMem.v) : "--");
         definirTexto(memoriaCaption, ultimoMem
-            ? `Última variação (${passo.rotulo}): ${formatoBrasileiro(ultimoMem.t)}`
+            ? `Última variação (${rotulo}): ${formatoBrasileiro(ultimoMem.t)}`
             : semLeitura);
 
         atualizarGrafico(
-            "grafico-cpu-area", pontosCpu, `Variação CPU (${passo.rotulo})`, COR_GRAFICO.cpu,
+            "grafico-cpu-area", pontosCpu, `Variação CPU (${rotulo})`, COR_GRAFICO.cpu,
             null, null, true
         );
         atualizarGrafico(
-            "grafico-memoria-area", pontosMem, `Variação RAM (${passo.rotulo})`, COR_GRAFICO.memoria,
+            "grafico-memoria-area", pontosMem, `Variação RAM (${rotulo})`, COR_GRAFICO.memoria,
             null, null, true
         );
     }

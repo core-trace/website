@@ -19,6 +19,8 @@
     function criar({ validar, normalizar, fetch: buscar = (...args) => fetch(...args), agora = Date.now }) {
         const arquivosCache = new Map();
         const listasCache = new Map();
+        const datasCache = new Map();
+        let fonteAtual = null;
         async function carregar({ mac, dias, personalizado = null, signal }) {
             const inicioCarga = agora();
             const prefixo = `client/resumos/maquina=${mac}/`;
@@ -40,12 +42,22 @@
             }
             try {
                 // Delimiter lista somente as pastas de datas, nunca os objetos de todo o histórico.
-                const descoberta = await requisitar('arquivos', { prefixo, pastas: '1' });
-                metricas.listagens++;
-                const referenciaLocal = Date.parse(descoberta.resposta.headers.get('X-Docker-Referencia'));
-                if (!Array.isArray(descoberta.corpo)) throw new Error('Lista de datas inválida.');
-                const datas = descoberta.corpo.map(p => p.Prefix).filter(p => typeof p === 'string' && p.startsWith(prefixo)
-                    && /^data=\d{4}-\d{2}-\d{2}\/$/.test(p.slice(prefixo.length))).map(p => p.slice(-11, -1)).sort();
+                signal?.throwIfAborted();
+                let descoberta = datasCache.get(prefixo);
+                if (!descoberta || agora() - descoberta.instante >= 60000) {
+                    const resultado = await requisitar('arquivos', { prefixo, pastas: '1' });
+                    metricas.listagens++;
+                    if (!Array.isArray(resultado.corpo)) throw new Error('Lista de datas inválida.');
+                    if (fonteAtual !== fonte) datasCache.clear();
+                    fonteAtual = fonte;
+                    descoberta = { fonte, instante: agora(),
+                        referenciaLocal: Date.parse(resultado.resposta.headers.get('X-Docker-Referencia')),
+                        datas: resultado.corpo.map(p => p.Prefix).filter(p => typeof p === 'string' && p.startsWith(prefixo)
+                            && /^data=\d{4}-\d{2}-\d{2}\/$/.test(p.slice(prefixo.length))).map(p => p.slice(-11, -1)).sort() };
+                    datasCache.set(prefixo, descoberta);
+                }
+                fonte = descoberta.fonte;
+                const { datas, referenciaLocal } = descoberta;
                 const escopo = `${fonte}:${prefixo}`;
                 const consultados = new Set();
                 async function listarPeriodo(inicio, fim) {

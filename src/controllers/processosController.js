@@ -1,5 +1,3 @@
-arquivo processosController
-
 const processosService = require("../services/processosService");
 const servidorModel = require("../models/servidorModel");
 const resumoGoldService = require("../services/resumoGoldService");

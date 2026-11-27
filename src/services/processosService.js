@@ -11,6 +11,30 @@ const LIMIARES_PADRAO = {
     rssGb: { atencao: 2.0, critico: 2.5 }
 };
 
+// Os lotes do Gold podem ter vários MB; sem cache cada recarga da tela
+// baixaria novamente o mesmo JSON do S3.
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const cacheAmostras = new Map();
+const cacheKpisGold = new Map();
+
+function chaveCache(mac, data) {
+    return `${processosModel.normalizarMac(mac)}|${data}`;
+}
+
+function lerCache(cache, chave) {
+    const item = cache.get(chave);
+    if (!item) return undefined;
+    if (Date.now() - item.tempo > CACHE_TTL_MS) {
+        cache.delete(chave);
+        return undefined;
+    }
+    return item.valor;
+}
+
+function gravarCache(cache, chave, valor) {
+    cache.set(chave, { tempo: Date.now(), valor });
+}
+
 function extrairValor(leitura) {
     if (!leitura || typeof leitura !== "object") return null;
     if (leitura.valor !== undefined) return leitura.valor;
@@ -103,14 +127,25 @@ function normalizarAmostra(registro) {
  * juntando todos os lotes (capturas.json) e ordenando por timestamp.
  */
 async function carregarAmostras(mac, data) {
+    const chaveCacheLocal = chaveCache(mac, data);
+    const emCache = lerCache(cacheAmostras, chaveCacheLocal);
+    if (emCache !== undefined) return emCache;
+
     const macNormalizado = processosModel.normalizarMac(mac);
-    const chaves = await processosModel.listarLotesDoDia(macNormalizado, data);
+    const chaves = (await processosModel.listarLotesDoDia(macNormalizado, data))
+        .filter(chave => chave.endsWith("capturas.json"));
+
+    // Lê os lotes em paralelo: o tempo total deixa de ser a soma de um
+    // GetObject por captura. Um lote que falha é ignorado, como antes.
+    const lotes = await Promise.all(chaves.map(chave =>
+        processosModel.buscarConteudoLote(chave).catch(erro => {
+            console.warn(`Não foi possível ler lote ${chave}:`, erro.message);
+            return null;
+        })
+    ));
 
     const amostras = [];
-    for (const chave of chaves) {
-        if (!chave.endsWith("capturas.json")) continue;
-
-        const lote = await processosModel.buscarConteudoLote(chave);
+    for (const lote of lotes) {
         if (!lote || !Array.isArray(lote.processos)) continue;
 
         for (const registro of lote.processos) {
@@ -125,6 +160,7 @@ async function carregarAmostras(mac, data) {
             new Date(b.timestamp || 0).getTime()
     );
 
+    gravarCache(cacheAmostras, chaveCacheLocal, amostras);
     return amostras;
 }
 
@@ -325,12 +361,18 @@ function calcularReiniciandoLoop(amostras) {
  * Quando o resumo ainda não tem kpis_processos, os picos ficam vazios.
  */
 async function carregarKpisGold(mac, data) {
+    const chaveCacheLocal = chaveCache(mac, data);
+    const emCache = lerCache(cacheKpisGold, chaveCacheLocal);
+    if (emCache !== undefined) return emCache;
+
     try {
         const resumo = await processosModel.buscarResumoDiario(
             processosModel.normalizarMac(mac),
             data
         );
-        return resumo && resumo.kpis_processos ? resumo.kpis_processos : null;
+        const valor = resumo && resumo.kpis_processos ? resumo.kpis_processos : null;
+        gravarCache(cacheKpisGold, chaveCacheLocal, valor);
+        return valor;
     } catch (erro) {
         console.warn("Não foi possível ler kpis_processos do resumo diário:", erro.message);
         return null;
@@ -410,19 +452,34 @@ function calcularKpis(amostras, kpisGold = null) {
 }
 
 /**
- * Agrupa amostras por nome + PID e calcula o Top 5 processos que mais
- * utilizam recursos no dia, com base no valor máximo observado de CPU e
- * memória. Não depende de limiares de atenção/crítico.
+ * Identidade da instância do processo: nome + PID e, quando o lote traz
+ * CREATE_TIME, o instante de criação. O PID pode ser reaproveitado pelo
+ * sistema operacional após um reinício, então sozinho não distingue
+ * instâncias diferentes com o mesmo nome.
+ */
+function chaveIdentidadeProcesso(amostra) {
+    const nome = amostra.nome || "desconhecido";
+    const pid = amostra.pid != null ? amostra.pid : "--";
+    const createTime = amostra.createTime || "";
+    return `${nome} | PID ${pid} | CREATE ${createTime}`;
+}
+
+/**
+ * Agrupa amostras pela identidade da instância (nome + PID + criação, quando
+ * disponível) e calcula o Top 5 processos que mais utilizam recursos no dia,
+ * com base no valor máximo observado de CPU e memória. Não depende de
+ * limiares de atenção/crítico.
  */
 function calcularTop5Recursos(amostras) {
     const grupos = new Map();
 
     for (const a of amostras) {
-        const chave = `${a.nome || "desconhecido"} | PID ${a.pid || "--"}`;
+        const chave = chaveIdentidadeProcesso(a);
         if (!grupos.has(chave)) {
             grupos.set(chave, {
                 nome: a.nome || "desconhecido",
-                pid: a.pid || "--",
+                pid: a.pid != null ? a.pid : "--",
+                createTime: a.createTime || null,
                 cpuMax: 0,
                 memoriaMax: 0,
                 ultimoPico: null
@@ -449,6 +506,7 @@ function calcularTop5Recursos(amostras) {
     const resultado = Array.from(grupos.values()).map((g) => ({
         nome: g.nome,
         pid: g.pid,
+        createTime: g.createTime,
         cpuMax: g.cpuMax,
         memoriaMax: g.memoriaMax,
         ultimoPico: g.ultimoPico
@@ -535,9 +593,11 @@ async function obterDashboard(filtros = {}) {
         throw new Error("Parâmetros 'mac' e 'data' são obrigatórios.");
     }
 
-    const limiares = await resolverLimites(filtros);
-    const amostras = await carregarAmostras(mac, data);
-    const kpisGold = await carregarKpisGold(mac, data);
+    const [limiares, amostras, kpisGold] = await Promise.all([
+        resolverLimites(filtros),
+        carregarAmostras(mac, data),
+        carregarKpisGold(mac, data)
+    ]);
 
     const kpis = calcularKpis(amostras, kpisGold);
     const top5Recursos = calcularTop5Recursos(amostras);

@@ -57,8 +57,16 @@
     let momentoASelecionado = null;
     let momentoBSelecionado = null;
     // Em minutos. null = sem recorte (todos os pontos disponíveis).
-    let periodoAtual = 43200;
+    let periodoAtual = 10080;
     let processoEmFoco = null;
+
+    // Passo dos gráficos: cada filtro define de quanto em quanto tempo é a variação.
+    const PASSOS_GRAFICO = {
+        60: { minutos: 60, rotulo: "1h" },
+        360: { minutos: 120, rotulo: "2h" },
+        1440: { minutos: 360, rotulo: "6h" },
+        10080: { minutos: 720, rotulo: "12h" }
+    };
 
     // ------------------------------------------------------------------
     // Utilitários
@@ -86,8 +94,8 @@
     }
 
     /**
-     * Recorte dos gráficos: últimos N minutos a partir da última captura do dia.
-     * Null significa dia inteiro. Os KPIs e a tabela não usam este limite.
+     * Recorte dos gráficos: últimos N minutos a partir da última captura carregada.
+     * Null significa período inteiro. Os KPIs e a tabela não usam este limite.
      */
     function limiteDoPeriodo() {
         if (periodoAtual == null) return null;
@@ -140,12 +148,12 @@
         return `${item.nome} (PID ${item.pid != null ? item.pid : "--"})`;
     }
 
-    // O pico da Gold é do dia inteiro; só faz sentido marcá-lo se for o processo aberto.
-    function picoDoProcesso(pico, nomeProcesso, pid) {
-        if (!pico || pico.pid == null) return null;
-        if (String(pico.pid) !== String(pid)) return null;
-        if (pico.nome && pico.nome !== nomeProcesso) return null;
-        return pico;
+    // Mesma chave usada no service: nome + PID e criação quando o lote a traz.
+    function chaveProcesso(item) {
+        const nome = item && item.nome ? item.nome : "desconhecido";
+        const pid = item && item.pid != null ? item.pid : "--";
+        const createTime = item && item.createTime ? item.createTime : "";
+        return `${nome}|${pid}|${createTime}`;
     }
 
     function definirTexto(elemento, texto) {
@@ -201,8 +209,14 @@
         definirTexto(cpuCaption, "--");
         definirTexto(memoriaValor, "--");
         definirTexto(memoriaCaption, "--");
-        atualizarGrafico("grafico-cpu-area", [], "CPU", COR_GRAFICO.cpu);
-        atualizarGrafico("grafico-memoria-area", [], "RAM", COR_GRAFICO.memoria);
+        definirTexto(metaProcesso, "--");
+        definirTexto(metaUsuario, "--");
+        definirTexto(metaStatus, "--");
+        tbodyTop5Recursos.querySelectorAll("tr.linha-ativa").forEach(linha => {
+            linha.classList.remove("linha-ativa");
+        });
+        atualizarGrafico("grafico-cpu-area", [], "Variação CPU", COR_GRAFICO.cpu, null, null, true);
+        atualizarGrafico("grafico-memoria-area", [], "Variação RAM", COR_GRAFICO.memoria, null, null, true);
     }
 
     // ------------------------------------------------------------------
@@ -241,13 +255,16 @@
             .sort((a, b) => a.x - b.x);
     }
 
-    function configuracaoComum(serie, limiares = {}) {
+    function configuracaoComum(serie, limiares = {}, modoDelta = false) {
         const instantes = serie.map(p => p.x);
         const inicio = instantes[0];
         const fim = instantes[instantes.length - 1];
-        // Eixo linear precisa de limites distintos; uma leitura única ganha 30 s para cada lado.
+        const valores = serie.map(p => p.y);
+        const margemEixo = modoDelta ? 1800000 : 30000;
+        // Eixo linear precisa de limites distintos; uma leitura única ganha margem para cada lado.
         const mesmoInstante = inicio != null && inicio === fim;
         const maisDeUmDia = inicio != null && (fim - inicio) >= 86400000;
+        const sufixo = modoDelta ? "p.p." : "%";
 
         const pluginLimites = {
             id: "limitesGrafico",
@@ -308,7 +325,7 @@
                     padding: 10,
                     callbacks: {
                         title: itens => dataHoraGrafico(itens[0].parsed.x),
-                        label: contexto => `${contexto.dataset.label}: ${numeroGrafico(contexto.parsed.y)}%`
+                        label: contexto => `${contexto.dataset.label}: ${numeroGrafico(contexto.parsed.y)} ${sufixo}`
                     }
                 },
                 ...(limiares && (limiares.atencao != null || limiares.critico != null)
@@ -319,7 +336,7 @@
                 x: {
                     type: "linear",
                     ...(inicio != null
-                        ? { min: mesmoInstante ? inicio - 30000 : inicio, max: mesmoInstante ? fim + 30000 : fim }
+                        ? { min: mesmoInstante ? inicio - margemEixo : inicio, max: mesmoInstante ? fim + margemEixo : fim }
                         : {}),
                     grid: { display: false },
                     border: { display: false },
@@ -332,14 +349,15 @@
                     }
                 },
                 y: {
-                    min: 0,
+                    // Variação pode ser negativa; valor absoluto continua começando em zero.
+                    min: modoDelta ? valores.reduce((menor, v) => Math.min(menor, v), 0) : 0,
                     // CPU de processo pode ultrapassar 100% em servidor multinúcleo.
-                    suggestedMax: 100,
+                    suggestedMax: modoDelta ? Math.max(10, valores.reduce((maior, v) => Math.max(maior, v), 0)) : 100,
                     border: { display: false },
                     grid: { color: "#d6dbe3" },
                     ticks: {
                         maxTicksLimit: 4,
-                        callback: valor => `${numeroGrafico(valor)}%`,
+                        callback: valor => `${numeroGrafico(valor)} ${sufixo}`,
                         color: COR_TEXTO_GRAFICO,
                         font: FONTE_GRAFICO
                     }
@@ -356,7 +374,7 @@
         graficoMemoria = null;
     }
 
-    function atualizarGrafico(id, pontos, rotuloY, cor, pico = null, limiares = null) {
+    function atualizarGrafico(id, pontos, rotuloY, cor, pico = null, limiares = null, modoDelta = false) {
         if (typeof Chart === "undefined") return;
 
         const canvas = document.getElementById(id);
@@ -376,9 +394,9 @@
 
         const datasets = [];
 
-        // Limites de atenção e crítico
-        const atencao = limiares && limiares.atencao != null ? Number(limiares.atencao) : null;
-        const critico = limiares && limiares.critico != null ? Number(limiares.critico) : null;
+        // Limites de atenção e crítico são de uso absoluto e não se aplicam à variação horária.
+        const atencao = !modoDelta && limiares && limiares.atencao != null ? Number(limiares.atencao) : null;
+        const critico = !modoDelta && limiares && limiares.critico != null ? Number(limiares.critico) : null;
 
         // Área sombreada acima do crítico: preenche entre o valor e o crítico apenas quando acima.
         if (critico != null) {
@@ -451,8 +469,9 @@
         });
 
         // Ponto destacado da Gold: só entra se o instante existir na série aberta.
-        const instantePico = pico ? Date.parse(pico.timestamp) : NaN;
-        const valorPico = pico ? Number(pico.valor) : NaN;
+        // Em modo de variação, o pico absoluto da Gold não corresponde ao delta.
+        const instantePico = !modoDelta && pico ? Date.parse(pico.timestamp) : NaN;
+        const valorPico = !modoDelta && pico ? Number(pico.valor) : NaN;
         if (Number.isFinite(instantePico) && Number.isFinite(valorPico) &&
             serie.some(p => p.x === instantePico)) {
             datasets.push({
@@ -472,7 +491,7 @@
         const grafico = new Chart(canvas, {
             type: "line",
             data: { datasets },
-            options: configuracaoComum(serie, { atencao, critico })
+            options: configuracaoComum(serie, { atencao, critico }, modoDelta)
         });
 
         if (id === "grafico-cpu-area") graficoCpu = grafico;
@@ -485,8 +504,8 @@
             return;
         }
         destruirGraficos();
-        atualizarGrafico("grafico-cpu-area", [], "CPU", COR_GRAFICO.cpu);
-        atualizarGrafico("grafico-memoria-area", [], "RAM", COR_GRAFICO.memoria);
+        atualizarGrafico("grafico-cpu-area", [], "Variação CPU", COR_GRAFICO.cpu, null, null, true);
+        atualizarGrafico("grafico-memoria-area", [], "Variação RAM", COR_GRAFICO.memoria, null, null, true);
     }
 
     // ------------------------------------------------------------------
@@ -558,7 +577,13 @@
 
         for (const item of lista) {
             const tr = document.createElement("tr");
-            tr.appendChild(novaCelula(`${item.nome || "desconhecido"} (PID ${item.pid != null ? item.pid : "--"})`));
+            // A identidade vem do dado do ranking, não da célula exibida: o PID
+            // dentro do texto termina com ")" e não pode ser reaproveitado.
+            tr.dataset.chave = chaveProcesso(item);
+            tr.dataset.nome = item.nome || "desconhecido";
+            tr.dataset.pid = item.pid != null ? String(item.pid) : "--";
+            if (item.createTime != null) tr.dataset.createTime = String(item.createTime);
+            tr.appendChild(novaCelula(identidadeProcesso(item)));
             tr.appendChild(novaCelula(item.cpuMax != null ? item.cpuMax.toFixed(1) : "--"));
             tr.appendChild(novaCelula(item.memoriaMax != null ? item.memoriaMax.toFixed(1) : "--"));
             tr.appendChild(novaCelula(formatoBrasileiro(item.ultimoPico)));
@@ -585,18 +610,11 @@
 
         // Plota automaticamente o processo com maior CPU máxima.
         if (top5Recursos.length > 0) {
-            carregarHistoricoProcesso(top5Recursos[0].nome, top5Recursos[0].pid);
+            const primeiro = top5Recursos[0];
+            carregarHistoricoProcesso(primeiro.nome, primeiro.pid, primeiro.createTime || null);
         } else {
             limparGraficos();
         }
-
-        // Meta chips do histórico usam o mesmo pico de memória do KPI.
-        const picoMemoria = kpis && kpis.picoMemoria;
-        definirTexto(metaProcesso, picoMemoria ? identidadeProcesso(picoMemoria) : "--");
-        definirTexto(metaUsuario, picoMemoria && picoMemoria.usuario ? picoMemoria.usuario : "--");
-        definirTexto(metaStatus, picoMemoria
-            ? (picoMemoria.valor >= 90 ? "crítico" : "estável")
-            : "--");
 
         // Comparativo de momentos: usa o cálculo do service, com fallback local.
         const comparacao = dados.comparacao;
@@ -659,15 +677,22 @@
     }
 
     /**
-     * Busca o dashboard na API em até 7 dias, do dia selecionado para trás.
-     * Capturas antigas continuam aparecendo quando o dia atual ainda não tem lote.
+     * Busca o dashboard nos últimos 7 dias, do dia selecionado para trás.
+     * Dia sem captura é ignorado; as amostras dos dias com dados são reunidas
+     * para que os gráficos possam usar passos de até 12 horas.
      */
-    async function buscarDashboardNoPeriodo() {
+    async function buscarDashboardsDoPeriodo(aoReceberDados = null) {
         const [ano, mes, dia] = dataSelecionada.split("-").map(Number);
         const referencia = Date.UTC(ano, mes - 1, dia);
+        const datas = [];
 
         for (let i = 0; i < 7; i++) {
-            const data = new Date(referencia - i * 86400000).toISOString().slice(0, 10);
+            datas.push(new Date(referencia - i * 86400000).toISOString().slice(0, 10));
+        }
+
+        // Busca os 7 dias em paralelo: o tempo total é o do dia mais lento,
+        // não a soma de sete requisições sequenciais.
+        const resultados = await Promise.allSettled(datas.map(async data => {
             const resposta = await fetch(urlComAcesso("/processos/dashboard", {
                 mac: servidorSelecionado,
                 data
@@ -679,10 +704,44 @@
             }
 
             const dados = await resposta.json();
-            if ((dados.total || 0) > 0) return dados;
+            // Permite renderizar o dia selecionado antes de os outros terminarem.
+            if (aoReceberDados) aoReceberDados(data, dados);
+            return dados;
+        }));
+
+        const dashboards = [];
+        let primeiroErro = null;
+
+        for (const resultado of resultados) {
+            if (resultado.status === "fulfilled") {
+                if ((resultado.value.total || 0) > 0) dashboards.push(resultado.value);
+            } else if (!primeiroErro) {
+                primeiroErro = resultado.reason;
+            }
         }
 
-        return null;
+        if (dashboards.length === 0) {
+            if (primeiroErro) throw primeiroErro;
+            return null;
+        }
+
+        // KPIs, Top 5 e comparativo continuam referentes ao dia mais recente.
+        const maisRecente = dashboards[0];
+        const processos = dashboards
+            .flatMap(dados => Array.isArray(dados.processos) ? dados.processos : [])
+            .sort((a, b) =>
+                new Date(a.timestamp || 0).getTime() -
+                new Date(b.timestamp || 0).getTime()
+            );
+
+        return {
+            ...maisRecente,
+            processos,
+            total: processos.length,
+            ultimaColeta: processos.length > 0
+                ? processos[processos.length - 1].timestamp
+                : null
+        };
     }
 
     async function carregarDados() {
@@ -690,7 +749,7 @@
 
         definirEstadoKpis("carregando");
         try {
-            const dados = await buscarDashboardNoPeriodo();
+            const dados = await buscarDashboardsDoPeriodo();
 
             if (!dados) {
                 renderizar({ processos: [], top5Recursos: [], kpis: null, comparacao: null });
@@ -708,9 +767,44 @@
         }
     }
 
-    function carregarHistoricoProcesso(nomeProcesso, pid) {
+    // ------------------------------------------------------------------
+    // Séries de variação por passo (diferença entre passos consecutivos)
+    // ------------------------------------------------------------------
+    function serieVariacaoHoraria(pontos, passoMinutos) {
+        const passoMs = passoMinutos * 60000;
+        const porPasso = new Map();
+
+        // As amostras já chegam ordenadas; a última leitura de cada passo prevalece.
+        for (const ponto of pontos) {
+            const instante = Date.parse(ponto.t);
+            if (!Number.isFinite(instante)) continue;
+            porPasso.set(Math.floor(instante / passoMs), ponto);
+        }
+
+        const passos = Array.from(porPasso.keys()).sort((a, b) => a - b);
+        const serie = [];
+
+        for (let i = 1; i < passos.length; i++) {
+            const atual = porPasso.get(passos[i]);
+            const anterior = porPasso.get(passos[i - 1]);
+            serie.push({ t: atual.t, v: atual.v - anterior.v });
+        }
+
+        return serie;
+    }
+
+    function formatarVariacao(valor) {
+        const numero = Number(valor);
+        if (!Number.isFinite(numero)) return "--";
+        const sinal = numero > 0 ? "+" : "";
+        return `${sinal}${numero.toFixed(1).replace(".", ",")} p.p.`;
+    }
+
+    function carregarHistoricoProcesso(nomeProcesso, pid, createTime = null) {
         const filtrados = processosDoDia.filter(
-            p => (p.nome || "") === nomeProcesso && String(p.pid) === String(pid)
+            p => (p.nome || "") === nomeProcesso &&
+                String(p.pid) === String(pid) &&
+                (createTime == null || String(p.createTime || "") === String(createTime))
         );
 
         if (filtrados.length === 0) {
@@ -718,44 +812,73 @@
             return;
         }
 
-        processoEmFoco = { nome: nomeProcesso, pid };
-        const limite = limiteDoPeriodo();
-        const semLeitura = limite !== null ? "sem leitura no período" : "--";
-        const pontosCpu = [];
-        const pontosMem = [];
+        processoEmFoco = { nome: nomeProcesso, pid, createTime };
+        const chaveSelecionada = chaveProcesso(processoEmFoco);
+        tbodyTop5Recursos.querySelectorAll("tr").forEach(linha => {
+            linha.classList.toggle("linha-ativa", linha.dataset.chave === chaveSelecionada);
+        });
+
+        // Indicadores do mesmo processo das séries: usuario e pico de memoria
+        // das proprias amostras, nao do pico global do KPI.
+        const usuario = filtrados
+            .map(p => p.usuario)
+            .find(u => u != null && String(u).trim() !== "") || "--";
+        const picoMemoria = filtrados.reduce((maior, p) => {
+            if (p.memoriaValida === false || p.memoria == null) return maior;
+            return maior == null || p.memoria > maior ? p.memoria : maior;
+        }, null);
+        definirTexto(metaProcesso, identidadeProcesso({ nome: nomeProcesso, pid }));
+        definirTexto(metaUsuario, usuario);
+        definirTexto(metaStatus, picoMemoria != null && picoMemoria >= 90 ? "crítico" : "estável");
+
+        const passo = PASSOS_GRAFICO[periodoAtual] || PASSOS_GRAFICO[10080];
+
+        // Agrupa pelo passo antes de recortar o período para não perder o passo de referência.
+        const leiturasCpu = [];
+        const leiturasMem = [];
 
         for (const p of filtrados) {
-            const instante = Date.parse(p.timestamp);
-            if (limite !== null && (!Number.isFinite(instante) || instante < limite)) continue;
-
             const cpu = extrairValorLeitura(p.cpu);
             const mem = extrairValorLeitura(p.memoria);
 
-            if (cpu != null && p.valido !== false) pontosCpu.push({ t: p.timestamp, v: cpu });
-            if (mem != null && p.memoriaValida !== false) pontosMem.push({ t: p.timestamp, v: mem });
+            if (cpu != null && p.valido !== false) leiturasCpu.push({ t: p.timestamp, v: cpu });
+            if (mem != null && p.memoriaValida !== false) leiturasMem.push({ t: p.timestamp, v: mem });
         }
+
+        const limite = limiteDoPeriodo();
+        const dentroDoPeriodo = serie => {
+            if (limite === null) return serie;
+            return serie.filter(p => {
+                const instante = Date.parse(p.t);
+                return Number.isFinite(instante) && instante >= limite;
+            });
+        };
+
+        const pontosCpu = dentroDoPeriodo(serieVariacaoHoraria(leiturasCpu, passo.minutos));
+        const pontosMem = dentroDoPeriodo(serieVariacaoHoraria(leiturasMem, passo.minutos));
+        const semLeitura = limite !== null ? "sem variação no período" : "--";
 
         const ultimoCpu = pontosCpu[pontosCpu.length - 1];
         const ultimoMem = pontosMem[pontosMem.length - 1];
 
-        definirTexto(cpuValor, ultimoCpu ? formatarPercentual(ultimoCpu.v) : "--");
+        definirTexto(cpuValor, ultimoCpu ? formatarVariacao(ultimoCpu.v) : "--");
         definirTexto(cpuCaption, ultimoCpu
-            ? `Última leitura: ${formatoBrasileiro(ultimoCpu.t)}`
+            ? `Última variação (${passo.rotulo}): ${formatoBrasileiro(ultimoCpu.t)}`
             : semLeitura);
 
-        definirTexto(memoriaValor, ultimoMem ? formatarPercentual(ultimoMem.v) : "--");
+        definirTexto(memoriaValor, ultimoMem ? formatarVariacao(ultimoMem.v) : "--");
         definirTexto(memoriaCaption, ultimoMem
-            ? `Última leitura: ${formatoBrasileiro(ultimoMem.t)}`
+            ? `Última variação (${passo.rotulo}): ${formatoBrasileiro(ultimoMem.t)}`
             : semLeitura);
 
-        const picoCpu = picoDoProcesso(kpisDoDia && kpisDoDia.picoCpu, nomeProcesso, pid);
-        const picoMemoria = picoDoProcesso(kpisDoDia && kpisDoDia.picoMemoria, nomeProcesso, pid);
-
-        const limiaresCpu = kpisDoDia && kpisDoDia.limiares ? kpisDoDia.limiares.cpu : null;
-        const limiaresMem = kpisDoDia && kpisDoDia.limiares ? kpisDoDia.limiares.rssGb : null;
-
-        atualizarGrafico("grafico-cpu-area", pontosCpu, "CPU", COR_GRAFICO.cpu, picoCpu, limiaresCpu);
-        atualizarGrafico("grafico-memoria-area", pontosMem, "RAM", COR_GRAFICO.memoria, picoMemoria, limiaresMem);
+        atualizarGrafico(
+            "grafico-cpu-area", pontosCpu, `Variação CPU (${passo.rotulo})`, COR_GRAFICO.cpu,
+            null, null, true
+        );
+        atualizarGrafico(
+            "grafico-memoria-area", pontosMem, `Variação RAM (${passo.rotulo})`, COR_GRAFICO.memoria,
+            null, null, true
+        );
     }
 
     // ------------------------------------------------------------------
@@ -774,25 +897,20 @@
             limparGraficos();
             return;
         }
-        carregarHistoricoProcesso(processoEmFoco.nome, processoEmFoco.pid);
+        carregarHistoricoProcesso(processoEmFoco.nome, processoEmFoco.pid, processoEmFoco.createTime);
     });
 
-    // Seleção de processo na tabela de recorrência (clique na linha)
+    // Seleção de processo no ranking: usa a identidade gravada na linha, sem
+    // depender do texto exibido (que inclui o ")" do PID).
     tbodyTop5Recursos.addEventListener("click", function (evento) {
         const linha = evento.target.closest("tr");
-        if (!linha) return;
+        if (!linha || !linha.dataset.chave) return;
 
-        const celulaNome = linha.querySelector("td");
-        if (!celulaNome) return;
-
-        const textoNome = celulaNome.textContent.trim();
-        const pidMatch = textoNome.match(/PID\s+(\S+)/);
-        const nomeProcesso = textoNome.replace(/\s*\(PID.*/, "").trim();
-        const pid = pidMatch ? pidMatch[1] : null;
-
-        if (pid) {
-            carregarHistoricoProcesso(nomeProcesso, pid);
-        }
+        carregarHistoricoProcesso(
+            linha.dataset.nome,
+            linha.dataset.pid,
+            linha.dataset.createTime || null
+        );
     });
 
     // ------------------------------------------------------------------

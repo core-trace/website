@@ -1,3 +1,5 @@
+Arquivo Processos.js
+
 (() => {
     // ------------------------------------------------------------------
     // Elementos do DOM
@@ -78,9 +80,10 @@
             return dataIso;
         }
     }
+    let dataHojeDoServidor = null;
 
     function dataHojeSaoPaulo() {
-        return new Date().toLocaleDateString("en-CA", {
+        return dataHojeDoServidor || new Date().toLocaleDateString("en-CA", {
             timeZone: "America/Sao_Paulo"
         });
     }
@@ -627,6 +630,7 @@
             if (!resposta.ok) throw new Error("Falha ao listar servidores");
 
             const dados = await resposta.json();
+            if (dados.hoje) dataHojeDoServidor = dados.hoje;
             const servidores = Array.isArray(dados.servidores) ? dados.servidores : [];
 
             filtroServidor.innerHTML = '<option value="" selected disabled hidden>--</option>';
@@ -764,7 +768,7 @@
     filtroServidor.addEventListener("change", async function () {
         servidorSelecionado = this.value;
         if (!servidorSelecionado) return;
-        dataSelecionada = OVERRIDE_DATA || dataHojeSaoPaulo();
+        dataSelecionada = dataHojeSaoPaulo();
         await carregarDados();
     });
 
@@ -777,7 +781,6 @@
         carregarHistoricoProcesso(processoEmFoco.nome, processoEmFoco.pid);
     });
 
-    // Seleção de processo na tabela de recorrência (clique na linha)
     tbodyTop5Recursos.addEventListener("click", function (evento) {
         const linha = evento.target.closest("tr");
         if (!linha) return;

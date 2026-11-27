@@ -1,5 +1,14 @@
 const servidoresModel = require('../models/servidoresModel');
 const s3Model = require('../models/s3Model');
+const resumoGoldService = require('../services/resumoGoldService');
+
+// Cache simples por empresa/usuário/dia - sem isso, toda abertura da tela de
+// Servidores busca tudo de novo no S3 (1 leitura por servidor). A Geral já faz
+// algo parecido (resumoGeralService.js), só que com um cache único (tela de 1
+// empresa só); aqui cada empresa/usuário/dia tem sua própria entrada porque o
+// resultado muda de acordo com quem pede.
+const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutos
+const cachePorChave = new Map();
 
 const RANK_ESTADO = { normal: 0, atencao: 1, critico: 2 };
 const LIMITE_SEM_DADOS_SEGUNDOS = 15 * 60; // mesma regra do front
@@ -363,7 +372,13 @@ function formatarTrafego(bytesPorSegundo) {
 
 function segundosDesde(instante) {
 
-    return Math.max(0, Math.floor((Date.now() - Date.parse(instante)) / 1000));
+    // Mesma data/hora fixa da demonstração que o resto do site usa (respeita
+    // DATA_DEMO_FIXA) - antes usava Date.now() (hora real do relógio), e como
+    // o cenário é datado de 27/11 (no futuro em relação ao relógio real),
+    // a conta dava negativo e o Math.max(0, ...) travava em 0 - um servidor
+    // com a última leitura de horas atrás aparecia como "0 segundos atrás".
+    const agora = resumoGoldService.agoraOuReferenciaDemo().getTime();
+    return Math.max(0, Math.floor((agora - Date.parse(instante)) / 1000));
 
 }
 
@@ -432,6 +447,7 @@ async function montarCartao(servidor, data) {
         endereco_mac: servidor.endereco_mac,
         status: 'sem-dados',
         coletaSegundos: null,
+        ultimaColeta: null,
         componentesCriticos: [],
         extras: [],
         alertas: [],
@@ -463,6 +479,7 @@ async function montarCartao(servidor, data) {
             return {
                 ...cartao,
                 coletaSegundos,
+                ultimaColeta: resumo.ultima_coleta ?? null,
                 metricas: montarMetricasBrutas(resumo)
             };
 
@@ -482,6 +499,7 @@ async function montarCartao(servidor, data) {
             ...cartao,
             status,
             coletaSegundos,
+            ultimaColeta: resumo.ultima_coleta ?? null,
             componentesCriticos: montarComponentesCriticos(causas),
             extras,
             alertas: montarAlertas(causas),
@@ -512,10 +530,19 @@ async function listarServidores(req, res) {
 
     }
 
-    // ?data=AAAA-MM-DD é opcional (útil para testar com um resumo de outro dia)
+    // ?data=AAAA-MM-DD é opcional (útil para testar com um resumo de outro dia).
+    // Sem isso, usa a mesma data "de hoje" que o resto do site usa (respeita
+    // DATA_DEMO_FIXA no cenário de demonstração) - antes calculava a data real
+    // do relógio aqui, direto, e ignorava a data fixa da apresentação.
     const data = /^\d{4}-\d{2}-\d{2}$/.test(req.query.data)
         ? req.query.data
-        : new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+        : resumoGoldService.dataDeHojeSaoPaulo();
+
+    const chaveCache = `${idEmpresa}:${idUsuario}:${data}`;
+    const emCache = cachePorChave.get(chaveCache);
+    if (emCache && Date.now() - emCache.quando < CACHE_TTL_MS) {
+        return res.status(200).json(emCache.cartoes);
+    }
 
     try {
 
@@ -524,6 +551,8 @@ async function listarServidores(req, res) {
         const cartoes = await Promise.all(
             servidores.map(servidor => montarCartao(servidor, data))
         );
+
+        cachePorChave.set(chaveCache, { quando: Date.now(), cartoes });
 
         return res.status(200).json(cartoes);
 

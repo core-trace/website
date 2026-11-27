@@ -100,25 +100,27 @@ function classificarServidor(servidor) {
 
 }
 
-function formatarColeta(segundos) {
+// Mostra o horário da última coleta no fuso de São Paulo: "22:30:45 - 27/11/2026"
+function formatarDataHora(instante) {
 
-    if (segundos == null) {
+    const data = instante ? new Date(instante) : null;
+
+    if (!data || Number.isNaN(data.getTime())) {
         return 'sem coleta';
     }
 
-    if (segundos < 60) {
-        return `há ${segundos} seg`;
+    const partes = {};
+
+    for (const parte of new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hourCycle: 'h23'
+    }).formatToParts(data)) {
+        partes[parte.type] = parte.value;
     }
 
-    if (segundos < 3600) {
-        return `há ${Math.floor(segundos / 60)} min`;
-    }
-
-    if (segundos < 86400) {
-        return `há ${Math.floor(segundos / 3600)} h`;
-    }
-
-    return `há ${Math.floor(segundos / 86400)} d`;
+    return `${partes.hour}:${partes.minute}:${partes.second} - ${partes.day}/${partes.month}/${partes.year}`;
 
 }
 
@@ -183,7 +185,7 @@ function renderizarCartao(servidor) {
                 ${renderizarMetrica('NET', net)}
             </div>
             ${status === 'sem-dados' ? '' : renderizarExtras(servidor.extras)}
-            <p class="servidores-card-coleta">Última coleta: <b>${formatarColeta(servidor.coletaSegundos)}</b></p>
+            <p class="servidores-card-coleta">Última coleta: <b>${formatarDataHora(servidor.ultimaColeta)}</b></p>
         </article>
     `;
 
@@ -338,4 +340,7 @@ elementos.limparBusca.addEventListener('click', () => {
 
 });
 
+
+// Lê ?perfil=/?indicador=/?busca= da URL (pro kpi da geral)
+aplicarFiltroDaURL();
 atualizarTela();

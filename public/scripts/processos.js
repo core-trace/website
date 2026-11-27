@@ -226,7 +226,7 @@
             linha.classList.remove("linha-ativa");
         });
         atualizarGraficoCpu([], "--");
-        atualizarGrafico("grafico-memoria-area", [], "Variação RAM", COR_GRAFICO.memoria, null, null, true);
+        atualizarGraficoMemoria([], [], "--", null);
     }
 
     // ------------------------------------------------------------------
@@ -264,124 +264,6 @@
             hour: "2-digit",
             minute: "2-digit"
         });
-    }
-
-    function pontosDoGrafico(pontos) {
-        return pontos
-            .map(p => ({ x: Date.parse(p.t), y: Number(p.v) }))
-            .filter(p => Number.isFinite(p.x) && Number.isFinite(p.y))
-            .sort((a, b) => a.x - b.x);
-    }
-
-    function configuracaoComum(serie, limiares = {}, modoDelta = false) {
-        const instantes = serie.map(p => p.x);
-        const inicio = instantes[0];
-        const fim = instantes[instantes.length - 1];
-        const valores = serie.map(p => p.y);
-        const margemEixo = modoDelta ? 1800000 : 30000;
-        // Eixo linear precisa de limites distintos; uma leitura única ganha margem para cada lado.
-        const mesmoInstante = inicio != null && inicio === fim;
-        const maisDeUmDia = inicio != null && (fim - inicio) >= 86400000;
-        const sufixo = modoDelta ? "p.p." : "%";
-
-        const pluginLimites = {
-            id: "limitesGrafico",
-            afterDraw: grafico => {
-                const ctx = grafico.ctx;
-                const yAxe = grafico.scales.y;
-                const xAxe = grafico.scales.x;
-                if (!yAxe || !xAxe) return;
-
-                ctx.save();
-                ctx.font = "600 11px Poppins, sans-serif";
-                ctx.textBaseline = "middle";
-                ctx.textAlign = "left";
-
-                const desenharLinhaLabel = (valor, texto, cor) => {
-                    if (valor == null) return;
-                    const yPixel = yAxe.getPixelForValue(valor);
-                    const xPixel = xAxe.getPixelForValue(xAxe.min) + 6;
-                    if (yPixel == null || xPixel == null) return;
-
-                    // Fundo branco para legibilidade
-                    const medida = ctx.measureText(texto);
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillRect(xPixel - 3, yPixel - 8, medida.width + 6, 16);
-
-                    // Texto
-                    ctx.fillStyle = cor;
-                    ctx.fillText(texto, xPixel, yPixel);
-                    ctx.restore();
-                };
-
-                if (limiares.critico != null) {
-                    ctx.save();
-                    desenharLinhaLabel(limiares.critico, "Uso Severo (Critico)", "#cc0301");
-                    ctx.restore();
-                }
-                if (limiares.atencao != null) {
-                    ctx.save();
-                    desenharLinhaLabel(limiares.atencao, "Uso medio-alto (Atencao)", "#e8a100");
-                    ctx.restore();
-                }
-
-                ctx.restore();
-            }
-        };
-
-        return {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            locale: "pt-BR",
-            interaction: { mode: "index", intersect: false },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    titleFont: { size: 13, family: "Poppins" },
-                    bodyFont: { size: 13, family: "Poppins" },
-                    padding: 10,
-                    callbacks: {
-                        title: itens => dataHoraGrafico(itens[0].parsed.x),
-                        label: contexto => `${contexto.dataset.label}: ${numeroGrafico(contexto.parsed.y)} ${sufixo}`
-                    }
-                },
-                ...(limiares && (limiares.atencao != null || limiares.critico != null)
-                    ? { limitesGrafico: pluginLimites }
-                    : {})
-            },
-            scales: {
-                x: {
-                    type: "linear",
-                    ...(inicio != null
-                        ? { min: mesmoInstante ? inicio - margemEixo : inicio, max: mesmoInstante ? fim + margemEixo : fim }
-                        : {}),
-                    grid: { display: false },
-                    border: { display: false },
-                    ticks: {
-                        maxTicksLimit: 4,
-                        maxRotation: 0,
-                        callback: valor => maisDeUmDia ? dataHoraGrafico(valor) : horarioGrafico(valor),
-                        color: COR_TEXTO_GRAFICO,
-                        font: FONTE_GRAFICO
-                    }
-                },
-                y: {
-                    // Variação pode ser negativa; valor absoluto continua começando em zero.
-                    min: modoDelta ? valores.reduce((menor, v) => Math.min(menor, v), 0) : 0,
-                    // CPU de processo pode ultrapassar 100% em servidor multinúcleo.
-                    suggestedMax: modoDelta ? Math.max(10, valores.reduce((maior, v) => Math.max(maior, v), 0)) : 100,
-                    border: { display: false },
-                    grid: { color: "#d6dbe3" },
-                    ticks: {
-                        maxTicksLimit: 4,
-                        callback: valor => `${numeroGrafico(valor)} ${sufixo}`,
-                        color: COR_TEXTO_GRAFICO,
-                        font: FONTE_GRAFICO
-                    }
-                }
-            }
-        };
     }
 
     function destruirGraficos() {
@@ -518,124 +400,220 @@
         return graficoCpu;
     }
 
-    function atualizarGrafico(id, pontos, rotuloY, cor, pico = null, limiares = null, modoDelta = false) {
+    /**
+     * Área de evolução da RAM. Pontos sem leitura entram como null para quebrar
+     * a linha: ausência de dado nunca é desenhada como consumo zero.
+     */
+    function atualizarGraficoMemoria(pontos, eventos, rotulo, passoMinutos) {
         if (typeof Chart === "undefined") return;
 
-        const canvas = document.getElementById(id);
+        const canvas = document.getElementById("grafico-memoria-area");
         if (!canvas) return;
 
-        if (id === "grafico-memoria-area" && graficoMemoria) {
+        if (graficoMemoria) {
             graficoMemoria.destroy();
             graficoMemoria = null;
         }
 
-        const serie = pontosDoGrafico(pontos);
-        const primeiroX = serie.length > 0 ? serie[0].x : 0;
-        const ultimoX = serie.length > 0 ? serie[serie.length - 1].x : 0;
+        const serie = (Array.isArray(pontos) ? pontos : [])
+            .map(ponto => {
+                // Intervalo sem leitura não tem `t`: usa o início para manter a
+                // posição temporal e desenhar a lacuna como ponto null.
+                let instante = typeof ponto.t === "number" ? ponto.t : Date.parse(ponto.t);
+                if (!Number.isFinite(instante) && ponto.inicio != null) {
+                    instante = typeof ponto.inicio === "number"
+                        ? ponto.inicio
+                        : Date.parse(ponto.inicio);
+                }
+                const valor = ponto.v == null || !Number.isFinite(Number(ponto.v))
+                    ? null
+                    : Number(ponto.v);
+                const rss = ponto.rssBytes == null || !Number.isFinite(Number(ponto.rssBytes))
+                    ? null
+                    : Number(ponto.rssBytes);
+                return {
+                    x: instante,
+                    y: valor,
+                    t: ponto.t,
+                    rssBytes: rss
+                };
+            })
+            .filter(ponto => Number.isFinite(ponto.x))
+            .sort((a, b) => a.x - b.x);
 
-        const datasets = [];
+        const eventosValidos = (Array.isArray(eventos) ? eventos : [])
+            .map(evento => ({
+                tempo: typeof evento.tempo === "number" ? evento.tempo : Date.parse(evento.tempo),
+                rotulo: evento.rotulo
+            }))
+            .filter(evento => Number.isFinite(evento.tempo) && evento.rotulo)
+            .sort((a, b) => a.tempo - b.tempo);
 
-        // Limites de atenção e crítico são de uso absoluto e não se aplicam à variação horária.
-        const atencao = !modoDelta && limiares && limiares.atencao != null ? Number(limiares.atencao) : null;
-        const critico = !modoDelta && limiares && limiares.critico != null ? Number(limiares.critico) : null;
+        const instantesComDado = serie.filter(ponto => ponto.y != null).map(ponto => ponto.x);
+        const inicio = instantesComDado[0];
+        const fim = instantesComDado[instantesComDado.length - 1];
+        const mesmoInstante = inicio != null && inicio === fim;
+        const maisDeUmDia = inicio != null && fim != null && (fim - inicio) >= 86400000;
+        const margemEixo = 1800000;
 
-        // Área sombreada acima do crítico: preenche entre o valor e o crítico apenas quando acima.
-        if (critico != null) {
-            const pontosSombra = serie.map(p => ({
-                x: p.x,
-                y: p.y > critico ? p.y : critico
-            }));
-            datasets.push({
-                label: "Área acima do crítico",
-                data: pontosSombra,
-                borderColor: "transparent",
-                backgroundColor: "rgba(204, 3, 1, 0.08)",
-                borderWidth: 0,
-                pointRadius: 0,
-                fill: "-1",
-                tension: 0,
-                spanGaps: false,
-                order: 0
-            });
+        // Mudanças são destacadas pela direção real entre leituras observadas,
+        // sem limite fixo inventado: crescimento em coral, redução em verde.
+        function estadoPonto(indice) {
+            const atual = serie[indice];
+            if (!atual || atual.y == null) return { cor: COR_GRAFICO.memoria, raio: 0 };
+            let anterior = null;
+            for (let i = indice - 1; i >= 0; i--) {
+                if (serie[i].y != null) {
+                    anterior = serie[i].y;
+                    break;
+                }
+            }
+            if (anterior == null) return { cor: COR_GRAFICO.memoria, raio: 2 };
+            if (atual.y > anterior) return { cor: "#cc0301", raio: 4 };
+            if (atual.y < anterior) return { cor: "#17885e", raio: 4 };
+            return { cor: COR_GRAFICO.memoria, raio: 2 };
         }
 
-        // Linha horizontal do crítico
-        if (critico != null) {
-            datasets.push({
-                label: "Uso Severo (Critico)",
-                data: [{ x: primeiroX, y: critico }, { x: ultimoX, y: critico }],
-                borderColor: "#cc0301",
-                backgroundColor: "#cc0301",
-                borderWidth: 2,
-                borderDash: [6, 4],
-                pointRadius: 0,
-                pointHoverRadius: 0,
-                fill: false,
-                tension: 0,
-                spanGaps: true,
-                order: 1
-            });
-        }
+        const pluginMarcadores = {
+            id: "marcadoresEventosRam",
+            afterDatasetsDraw: grafico => {
+                if (eventosValidos.length === 0) return;
+                const area = grafico.chartArea;
+                const eixoX = grafico.scales.x;
+                const ctx = grafico.ctx;
+                if (!area || !eixoX || !ctx) return;
 
-        // Linha horizontal de atenção
-        if (atencao != null) {
-            datasets.push({
-                label: "Uso medio-alto (Atencao)",
-                data: [{ x: primeiroX, y: atencao }, { x: ultimoX, y: atencao }],
-                borderColor: "#a96808",
-                backgroundColor: "#a96808",
-                borderWidth: 2,
-                borderDash: [6, 4],
-                pointRadius: 0,
-                pointHoverRadius: 0,
-                fill: false,
-                tension: 0,
-                spanGaps: true,
-                order: 2
-            });
-        }
+                ctx.save();
+                ctx.font = "600 10px Poppins, sans-serif";
+                ctx.textBaseline = "middle";
+                for (const evento of eventosValidos) {
+                    const pixel = eixoX.getPixelForValue(evento.tempo);
+                    if (pixel == null || pixel < area.left || pixel > area.right) continue;
 
-        // Série principal do processo
-        datasets.push({
-            label: rotuloY,
-            data: serie,
-            borderColor: cor,
-            backgroundColor: cor,
-            borderWidth: 3,
-            pointRadius: 0,
-            pointHoverRadius: 4,
-            tension: 0,
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = "rgba(204, 3, 1, 0.45)";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pixel, area.top);
+                    ctx.lineTo(pixel, area.bottom);
+                    ctx.stroke();
+
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = "rgba(204, 3, 1, 0.85)";
+                    const aDireita = pixel > area.right - 52;
+                    ctx.textAlign = aDireita ? "right" : "left";
+                    ctx.fillText("reinício", pixel + (aDireita ? -4 : 4), area.top + 12);
+                }
+                ctx.restore();
+            }
+        };
+
+        const dataset = {
+            label: `Utilização de RAM (${rotulo})`,
+            data: serie.map(ponto => ({ x: ponto.x, y: ponto.y })),
+            borderColor: COR_GRAFICO.memoria,
+            backgroundColor: contexto => {
+                const area = contexto.chart.chartArea;
+                if (!area) return "rgba(71, 125, 167, 0.18)";
+                const gradiente = contexto.chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+                gradiente.addColorStop(0, "rgba(71, 125, 167, 0.32)");
+                gradiente.addColorStop(1, "rgba(71, 125, 167, 0.02)");
+                return gradiente;
+            },
+            borderWidth: 2,
+            tension: 0.25,
+            fill: "origin",
             spanGaps: false,
-            order: 3
-        });
+            pointRadius: contexto => estadoPonto(contexto.dataIndex).raio,
+            pointHoverRadius: 5,
+            pointBackgroundColor: contexto => estadoPonto(contexto.dataIndex).cor,
+            pointBorderColor: "#ffffff",
+            pointBorderWidth: 1
+        };
 
-        // Ponto destacado da Gold: só entra se o instante existir na série aberta.
-        // Em modo de variação, o pico absoluto da Gold não corresponde ao delta.
-        const instantePico = !modoDelta && pico ? Date.parse(pico.timestamp) : NaN;
-        const valorPico = !modoDelta && pico ? Number(pico.valor) : NaN;
-        if (Number.isFinite(instantePico) && Number.isFinite(valorPico) &&
-            serie.some(p => p.x === instantePico)) {
-            datasets.push({
-                label: `Pico ${rotuloY} · ${identidadeProcesso(pico)}`,
-                data: [{ x: instantePico, y: valorPico }],
-                borderColor: cor,
-                backgroundColor: cor,
-                pointRadius: 6,
-                pointHoverRadius: 7,
-                pointBorderColor: "#ffffff",
-                pointBorderWidth: 2,
-                showLine: false,
-                order: -1
-            });
-        }
-
-        const grafico = new Chart(canvas, {
+        const configuracao = {
             type: "line",
-            data: { datasets },
-            options: configuracaoComum(serie, { atencao, critico }, modoDelta)
-        });
+            data: { datasets: [dataset] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                locale: "pt-BR",
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        titleFont: { size: 13, family: "Poppins" },
+                        bodyFont: { size: 12, family: "Poppins" },
+                        padding: 10,
+                        filter: item => item.parsed && item.parsed.y != null,
+                        callbacks: {
+                            title: itens => {
+                                if (!itens || itens.length === 0) return "";
+                                const ponto = serie[itens[0].dataIndex];
+                                return ponto && ponto.t ? formatoBrasileiro(ponto.t) : "";
+                            },
+                            label: contexto => {
+                                const ponto = serie[contexto.dataIndex];
+                                if (!ponto || ponto.y == null) return [];
+                                const linhas = [`Utilização: ${formatarPercentual(ponto.y)}`];
+                                if (ponto.rssBytes != null) {
+                                    linhas.push(`Memória utilizada: ${formatarBytes(ponto.rssBytes)}`);
+                                }
+                                return linhas;
+                            },
+                            afterBody: itens => {
+                                if (!itens || itens.length === 0 || eventosValidos.length === 0) return [];
+                                const instante = Number(itens[0].parsed.x);
+                                const tolerancia = Math.max(1, Number(passoMinutos) || 1) * 60000;
+                                const evento = eventosValidos.find(
+                                    item => Math.abs(item.tempo - instante) <= tolerancia
+                                );
+                                return evento ? ["", `Evento: ${evento.rotulo}`] : [];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: "linear",
+                        ...(inicio != null
+                            ? {
+                                min: mesmoInstante ? inicio - margemEixo : inicio,
+                                max: mesmoInstante ? fim + margemEixo : fim
+                            }
+                            : {}),
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            maxTicksLimit: 6,
+                            maxRotation: 0,
+                            callback: valor => maisDeUmDia ? dataHoraGrafico(valor) : horarioGrafico(valor),
+                            color: COR_TEXTO_GRAFICO,
+                            font: FONTE_GRAFICO
+                        }
+                    },
+                    y: {
+                        min: 0,
+                        suggestedMax: 100,
+                        border: { display: false },
+                        grid: { color: "#d6dbe3" },
+                        ticks: {
+                            maxTicksLimit: 5,
+                            callback: valor => `${numeroGrafico(valor)}%`,
+                            color: COR_TEXTO_GRAFICO,
+                            font: FONTE_GRAFICO
+                        }
+                    }
+                }
+            },
+            plugins: [pluginMarcadores]
+        };
 
-        if (id === "grafico-memoria-area") graficoMemoria = grafico;
+        graficoMemoria = new Chart(canvas, configuracao);
+        // Série e eventos usados pelos callbacks, disponíveis para inspeção.
+        graficoMemoria.configuracaoMemoria = { serie, eventos: eventosValidos, rotulo, passoMinutos };
+        return graficoMemoria;
     }
 
     function inicializarGraficos() {
@@ -645,7 +623,7 @@
         }
         destruirGraficos();
         atualizarGraficoCpu([], "--");
-        atualizarGrafico("grafico-memoria-area", [], "Variação RAM", COR_GRAFICO.memoria, null, null, true);
+        atualizarGraficoMemoria([], [], "--", null);
     }
 
     // ------------------------------------------------------------------
@@ -908,13 +886,6 @@
         }
     }
 
-    function formatarVariacao(valor) {
-        const numero = Number(valor);
-        if (!Number.isFinite(numero)) return "--";
-        const sinal = numero > 0 ? "+" : "";
-        return `${sinal}${numero.toFixed(1).replace(".", ",")} p.p.`;
-    }
-
     function carregarHistoricoProcesso(nomeProcesso, pid, createTime = null) {
         const filtrados = processosDoDia.filter(
             p => (p.nome || "") === nomeProcesso &&
@@ -952,13 +923,6 @@
 
         // Agrega antes de recortar para não perder o intervalo de referência.
         const limite = limiteDoPeriodo();
-        const dentroDoPeriodo = serie => {
-            if (limite === null) return serie;
-            return serie.filter(p => {
-                const instante = Date.parse(p.t);
-                return Number.isFinite(instante) && instante >= limite;
-            });
-        };
 
         const distribuicaoCpu = (historico.cpu.distribuicao || []).filter(
             bucket => limite == null || bucket.inicio >= limite
@@ -969,9 +933,30 @@
             (soma, bucket) => soma + Number(bucket.temposMs.acima75 || 0), 0
         );
 
-        const pontosMem = dentroDoPeriodo(ProcessosAgregacao.serieVariacao(historico.memoria.pontos));
-        const semVariacao = limite !== null ? "sem variação no período" : "--";
-        const ultimoMem = pontosMem[pontosMem.length - 1];
+        const pontosMemoria = (historico.memoria.pontos || []).filter(
+            ponto => limite == null || (ponto.inicio != null && ponto.inicio >= limite)
+        );
+        const ultimaMemoria = [...pontosMemoria].reverse().find(ponto => ponto.v != null);
+
+        // Eventos reais do serviço: reinícios detectados para o processo em foco.
+        const processosEmLoop =
+            (kpisDoDia && kpisDoDia.reiniciandoLoop && kpisDoDia.reiniciandoLoop.processos) || [];
+        const eventosMemoria = processosEmLoop
+            .filter(evento =>
+                (evento.nome || "") === nomeProcesso && String(evento.pid) === String(pid))
+            .map(evento => ({
+                // O serviço devolve ISO; aceitar número mantém compatibilidade
+                // com chamadas internas que já passam epoch.
+                tempo: typeof evento.ultimoReinicio === "number"
+                    ? evento.ultimoReinicio
+                    : Date.parse(evento.ultimoReinicio),
+                rotulo: evento.metodo === "create_time"
+                    ? "Reinício do processo (CREATE_TIME)"
+                    : "Reinício do processo (troca de PID)"
+            }))
+            .filter(evento =>
+                Number.isFinite(evento.tempo) &&
+                (limite == null || evento.tempo >= limite));
 
         definirTexto(cpuValor, bucketsComDados.length
             ? `Tempo observado: ${formatarDuracao(tempoObservado)}`
@@ -983,16 +968,13 @@
             ? `Acima de 75%: ${formatarDuracao(tempoElevado)}`
             : "--");
 
-        definirTexto(memoriaValor, ultimoMem ? formatarVariacao(ultimoMem.v) : "--");
-        definirTexto(memoriaCaption, ultimoMem
-            ? `Última variação (${rotulo}): ${formatoBrasileiro(ultimoMem.t)}`
-            : semVariacao);
+        definirTexto(memoriaValor, ultimaMemoria ? formatarPercentual(ultimaMemoria.v) : "--");
+        definirTexto(memoriaCaption, ultimaMemoria
+            ? `Última leitura (${rotulo}): ${formatoBrasileiro(ultimaMemoria.t)}`
+            : "sem dados no período");
 
         atualizarGraficoCpu(distribuicaoCpu, rotulo);
-        atualizarGrafico(
-            "grafico-memoria-area", pontosMem, `Variação RAM (${rotulo})`, COR_GRAFICO.memoria,
-            null, null, true
-        );
+        atualizarGraficoMemoria(pontosMemoria, eventosMemoria, rotulo, historico.passoMinutos);
     }
 
     // ------------------------------------------------------------------

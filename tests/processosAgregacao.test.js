@@ -115,6 +115,7 @@ assert.equal(bucketsVazios[1].semDadoMs, HORA);
 assert.equal(bucketsVazios[1].proporcoes, null);
 const serieRamVazia = ag.seriePorIntervalo(comLacuna, 60, "memoria");
 assert.equal(serieRamVazia[1].v, null, "RAM ausente não vira zero");
+assert.equal(serieRamVazia[1].rssBytes, null, "RSS ausente não vira zero");
 conferirConsistencia(bucketsVazios, 60);
 
 // 6. Limites das faixas e CPU acima de 100% (multinúcleo).
@@ -135,17 +136,22 @@ assert.equal(ag.inicioDoIntervalo("2026-11-27T13:16:00Z", 15), em(13, 15));
 
 // 8. RAM: última leitura válida, unidade original e ordem cronológica.
 const amostrasRam = [
-    amostra(em(13, 0), 10, 40),
-    amostra(em(13, 30), 10, 45),
-    amostra(em(13, 45), 10, 99, { memoriaValida: false }),
-    amostra(em(13, 59), 10, 50)
+    amostra(em(13, 0), 10, 40, { rssBytes: 1073741824 }),
+    amostra(em(13, 30), 10, 45, { rssBytes: 1610612736 }),
+    amostra(em(13, 45), 10, 99, { memoriaValida: false, rssBytes: 999 }),
+    amostra(em(13, 59), 10, 50, { rssBytes: 2147483648 })
 ];
 const serieRam = ag.seriePorIntervalo(amostrasRam, 60, "memoria");
 assert.equal(serieRam.length, 1);
 assert.equal(serieRam[0].v, 50, "usa a última leitura válida, não a inválida posterior");
+assert.equal(serieRam[0].rssBytes, 2147483648, "RSS acompanha a mesma última leitura válida");
 assert.equal(serieRam[0].t, new Date(em(13, 59)).toISOString());
 assert.ok(serieRam.every((ponto, i) => i === 0 || Date.parse(ponto.t) >= Date.parse(serieRam[i - 1].t)));
-assert.equal(ag.seriePorIntervalo([amostra(em(13, 0), 10, 0, { memoriaValida: false })], 60, "memoria")[0].v, null);
+const semMemoria = ag.seriePorIntervalo(
+    [amostra(em(13, 0), 10, 0, { memoriaValida: false, rssBytes: 123 })], 60, "memoria"
+)[0];
+assert.equal(semMemoria.v, null);
+assert.equal(semMemoria.rssBytes, null, "leitura inválida não fornece RSS");
 
 // 9. Seleção de processos diferentes: cada chamada recebe só as amostras do processo.
 const processoA = [amostra(em(13, 0), 10, 20, { pid: 10, nome: "app" })];

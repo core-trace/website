@@ -64,11 +64,14 @@
                 const tempo = typeof amostra.timestamp === "number"
                     ? amostra.timestamp
                     : Date.parse(amostra.timestamp);
+                const memoriaValida = amostra.memoriaValida !== false;
                 return {
                     timestamp: amostra.timestamp,
                     tempo,
                     cpu: amostra.valido === false ? null : valorDaLeitura(amostra.cpu),
-                    memoria: amostra.memoriaValida === false ? null : valorDaLeitura(amostra.memoria)
+                    memoria: memoriaValida ? valorDaLeitura(amostra.memoria) : null,
+                    // RSS em bytes vem do mesmo lote; guardado para o tooltip de RAM.
+                    rssBytes: memoriaValida ? valorDaLeitura(amostra.rssBytes) : null
                 };
             })
             .filter(amostra => Number.isFinite(amostra.tempo))
@@ -181,7 +184,8 @@
                 inicio: intervalo.inicio,
                 fim: intervalo.fim,
                 t: ultima ? ultima.timestamp : null,
-                v: ultima ? ultima[campo] : null
+                v: ultima ? ultima[campo] : null,
+                rssBytes: ultima ? (ultima.rssBytes == null ? null : ultima.rssBytes) : null
             };
         });
     }
@@ -199,9 +203,8 @@
     }
 
     /**
-     * Prepara CPU e RAM em uma única passagem. A série de variação usada hoje
-     * nos gráficos é derivada dos pontos agregados; a distribuição fica
-     * disponível para a próxima etapa de visualização.
+     * Prepara CPU e RAM em uma única passagem. A distribuição alimenta o
+     * gráfico de barras da CPU; os pontos de memória alimentam a área de RAM.
      */
     function prepararHistorico(amostras, periodoMinutos) {
         // Período fora do filtro conhecido usa o passo mais amplo configurado.

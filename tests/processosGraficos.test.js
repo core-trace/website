@@ -1,7 +1,8 @@
 /*
  * Teste de integração do front da Dashboard de Processos: gráfico de CPU em
- * barras empilhadas, tooltip, indicador, filtros e seleção de processos.
- * Execução: node tests/processosGraficoCpu.test.js
+ * barras empilhadas, área de evolução da RAM, tooltips, eventos reais,
+ * indicador, filtros e seleção de processos.
+ * Execução: node tests/processosGraficos.test.js
  */
 const fs = require("node:fs");
 const path = require("node:path");
@@ -85,15 +86,25 @@ class Chart {
 
 const hoje = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
 const em = hora => `${hoje}T${hora}:00`;
-const amostra = (nome, pid, createTime, horas, cpus, mems) => horas.map((h, i) => ({
+const amostra = (nome, pid, createTime, horas, cpus, mems, rss) => horas.map((h, i) => ({
     timestamp: em(h), pid, nome, createTime,
-    cpu: cpus[i], memoria: mems[i], usuario: null,
+    cpu: cpus[i], memoria: mems[i], rssBytes: rss ? rss[i] : null, usuario: null,
     cpuStatus: "ok", memoriaStatus: "ok", valido: true, memoriaValida: true
 }));
 
-const app = amostra("app", 10, "1000", ["10:00", "10:30", "11:00"], [5, 25, 70], [10, 20, 95]);
+const app = amostra("app", 10, "1000", ["10:00", "10:30", "11:00"], [5, 25, 70], [10, 20, 95],
+    [1073741824, 2147483648, 3221225472]);
 const worker = amostra("worker", 20, "2000", ["10:00", "10:30", "11:00"], [1, 2, 3], [40, 45, 50]);
-const comLacuna = amostra("gap", 30, "3000", ["10:00", "11:00"], [80, 80], [30, 30]);
+// Leitura sem CPU e sem memória no meio do período: ausência não é zero.
+const leituraInvalida = {
+    timestamp: em("10:30"), pid: 30, nome: "gap", createTime: "3000",
+    cpu: null, memoria: null, rssBytes: 123, usuario: null,
+    cpuStatus: "erro", memoriaStatus: "erro", valido: false, memoriaValida: false
+};
+const comLacuna = [
+    ...amostra("gap", 30, "3000", ["10:00", "11:00"], [80, 80], [30, 30]),
+    leituraInvalida
+].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 const acima100 = amostra("overload", 40, "4000", ["10:15"], [150], [60]);
 const processos = [...app, ...worker, ...comLacuna, ...acima100]
     .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
@@ -111,7 +122,24 @@ async function fetchStub(url) {
         kpis: {
             picoMemoria: { valor: 99, nome: "worker", pid: 20, usuario: "root", timestamp: em("11:00") },
             picoCpu: { valor: 150, nome: "overload", pid: 40, timestamp: em("10:15") },
-            reiniciandoLoop: { total: 0, processos: [] }
+            // Eventos reais do serviço, no mesmo formato devolvido pela API.
+            reiniciandoLoop: {
+                total: 2,
+                processos: [
+                    {
+                        nome: "app", pid: 10, reinicios: 2, metodo: "create_time",
+                        ultimoReinicio: em("10:30")
+                    },
+                    {
+                        nome: "app", pid: 10, reinicios: 1, metodo: "create_time",
+                        ultimoReinicio: "2000-01-01T10:30:00"
+                    },
+                    {
+                        nome: "worker", pid: 20, reinicios: 1, metodo: "troca_de_pid",
+                        ultimoReinicio: em("10:45")
+                    }
+                ]
+            }
         },
         top5Recursos: [
             { nome: "app", pid: 10, createTime: "1000", cpuMax: 70, memoriaMax: 95, ultimoPico: em("11:00") },
@@ -159,6 +187,16 @@ const ramCharts = () => registrosChart.filter(c => c.canvas.id === "grafico-memo
 const cpuChart = () => cpuCharts()[cpuCharts().length - 1];
 const cpuDatasets = () => cpuChart().configuracao.data.datasets;
 const distribuicao = () => cpuChart().configuracaoDistribuicao.distribuicao;
+const ramChart = () => ramCharts()[ramCharts().length - 1];
+const ramConfig = () => ramChart().configuracao;
+const ramDataset = () => ramConfig().data.datasets[0];
+const ramSerie = () => ramChart().configuracaoMemoria.serie;
+const ramTooltip = () => ramConfig().options.plugins.tooltip;
+const pontoTooltip = (serie, indice) => ({
+    dataIndex: indice,
+    parsed: { x: serie[indice].x, y: serie[indice].y },
+    raw: serie[indice]
+});
 const linhas = () => tbody.querySelectorAll("tr");
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -183,7 +221,6 @@ function selecionar(indice) {
     // --- Gráfico de CPU: barras empilhadas ---
     const cfg = cpuChart().configuracao;
     assert(cfg.type === "bar", "CPU usa grafico de barras");
-    assert(ramCharts()[ramCharts().length - 1].configuracao.type === "line", "RAM continua como linha");
     assert(cpuDatasets().map(d => d.label).join("|") ===
         "Até 25%|25% a 50%|50% a 75%|Acima de 75%", "legendas das quatro faixas na ordem da agregacao");
     assert(new Set(cpuDatasets().map(d => d.backgroundColor)).size === 4, "cores distintas por faixa");
@@ -219,6 +256,82 @@ function selecionar(indice) {
     assert(tooltip.filter(itemTooltip) === true, "segmento com valor aparece no tooltip");
     assert(tooltip.filter({ parsed: { y: null }, raw: null }) !== true, "intervalo sem dado nao gera tooltip");
 
+    // --- RAM: área com linha, unidade original e última leitura válida ---
+    const configRam = ramConfig();
+    const datasetRam = ramDataset();
+    const serieApp = ramSerie();
+    assert(configRam.type === "line" && datasetRam.fill === "origin",
+        "RAM usa area preenchida abaixo da linha");
+    assert(datasetRam.borderColor === "#477da7" && typeof datasetRam.backgroundColor === "function",
+        "linha e area usam a cor da RAM");
+    const paradasGradiente = [];
+    const gradiente = datasetRam.backgroundColor({
+        chart: {
+            chartArea: { top: 0, bottom: 100 },
+            ctx: {
+                createLinearGradient: () => ({
+                    addColorStop: (posicao, cor) => paradasGradiente.push([posicao, cor])
+                })
+            }
+        }
+    });
+    assert(gradiente && paradasGradiente.length === 2, "preenchimento da area vem do grafico real");
+    assert(datasetRam.spanGaps === false, "linha nao conecta intervalos sem dado");
+    assert(configRam.options.responsive === true && configRam.options.maintainAspectRatio === false,
+        "area se adapta ao container responsivo");
+    assert(configRam.options.scales.x.type === "linear", "eixo temporal e linear");
+    assert(configRam.options.scales.y.min === 0 &&
+        configRam.options.scales.y.ticks.callback(50) === "50%",
+        "eixo de RAM mantem a unidade original em porcentagem");
+    const leiturasApp = serieApp.filter(p => p.y != null);
+    assert(leiturasApp.map(p => p.y).join(",") === "10,20,95",
+        "serie de RAM usa a ultima leitura valida de cada intervalo");
+    assert(leiturasApp.map(p => p.rssBytes).join(",") === "1073741824,2147483648,3221225472",
+        "RSS acompanha a mesma leitura valida da porcentagem");
+    assert(serieApp.every((p, i) => i === 0 || p.x >= serieApp[i - 1].x),
+        "serie de RAM em ordem cronologica");
+    assert(texto("grafico-memoria-valor") === "95,0%", "ultimo valor exibido vem da leitura real");
+    assert(texto("grafico-memoria-caption").startsWith("Última leitura (1 min):"),
+        "caption informa a granularidade da RAM");
+
+    // --- Tooltip da RAM: data/horario, percentual e RSS real ---
+    const tooltipRam = ramTooltip();
+    const tituloRam = tooltipRam.callbacks.title([pontoTooltip(serieApp, 0)]);
+    assert(/^\d{2}\/\d{2}\/\d{4}.*\d{2}:\d{2}$/.test(tituloRam), "tooltip da RAM traz data e horario");
+    const corpoRam = tooltipRam.callbacks.label(pontoTooltip(serieApp, 0));
+    assert(corpoRam[0] === "Utilização: 10,0%" && corpoRam[1] === "Memória utilizada: 1,0 GiB",
+        "tooltip mostra percentual e memoria na unidade original");
+    assert(tooltipRam.filter({ parsed: { y: null }, raw: null }) !== true,
+        "intervalo sem leitura de RAM nao gera tooltip");
+    assert(tooltipRam.callbacks.label({ dataIndex: 999 }).length === 0,
+        "tooltip nao inventa valores para ponto ausente");
+
+    // --- Eventos: apenas reinicios reais do processo selecionado ---
+    const eventosApp = ramChart().configuracaoMemoria.eventos;
+    assert(eventosApp.length === 1 && eventosApp[0].rotulo.includes("CREATE_TIME"),
+        "somente o reinicio recente do app entra no grafico");
+    const pluginEventos = configRam.plugins.find(p => p.id === "marcadoresEventosRam");
+    assert(Boolean(pluginEventos), "plugin de marcadores de evento registrado");
+    const segmentos = [];
+    const indiceEvento = serieApp.findIndex(p => p.x === eventosApp[0].tempo);
+    const pixelEvento = serieApp[indiceEvento].x;
+    pluginEventos.afterDatasetsDraw({
+        chartArea: { left: 0, right: 100, top: 0, bottom: 100 },
+        scales: { x: { getPixelForValue: valor => valor === pixelEvento ? 50 : null } },
+        ctx: {
+            save() {}, restore() {}, setLineDash() {}, beginPath() {},
+            moveTo(x) { segmentos.push(x); }, lineTo() {}, stroke() {},
+            fillText() {}, measureText: () => ({ width: 0 })
+        }
+    });
+    assert(segmentos.length === 1 && segmentos[0] === 50,
+        "marcador vertical desenhado apenas no instante do evento real");
+    assert(tooltipRam.callbacks.afterBody([pontoTooltip(serieApp, indiceEvento)])
+        .some(linha => linha.includes("Reinício do processo (CREATE_TIME)")),
+        "tooltip identifica o evento no ponto correspondente");
+    assert(tooltipRam.callbacks.afterBody([pontoTooltip(serieApp, 0)]).length === 0,
+        "sem evento no ponto, tooltip nao inventa marcador");
+
     // --- Indicador complementar usa soma de tempo, sem media/max/min ---
     assert(texto("grafico-cpu-valor") === "Tempo observado: 3 min", "total observado do periodo selecionado");
     assert(texto("cpu-tempo-elevado") === "Acima de 75%: 0 min", "tempo acima de 75% do app");
@@ -232,6 +345,9 @@ function selecionar(indice) {
         assert(texto("grafico-cpu-caption").includes(`Intervalos de ${esperado}`), `filtro ${valor} usa passo ${esperado}`);
         assert(cpuChart().configuracaoDistribuicao.rotulo === esperado, `granularidade do filtro ${valor}`);
         assert(cpuDatasets().length === 4, `faixas preservadas no filtro ${valor}`);
+        assert(ramChart().configuracaoMemoria.rotulo === esperado, `granularidade da RAM no filtro ${valor}`);
+        assert(ramDataset().label === `Utilização de RAM (${esperado})`,
+            `rotulo da serie de RAM acompanha o filtro ${valor}`);
     }
     filtroPeriodo.value = "60";
     filtroPeriodo.dispatch("change");
@@ -244,9 +360,16 @@ function selecionar(indice) {
     assert(!cpuDatasets()[0].data.every(v => v == null), "worker tem segmentos na faixa baixa");
     assert(cpuDatasets()[3].data.every(v => v == null || v === 0), "worker nao tem segmento acima de 75%");
     assert(texto("cpu-tempo-elevado") === "Acima de 75%: 0 min", "indicador acompanha o novo processo");
-    const serieRamWorker = ramCharts()[ramCharts().length - 1].configuracao.data.datasets
-        .find(d => d.label.startsWith("Variação RAM")).data.map(p => p.y);
-    assert(serieRamWorker.at(-1) === 5, "serie de RAM passa a conter somente o novo processo");
+    const serieWorker = ramSerie();
+    assert(serieWorker.filter(p => p.y != null).map(p => p.y).join(",") === "40,45,50",
+        "serie de RAM passa a conter somente o novo processo");
+    assert(texto("grafico-memoria-valor") === "50,0%", "valor de RAM acompanha o novo processo");
+    const corpoWorker = ramTooltip().callbacks.label(pontoTooltip(serieWorker, 0));
+    assert(corpoWorker.length === 1 && corpoWorker[0] === "Utilização: 40,0%",
+        "tooltip omite RSS quando o dado nao existe");
+    const eventosWorker = ramChart().configuracaoMemoria.eventos;
+    assert(eventosWorker.length === 1 && eventosWorker[0].rotulo.includes("troca de PID"),
+        "evento exibido e o do processo selecionado");
 
     // --- Intervalos sem amostras não viram barra de baixo consumo ---
     selecionar(2);
@@ -255,6 +378,13 @@ function selecionar(indice) {
     const indiceVazio = distribuicao().findIndex(b => b.observadoMs === 0);
     assert(cpuDatasets().every(d => d.data[indiceVazio] == null), "intervalo sem dado nao recebe segmento");
     assert(texto("cpu-tempo-elevado") === "Acima de 75%: 2 min", "tempo elevado soma apenas amostras reais do gap");
+    const serieGap = ramSerie();
+    assert(serieGap[30] && serieGap[30].y === null && serieGap[30].rssBytes === null,
+        "leitura invalida de RAM vira lacuna, nao consumo zero");
+    assert(serieGap[0].y === 30 && serieGap[60].y === 30,
+        "leituras antes e depois da lacuna mantem os valores reais");
+    assert(texto("grafico-memoria-valor") === "30,0%", "ultimo valor valido ignora a lacuna");
+    assert(ramChart().configuracaoMemoria.eventos.length === 0, "processo sem evento nao recebe marcador");
 
     // --- CPU acima de 100% permanece na faixa crítica ---
     selecionar(3);
@@ -276,9 +406,10 @@ function selecionar(indice) {
         texto("cpu-tempo-elevado") === "--", "sem amostras os textos da CPU sao limpos");
     assert(tbody.querySelectorAll("tr.linha-ativa").length === 0, "nenhuma linha permanece destacada");
     assert(cpuDatasets().every(d => d.data.length === 0), "serie anterior nao permanece no grafico de CPU");
-    assert(ramCharts()[ramCharts().length - 1].configuracao.data.datasets
-        .find(d => d.label.startsWith("Variação RAM")).data.length === 0,
-        "serie anterior nao permanece no grafico de RAM");
+    assert(ramSerie().length === 0 && ramChart().configuracaoMemoria.eventos.length === 0,
+        "serie e eventos anteriores nao permanecem no grafico de RAM");
+    assert(texto("grafico-memoria-valor") === "--" && texto("grafico-memoria-caption") === "--",
+        "sem amostras os textos da RAM sao limpos");
 
     filtroPeriodo.value = "360";
     filtroPeriodo.dispatch("change");

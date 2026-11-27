@@ -3,6 +3,34 @@ const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const s3 = new S3Client({});
 const TEMPO_INATIVO = 15 * 60000;
 
+// Reutiliza a lista de lotes por 30 segundos; os lotes com ID por conteúdo, por 5 minutos.
+// O controller pode reutilizar a resposta completa por 2 minutos antes de chamar este service.
+const arquivosEmMemoria = new Map();
+async function lerJsonGold(chave) {
+    const bucket = process.env.BUCKET_DADOS_GOLD;
+    const identificacao = bucket + "/" + chave;
+    const duracao = chave.startsWith("client/lotes/") ? 5 * 60000 : 30000;
+    const anterior = arquivosEmMemoria.get(identificacao);
+    if (anterior && anterior.validoAte > Date.now()) return anterior.leitura;
+
+    // Limita a memória e reaproveita uma leitura que já estiver em andamento.
+    if (arquivosEmMemoria.size >= 60) arquivosEmMemoria.delete(arquivosEmMemoria.keys().next().value);
+    const consulta = { validoAte: Date.now() + duracao };
+ //mudou de 15 segundos para 90 segundos para tempo de esperar os arquivos s3 carregar antes de cancelar a tentativa
+    consulta.leitura = s3.send(new GetObjectCommand({ Bucket: bucket, Key: chave }), {
+        abortSignal: AbortSignal.timeout(90000)
+    }).then(async resposta => {
+        const documento = JSON.parse(await resposta.Body.transformToString());
+        consulta.validoAte = Date.now() + duracao;
+        return documento;
+    }).catch(erro => {
+        if (arquivosEmMemoria.get(identificacao) === consulta) arquivosEmMemoria.delete(identificacao);
+        throw erro;
+    });
+    arquivosEmMemoria.set(identificacao, consulta);
+    return consulta.leitura;
+}
+
 // recebe o horario e transforma em milisegundos
 function horarioDaCaptura(texto) {
     if (typeof texto !== "string") throw new Error("Horário ausente na captura.");
@@ -94,7 +122,7 @@ async function lerServidor(servidor, agora) {
     for (const data of datas) {
         let resumo;
         try {
-            resumo = await resumoGoldService.buscarResumoDoServidor(mac, data);
+            resumo = await lerJsonGold(`client/resumos/maquina=${mac}/data=${data}/resumo.json`);
         } catch (erro) {
             if (erro.name === "NoSuchKey" || erro.Code === "NoSuchKey") continue;
             throw erro;
@@ -102,6 +130,7 @@ async function lerServidor(servidor, agora) {
         if (resumo.endereco_mac !== mac || !Array.isArray(resumo.lotes_atuais)) {
             throw new Error("Resumo da Gold incompatível com o servidor.");
         }
+        const chaves = [];
         for (const lote of resumo.lotes_atuais) {
             const prefixo = `client/lotes/maquina=${mac}/data=${data}/`;
             if (typeof lote.chave !== "string" || !lote.chave.startsWith(prefixo)) {
@@ -109,23 +138,27 @@ async function lerServidor(servidor, agora) {
             }
             if (lidos.has(lote.chave)) continue;
             lidos.add(lote.chave);
-            const resposta = await s3.send(new GetObjectCommand({
-                Bucket: process.env.BUCKET_DADOS_GOLD, Key: lote.chave
-            }));
-            const documento = JSON.parse(await resposta.Body.transformToString());
-            if (documento.endereco_mac !== mac) throw new Error("Servidor diferente no lote.");
-            for (const campo of ["metricas", "processos", "containers", "eventos", "logs"]) {
-                if (documento[campo] != null && !Array.isArray(documento[campo])) throw new Error("Capturas inválidas na Gold.");
-                for (const captura of documento[campo] || []) {
-                    const horario = horarioDaCaptura(captura.timestamp);
-                    //ignora capturas do futuro
-                    if (horario > agora) continue;
-                    //ve se aquele é a captura mais nova
-                    if (ultimaAtual === null || horario > ultimaAtual) ultimaAtual = horario;
-                    if (campo === "metricas" && (horarioMetrica === null || horario > horarioMetrica ||
-                        (horario === horarioMetrica && String(captura.id_captura) > String(ultimaMetrica.id_captura)))) {
-                        ultimaMetrica = captura;
-                        horarioMetrica = horario;
+            chaves.push(lote.chave);
+        }
+        // isso aqui é só pra não abrir conexões demais de
+        // uma vez, o cache é quem realmente evita reler tudo de novo depois.
+        for (let inicio = 0; inicio < chaves.length; inicio += 3) {
+            const documentos = await Promise.all(chaves.slice(inicio, inicio + 3).map(lerJsonGold));
+            for (const documento of documentos) {
+                if (documento.endereco_mac !== mac) throw new Error("Servidor diferente no lote.");
+                for (const campo of ["metricas", "processos", "containers", "eventos", "logs"]) {
+                    if (documento[campo] != null && !Array.isArray(documento[campo])) throw new Error("Capturas inválidas na Gold.");
+                    for (const captura of documento[campo] || []) {
+                        const horario = horarioDaCaptura(captura.timestamp);
+                        //ignora capturas do futuro
+                        if (horario > agora) continue;
+                        //ve se aquele é a captura mais nova
+                        if (ultimaAtual === null || horario > ultimaAtual) ultimaAtual = horario;
+                        if (campo === "metricas" && (horarioMetrica === null || horario > horarioMetrica ||
+                            (horario === horarioMetrica && String(captura.id_captura) > String(ultimaMetrica.id_captura)))) {
+                            ultimaMetrica = captura;
+                            horarioMetrica = horario;
+                        }
                     }
                 }
             }
@@ -189,7 +222,8 @@ function calcularCustos(perfil, agora) {
 }
 
 // Junta as capturas com os perfis e limites do banco, preparando a resposta da tela.
-async function montarDashboard(cadastros, servidores) {
+async function montarDashboard(cadastros, servidores, incluirColetas = true) {
+    if (!incluirColetas) servidores = [];
     const agora = resumoGoldService.agoraOuReferenciaDemo().getTime();
     if (!Number.isFinite(agora)) throw new Error("Horário de referência inválido.");
     const perfis = [];
@@ -207,12 +241,13 @@ async function montarDashboard(cadastros, servidores) {
             leituras.set(grupo[indice], resultados[indice]);
         }
     }
-    let disponivel = true;
+    let disponivel = incluirColetas;
     for (const cadastro of cadastros) {
         const perfil = {
             id: cadastro.id_perfil_servidor, nome: cadastro.nome,
             totalServidores: Number(cadastro.total_servidores), limites: cadastro.componentes,
-            ativos: 0, inativos: 0, criticos: 0, percentualCriticos: 0
+            ativos: incluirColetas ? 0 : null, inativos: incluirColetas ? 0 : null,
+            criticos: incluirColetas ? 0 : null, percentualCriticos: null
         };
         perfil.custos = calcularCustos(perfil, agora);
         for (const servidor of servidores) {
@@ -242,8 +277,9 @@ async function montarDashboard(cadastros, servidores) {
         if (perfil.criticos === null) {
             perfil.percentualCriticos = null;
             disponivel = false;
-        } else if (perfil.totalServidores > 0) {
-            perfil.percentualCriticos = Math.round(perfil.criticos / perfil.totalServidores * 10000) / 100;
+        } else {
+            perfil.percentualCriticos = perfil.totalServidores > 0
+                ? Math.round(perfil.criticos / perfil.totalServidores * 10000) / 100 : 0;
         }
         perfis.push(perfil);
     }

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreTrace - Investigação de contêineres</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/docker.css">
+    <script src="../scripts/navbarDashboard.js" defer></script>
+    <script src="../scripts/vendor/chart.umd.js" defer></script>
+    <script src="../scripts/dockerAnalise.js" defer></script>
+    <script src="../scripts/dockerNormalizacao.js" defer></script>
+    <script src="../scripts/dockerPeriodos.js" defer></script>
+    <script src="../scripts/dockerCarregamento.js" defer></script>
+    <script src="../scripts/dockerDashboard.js" defer></script>
+</head>
+
+<body class="dashboard-page docker-pagina">
+    <a class="dashboard-pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+
+    <aside class="dashboard-menu" id="menu-dashboard" aria-label="Menu principal">
+        <div class="dashboard-menu-cabecalho">
+            <a class="dashboard-logo" href="inicioDashboard.html" aria-label="CoreTrace - Visão geral">
+                <img src="../assets/images/CoreTraceBlackLogo.png" alt="CoreTrace" width="581" height="154">
+            </a>
+            <button class="dashboard-fechar-menu" type="button" aria-label="Fechar menu"><span
+                    aria-hidden="true">×</span></button>
+        </div>
+        <nav class="dashboard-navegacao" aria-label="Navegação do dashboard" aria-busy="true">
+            <p class="dashboard-acesso-feedback" role="status"></p>
+        </nav>
+    </aside>
+    <div class="dashboard-menu-fundo" aria-hidden="true"></div>
+
+    <div class="dashboard-conteudo">
+        <header class="dashboard-navbar docker-navbar">
+            <button class="dashboard-abrir-menu" type="button" aria-label="Abrir menu" aria-controls="menu-dashboard"
+                aria-expanded="false">
+                <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+            </button>
+            <label class="dashboard-pesquisa">
+                <span class="dashboard-lupa" aria-hidden="true"></span>
+                <input type="search" id="docker-pesquisa-contexto" placeholder="Buscar por servidor ou perfil..."
+                    aria-label="Buscar servidor ou perfil disponível" aria-controls="docker-contexto-resultado">
+            </label>
+            <div class="dashboard-usuario">
+                <button class="dashboard-notificacoes" type="button" aria-label="Notificações"><img
+                        src="../assets/icons/sino.png" alt="" width="24" height="24"></button>
+                <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
+                <div class="dashboard-usuario-dados"><span class="dashboard-usuario-nome"></span><span
+                        class="dashboard-usuario-cargo"></span></div>
+                <div class="dashboard-conta">
+                    <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
+                        aria-controls="menu-conta" aria-expanded="false"><span class="dashboard-usuario-seta"
+                            aria-hidden="true"></span></button>
+                    <div class="dashboard-menu-conta" id="menu-conta" hidden>
+                        <p class="dashboard-conta-email"></p><button class="dashboard-sair" type="button">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main id="conteudo-principal" class="docker-principal" tabindex="-1">
+            <div class="docker-breadcrumb">Monitoramento <span>/</span> Dashboards <span>/</span>
+                <strong>Docker</strong>
+            </div>
+            <div class="docker-hero">
+                <div>
+                    <div class="docker-titulo-com-icone">
+                        <h1>Docker</h1>
+                    </div>
+                    <p class="docker-visualmente-oculto">Monitoramento e análise dos contêineres do servidor selecionado.</p>
+                </div>
+            </div>
+
+            <section class="docker-controles" aria-label="Contexto e período da análise">
+                <label class="docker-campo">Perfil<select id="docker-perfil">
+                        <option value="">Carregando perfis...</option>
+                    </select></label>
+                <label class="docker-campo">Servidor<select id="docker-servidor">
+                        <option value="">Carregando servidores...</option>
+                    </select></label>
+                <label class="docker-campo docker-periodos" for="docker-periodo">Período
+                    <select id="docker-periodo" aria-controls="docker-periodo-personalizado">
+                        <option value="0.041666666666666664">Última hora</option>
+                        <option value="0.25">6 horas</option>
+                        <option value="1">24 horas</option>
+                        <option value="7" selected>7 dias</option>
+                        <option value="personalizado">Personalizado</option>
+                    </select>
+                </label>
+                <div class="docker-atualizacao">
+                    <span id="docker-ultima-coleta">Aguardando resumo</span>
+                </div>
+            </section>
+            <form id="docker-periodo-personalizado" class="docker-periodo-personalizado" hidden>
+                <label class="docker-campo">Início (Brasília)<input id="docker-periodo-inicio" type="datetime-local" required></label>
+                <label class="docker-campo">Fim (Brasília)<input id="docker-periodo-fim" type="datetime-local" required></label>
+                <button type="submit" class="docker-botao">Aplicar período</button>
+                <p>Máximo de 7 dias corridos (168 horas), até o instante de referência. Até 1h: 5 minutos; até 24h: horário; acima de 24h: diário. Só exibe dados inteiramente contidos no período.</p>
+                <p id="docker-periodo-erro" role="alert" hidden></p>
+            </form>
+            <p id="docker-contexto-resultado" class="docker-contexto-resultado" role="status" hidden></p>
+            <p class="docker-periodo-info" id="docker-periodo-info" role="status" hidden></p>
+            <div class="docker-feedback" id="docker-feedback" role="alert" hidden></div>
+
+            <section class="docker-card docker-lista" aria-labelledby="docker-lista-titulo">
+                <div class="docker-secao-topo">
+                    <div>
+                        <h2 id="docker-lista-titulo">Contêineres <span id="docker-total-containers">(—)</span></h2>
+                        <p id="docker-selecao-descricao" class="docker-visualmente-oculto">Selecione um contêiner para investigar suas métricas e
+                            registros.</p>
+                    </div>
+                    <div class="docker-lista-acoes"><button type="button" id="docker-limpar" class="docker-botao-suave"
+                            disabled>× &nbsp;Limpar seleção</button><label class="docker-busca"><span
+                                class="dashboard-lupa" aria-hidden="true"></span><input type="search" id="docker-busca"
+                                placeholder="Buscar por nome" aria-label="Buscar por nome ou imagem"></label>
+                    </div>
+                </div>
+                <div class="docker-tabela-scroll" role="region" aria-label="Tabela de contêineres" tabindex="0">
+                    <table class="docker-tabela">
+                        <thead>
+                            <tr>
+                                <th scope="col">Contêiner</th>
+                                <th scope="col">Último estado</th>
+                                <th scope="col">Falhas no período</th>
+                                <th scope="col">Reinícios entre resumos</th>
+                                <th scope="col">Erros nos logs</th>
+                            </tr>
+                        </thead>
+                        <tbody id="docker-linhas">
+                            <tr>
+                                <td colspan="5">Carregando resumo...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="docker-nota-tabela docker-visualmente-oculto" id="docker-nota-tabela">O último estado não representa todo o histórico do período. Um contêiner encerrado pode não ter falhas no intervalo selecionado.</p>
+            </section>
+
+            <section class="docker-card docker-detalhe" aria-labelledby="docker-detalhe-titulo">
+                <div class="docker-secao-topo">
+                    <div>
+                        <h2 id="docker-detalhe-titulo">Detalhes do contêiner</h2>
+                        <p id="docker-detalhe-id">Selecione um contêiner na tabela</p>
+                    </div><span class="docker-estado" id="docker-detalhe-estado">—</span>
+                </div>
+                <dl id="docker-detalhe-metricas" class="docker-detalhe-metricas"></dl>
+                <dl id="docker-detalhe-campos" class="docker-detalhe-grid">
+                    <div>As informações aparecerão aqui.</div>
+                </dl>
+            </section>
+
+            <div class="docker-resumo-topo">
+                <h2 id="docker-resumo-titulo">Visão do contêiner</h2>
+                <p id="docker-escopo-servidor" class="docker-containers-badge" role="status">— containers monitorados</p>
+            </div>
+            <section class="docker-kpis" aria-label="Indicadores da análise" aria-describedby="docker-escopo-servidor">
+                <article class="docker-card docker-kpi docker-kpi-falhas">
+                    <h2>Falhas de execução</h2>
+                    <div class="docker-kpi-valor" id="kpi-falhas">—</div>
+                    <small id="kpi-falhas-nota">Erros ou falta de memória (OOM)</small>
+                </article>
+                <article class="docker-card docker-kpi docker-kpi-reinicios">
+                    <h2>Reinícios</h2>
+                    <div class="docker-kpi-valor" id="kpi-reinicios">—</div>
+                    <small id="kpi-reinicios-nota">Reinícios detectados no período</small>
+                </article>
+                <article class="docker-card docker-kpi docker-kpi-erros">
+                    <h2>Erros nos logs</h2>
+                    <div class="docker-kpi-valor" id="kpi-erros">—</div>
+                    <small id="kpi-erros-nota">Mensagens de nível ERROR</small>
+                </article>
+                <article class="docker-card docker-kpi docker-kpi-pico docker-kpi-utilizacao">
+                    <h2>Pico de utilização</h2>
+                    <div class="docker-kpi-medida">
+                        <div class="docker-kpi-valor" id="kpi-pico">—</div>
+                        <div class="docker-pico-alternancia" role="group" aria-label="Métrica do pico"><button
+                                class="ativo" type="button" data-pico="cpu" aria-pressed="true">CPU</button><button
+                                type="button" data-pico="ram" aria-pressed="false">RAM</button></div>
+                    </div>
+                    <p id="kpi-pico-descricao">—</p>
+                </article>
+            </section>
+
+            <div class="docker-desempenho-titulo">
+                <div>
+                    <h2 id="docker-desempenho-titulo">Desempenho</h2>
+                    <p id="docker-desempenho-descricao" class="docker-visualmente-oculto">Histórico diário · período compartilhado</p>
+                </div>
+            </div>
+            <section class="docker-graficos" id="docker-graficos" aria-label="Métricas do contêiner"></section>
+            <p class="docker-escopo docker-aviso-medicoes docker-visualmente-oculto">Cada ponto representa um dia com resumo disponível. Dias sem coleta não são tratados como zero; gráficos de contadores mostram valores acumulados, não consumo diário.</p>
+
+            <section class="docker-card docker-registros" aria-labelledby="docker-logs-titulo">
+                <div class="docker-secao-topo">
+                    <div>
+                        <h2 id="docker-logs-titulo">Logs do contêiner</h2>
+                        <p id="docker-logs-descricao">Selecione um contêiner para investigar seus registros</p>
+                    </div>
+                    <button type="button" id="docker-logs-recolher" class="docker-botao-suave docker-recolher"
+                        aria-expanded="true" aria-controls="docker-logs-painel"><img class="docker-seta-botao" src="../assets/icons/icone-chevron.svg" alt="" width="16" height="16"><span>Recolher painel</span></button>
+                </div>
+                <div id="docker-logs-painel">
+                    <form id="docker-logs-periodo" class="docker-logs-periodo" aria-label="Período exclusivo dos logs">
+                        <label class="docker-logs-filtro docker-logs-data">Início
+                            <input type="datetime-local" id="docker-logs-inicio" step="60" title="Horário de Brasília (UTC−03:00)">
+                        </label>
+                        <label class="docker-logs-filtro docker-logs-data">Fim
+                            <input type="datetime-local" id="docker-logs-fim" step="60" title="Horário de Brasília (UTC−03:00); inclui todo o minuto selecionado">
+                        </label>
+                        <button type="submit" class="docker-botao-suave">Filtrar logs</button>
+                        <button type="button" id="docker-logs-ultimas24h" class="docker-botao-suave ativo" aria-pressed="true">Últimas 24 horas</button>
+                    </form>
+                    <p id="docker-logs-periodo-erro" class="docker-logs-erro" role="alert" hidden></p>
+                    <div class="docker-logs-filtros">
+                        <label class="docker-logs-filtro"><span class="docker-visualmente-oculto">Nível dos logs</span>
+                            <select id="docker-logs-nivel" aria-label="Filtrar logs por nível">
+                                <option value="">Todos os níveis</option>
+                                <option value="error">ERROR</option>
+                                <option value="warn">WARN</option>
+                                <option value="info">INFO</option>
+                                <option value="debug">DEBUG</option>
+                                <option value="trace">TRACE</option>
+                                <option value="fatal">FATAL</option>
+                                <option value="unknown">Não classificado</option>
+                            </select>
+                        </label>
+                        <label class="docker-logs-filtro docker-logs-pesquisa"><span class="docker-visualmente-oculto">Pesquisar nos logs</span>
+                            <input id="docker-logs-busca" type="search" placeholder="Pesquisar nos logs"
+                                aria-label="Pesquisar nos registros de logs">
+                        </label>
+                        <button type="button" id="docker-logs-ordem" class="docker-botao-suave docker-logs-ordem"
+                             aria-pressed="true"><img class="docker-seta-botao" src="../assets/icons/seta_vermelha.svg" alt="" width="16" height="16"><span>Mais recentes primeiro</span></button>
+                        <button type="button" id="docker-logs-download" class="docker-botao-suave docker-logs-ordem" disabled><img class="docker-seta-botao" src="../assets/icons/seta_vermelha.svg" alt="" width="16" height="16"><span>Baixar logs</span></button>
+                    </div>
+                    <div id="docker-logs-conteudo" class="docker-registros-conteudo" aria-live="polite">Selecione um contêiner.</div>
+                </div>
+            </section>
+            <section class="docker-card docker-registros" aria-labelledby="docker-eventos-titulo">
+                <div class="docker-secao-topo">
+                    <div>
+                        <h2 id="docker-eventos-titulo">Eventos do contêiner</h2>
+                        <p id="docker-eventos-descricao">Histórico do período selecionado · mais recentes primeiro</p>
+                    </div>
+                    <span id="docker-eventos-health" class="docker-estado parado" hidden>Healthcheck não informado</span>
+                </div>
+                <div id="docker-eventos-conteudo" class="docker-registros-conteudo">Selecione um contêiner.</div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

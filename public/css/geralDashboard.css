@@ -499,7 +499,8 @@
 
 .geral-grafico-area {
     position: relative;
-    height: 180px;
+    flex: 1;
+    min-height: 180px;
 }
 
 .geral-grafico-area canvas {

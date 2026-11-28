@@ -11,15 +11,13 @@
 
 .pagina-perfis .principal {
     width: 100%;
-    max-width: 1440px;
-    margin-inline: auto;
     padding: 40px 32px;
 }
 
 .pagina-perfis .caminho-navegacao {
     margin-bottom: 12px;
     color: var(--perfis-texto-secundario);
-    font-size: 12px;
+    font-size: 16px;
 }
 
 .pagina-perfis .cabecalho-pagina {
@@ -31,15 +29,15 @@
 }
 
 .pagina-perfis .cabecalho-pagina h1 {
-    font-size: clamp(22px, 2vw, 30px);
-    font-weight: 600;
+    font-size: clamp(32px, 2.6vw, 40px);
+    font-weight: 700;
     line-height: 1.3;
 }
 
 .pagina-perfis .cabecalho-pagina p {
     margin-top: 4px;
     color: var(--perfis-texto-secundario);
-    font-size: 13px;
+    font-size: 20px;
 }
 
 .pagina-perfis .periodo {
@@ -61,7 +59,7 @@
     border-radius: 6px;
     background-color: var(--perfis-superficie);
     color: var(--perfis-texto);
-    font-size: 12px;
+    font-size: 16px;
     cursor: pointer;
 }
 
@@ -80,8 +78,13 @@
     min-height: 96px;
     padding: 18px 16px;
     border: 1px solid var(--perfis-borda);
+    border-top: 3px solid #e6e3e0;
     border-radius: 7px;
     background-color: var(--perfis-superficie);
+}
+
+.pagina-perfis .indicador:has(.vermelho) {
+    border-top-color: var(--cor-vermelho);
 }
 
 .pagina-perfis .icone-indicador {
@@ -97,20 +100,20 @@
 
 .pagina-perfis .indicador strong {
     display: block;
-    font-size: 28px;
-    font-weight: 600;
+    font-size: clamp(40px, 3.2vw, 50px);
+    font-weight: 700;
     line-height: 1.2;
     overflow-wrap: anywhere;
 }
 
 .pagina-perfis .indicador .nome-perfil {
-    font-size: 24px;
+    font-size: 30px;
 }
 
 .pagina-perfis .indicador p {
     margin-top: 5px;
     color: var(--perfis-texto-secundario);
-    font-size: 12px;
+    font-size: 18px;
 }
 
 .pagina-perfis .vermelho {
@@ -133,9 +136,9 @@
 }
 
 .pagina-perfis .painel h2 {
-    font-size: 14px;
+    font-size: clamp(22px, 1.8vw, 26px);
     font-weight: 600;
-    line-height: 1.5;
+    line-height: 1.3;
 }
 
 .pagina-perfis .cabecalho-painel {
@@ -149,7 +152,7 @@
 .pagina-perfis .cabecalho-painel p {
     margin-top: 4px;
     color: var(--perfis-texto-secundario);
-    font-size: 11px;
+    font-size: 16px;
 }
 
 .pagina-perfis .seletor-perfil {
@@ -161,18 +164,18 @@
     border-radius: 6px;
     background-color: var(--perfis-superficie);
     color: var(--perfis-texto-secundario);
-    font-size: 10px;
+    font-size: 17px;
 }
 
 .pagina-perfis .seletor-perfil select {
     min-width: 90px;
-    min-height: 32px;
+    min-height: 36px;
     padding: 6px 8px;
     border: 0;
     border-radius: 6px;
     background-color: transparent;
     color: var(--perfis-texto);
-    font-size: 10px;
+    font-size: 17px;
     cursor: pointer;
 }
 
@@ -214,14 +217,23 @@
     border-spacing: 0 6px;
     table-layout: fixed;
     text-align: left;
-    font-size: 12px;
+    font-size: 17px;
 }
 
 .pagina-perfis .situacao th {
-    padding: 6px 10px;
+    padding: 8px 10px;
+    background: var(--cor-fundo);
     color: var(--perfis-texto-secundario);
-    font-size: 11px;
-    font-weight: 400;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+.pagina-perfis .situacao th:first-child {
+    border-radius: 5px 0 0 5px;
+}
+
+.pagina-perfis .situacao th:last-child {
+    border-radius: 0 5px 5px 0;
 }
 
 .pagina-perfis .situacao td {
@@ -259,7 +271,7 @@
 .pagina-perfis #dashboard-feedback {
     margin-bottom: 16px;
     color: var(--perfis-texto-secundario);
-    font-size: 13px;
+    font-size: 18px;
 }
 
 .pagina-perfis .limites {
@@ -291,7 +303,7 @@
 }
 
 .pagina-perfis .componente-limites summary span {
-    font-size: 13px;
+    font-size: 17px;
     font-weight: 500;
 }
 
@@ -299,7 +311,7 @@
     display: block;
     margin-top: 5px;
     color: var(--perfis-texto-secundario);
-    font-size: 9px;
+    font-size: 16px;
     line-height: 1.5;
     overflow-wrap: anywhere;
 }
@@ -315,7 +327,7 @@
 .pagina-perfis .aviso-limites {
     margin-top: 12px;
     color: var(--perfis-texto-secundario);
-    font-size: 11px;
+    font-size: 16px;
 }
 
 .pagina-perfis .tabela-limites-area {
@@ -328,13 +340,18 @@
     min-width: 320px;
     border-collapse: collapse;
     text-align: left;
-    font-size: 12px;
+    font-size: 17px;
 }
 
 .pagina-perfis .tabela-limites caption {
     margin-bottom: 10px;
     text-align: left;
     font-weight: 500;
+}
+
+.pagina-perfis table.ct-tabela tbody td:first-child {
+    font-weight: 700;
+    color: #292327;
 }
 
 .pagina-perfis .tabela-limites th,
@@ -344,7 +361,17 @@
 }
 
 .pagina-perfis .tabela-limites th {
+    background: var(--cor-fundo);
     font-weight: 500;
+    white-space: nowrap;
+}
+
+.pagina-perfis .tabela-limites th:first-child {
+    border-radius: 5px 0 0 5px;
+}
+
+.pagina-perfis .tabela-limites th:last-child {
+    border-radius: 0 5px 5px 0;
 }
 
 .pagina-perfis .tabela-limites td:nth-child(2) {
@@ -386,7 +413,7 @@
     }
 
     .pagina-perfis .indicador .nome-perfil {
-        font-size: 20px;
+        font-size: 22px;
     }
 
     .pagina-perfis .painel {
@@ -449,7 +476,7 @@
 .pagina-perfis .custos-indicadores small {
     display: block;
     color: var(--perfis-texto-secundario);
-    font-size: 12px;
+    font-size: 16px;
     line-height: 1.5;
 }
 
@@ -457,8 +484,8 @@
     display: block;
     margin: 6px 0;
     color: var(--perfis-texto);
-    font-size: 22px;
-    font-weight: 600;
+    font-size: clamp(28px, 2.4vw, 34px);
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
 }
@@ -469,7 +496,7 @@
     gap: 16px;
     margin-top: 16px;
     color: var(--perfis-texto-secundario);
-    font-size: 12px;
+    font-size: 16px;
 }
 
 .pagina-perfis .custos-legenda span {
@@ -501,7 +528,7 @@
     padding: 16px;
     text-align: center;
     color: var(--perfis-texto-secundario);
-    font-size: 12px;
+    font-size: 16px;
     border: 1px dashed var(--perfis-borda);
     border-radius: 6px;
     background: #fafafa;
@@ -516,7 +543,7 @@
 @media (max-width: 480px) {
     .pagina-perfis .custos-indicadores { gap: 10px; }
     .pagina-perfis .custos-indicadores > div { padding: 10px; }
-    .pagina-perfis .custos-indicadores strong { font-size: 18px; }
+    .pagina-perfis .custos-indicadores strong { font-size: 20px; }
 }
 
 

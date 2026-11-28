@@ -14,11 +14,45 @@ const LIMIARES_PADRAO = {
 // Os lotes do Gold podem ter vários MB; sem cache cada recarga da tela
 // baixaria novamente o mesmo JSON do S3.
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const DIAS_PADRAO_DASHBOARD = 7;
+const MAX_DIAS_DASHBOARD = 31;
 const cacheAmostras = new Map();
 const cacheKpisGold = new Map();
 
 function chaveCache(mac, data) {
     return `${processosModel.normalizarMac(mac)}|${data}`;
+}
+
+function chaveCachePeriodo(mac, datas) {
+    return `${processosModel.normalizarMac(mac)}|${datas.join(",")}`;
+}
+
+function normalizarDias(dias) {
+    if (dias === undefined || dias === null || dias === "") return DIAS_PADRAO_DASHBOARD;
+    const numero = Number(dias);
+    if (!Number.isSafeInteger(numero) || numero < 1 || numero > MAX_DIAS_DASHBOARD) {
+        throw new Error(`Informe de 1 a ${MAX_DIAS_DASHBOARD} dias.`);
+    }
+    return numero;
+}
+
+/** Datas do período, da mais recente para a mais antiga. */
+function datasDoPeriodo(data, dias) {
+    const partes = String(data || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!partes) throw new Error("Data inválida.");
+
+    const referencia = Date.UTC(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3]));
+    if (!Number.isFinite(referencia) ||
+        new Date(referencia).toISOString().slice(0, 10) !== String(data)) {
+        throw new Error("Data inválida.");
+    }
+
+    const quantidade = normalizarDias(dias);
+    const datas = [];
+    for (let i = 0; i < quantidade; i++) {
+        datas.push(new Date(referencia - i * 86400000).toISOString().slice(0, 10));
+    }
+    return datas;
 }
 
 function lerCache(cache, chave) {
@@ -123,35 +157,59 @@ function normalizarAmostra(registro) {
 }
 
 /**
- * Carrega todas as amostras de processo de um servidor em um dia,
- * juntando todos os lotes (capturas.json) e ordenando por timestamp.
+ * Carrega as amostras de vários dias em uma única chamada de serviço.
+ * Um dia sem captura é ignorado; o resultado mantém as amostras separadas por
+ * data para que KPIs, Top 5 e comparativo continuem no dia de referência.
  */
-async function carregarAmostras(mac, data) {
-    const chaveCacheLocal = chaveCache(mac, data);
+async function carregarAmostrasPeriodo(mac, datas) {
+    const listaDatas = Array.isArray(datas) ? datas : [datas];
+    if (listaDatas.length === 0) return { amostras: [], porData: new Map() };
+
+    const chaveCacheLocal = chaveCachePeriodo(mac, listaDatas);
     const emCache = lerCache(cacheAmostras, chaveCacheLocal);
     if (emCache !== undefined) return emCache;
 
     const macNormalizado = processosModel.normalizarMac(mac);
-    const chaves = (await processosModel.listarLotesDoDia(macNormalizado, data))
-        .filter(chave => chave.endsWith("capturas.json"));
-
-    // Lê os lotes em paralelo: o tempo total deixa de ser a soma de um
-    // GetObject por captura. Um lote que falha é ignorado, como antes.
-    const lotes = await Promise.all(chaves.map(chave =>
-        processosModel.buscarConteudoLote(chave).catch(erro => {
-            console.warn(`Não foi possível ler lote ${chave}:`, erro.message);
-            return null;
-        })
-    ));
-
-    const amostras = [];
-    for (const lote of lotes) {
-        if (!lote || !Array.isArray(lote.processos)) continue;
-
-        for (const registro of lote.processos) {
-            const amostra = normalizarAmostra(registro);
-            if (amostra) amostras.push(amostra);
+    const listagens = await Promise.all(listaDatas.map(async data => {
+        try {
+            const chaves = (await processosModel.listarLotesDoDia(macNormalizado, data))
+                .filter(chave => chave.endsWith("capturas.json"));
+            return { data, chaves };
+        } catch (erro) {
+            console.warn(`Não foi possível listar lotes de ${data}:`, erro.message);
+            return { data, chaves: [] };
         }
+    }));
+
+    const porData = new Map();
+    const amostras = [];
+
+    for (const { data, chaves } of listagens) {
+        // Lê os lotes em paralelo: o tempo total é o do lote mais lento, não a
+        // soma de um GetObject por captura. Um lote que falha é ignorado.
+        const lotes = await Promise.all(chaves.map(chave =>
+            processosModel.buscarConteudoLote(chave).catch(erro => {
+                console.warn(`Não foi possível ler lote ${chave}:`, erro.message);
+                return null;
+            })
+        ));
+
+        const doDia = [];
+        for (const lote of lotes) {
+            if (!lote || !Array.isArray(lote.processos)) continue;
+            for (const registro of lote.processos) {
+                const amostra = normalizarAmostra(registro);
+                if (amostra) doDia.push(amostra);
+            }
+        }
+
+        doDia.sort(
+            (a, b) =>
+                new Date(a.timestamp || 0).getTime() -
+                new Date(b.timestamp || 0).getTime()
+        );
+        porData.set(data, doDia);
+        amostras.push(...doDia);
     }
 
     amostras.sort(
@@ -160,8 +218,15 @@ async function carregarAmostras(mac, data) {
             new Date(b.timestamp || 0).getTime()
     );
 
-    gravarCache(cacheAmostras, chaveCacheLocal, amostras);
-    return amostras;
+    const resultado = { amostras, porData };
+    gravarCache(cacheAmostras, chaveCacheLocal, resultado);
+    return resultado;
+}
+
+/** Mantém a API de um dia usada pela rota /dados. */
+async function carregarAmostras(mac, data) {
+    const historico = await carregarAmostrasPeriodo(mac, [data]);
+    return historico.amostras;
 }
 
 /**
@@ -585,7 +650,9 @@ function mediaValores(grupo, metrica) {
 }
 
 /**
- * Monta a resposta agregada para a tela de processos.
+ * Monta a resposta agregada para a tela de processos. O período inteiro vem em
+ * uma única consulta; KPIs, Top 5 e comparativo usam o dia mais recente com
+ * captura, enquanto os gráficos recebem todas as amostras do período.
  */
 async function obterDashboard(filtros = {}) {
     const { mac, data } = filtros;
@@ -593,32 +660,47 @@ async function obterDashboard(filtros = {}) {
         throw new Error("Parâmetros 'mac' e 'data' são obrigatórios.");
     }
 
-    const [limiares, amostras, kpisGold] = await Promise.all([
+    const dias = normalizarDias(filtros.dias);
+    const datas = datasDoPeriodo(data, dias);
+
+    const [limiares, historico] = await Promise.all([
         resolverLimites(filtros),
-        carregarAmostras(mac, data),
-        carregarKpisGold(mac, data)
+        carregarAmostrasPeriodo(mac, datas)
     ]);
 
-    const kpis = calcularKpis(amostras, kpisGold);
-    const top5Recursos = calcularTop5Recursos(amostras);
-    const comparacao = compararMomentos(amostras);
+    const dataReferencia = datas.find(d => (historico.porData.get(d) || []).length > 0) || data;
+    const amostrasDoDia = historico.porData.get(dataReferencia) || [];
+    const kpisGold = await carregarKpisGold(mac, dataReferencia);
+
+    const kpis = calcularKpis(amostrasDoDia, kpisGold);
+    const top5Recursos = calcularTop5Recursos(amostrasDoDia);
+    const comparacao = compararMomentos(amostrasDoDia);
 
     return {
         mac,
-        data,
+        data: dataReferencia,
+        dataConsulta: data,
+        dias,
+        periodo: { inicio: datas[datas.length - 1], fim: datas[0] },
+        diasComDados: datas.filter(d => (historico.porData.get(d) || []).length > 0).length,
         limiares,
         kpis,
         top5Recursos,
         comparacao,
-        total: amostras.length,
-        ultimaColeta: amostras.length > 0 ? amostras[amostras.length - 1].timestamp : null,
-        processos: amostras
+        total: historico.amostras.length,
+        ultimaColeta: historico.amostras.length > 0
+            ? historico.amostras[historico.amostras.length - 1].timestamp
+            : null,
+        processos: historico.amostras
     };
 }
 
 module.exports = {
     normalizarAmostra,
     carregarAmostras,
+    carregarAmostrasPeriodo,
+    datasDoPeriodo,
+    normalizarDias,
     resolverLimites,
     calcularKpis,
     calcularReiniciandoLoop,

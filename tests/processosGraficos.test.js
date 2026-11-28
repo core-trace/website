@@ -20,6 +20,22 @@ class ListaClasses {
     }
 }
 
+class AbortControllerStub {
+    constructor() {
+        const ouvintes = new Set();
+        this.signal = {
+            aborted: false,
+            addEventListener: (tipo, fn) => { if (tipo === "abort") ouvintes.add(fn); },
+            removeEventListener: (tipo, fn) => { if (tipo === "abort") ouvintes.delete(fn); }
+        };
+        this.abort = () => {
+            if (this.signal.aborted) return;
+            this.signal.aborted = true;
+            for (const ouvinte of ouvintes) ouvinte();
+        };
+    }
+}
+
 class Elemento {
     constructor(tag = "div", id = "") {
         this.tagName = tag.toUpperCase();
@@ -107,66 +123,113 @@ const comLacuna = [
     leituraInvalida
 ].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 const acima100 = amostra("overload", 40, "4000", ["10:15"], [150], [60]);
-const processos = [...app, ...worker, ...comLacuna, ...acima100]
-    .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+// Processo com muitas leituras no período de 7 dias: força o agrupamento visual.
+const python = [];
+const basePython = Date.parse(em("11:00")) - 164 * 3600000;
+for (let i = 0; i < 165; i++) {
+    python.push({
+        timestamp: new Date(basePython + i * 3600000).toISOString(),
+        pid: 5140,
+        nome: "python",
+        createTime: "5140",
+        cpu: i % 30,
+        memoria: 30 + (i % 20),
+        rssBytes: (512 + (i % 10) * 128) * 1024 * 1024,
+        usuario: null,
+        cpuStatus: "ok",
+        memoriaStatus: "ok",
+        valido: true,
+        memoriaValida: true
+    });
+}
+const processos = [...app, ...worker, ...comLacuna, ...acima100, ...python]
+    .sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
 
 // Controles do harness para exercitar carregamento, erro e ausência de capturas.
 let falharDashboards = false;
 let pausarDashboards = false;
 let semCapturas = false;
+let abortarDashboards = false;
+let chamadasDashboard = 0;
 const pendentesDashboards = [];
 
-async function fetchStub(url) {
+const painelCompleto = {
+    total: processos.length,
+    dias: 7,
+    processos,
+    // Pico global de outro processo: nao pode comandar os chips do selecionado.
+    kpis: {
+        picoMemoria: { valor: 99, nome: "worker", pid: 20, usuario: "root", timestamp: em("11:00") },
+        picoCpu: { valor: 150, nome: "overload", pid: 40, timestamp: em("10:15") },
+        // Eventos reais do serviço, no mesmo formato devolvido pela API.
+        reiniciandoLoop: {
+            total: 2,
+            processos: [
+                {
+                    nome: "app", pid: 10, reinicios: 2, metodo: "create_time",
+                    ultimoReinicio: em("10:30")
+                },
+                {
+                    nome: "app", pid: 10, reinicios: 1, metodo: "create_time",
+                    ultimoReinicio: "2000-01-01T10:30:00"
+                },
+                {
+                    nome: "worker", pid: 20, reinicios: 1, metodo: "troca_de_pid",
+                    ultimoReinicio: em("10:45")
+                },
+                {
+                    nome: "python", pid: 5140, reinicios: 1, metodo: "create_time",
+                    ultimoReinicio: em("10:00")
+                }
+            ]
+        }
+    },
+    top5Recursos: [
+        { nome: "app", pid: 10, createTime: "1000", cpuMax: 70, memoriaMax: 95, ultimoPico: em("11:00") },
+        { nome: "worker", pid: 20, createTime: "2000", cpuMax: 3, memoriaMax: 50, ultimoPico: em("11:00") },
+        { nome: "gap", pid: 30, createTime: "3000", cpuMax: 80, memoriaMax: 30, ultimoPico: em("11:00") },
+        { nome: "overload", pid: 40, createTime: "4000", cpuMax: 150, memoriaMax: 60, ultimoPico: em("10:15") },
+        { nome: "python", pid: 5140, createTime: "5140", cpuMax: 29, memoriaMax: 49, ultimoPico: em("11:00") }
+    ],
+    comparacao: { momentoA: em("10:00"), momentoB: em("11:00") },
+    limiares: { cpu: { atencao: 60, critico: 90 }, rssGb: { atencao: 2, critico: 2.5 } }
+};
+
+function erroAbortado() {
+    return Object.assign(new Error("requisição abortada"), { name: "AbortError" });
+}
+
+async function aguardarOuAbortar(sinal) {
+    return new Promise((resolve, reject) => {
+        pendentesDashboards.push(resolve);
+        if (sinal) sinal.addEventListener("abort", () => reject(erroAbortado()));
+    });
+}
+
+async function fetchStub(url, opcoes = {}) {
     const parsed = new URL(url, "http://localhost");
     if (parsed.pathname === "/processos/servidores") {
         return { ok: true, json: async () => ({ servidores: [{ mac: "AA:BB", nome: "srv" }] }) };
     }
-    if (pausarDashboards) {
-        await new Promise(resolve => pendentesDashboards.push(resolve));
+    if (parsed.pathname !== "/processos/dashboard") {
+        throw new Error(`URL inesperada no stub: ${url}`);
     }
+
+    chamadasDashboard++;
+    if (pausarDashboards) await aguardarOuAbortar(opcoes.signal);
+    if (abortarDashboards) throw erroAbortado();
     if (falharDashboards) {
         return { ok: false, status: 500, json: async () => ({ erro: "falha simulada na consulta" }) };
     }
     if (semCapturas) {
-        return { ok: true, json: async () => ({ total: 0, processos: [], kpis: null, top5Recursos: [] }) };
+        return { ok: true, json: async () => ({ total: 0, dias: 7, processos: [], kpis: null, top5Recursos: [] }) };
     }
-    const data = parsed.searchParams.get("data");
-    const corpo = data === hoje ? {
-        total: processos.length,
-        processos,
-        // Pico global de outro processo: nao pode comandar os chips do selecionado.
-        kpis: {
-            picoMemoria: { valor: 99, nome: "worker", pid: 20, usuario: "root", timestamp: em("11:00") },
-            picoCpu: { valor: 150, nome: "overload", pid: 40, timestamp: em("10:15") },
-            // Eventos reais do serviço, no mesmo formato devolvido pela API.
-            reiniciandoLoop: {
-                total: 2,
-                processos: [
-                    {
-                        nome: "app", pid: 10, reinicios: 2, metodo: "create_time",
-                        ultimoReinicio: em("10:30")
-                    },
-                    {
-                        nome: "app", pid: 10, reinicios: 1, metodo: "create_time",
-                        ultimoReinicio: "2000-01-01T10:30:00"
-                    },
-                    {
-                        nome: "worker", pid: 20, reinicios: 1, metodo: "troca_de_pid",
-                        ultimoReinicio: em("10:45")
-                    }
-                ]
-            }
-        },
-        top5Recursos: [
-            { nome: "app", pid: 10, createTime: "1000", cpuMax: 70, memoriaMax: 95, ultimoPico: em("11:00") },
-            { nome: "worker", pid: 20, createTime: "2000", cpuMax: 3, memoriaMax: 50, ultimoPico: em("11:00") },
-            { nome: "gap", pid: 30, createTime: "3000", cpuMax: 80, memoriaMax: 30, ultimoPico: em("11:00") },
-            { nome: "overload", pid: 40, createTime: "4000", cpuMax: 150, memoriaMax: 60, ultimoPico: em("10:15") }
-        ],
-        comparacao: { momentoA: em("10:00"), momentoB: em("11:00") },
-        limiares: { cpu: { atencao: 60, critico: 90 }, rssGb: { atencao: 2, critico: 2.5 } }
-    } : { total: 0, processos: [], kpis: null, top5Recursos: [] };
-    return { ok: true, json: async () => corpo };
+
+    const dias = Number(parsed.searchParams.get("dias"));
+    return {
+        ok: true,
+        json: async () => ({ ...painelCompleto, dias, data: hoje, dataConsulta: hoje })
+    };
 }
 
 const agregacao = require("../public/scripts/processosAgregacao.js");
@@ -174,7 +237,9 @@ const agregacao = require("../public/scripts/processosAgregacao.js");
 const consoleStub = {
     log: (...args) => console.log(...args),
     error: mensagem => {
-        if (!String(mensagem).includes("falha simulada na consulta")) console.error(mensagem);
+        const texto = String(mensagem);
+        if (!texto.includes("falha simulada na consulta") &&
+            !texto.includes("requisição abortada")) console.error(mensagem);
     }
 };
 const sandbox = {
@@ -184,6 +249,10 @@ const sandbox = {
     fetch: fetchStub,
     sessionStorage: { getItem: () => "1" },
     console: consoleStub,
+    AbortController: AbortControllerStub,
+    setTimeout,
+    clearTimeout,
+    Error,
     URL,
     URLSearchParams,
     Date,
@@ -233,10 +302,13 @@ function selecionar(indice) {
 (async () => {
     for (let i = 0; i < 12; i++) await tick();
 
+    assert(chamadasDashboard === 1,
+        "carregamento inicial faz uma única requisição de dashboard");
+
     filtroPeriodo.value = "60";
     filtroPeriodo.dispatch("change");
 
-    assert(linhas().length === 4, "ranking com quatro linhas");
+    assert(linhas().length === 5, "ranking com cinco linhas");
     assert(linhas()[0].dataset.pid === "10" && linhas()[0].dataset.createTime === "1000",
         "a linha guarda PID e CREATE_TIME do dado, nao do texto");
     assert(texto("meta-processo") === "app (PID 10)", "selecao automatica usa o mesmo processo dos graficos");
@@ -445,6 +517,65 @@ function selecionar(indice) {
     assert(ramChart().configuracaoMemoria.eventos.length === 0,
         "marcador do app nao aparece em outro processo");
 
+    // --- Muitos intervalos são agrupados apenas para leitura ---
+    filtroPeriodo.value = "10080";
+    filtroPeriodo.dispatch("change");
+    selecionar(4);
+    assert(texto("meta-processo") === "python (PID 5140)", "processo com muitas leituras selecionado");
+    const distribuicaoPython = distribuicao();
+    const comDadosPython = distribuicaoPython.filter(b => b.observadoMs > 0);
+    assert(distribuicaoPython.length === 33, "165 intervalos viram 33 blocos de 5 h");
+    assert(comDadosPython.length === 33, "todos os blocos têm dados");
+    assert(cpuDatasets()[0].data.length === 33, "CPU desenha no máximo 40 barras");
+    assert(cpuChart().configuracaoDistribuicao.fator === 5, "fator visual da CPU é 5");
+    assert(cpuChart().configuracaoDistribuicao.rotulo === "5 h", "rótulo visual da CPU é 5 h");
+    assert(texto("grafico-cpu-caption") ===
+        "Intervalos de 5 h · 33 com dados · agrupado para leitura",
+        "caption informa o agrupamento visual");
+    assert(texto("grafico-memoria-caption").startsWith("Última leitura (bloco de 5 h):"),
+        "caption da RAM informa o bloco visual");
+
+    const seriePython = ramSerie();
+    const leiturasPython = seriePython.filter(p => p.y != null);
+    assert(seriePython.length === 33, "RAM também usa 33 blocos");
+    assert(ramChart().configuracaoMemoria.fator === 5, "fator visual da RAM é 5");
+    assert(leiturasPython.at(-1).y === python[python.length - 1].memoria,
+        "RAM mantém a última leitura real do período");
+    assert(leiturasPython.at(-1).rssBytes === python[python.length - 1].rssBytes,
+        "RSS acompanha a leitura real do período");
+    const valoresPython = new Set(python.map(p => p.memoria));
+    assert(leiturasPython.every(p => valoresPython.has(p.y)),
+        "agrupamento não cria valor de RAM artificial");
+    assert(new Set(seriePython.map(p => p.x)).size === seriePython.length,
+        "agrupamento não duplica pontos de RAM");
+    assert(new Set(distribuicaoPython.map(b => b.inicio)).size === distribuicaoPython.length,
+        "agrupamento não duplica intervalos de CPU");
+    const eventosPython = ramChart().configuracaoMemoria.eventos;
+    assert(eventosPython.length === 1 && eventosPython[0].rotulo.includes("CREATE_TIME"),
+        "evento real do python entra no gráfico agrupado");
+    assert(ramTooltip().callbacks.afterBody([pontoTooltip(seriePython, seriePython.length - 1)])
+        .some(linha => linha.includes("CREATE_TIME")),
+        "evento é identificado no bloco que o contém");
+    assert(ramTooltip().callbacks.afterBody([pontoTooltip(seriePython, seriePython.length - 2)])
+        .length === 0, "evento não vaza para o bloco vizinho");
+
+    const historicoPython = agregacao.prepararHistorico(python, 10080);
+    const limitePython = limiteEsperado("10080");
+    const originalPython = historicoPython.cpu.distribuicao
+        .filter(bucket => bucket.inicio >= limitePython);
+    const acimaOriginalPython = originalPython
+        .reduce((soma, bucket) => soma + bucket.temposMs.acima75, 0);
+    const acimaVisualPython = distribuicaoPython
+        .reduce((soma, bucket) => soma + bucket.temposMs.acima75, 0);
+    assert(acimaVisualPython === acimaOriginalPython,
+        "tempo acima de 75% não muda com o agrupamento");
+    const tickRamLongo = ramConfig().options.scales.x.ticks.callback(ultimaCaptura);
+    assert(tickRamLongo.includes("/"), "eixo da RAM mostra data em período longo");
+    const tickCpuLongo = cpuChart().configuracao.options.scales.x.ticks.callback.call(
+        { getLabelForValue: () => ultimaCaptura }, 0
+    );
+    assert(tickCpuLongo.includes("/"), "eixo da CPU mostra data em período longo");
+
     // --- Processo sem amostras limpa os dois gráficos ---
     const linhaInexistente = document.createElement("tr");
     linhaInexistente.dataset.chave = "fantasma|--|";
@@ -468,15 +599,28 @@ function selecionar(indice) {
     assert(texto("meta-processo") === "--", "troca de periodo sem processo em foco nao restaura dado antigo");
 
     // --- Carregamento, erro de consulta e periodo sem capturas ---
+    const chamadasAntes = chamadasDashboard;
     pausarDashboards = true;
     filtroServidor.dispatch("change");
     assert(document.getElementById("kpi-card-loop").classList.contains("kpi-card--carregando"),
         "KPIs entram em carregamento enquanto a consulta esta pendente");
+    assert(chamadasDashboard === chamadasAntes + 1,
+        "troca de servidor dispara apenas uma requisição de dashboard");
+    assert(pendentesDashboards.length === 1, "a consulta pendente é única");
     pendentesDashboards.splice(0).forEach(resolve => resolve());
     pausarDashboards = false;
     for (let i = 0; i < 12; i++) await tick();
     assert(!document.getElementById("kpi-card-loop").classList.contains("kpi-card--carregando"),
         "estado de carregamento termina após a resposta");
+
+    abortarDashboards = true;
+    filtroServidor.dispatch("change");
+    for (let i = 0; i < 12; i++) await tick();
+    assert(texto("alerta-texto").includes("Tempo limite ao carregar"),
+        "abort/tempo limite é informado ao usuário");
+    assert(document.getElementById("kpi-card-loop").classList.contains("kpi-card--erro"),
+        "tempo limite coloca os KPIs em estado de erro");
+    abortarDashboards = false;
 
     falharDashboards = true;
     filtroServidor.dispatch("change");

@@ -61,8 +61,19 @@
     let periodoAtual = 10080;
     let processoEmFoco = null;
 
+    // O período inteiro é buscado em uma única chamada ao backend.
+    const DIAS_HISTORICO = 7;
+    const TEMPO_LIMITE_DASHBOARD_MS = 45000;
+    let controleCarregamentoDashboard = null;
+    let geracaoCarregamento = 0;
+
     // A granularidade vem do módulo de agregação; aqui fica só o rótulo.
-    const ROTULOS_PASSO = { 1: "1 min", 5: "5 min", 15: "15 min", 60: "1 h" };
+    function rotuloDoPasso(minutos) {
+        const numero = Number(minutos);
+        if (!Number.isFinite(numero) || numero <= 0) return "--";
+        if (numero % 60 === 0) return `${numero / 60} h`;
+        return `${numero} min`;
+    }
 
     // ------------------------------------------------------------------
     // Utilitários
@@ -83,6 +94,17 @@
             return dataIso;
         }
     }
+    function mesmoDiaSaoPaulo(instanteA, instanteB) {
+        const opcoes = {
+            timeZone: "America/Sao_Paulo",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        };
+        return new Date(instanteA).toLocaleDateString("en-CA", opcoes) ===
+            new Date(instanteB).toLocaleDateString("en-CA", opcoes);
+    }
+
     let dataHojeDoServidor = null;
 
     function dataHojeSaoPaulo() {
@@ -279,7 +301,7 @@
      * Barras empilhadas da distribuição temporal de CPU. Cada segmento é a
      * proporção do tempo observado em uma faixa; os dados vêm da Etapa 2.
      */
-    function atualizarGraficoCpu(distribuicao, rotulo) {
+    function atualizarGraficoCpu(distribuicao, rotulo, fator = 1) {
         if (typeof Chart === "undefined") return;
 
         const canvas = document.getElementById("grafico-cpu-area");
@@ -292,6 +314,10 @@
 
         const buckets = Array.isArray(distribuicao) ? distribuicao : [];
         const labels = buckets.map(bucket => bucket.inicio);
+        const inicioGrafico = buckets.length > 0 ? buckets[0].inicio : null;
+        const fimGrafico = buckets.length > 0 ? buckets[buckets.length - 1].fim : null;
+        const maisDeUmDia = inicioGrafico != null && fimGrafico != null &&
+            (fimGrafico - inicioGrafico) >= 86400000;
         const ordemFaixas = ProcessosAgregacao.FAIXAS_CPU;
 
         const datasets = ordemFaixas.map(chave => ({
@@ -342,7 +368,11 @@
                                 if (!itens || itens.length === 0) return "";
                                 const bucket = buckets[itens[0].dataIndex];
                                 if (!bucket) return "";
-                                return `${formatoBrasileiro(new Date(bucket.inicio).toISOString())} – ${horarioGrafico(bucket.fim)}`;
+                                const inicio = formatoBrasileiro(new Date(bucket.inicio).toISOString());
+                                const fim = maisDeUmDia || !mesmoDiaSaoPaulo(bucket.inicio, bucket.fim)
+                                    ? formatoBrasileiro(new Date(bucket.fim).toISOString())
+                                    : horarioGrafico(bucket.fim);
+                                return `${inicio} – ${fim}`;
                             },
                             label: contexto => {
                                 const bucket = buckets[contexto.dataIndex];
@@ -373,7 +403,10 @@
                                     ? this.getLabelForValue(valor)
                                     : valor;
                                 const instante = Number(bruto);
-                                return Number.isFinite(instante) ? horarioGrafico(instante) : "";
+                                if (!Number.isFinite(instante)) return "";
+                                return maisDeUmDia
+                                    ? dataHoraGrafico(instante)
+                                    : horarioGrafico(instante);
                             },
                             color: COR_TEXTO_GRAFICO,
                             font: FONTE_GRAFICO
@@ -397,7 +430,7 @@
         });
 
         // Referência da distribuição exibida, útil para inspeção e testes.
-        graficoCpu.configuracaoDistribuicao = { distribuicao, rotulo };
+        graficoCpu.configuracaoDistribuicao = { distribuicao, rotulo, fator };
         return graficoCpu;
     }
 
@@ -405,7 +438,7 @@
      * Área de evolução da RAM. Pontos sem leitura entram como null para quebrar
      * a linha: ausência de dado nunca é desenhada como consumo zero.
      */
-    function atualizarGraficoMemoria(pontos, eventos, rotulo, passoMinutos) {
+    function atualizarGraficoMemoria(pontos, eventos, rotulo, passoMinutos, fator = 1) {
         if (typeof Chart === "undefined") return;
 
         const canvas = document.getElementById("grafico-memoria-area");
@@ -436,7 +469,10 @@
                     x: instante,
                     y: valor,
                     t: ponto.t,
-                    rssBytes: rss
+                    rssBytes: rss,
+                    // Limites do bloco exibido, usados para casar eventos.
+                    inicio: ponto.inicio,
+                    fim: ponto.fim
                 };
             })
             .filter(ponto => Number.isFinite(ponto.x))
@@ -450,9 +486,15 @@
             .filter(evento => Number.isFinite(evento.tempo) && evento.rotulo)
             .sort((a, b) => a.tempo - b.tempo);
 
-        const instantesComDado = serie.filter(ponto => ponto.y != null).map(ponto => ponto.x);
-        const inicio = instantesComDado[0];
-        const fim = instantesComDado[instantesComDado.length - 1];
+        const pontosComDado = serie.filter(ponto => ponto.y != null);
+        // Em blocos agrupados, o eixo cobre o bloco inteiro; sem agrupamento,
+        // mantém os instantes das leituras como antes.
+        const inicio = fator > 1 && pontosComDado.length > 0
+            ? Math.min(...pontosComDado.map(ponto => ponto.inicio != null ? ponto.inicio : ponto.x))
+            : (pontosComDado.length > 0 ? pontosComDado[0].x : null);
+        const fim = fator > 1 && pontosComDado.length > 0
+            ? Math.max(...pontosComDado.map(ponto => ponto.fim != null ? ponto.fim : ponto.x))
+            : (pontosComDado.length > 0 ? pontosComDado[pontosComDado.length - 1].x : null);
         const mesmoInstante = inicio != null && inicio === fim;
         const maisDeUmDia = inicio != null && fim != null && (fim - inicio) >= 86400000;
         const margemEixo = 1800000;
@@ -566,10 +608,14 @@
                             afterBody: itens => {
                                 if (!itens || itens.length === 0 || eventosValidos.length === 0) return [];
                                 const instante = Number(itens[0].parsed.x);
+                                const ponto = serie[itens[0].dataIndex];
                                 const tolerancia = Math.max(1, Number(passoMinutos) || 1) * 60000;
-                                const evento = eventosValidos.find(
-                                    item => Math.abs(item.tempo - instante) <= tolerancia
-                                );
+                                const evento = eventosValidos.find(item => {
+                                    if (ponto && ponto.inicio != null && ponto.fim != null) {
+                                        return item.tempo >= ponto.inicio && item.tempo < ponto.fim;
+                                    }
+                                    return Math.abs(item.tempo - instante) <= tolerancia;
+                                });
                                 return evento ? ["", `Evento: ${evento.rotulo}`] : [];
                             }
                         }
@@ -613,7 +659,7 @@
 
         graficoMemoria = new Chart(canvas, configuracao);
         // Série e eventos usados pelos callbacks, disponíveis para inspeção.
-        graficoMemoria.configuracaoMemoria = { serie, eventos: eventosValidos, rotulo, passoMinutos };
+        graficoMemoria.configuracaoMemoria = { serie, eventos: eventosValidos, rotulo, passoMinutos, fator };
         return graficoMemoria;
     }
 
@@ -797,93 +843,70 @@
     }
 
     /**
-     * Busca o dashboard nos últimos 7 dias, do dia selecionado para trás.
-     * Dia sem captura é ignorado; as amostras dos dias com dados são reunidas
-     * para que os gráficos possam usar passos de até 12 horas.
+     * Uma única requisição para o período inteiro. O backend monta as datas e
+     * devolve as amostras já reunidas, com KPIs do dia mais recente com dados.
      */
-    async function buscarDashboardsDoPeriodo(aoReceberDados = null) {
-        const [ano, mes, dia] = dataSelecionada.split("-").map(Number);
-        const referencia = Date.UTC(ano, mes - 1, dia);
-        const datas = [];
+    async function buscarDashboardDoPeriodo(sinal) {
+        const opcoes = sinal ? { signal: sinal } : undefined;
+        const resposta = await fetch(urlComAcesso("/processos/dashboard", {
+            mac: servidorSelecionado,
+            data: dataSelecionada,
+            dias: DIAS_HISTORICO
+        }), opcoes);
 
-        for (let i = 0; i < 7; i++) {
-            datas.push(new Date(referencia - i * 86400000).toISOString().slice(0, 10));
+        if (!resposta.ok) {
+            const corpo = await resposta.json().catch(() => ({}));
+            throw new Error(corpo.erro || `Falha ao consultar capturas (${resposta.status}).`);
         }
 
-        // Busca os 7 dias em paralelo: o tempo total é o do dia mais lento,
-        // não a soma de sete requisições sequenciais.
-        const resultados = await Promise.allSettled(datas.map(async data => {
-            const resposta = await fetch(urlComAcesso("/processos/dashboard", {
-                mac: servidorSelecionado,
-                data
-            }));
-
-            if (!resposta.ok) {
-                const corpo = await resposta.json().catch(() => ({}));
-                throw new Error(corpo.erro || `Falha ao consultar capturas (${resposta.status}).`);
-            }
-
-            const dados = await resposta.json();
-            // Permite renderizar o dia selecionado antes de os outros terminarem.
-            if (aoReceberDados) aoReceberDados(data, dados);
-            return dados;
-        }));
-
-        const dashboards = [];
-        let primeiroErro = null;
-
-        for (const resultado of resultados) {
-            if (resultado.status === "fulfilled") {
-                if ((resultado.value.total || 0) > 0) dashboards.push(resultado.value);
-            } else if (!primeiroErro) {
-                primeiroErro = resultado.reason;
-            }
-        }
-
-        if (dashboards.length === 0) {
-            if (primeiroErro) throw primeiroErro;
-            return null;
-        }
-
-        // KPIs, Top 5 e comparativo continuam referentes ao dia mais recente.
-        const maisRecente = dashboards[0];
-        const processos = dashboards
-            .flatMap(dados => Array.isArray(dados.processos) ? dados.processos : [])
-            .sort((a, b) =>
-                new Date(a.timestamp || 0).getTime() -
-                new Date(b.timestamp || 0).getTime()
-            );
-
-        return {
-            ...maisRecente,
-            processos,
-            total: processos.length,
-            ultimaColeta: processos.length > 0
-                ? processos[processos.length - 1].timestamp
-                : null
-        };
+        return resposta.json();
     }
 
     async function carregarDados() {
         if (!servidorSelecionado || !dataSelecionada) return;
 
+        // Troca de servidor: cancela a consulta anterior para que uma resposta
+        // atrasada não sobrescreva a seleção atual.
+        const geracao = ++geracaoCarregamento;
+        if (controleCarregamentoDashboard) controleCarregamentoDashboard.abort();
+        const controle = new AbortController();
+        controleCarregamentoDashboard = controle;
+        let tempoEsgotado = false;
+        const timer = setTimeout(() => {
+            tempoEsgotado = true;
+            controle.abort();
+        }, TEMPO_LIMITE_DASHBOARD_MS);
+
         definirEstadoKpis("carregando");
         try {
-            const dados = await buscarDashboardsDoPeriodo();
+            const dados = await buscarDashboardDoPeriodo(controle.signal);
+            if (geracao !== geracaoCarregamento) return;
 
-            if (!dados) {
+            if (!dados || Number(dados.total || 0) === 0) {
                 renderizar({ processos: [], top5Recursos: [], kpis: null, comparacao: null });
-                mostrarErro("Nenhuma captura encontrada para este servidor nos últimos 7 dias.");
+                const dias = dados && Number(dados.dias) > 0 ? Number(dados.dias) : DIAS_HISTORICO;
+                mostrarErro(
+                    `Nenhuma captura encontrada para este servidor nos últimos ${dias} dias.`
+                );
                 return;
             }
 
             renderizar(dados);
         } catch (erro) {
+            if (geracao !== geracaoCarregamento) return;
+            const abortado = tempoEsgotado || (erro && erro.name === "AbortError");
             console.error(erro);
             marcarErroKpis();
             renderizarTabelaTop5Recursos([]);
             limparGraficos();
-            mostrarErro(`Não foi possível carregar os dados de processos. ${erro.message || ""}`.trim());
+            mostrarErro(abortado
+                ? "Tempo limite ao carregar os dados de processos. Tente novamente."
+                : `Não foi possível carregar os dados de processos. ${erro.message || ""}`.trim());
+        } finally {
+            clearTimeout(timer);
+            if (controleCarregamentoDashboard === controle) {
+                controleCarregamentoDashboard = null;
+            }
         }
     }
 
@@ -920,7 +943,6 @@
 
         // Uma única passagem prepara a distribuição de CPU e a série de RAM.
         const historico = ProcessosAgregacao.prepararHistorico(filtrados, periodoAtual);
-        const rotulo = ROTULOS_PASSO[historico.passoMinutos] || `${historico.passoMinutos} min`;
 
         // Agrega antes de recortar para não perder o intervalo de referência.
         const limite = limiteDoPeriodo();
@@ -928,16 +950,22 @@
         const distribuicaoCpu = (historico.cpu.distribuicao || []).filter(
             bucket => limite == null || bucket.inicio >= limite
         );
-        const bucketsComDados = distribuicaoCpu.filter(bucket => bucket.observadoMs > 0);
+        const pontosMemoria = (historico.memoria.pontos || []).filter(
+            ponto => limite == null || (ponto.inicio != null && ponto.inicio >= limite)
+        );
+
+        // Reduz a densidade visual sem alterar a janela, a unidade ou os valores.
+        const visual = ProcessosAgregacao.agruparParaExibicao(
+            distribuicaoCpu, pontosMemoria, historico.passoMinutos
+        );
+        const rotulo = rotuloDoPasso(visual.passoMinutos);
+        const agrupado = visual.fator > 1;
+        const bucketsComDados = visual.distribuicao.filter(bucket => bucket.observadoMs > 0);
         const tempoObservado = bucketsComDados.reduce((soma, bucket) => soma + bucket.observadoMs, 0);
         const tempoElevado = bucketsComDados.reduce(
             (soma, bucket) => soma + Number(bucket.temposMs.acima75 || 0), 0
         );
-
-        const pontosMemoria = (historico.memoria.pontos || []).filter(
-            ponto => limite == null || (ponto.inicio != null && ponto.inicio >= limite)
-        );
-        const ultimaMemoria = [...pontosMemoria].reverse().find(ponto => ponto.v != null);
+        const ultimaMemoria = [...visual.pontos].reverse().find(ponto => ponto.v != null);
 
         // Eventos reais do serviço: reinícios detectados para o processo em foco.
         const processosEmLoop =
@@ -963,7 +991,7 @@
             ? `Tempo observado: ${formatarDuracao(tempoObservado)}`
             : "sem dados no período");
         definirTexto(cpuCaption, bucketsComDados.length
-            ? `Intervalos de ${rotulo} · ${bucketsComDados.length} com dados`
+            ? `Intervalos de ${rotulo} · ${bucketsComDados.length} com dados${agrupado ? " · agrupado para leitura" : ""}`
             : "--");
         definirTexto(cpuTempoElevado, bucketsComDados.length
             ? `Acima de 75%: ${formatarDuracao(tempoElevado)}`
@@ -971,11 +999,13 @@
 
         definirTexto(memoriaValor, ultimaMemoria ? formatarPercentual(ultimaMemoria.v) : "--");
         definirTexto(memoriaCaption, ultimaMemoria
-            ? `Última leitura (${rotulo}): ${formatoBrasileiro(ultimaMemoria.t)}`
+            ? `Última leitura (${agrupado ? `bloco de ${rotulo}` : rotulo}): ${formatoBrasileiro(ultimaMemoria.t)}`
             : "sem dados no período");
 
-        atualizarGraficoCpu(distribuicaoCpu, rotulo);
-        atualizarGraficoMemoria(pontosMemoria, eventosMemoria, rotulo, historico.passoMinutos);
+        atualizarGraficoCpu(visual.distribuicao, rotulo, visual.fator);
+        atualizarGraficoMemoria(
+            visual.pontos, eventosMemoria, rotulo, visual.passoMinutos, visual.fator
+        );
     }
 
     // ------------------------------------------------------------------

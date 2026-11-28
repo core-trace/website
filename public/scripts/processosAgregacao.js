@@ -227,6 +227,106 @@
         };
     }
 
+    // Acima disso o gráfico fica denso demais para leitura em tela.
+    const MAX_INTERVALOS_VISUAIS = 40;
+
+    /**
+     * Agrupa intervalos apenas para exibição. A soma de tempos e a última
+     * leitura válida preservam os dados originais; nenhum valor é inventado.
+     */
+    function agruparBucketsCpu(distribuicao, fator) {
+        const buckets = Array.isArray(distribuicao) ? distribuicao : [];
+        if (fator <= 1) return buckets;
+
+        const grupos = [];
+        for (let i = 0; i < buckets.length; i += fator) {
+            const fatia = buckets.slice(i, i + fator);
+            if (fatia.length === 0) continue;
+
+            const temposMs = { ate25: 0, ate50: 0, ate75: 0, acima75: 0 };
+            let observadoMs = 0;
+            let semDadoMs = 0;
+
+            for (const bucket of fatia) {
+                observadoMs += Number(bucket.observadoMs || 0);
+                semDadoMs += Number(bucket.semDadoMs || 0);
+                for (const faixa of FAIXAS_CPU) {
+                    temposMs[faixa] += Number(
+                        (bucket.temposMs && bucket.temposMs[faixa]) || 0
+                    );
+                }
+            }
+
+            const proporcoes = observadoMs > 0 ? {} : null;
+            if (proporcoes) {
+                let soma = 0;
+                for (const faixa of FAIXAS_CPU) {
+                    proporcoes[faixa] = temposMs[faixa] / observadoMs;
+                    soma += proporcoes[faixa];
+                }
+                proporcoes[FAIXAS_CPU[FAIXAS_CPU.length - 1]] += 1 - soma;
+            }
+
+            grupos.push({
+                inicio: fatia[0].inicio,
+                fim: fatia[fatia.length - 1].fim,
+                observadoMs,
+                semDadoMs,
+                temposMs,
+                proporcoes
+            });
+        }
+        return grupos;
+    }
+
+    function agruparPontosMemoria(pontos, fator) {
+        const lista = Array.isArray(pontos) ? pontos : [];
+        if (fator <= 1) return lista;
+
+        const grupos = [];
+        for (let i = 0; i < lista.length; i += fator) {
+            const fatia = lista.slice(i, i + fator);
+            if (fatia.length === 0) continue;
+
+            const validas = fatia.filter(ponto => ponto && ponto.v != null);
+            const ultima = validas.length > 0 ? validas[validas.length - 1] : null;
+            grupos.push({
+                inicio: fatia[0].inicio,
+                fim: fatia[fatia.length - 1].fim,
+                t: ultima ? ultima.t : null,
+                v: ultima ? ultima.v : null,
+                rssBytes: ultima
+                    ? (ultima.rssBytes == null ? null : ultima.rssBytes)
+                    : null
+            });
+        }
+        return grupos;
+    }
+
+    /**
+     * Reduz a densidade visual sem mudar a janela nem a unidade. O mesmo fator
+     * é aplicado a CPU e RAM para as duas séries continuarem alinhadas.
+     */
+    function agruparParaExibicao(distribuicao, pontos, passoMinutos, limite = MAX_INTERVALOS_VISUAIS) {
+        const maximo = Number(limite) > 0
+            ? Math.max(1, Math.floor(Number(limite)))
+            : MAX_INTERVALOS_VISUAIS;
+        const comDadosCpu = (Array.isArray(distribuicao) ? distribuicao : [])
+            .filter(bucket => bucket && bucket.observadoMs > 0).length;
+        const comDadosRam = (Array.isArray(pontos) ? pontos : [])
+            .filter(ponto => ponto && ponto.v != null).length;
+        const fator = Math.max(1, Math.ceil(Math.max(comDadosCpu, comDadosRam) / maximo));
+        const passo = Number(passoMinutos);
+
+        return {
+            distribuicao: agruparBucketsCpu(distribuicao, fator),
+            pontos: agruparPontosMemoria(pontos, fator),
+            passoMinutos: Number.isFinite(passo) && passo > 0 ? passo * fator : passoMinutos,
+            passoOriginalMinutos: passoMinutos,
+            fator
+        };
+    }
+
     /**
      * Variação entre leituras reais consecutivas. Intervalos sem leitura são
      * ignorados (não viram zero nem geram ponto); a diferença continua sendo
@@ -252,11 +352,13 @@
     const api = Object.freeze({
         GRANULARIDADES,
         FAIXAS_CPU,
+        MAX_INTERVALOS_VISUAIS,
         granularidadePara,
         inicioDoIntervalo,
         distribuicaoCpuPorIntervalo,
         seriePorIntervalo,
         prepararHistorico,
+        agruparParaExibicao,
         serieVariacao
     });
 

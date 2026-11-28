@@ -109,18 +109,24 @@ async function obterDashboard(req, res) {
             return res.status(400).json({ erro: "Parâmetros 'mac' e 'data' são obrigatórios." });
         }
 
+        const dias = Number(req.query.dias || 7);
+        if (!Number.isSafeInteger(dias) || dias < 1 || dias > 31) {
+            return res.status(400).json({ erro: "Parâmetro 'dias' deve estar entre 1 e 31." });
+        }
+
         const temAcesso = await validarAcessoAoServidor(mac, idEmpresa, idUsuario);
         if (!temAcesso) {
             return res.status(403).json({ erro: "Usuário não tem acesso a este servidor." });
         }
 
-        const chaveCache = `${mac}|${data}`;
+        const macNormalizado = String(mac).trim().toUpperCase();
+        const chaveCache = `${macNormalizado}|${data}|${dias}`;
         const emCache = cacheDashboardPorChave.get(chaveCache);
         if (emCache && Date.now() - emCache.quando < CACHE_TTL_MS) {
             return res.json(emCache.dashboard);
         }
 
-        const filtros = { mac, data };
+        const filtros = { mac, data, dias };
         if (idEmpresa) filtros.idEmpresa = Number(idEmpresa);
         if (idUsuario) filtros.idUsuario = Number(idUsuario);
 

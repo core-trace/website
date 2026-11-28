@@ -175,4 +175,88 @@ assert.deepEqual(ag.serieVariacao(comBuraco), [
     { t: new Date(em(13, 3)).toISOString(), v: 10 }
 ]);
 
+// 11. Agrupamento visual: reduz densidade sem inventar valores.
+assert.equal(ag.MAX_INTERVALOS_VISUAIS, 40);
+const muitasAmostras = [];
+for (let i = 0; i < 165; i++) {
+    muitasAmostras.push(amostra(em(13, 0) + i * HORA, i % 100, 30 + (i % 20), {
+        rssBytes: (512 + (i % 10) * 128) * 1024 * 1024
+    }));
+}
+const historicoGrande = ag.prepararHistorico(muitasAmostras, 10080);
+assert.equal(historicoGrande.passoMinutos, 60);
+const visualGrande = ag.agruparParaExibicao(
+    historicoGrande.cpu.distribuicao,
+    historicoGrande.memoria.pontos,
+    60
+);
+assert.equal(visualGrande.fator, 5, "165 intervalos com dados usam fator 5");
+assert.equal(visualGrande.passoMinutos, 300, "passo visual de 5 horas");
+assert.equal(visualGrande.distribuicao.length, 33);
+assert.equal(visualGrande.pontos.length, 33);
+assert.ok(visualGrande.distribuicao.length <= ag.MAX_INTERVALOS_VISUAIS);
+
+const somaAcimaOriginal = historicoGrande.cpu.distribuicao
+    .reduce((soma, bucket) => soma + bucket.temposMs.acima75, 0);
+const somaAcimaVisual = visualGrande.distribuicao
+    .reduce((soma, bucket) => soma + bucket.temposMs.acima75, 0);
+assert.equal(somaAcimaVisual, somaAcimaOriginal, "tempo acima de 75% preservado");
+const observadoOriginal = historicoGrande.cpu.distribuicao
+    .reduce((soma, bucket) => soma + bucket.observadoMs, 0);
+const observadoVisual = visualGrande.distribuicao
+    .reduce((soma, bucket) => soma + bucket.observadoMs, 0);
+assert.equal(observadoVisual, observadoOriginal, "tempo observado preservado");
+
+for (const bucket of visualGrande.distribuicao) {
+    assert.equal(
+        Object.values(bucket.temposMs).reduce((soma, valor) => soma + valor, 0),
+        bucket.observadoMs,
+        "faixas do bloco somam o tempo observado do bloco"
+    );
+    assert.equal(bucket.observadoMs + bucket.semDadoMs, bucket.fim - bucket.inicio);
+    if (bucket.observadoMs > 0) {
+        const soma = Object.values(bucket.proporcoes).reduce((total, valor) => total + valor, 0);
+        assert.equal(soma, 1, "proporções do bloco somam 1");
+    }
+}
+
+for (let i = 0; i < visualGrande.pontos.length; i++) {
+    const fatia = historicoGrande.memoria.pontos
+        .slice(i * 5, i * 5 + 5)
+        .filter(ponto => ponto.v != null);
+    const ultima = fatia[fatia.length - 1] || null;
+    assert.equal(visualGrande.pontos[i].v, ultima ? ultima.v : null,
+        "bloco de RAM mantém a última leitura válida");
+    assert.equal(visualGrande.pontos[i].rssBytes, ultima ? ultima.rssBytes : null,
+        "RSS do bloco acompanha a última leitura válida");
+}
+
+// 12. Poucos intervalos com dados não são agrupados.
+const visualCurto = ag.agruparParaExibicao(
+    historicoGrande.cpu.distribuicao.slice(0, 3),
+    historicoGrande.memoria.pontos.slice(0, 3),
+    60
+);
+assert.equal(visualCurto.fator, 1);
+assert.equal(visualCurto.distribuicao.length, 3);
+assert.equal(visualCurto.pontos.length, 3);
+
+// 13. Bloco inteiro sem leitura continua sendo lacuna, não zero.
+const pontosComLacunaVisual = [
+    { inicio: 0, fim: MIN, t: null, v: null, rssBytes: null },
+    { inicio: MIN, fim: 2 * MIN, t: null, v: null, rssBytes: null },
+    { inicio: 2 * MIN, fim: 3 * MIN, t: new Date(em(13, 2)).toISOString(), v: 42, rssBytes: 123 },
+    { inicio: 3 * MIN, fim: 4 * MIN, t: new Date(em(13, 3)).toISOString(), v: 43, rssBytes: 456 }
+];
+const visualLacuna = ag.agruparParaExibicao(
+    historicoGrande.cpu.distribuicao.slice(0, 2),
+    pontosComLacunaVisual,
+    60,
+    1
+);
+assert.equal(visualLacuna.fator, 2);
+assert.equal(visualLacuna.pontos[0].v, null);
+assert.equal(visualLacuna.pontos[0].rssBytes, null);
+assert.equal(visualLacuna.pontos[1].v, 43);
+
 console.log("processosAgregacao: todos os testes passaram.");

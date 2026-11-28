@@ -13,6 +13,13 @@ const BUCKET = process.env.BUCKET_DADOS_GOLD || "bucket-coretrace";
 const PREFIXO_LOTES = "client/lotes/";
 const PREFIXO_RESUMOS = "client/resumos/";
 
+// Sem prazo explícito, uma chamada ao S3 pode ficar pendente e a rota nunca
+// responde. Cada operação recebe seu próprio sinal de timeout.
+const TEMPO_LIMITE_S3_MS = 30 * 1000;
+function opcoesS3() {
+    return { abortSignal: AbortSignal.timeout(TEMPO_LIMITE_S3_MS) };
+}
+
 // A listagem varre os prefixos no S3; como muda pouco, fica em cache por 5 min.
 const CACHE_SERVIDORES_TTL_MS = 5 * 60 * 1000;
 let cacheServidores = null;
@@ -43,7 +50,8 @@ async function listarServidores() {
                     Bucket: BUCKET,
                     Prefix: `${prefixo}maquina=`,
                     ContinuationToken: token
-                })
+                }),
+                opcoesS3()
             );
 
             for (const arquivo of resposta.Contents || []) {
@@ -71,7 +79,8 @@ async function buscarResumoDiario(enderecoMac, data) {
     const mac = normalizarMac(enderecoMac);
     const chave = `${PREFIXO_RESUMOS}maquina=${mac}/data=${data}/resumo.json`;
     const resposta = await s3.send(
-        new GetObjectCommand({ Bucket: BUCKET, Key: chave })
+        new GetObjectCommand({ Bucket: BUCKET, Key: chave }),
+        opcoesS3()
     );
     const texto = await resposta.Body.transformToString();
     return JSON.parse(texto);
@@ -93,7 +102,8 @@ async function listarLotesDoDia(enderecoMac, data) {
                 Bucket: BUCKET,
                 Prefix: prefixo,
                 ContinuationToken: token
-            })
+            }),
+            opcoesS3()
         );
 
         for (const arquivo of resposta.Contents || []) {
@@ -111,7 +121,8 @@ async function listarLotesDoDia(enderecoMac, data) {
  */
 async function buscarConteudoLote(chave) {
     const resposta = await s3.send(
-        new GetObjectCommand({ Bucket: BUCKET, Key: chave })
+        new GetObjectCommand({ Bucket: BUCKET, Key: chave }),
+        opcoesS3()
     );
     const texto = await resposta.Body.transformToString();
     return JSON.parse(texto);

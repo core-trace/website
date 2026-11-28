@@ -22,6 +22,16 @@ const JANELA_GRAFICO_MINUTOS = 60;
 const PASSO_GRADE_MINUTOS = 10;
 const LIMITE_SEM_DADOS_MINUTOS = 15;
 const CACHE_LOTES_MS = 5 * 60 * 1000;
+// Os lotes com metricas sao os grandes (serie completa do dia). Os pequenos so
+// trazem processos/containers. Lemos apenas o fim do arquivo: a dashboard usa
+// no maximo a ultima hora e o estado atual.
+const LOTE_MIN_BYTES_COM_METRICAS = 8 * 1024 * 1024;
+// Lotes maiores que isso sao despejos de processos/containers, sem serie de
+// metricas. Evita baixar o fim desses arquivos a toa.
+const LOTE_MAX_BYTES_COM_METRICAS = 15 * 1024 * 1024;
+// 1 MB e o menor trecho que ainda alcanca o inicio dos alertas atuais; o limite
+// extra da margem para o caso de a coleta ficar um pouco mais densa.
+const CAUDA_LOTE_BYTES = Math.round(1.1 * 1024 * 1024);
 const cachePontosMaquina = new Map();
 
 function normalizarPrefixo(prefixo) {
@@ -56,53 +66,94 @@ function streamParaTexto(stream) {
     });
 }
 
-async function lerJsonS3(chave) {
-    const resposta = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: chave }));
-    const texto = await streamParaTexto(resposta.Body);
-    return JSON.parse(texto);
-}
-
-// Alguns lotes do dia trazem processos/containers/logs e nenhuma metrica.
-// Ler so o inicio evita baixar arquivos de dezenas de MB so para descarta-los.
-// Se o campo nao aparecer no trecho, seguimos com a leitura completa para nao
-// perder nenhum dado de formatos diferentes.
-async function loteTemMetricas(chave) {
-    try {
-        const resposta = await s3.send(new GetObjectCommand({
-            Bucket: BUCKET,
-            Key: chave,
-            Range: "bytes=0-2047"
-        }));
-        const trecho = await streamParaTexto(resposta.Body);
-        if (/"metricas"\s*:\s*\[\s*\]/.test(trecho)) return false;
-        return true;
-    } catch (erro) {
-        // Leitura parcial indisponivel: mantem o comportamento anterior.
-        return true;
-    }
-}
-
-async function listarLotesMaquina(mac, dataStr) {
-    const prefixo = `${PREFIXO_LOTES}maquina=${mac}/data=${dataStr}/`;
-    const chaves = [];
+// Uma unica listagem para o dia todo substitui uma por servidor. O tamanho
+// separa os lotes de serie temporal dos lotes de processos/containers.
+async function listarLotesDoDia(dataStr) {
+    const porMac = new Map();
     let continuationToken;
 
     do {
         const resp = await s3.send(new ListObjectsV2Command({
             Bucket: BUCKET,
-            Prefix: prefixo,
+            Prefix: PREFIXO_LOTES,
             ContinuationToken: continuationToken
         }));
 
         for (const obj of resp.Contents || []) {
-            if (obj.Key && obj.Key.endsWith("/capturas.json")) {
-                chaves.push(obj.Key);
-            }
+            if (!obj.Key || !obj.Key.endsWith("/capturas.json")) continue;
+            if (!obj.Key.includes(`/data=${dataStr}/`)) continue;
+            const found = obj.Key.match(/maquina=([^/]+)/);
+            if (!found) continue;
+            const mac = normalizarMac(found[1]);
+            if (!porMac.has(mac)) porMac.set(mac, []);
+            porMac.get(mac).push({
+                chave: obj.Key,
+                tamanho: obj.Size || 0,
+                modificadoEm: obj.LastModified ? obj.LastModified.getTime() : 0
+            });
         }
         continuationToken = resp.IsTruncated ? resp.NextContinuationToken : undefined;
     } while (continuationToken);
 
-    return chaves.sort();
+    for (const lista of porMac.values()) {
+        lista.sort((a, b) => b.modificadoEm - a.modificadoEm);
+    }
+    return porMac;
+}
+
+// Extrai os objetos completos de "metricas" que cabem no trecho final lido.
+// O arquivo e um JSON de uma unica linha, entao nao da para usar JSON.parse
+// direto no fragmento: delimitamos cada objeto com balanceamento de chaves.
+function extrairRegistrosDaCauda(texto) {
+    const fimArray = texto.indexOf('], "processos"');
+    if (fimArray < 0) return [];
+
+    const trecho = texto.slice(0, fimArray);
+    const inicios = [];
+    const regex = /\{\s*"timestamp"\s*:/g;
+    let encontrado;
+    while ((encontrado = regex.exec(trecho)) !== null) inicios.push(encontrado.index);
+
+    const registros = [];
+    for (const inicio of inicios) {
+        let nivel = 0;
+        let fimObjeto = -1;
+        let dentroString = false;
+        let escapado = false;
+
+        for (let pos = inicio; pos < trecho.length; pos += 1) {
+            const caractere = trecho[pos];
+            if (dentroString) {
+                if (escapado) escapado = false;
+                else if (caractere === "\\") escapado = true;
+                else if (caractere === '"') dentroString = false;
+                continue;
+            }
+            if (caractere === '"') { dentroString = true; continue; }
+            if (caractere === "{") nivel += 1;
+            else if (caractere === "}") {
+                nivel -= 1;
+                if (nivel === 0) { fimObjeto = pos + 1; break; }
+            }
+        }
+        if (fimObjeto < 0) continue;
+        try {
+            registros.push(JSON.parse(trecho.slice(inicio, fimObjeto)));
+        } catch (erro) {
+            // Fragmento incompleto na borda do range: ignora e mantem os demais.
+        }
+    }
+    return registros;
+}
+
+async function lerMetricasDaCauda(chave) {
+    const resposta = await s3.send(new GetObjectCommand({
+        Bucket: BUCKET,
+        Key: chave,
+        Range: `bytes=-${CAUDA_LOTE_BYTES}`
+    }));
+    const texto = await streamParaTexto(resposta.Body);
+    return extrairRegistrosDaCauda(texto);
 }
 
 function extrairLeituras(no, destino = new Map()) {
@@ -293,6 +344,7 @@ async function obterAlertasServidores(idEmpresa, idUsuario, fonte = "s3") {
     const horaAtualizacao = horaFormatada(agora);
     const hoje = dataHojeLocal();
     const slots = montarGradeTempo(agora);
+    const lotesPorMac = usarLocal ? new Map() : await listarLotesDoDia(hoje);
 
     const servidoresProcessados = await Promise.all(servidoresBanco.map(async (srv) => {
         const mac = normalizarMac(srv.endereco_mac);
@@ -325,18 +377,15 @@ async function obterAlertasServidores(idEmpresa, idUsuario, fonte = "s3") {
 
             if (!cacheValido) {
                 try {
-                    const chavesLotes = await listarLotesMaquina(mac, hoje);
-                    const recentes = chavesLotes.slice(-6);
-                    const comMetricas = await Promise.all(recentes.map(async (chave) => (
-                        await loteTemMetricas(chave) ? chave : null
-                    )));
+                    const candidatos = (lotesPorMac.get(mac) || [])
+                        .filter((lote) => lote.tamanho >= LOTE_MIN_BYTES_COM_METRICAS
+                            && lote.tamanho <= LOTE_MAX_BYTES_COM_METRICAS);
                     const conteudos = await Promise.all(
-                        comMetricas.filter(Boolean).map((chave) => lerJsonS3(chave).catch(() => null))
+                        candidatos.map((lote) => lerMetricasDaCauda(lote.chave).catch(() => []))
                     );
 
-                    for (const doc of conteudos) {
-                        if (!doc || !Array.isArray(doc.metricas)) continue;
-                        for (const reg of doc.metricas) {
+                    for (const registros of conteudos) {
+                        for (const reg of registros) {
                             const ts = Date.parse(reg.timestamp);
                             if (Number.isNaN(ts)) continue;
                             pontosBrutos.push({

@@ -3,6 +3,15 @@
    Estilos exclusivos da página de alertas.
    ========================================================= */
 
+/* Fundo fixo em todas as visões, inclusive durante o carregamento e ao rolar.
+   Sobrescreve qualquer valor vindo do CSS compartilhado sem afetar outras telas. */
+body.dashboard-page,
+body.dashboard-page .dashboard-menu,
+body.dashboard-page .dashboard-conteudo,
+body.dashboard-page .alertas-principal {
+    background-color: #f7f7f2;
+}
+
 .alertas-principal {
     --alertas-borda: #d9dee7;
     --alertas-cartao: #ffffff;

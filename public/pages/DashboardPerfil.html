@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="icon" type="image/svg+xml" href="/assets/sidebar/logo-compacta.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoreTrace | Perfis de servidores</title>
     <link rel="stylesheet" href="../css/fonts.css">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/dashboardPadrao.css">
     <link rel="stylesheet" href="../css/dashboardPerfil.css">
     <script src="../scripts/vendor/chart.umd.js" defer></script>
     <script src="../scripts/dashboardPerfil.js" defer></script>
@@ -42,10 +44,6 @@
             </button>
 
             <div class="dashboard-usuario">
-                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
-                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
-                </button>
-
                 <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
 
                 <div class="dashboard-usuario-dados">
@@ -55,7 +53,7 @@
                 <div class="dashboard-conta">
                     <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
                         aria-controls="menu-conta" aria-expanded="false">
-                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12" height="12">
+                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
                     </button>
                     <div class="dashboard-menu-conta" id="menu-conta" hidden>
                         <p class="dashboard-conta-email"></p>
@@ -66,7 +64,9 @@
         </header>
 
         <main class="principal" id="conteudo-principal" tabindex="-1">
-            <p class="caminho-navegacao">Dashboard / Análise por perfil</p>
+            <div class="ct-trilha">Monitoramento <span>/</span> Dashboards <span>/</span>
+                <strong>Perfil de servidor</strong>
+            </div>
             <div class="cabecalho-pagina"><div><h1>Visão dos perfis de servidores</h1><p>Panorama completo dos seus perfis, servidores e containers.</p></div></div>
             <p id="dashboard-feedback" role="status" aria-live="polite">Carregando dados...</p>
             <section class="indicadores" aria-label="Resumo dos perfis">
@@ -80,7 +80,7 @@
                     <div class="cabecalho-painel">
                         <div><h2>Status dos servidores por perfil</h2><p id="descricao-status">Status atual</p></div>
                     </div>
-                    <table><thead><tr><th>Perfil</th><th>Ativos</th><th>Inativos</th></tr></thead><tbody id="status-perfis"></tbody></table></section>
+                    <table class="ct-tabela"><thead><tr><th>Perfil</th><th>Ativos</th><th>Inativos</th></tr></thead><tbody id="status-perfis"></tbody></table></section>
                 <section class="painel servidores"><h2>Servidores por perfil</h2><div class="grafico-barras"><canvas id="grafico-servidores-perfil" role="img" aria-label="Aguardando dados do dashboard">Aguardando dados do dashboard.</canvas></div></section>
                 <section class="painel custos sem-custos" aria-labelledby="titulo-custos">
                     <div class="cabecalho-painel">

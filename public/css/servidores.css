@@ -5,6 +5,18 @@ body.dashboard-legivel {
     background-color: rgba(247, 247, 242, 1);
 }
 
+.titulo-visao-geral {
+    font-size: clamp(32px, 2.6vw, 40px);
+    font-weight: 700;
+    color: var(--cor-preto);
+}
+
+.texto-visao-geral {
+    margin-top: 4px;
+    color: #726d70;
+    font-size: 20px;
+}
+
 .servidores-tela {
     --wall-fundo: #fff;
     --wall-borda: #e5e3e0;
@@ -18,7 +30,6 @@ body.dashboard-legivel {
     --wall-normal-fundo: rgba(19, 116, 79, .10);
     --wall-sem-dados: rgba(107, 101, 109, 1);
     --wall-sem-dados-fundo: rgba(107, 101, 109, .10);
-    --wall-monospace: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
     color: var(--wall-texto);
 }
@@ -32,25 +43,28 @@ body.dashboard-legivel {
 }
 
 .servidores-resumo-item {
+    --servidores-resumo-acento: #e6e3e0;
     min-width: 0;
     padding: 14px 16px;
     border: 1px solid var(--wall-borda);
+    border-top: 3px solid var(--servidores-resumo-acento);
     border-radius: 12px;
     background-color: var(--wall-fundo);
 }
+.servidores-resumo-critico { --servidores-resumo-acento: var(--wall-critico); }
+.servidores-resumo-atencao { --servidores-resumo-acento: var(--wall-atencao); }
 
 .servidores-resumo-titulo {
     color: var(--wall-suave);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .05em;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .04em;
     text-transform: uppercase;
 }
 
 .servidores-resumo-valor {
     margin-top: 4px;
-    font-family: var(--wall-monospace);
-    font-size: clamp(28px, 3vw, 42px);
+    font-size: clamp(40px, 3.2vw, 50px);
     font-weight: 700;
     line-height: 1.1;
     font-variant-numeric: tabular-nums;
@@ -59,7 +73,7 @@ body.dashboard-legivel {
 .servidores-resumo-sub {
     margin-top: 2px;
     color: var(--wall-suave);
-    font-size: 13px;
+    font-size: 18px;
     overflow-wrap: anywhere;
 }
 
@@ -70,7 +84,7 @@ body.dashboard-legivel {
 /* A KPI de componente pode ter mais de um nome, então o valor é menor que um número. */
 .servidores-resumo-componente .servidores-resumo-valor {
     color: var(--wall-critico);
-    font-size: clamp(22px, 2.2vw, 30px);
+    font-size: clamp(28px, 2.6vw, 36px);
     line-height: 1.15;
     min-height: clamp(30.8px, 3.3vw, 46.2px);
     overflow-wrap: anywhere;
@@ -100,7 +114,7 @@ body.dashboard-legivel {
     border: 0;
     background: transparent;
     color: var(--wall-suave);
-    font-size: 20px;
+    font-size: 22px;
     line-height: 1;
 }
 
@@ -108,7 +122,7 @@ body.dashboard-legivel {
 
 .servidores-filtros .visao-select {
     min-width: 150px;
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .servidores-legenda {
@@ -118,7 +132,7 @@ body.dashboard-legivel {
     margin-left: auto;
     padding: 0;
     color: var(--wall-suave);
-    font-size: 13px;
+    font-size: 17px;
     list-style: none;
 }
 
@@ -148,7 +162,7 @@ body.dashboard-legivel {
     border-radius: 11px;
     background-color: var(--wall-fundo);
     color: var(--wall-suave);
-    font-size: 16px;
+    font-size: 18px;
     text-align: center;
 }
 
@@ -196,8 +210,7 @@ body.dashboard-legivel {
 .servidores-card-cabecalho > div { min-width: 0; }
 
 .servidores-card-nome {
-    font-family: var(--wall-monospace);
-    font-size: 17.5px;
+    font-size: 22px;
     font-weight: 700;
     letter-spacing: -.01em;
     white-space: nowrap;
@@ -208,7 +221,7 @@ body.dashboard-legivel {
 .servidores-card-perfil {
     margin-top: 1px;
     color: var(--wall-suave);
-    font-size: 12.5px;
+    font-size: 16px;
     font-weight: 600;
     letter-spacing: .04em;
     text-transform: uppercase;
@@ -216,11 +229,11 @@ body.dashboard-legivel {
 
 .servidores-card-status {
     flex-shrink: 0;
-    padding: 2px 6px;
+    padding: 3px 8px;
     border-radius: 5px;
     background: var(--wall-normal-fundo);
     color: var(--wall-normal);
-    font-size: 11px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: .05em;
     text-transform: uppercase;
@@ -253,7 +266,7 @@ body.dashboard-legivel {
 
 .servidores-metrica-rotulo {
     color: var(--wall-suave);
-    font-size: 11.25px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: .05em;
 }
@@ -263,15 +276,14 @@ body.dashboard-legivel {
     min-height: 15px;
     margin-top: 1px;
     color: var(--wall-suave);
-    font-size: 11.25px;
+    font-size: 16px;
     font-style: italic;
     font-weight: 600;
 }
 
 .servidores-metrica-valor {
     margin-top: 1px;
-    font-family: var(--wall-monospace);
-    font-size: 18.75px;
+    font-size: 24px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -299,13 +311,13 @@ body.dashboard-legivel {
 
 .servidores-metrica-sem-dados .servidores-metrica-valor {
     color: var(--wall-sem-dados);
-    font-size: 15px;
+    font-size: 17px;
     font-style: italic;
     font-weight: 600;
 }
 
 .servidores-metrica-desligada { opacity: .4; }
-.servidores-metrica-desligada .servidores-metrica-valor { font-size: 16.25px; font-weight: 600; }
+.servidores-metrica-desligada .servidores-metrica-valor { font-size: 20px; font-weight: 600; }
 
 .servidores-card-sem-dados .servidores-metrica { opacity: .65; }
 .servidores-card-sem-dados .servidores-metrica-valor { color: var(--wall-texto); }
@@ -316,8 +328,7 @@ body.dashboard-legivel {
     padding-top: 8px;
     border-top: 1px dashed var(--wall-borda);
     color: var(--wall-suave);
-    font-family: var(--wall-monospace);
-    font-size: 12.5px;
+    font-size: 16px;
     font-variant-numeric: tabular-nums;
 }
 
@@ -337,7 +348,7 @@ body.dashboard-legivel {
 .servidores-extra {
     overflow: hidden;
     color: var(--wall-suave);
-    font-size: 12.5px;
+    font-size: 16px;
     font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;

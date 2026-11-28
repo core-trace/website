@@ -2,12 +2,14 @@
 <html lang="pt-BR">
 
 <head>
+    <link rel="icon" type="image/svg+xml" href="/assets/sidebar/logo-compacta.svg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CoreTrace - Servidores</title>
     <link rel="stylesheet" href="../css/fonts.css">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/dashboardPadrao.css">
     <link rel="stylesheet" href="../css/inicioDashboard.css">
     <link rel="stylesheet" href="../css/servidores.css">
     <script src="../scripts/navbarDashboard.js" defer></script>
@@ -43,10 +45,6 @@
             </button>
 
             <div class="dashboard-usuario">
-                <button class="dashboard-notificacoes" type="button" aria-label="Notificações">
-                    <img src="../assets/icons/sino.png" alt="" width="24" height="24">
-                </button>
-
                 <div class="dashboard-avatar" role="img" aria-label="Usuário"></div>
 
                 <div class="dashboard-usuario-dados">
@@ -56,8 +54,7 @@
                 <div class="dashboard-conta">
                     <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
                         aria-controls="menu-conta" aria-expanded="false">
-                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12"
-                            height="12">
+                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
                     </button>
                     <div class="dashboard-menu-conta" id="menu-conta" hidden>
                         <p class="dashboard-conta-email"></p>
@@ -69,6 +66,9 @@
 
         <main class="principal" id="conteudo-principal" tabindex="-1">
             <div class="servidores-tela">
+                <div class="ct-trilha">Monitoramento <span>/</span> Dashboards <span>/</span>
+                    <strong>Servidores</strong>
+                </div>
                 <div class="visao-geral">
                     <h1 class="titulo-visao-geral">Visão geral dos servidores</h1>
                     <p class="texto-visao-geral">Localize as prioridades atuais e siga para a investigação.</p>

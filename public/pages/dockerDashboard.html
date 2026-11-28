@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../css/fonts.css">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/dashboardPadrao.css">
     <link rel="stylesheet" href="../css/docker.css">
     <script src="../scripts/navbarDashboard.js" defer></script>
     <script src="../scripts/vendor/chart.umd.js" defer></script>
@@ -58,6 +59,9 @@
         </header>
 
         <main id="conteudo-principal" class="docker-principal" tabindex="-1">
+            <div class="ct-trilha">Monitoramento <span>/</span> Dashboards <span>/</span>
+                <strong>Docker</strong>
+            </div>
             <div class="docker-hero">
                 <div>
                     <div class="docker-titulo-com-icone">
@@ -68,30 +72,14 @@
                 </div>
             </div>
 
-            <section class="docker-controles" aria-label="Contexto e período da análise">
+            <section class="docker-controles" aria-label="Contexto da análise">
                 <label class="docker-campo">Perfil<select id="docker-perfil">
                         <option value="">Carregando perfis...</option>
                     </select></label>
                 <label class="docker-campo">Servidor<select id="docker-servidor">
                         <option value="">Carregando servidores...</option>
                     </select></label>
-                <label class="docker-campo docker-periodos" for="docker-periodo">Período
-                    <select id="docker-periodo" aria-controls="docker-periodo-personalizado">
-                        <option value="0.041666666666666664">Última hora</option>
-                        <option value="0.25">6 horas</option>
-                        <option value="1">24 horas</option>
-                        <option value="7" selected>7 dias</option>
-                        <option value="personalizado">Personalizado</option>
-                    </select>
-                </label>
             </section>
-            <form id="docker-periodo-personalizado" class="docker-periodo-personalizado" hidden>
-                <label class="docker-campo">Início (Brasília)<input id="docker-periodo-inicio" type="datetime-local" required></label>
-                <label class="docker-campo">Fim (Brasília)<input id="docker-periodo-fim" type="datetime-local" required></label>
-                <button type="submit" class="docker-botao">Aplicar período</button>
-                <p>Máximo de 7 dias corridos (168 horas), até o instante de referência. Até 1h: 5 minutos; até 24h: horário; acima de 24h: diário. Só exibe dados inteiramente contidos no período.</p>
-                <p id="docker-periodo-erro" role="alert" hidden></p>
-            </form>
             <p class="docker-periodo-info" id="docker-periodo-info" role="status" hidden></p>
             <div class="docker-feedback" id="docker-feedback" role="alert" hidden></div>
 
@@ -145,7 +133,23 @@
             <div class="docker-resumo-topo">
                 <h2 id="docker-resumo-titulo">Visão do contêiner</h2>
                 <p id="docker-escopo-servidor" class="docker-containers-badge" role="status">— containers monitorados</p>
+                <label class="docker-campo docker-periodos" for="docker-periodo">Período
+                    <select id="docker-periodo" aria-controls="docker-periodo-personalizado">
+                        <option value="0.041666666666666664">Última hora</option>
+                        <option value="0.25">6 horas</option>
+                        <option value="1">24 horas</option>
+                        <option value="7" selected>7 dias</option>
+                        <option value="personalizado">Personalizado</option>
+                    </select>
+                </label>
             </div>
+            <form id="docker-periodo-personalizado" class="docker-periodo-personalizado" hidden>
+                <label class="docker-campo">Início (Brasília)<input id="docker-periodo-inicio" type="datetime-local" required></label>
+                <label class="docker-campo">Fim (Brasília)<input id="docker-periodo-fim" type="datetime-local" required></label>
+                <button type="submit" class="docker-botao">Aplicar período</button>
+                <p>Máximo de 7 dias corridos (168 horas), até o instante de referência. Até 1h: 5 minutos; até 24h: horário; acima de 24h: diário. Só exibe dados inteiramente contidos no período.</p>
+                <p id="docker-periodo-erro" role="alert" hidden></p>
+            </form>
             <section class="docker-kpis" aria-label="Indicadores da análise" aria-describedby="docker-escopo-servidor">
                 <article class="docker-card docker-kpi docker-kpi-falhas">
                     <h2>Falhas de execução</h2>

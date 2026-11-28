@@ -627,7 +627,7 @@
             const horario = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" }).format(ultimaLeitura).replace(":", "h");
             const data = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "short", year: "numeric" })
                 .format(ultimaLeitura).replaceAll(" de ", " ").replace(".", "");
-            adicionarTexto(atualizacao, "strong", `Estado às ${horario}`);
+            adicionarTexto(atualizacao, "strong", `Última leitura: ${horario}`);
             adicionarTexto(atualizacao, "span", `· ${data}`);
             atualizacao.title = "Última leitura disponível no período selecionado · horário de Brasília";
         } else {

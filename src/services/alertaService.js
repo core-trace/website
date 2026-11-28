@@ -61,6 +61,26 @@ async function lerJsonS3(chave) {
     return JSON.parse(texto);
 }
 
+// Alguns lotes do dia trazem processos/containers/logs e nenhuma metrica.
+// Ler so o inicio evita baixar arquivos de dezenas de MB so para descarta-los.
+// Se o campo nao aparecer no trecho, seguimos com a leitura completa para nao
+// perder nenhum dado de formatos diferentes.
+async function loteTemMetricas(chave) {
+    try {
+        const resposta = await s3.send(new GetObjectCommand({
+            Bucket: BUCKET,
+            Key: chave,
+            Range: "bytes=0-2047"
+        }));
+        const trecho = await streamParaTexto(resposta.Body);
+        if (/"metricas"\s*:\s*\[\s*\]/.test(trecho)) return false;
+        return true;
+    } catch (erro) {
+        // Leitura parcial indisponivel: mantem o comportamento anterior.
+        return true;
+    }
+}
+
 async function listarLotesMaquina(mac, dataStr) {
     const prefixo = `${PREFIXO_LOTES}maquina=${mac}/data=${dataStr}/`;
     const chaves = [];
@@ -265,8 +285,8 @@ function montarGradeTempo(agora) {
 
 async function obterAlertasServidores(idEmpresa, idUsuario) {
     const servidoresBanco = await servidorModel.listarServidoresPorEmpresa(idEmpresa, idUsuario);
-    const chamados = await jiraChamadosService.obterChamadosPorEmpresa(idEmpresa, servidoresBanco);
-    const resolucaoChamados = jiraChamadosService.calcularResolucao(chamados.chamados, servidoresBanco);
+    // O Jira nao depende das capturas: inicia a busca antes de processar os lotes.
+    const chamadosPromise = jiraChamadosService.obterChamadosPorEmpresa(idEmpresa, servidoresBanco);
     const agora = resumoGoldService.agoraOuReferenciaDemo();
     const horaAtualizacao = horaFormatada(agora);
     const hoje = dataHojeLocal();
@@ -285,7 +305,12 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
             try {
                 const chavesLotes = await listarLotesMaquina(mac, hoje);
                 const recentes = chavesLotes.slice(-6);
-                const conteudos = await Promise.all(recentes.map((chave) => lerJsonS3(chave).catch(() => null)));
+                const comMetricas = await Promise.all(recentes.map(async (chave) => (
+                    await loteTemMetricas(chave) ? chave : null
+                )));
+                const conteudos = await Promise.all(
+                    comMetricas.filter(Boolean).map((chave) => lerJsonS3(chave).catch(() => null))
+                );
 
                 for (const doc of conteudos) {
                     if (!doc || !Array.isArray(doc.metricas)) continue;
@@ -406,6 +431,7 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
             }
         }
 
+        const chamados = await chamadosPromise;
         const chamadosDoServidor = chamados.porServidor.get(String(srv.id_servidor)) || [];
         const chamadoAberto = chamadosDoServidor.find((item) => !item.concluido) || null;
         const chamado = chamadoAberto
@@ -437,6 +463,9 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
             historico
         };
     }));
+
+    const chamados = await chamadosPromise;
+    const resolucaoChamados = jiraChamadosService.calcularResolucao(chamados.chamados, servidoresBanco);
 
     return { horaAtualizacao, servidores: servidoresProcessados.filter(Boolean), resolucaoChamados };
 }

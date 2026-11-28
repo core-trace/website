@@ -129,7 +129,6 @@ function carregarNavegacao() {
         { titulo: "Monitoramento", itens: [
             { rotulo: "Dashboards", icone: "/assets/sidebar/dashboard.svg", filhos: [
                 { rotulo: "Geral", href: "/pages/inicioDashboard.html" },
-                { rotulo: "Processos" },
                 { rotulo: "Docker", href: "/pages/dockerDashboard.html" },
                 { rotulo: "Processos", href: "/pages/processos.html" },
                 { rotulo: "Alertas", href: "/pages/alertas.html" },
@@ -139,10 +138,6 @@ function carregarNavegacao() {
         ] },
         { titulo: "Gestão", itens: [
             { rotulo: "Configurar perfis", href: "/pages/perfisServidor.html", icone: "/assets/icons/perfil.png" }
-        ] },
-        { titulo: "Sistema", itens: [
-            { rotulo: "Configurações", icone: "/assets/sidebar/configuracoes.svg" },
-            { rotulo: "Documentação", icone: "/assets/sidebar/documentacao.svg" }
         ] }
     ];
     if (nivel <= 2) grupos[1].itens.push({ rotulo: "Equipe e acessos", href: "/pages/general-employee.html", icone: "/assets/sidebar/equipe.png" });

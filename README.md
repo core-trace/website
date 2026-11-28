@@ -368,10 +368,11 @@ mantém o limite de 168 horas e escolhe a granularidade pela duração. Resumos
 sem precisão suficiente não são repartidos para preencher lacunas.
 
 As requisições usam até seis operações simultâneas. O cache em memória da página
-reutiliza JSONs originais por fonte/máquina/chave. As listagens têm validade de
-60 segundos; `ETag`, `LastModified` e tamanho detectam alterações (a fonte local
+reutiliza JSONs originais por fonte/máquina/chave. As listas de datas e de arquivos têm validade de
+5 minutos; alternar entre filtros já carregados nesse prazo não faz novas
+requisições. O cache dura enquanto a página permanece aberta; `ETag`, `LastModified` e tamanho detectam alterações (a fonte local
 informa a data de modificação). Sem versão, o documento também expira em
-60 segundos. A página visível revalida o período a cada minuto. Trocas de
+5 minutos. A página visível revalida o período a cada cinco minutos. Trocas de
 máquina/período cancelam a carga anterior, sem reutilizar sua resposta na tela.
 
 O console do navegador registra `CoreTrace Docker · carregamento`, com tempo

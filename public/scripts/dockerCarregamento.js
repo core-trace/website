@@ -19,6 +19,8 @@
     function criar({ validar, normalizar, fetch: buscar = (...args) => fetch(...args), agora = Date.now }) {
         const arquivosCache = new Map();
         const listasCache = new Map();
+        const datasCache = new Map();
+        let fonteAtual = null;
         async function carregar({ mac, dias, personalizado = null, signal }) {
             const inicioCarga = agora();
             const prefixo = `client/resumos/maquina=${mac}/`;
@@ -40,17 +42,27 @@
             }
             try {
                 // Delimiter lista somente as pastas de datas, nunca os objetos de todo o histórico.
-                const descoberta = await requisitar('arquivos', { prefixo, pastas: '1' });
-                metricas.listagens++;
-                const referenciaLocal = Date.parse(descoberta.resposta.headers.get('X-Docker-Referencia'));
-                if (!Array.isArray(descoberta.corpo)) throw new Error('Lista de datas inválida.');
-                const datas = descoberta.corpo.map(p => p.Prefix).filter(p => typeof p === 'string' && p.startsWith(prefixo)
-                    && /^data=\d{4}-\d{2}-\d{2}\/$/.test(p.slice(prefixo.length))).map(p => p.slice(-11, -1)).sort();
+                signal?.throwIfAborted();
+                let descoberta = datasCache.get(prefixo);
+                if (!descoberta || agora() - descoberta.instante >= 300000) {
+                    const resultado = await requisitar('arquivos', { prefixo, pastas: '1' });
+                    metricas.listagens++;
+                    if (!Array.isArray(resultado.corpo)) throw new Error('Lista de datas inválida.');
+                    if (fonteAtual !== fonte) datasCache.clear();
+                    fonteAtual = fonte;
+                    descoberta = { fonte, instante: agora(),
+                        referenciaLocal: Date.parse(resultado.resposta.headers.get('X-Docker-Referencia')),
+                        datas: resultado.corpo.map(p => p.Prefix).filter(p => typeof p === 'string' && p.startsWith(prefixo)
+                            && /^data=\d{4}-\d{2}-\d{2}\/$/.test(p.slice(prefixo.length))).map(p => p.slice(-11, -1)).sort() };
+                    datasCache.set(prefixo, descoberta);
+                }
+                fonte = descoberta.fonte;
+                const { datas, referenciaLocal } = descoberta;
                 const escopo = `${fonte}:${prefixo}`;
                 const consultados = new Set();
                 async function listarPeriodo(inicio, fim) {
                     const selecionadas = datas.filter(d => d >= inicio && d <= fim);
-                    if (selecionadas.every(d => { const c = listasCache.get(`${escopo}${d}`); return c && agora() - c.instante < 60000; })) return;
+                    if (selecionadas.every(d => { const c = listasCache.get(`${escopo}${d}`); return c && agora() - c.instante < 300000; })) return;
                     const { corpo } = await requisitar('arquivos', { prefixo, inicio, fim });
                     metricas.listagens++;
                     if (!Array.isArray(corpo)) throw new Error('Lista de resumos inválida.');
@@ -63,7 +75,7 @@
                 async function listar(data) {
                     const chave = `${escopo}${data}`;
                     const cache = listasCache.get(chave);
-                    if (cache && agora() - cache.instante < 60000) return cache.itens;
+                    if (cache && agora() - cache.instante < 300000) return cache.itens;
                     const { corpo } = await requisitar('arquivos', { prefixo: `${prefixo}data=${data}/` });
                     metricas.listagens++;
                     if (!Array.isArray(corpo)) throw new Error('Lista de resumos inválida.');
@@ -79,7 +91,7 @@
                     const cache = arquivosCache.get(chave);
                     const primeiraConsulta = !consultados.has(chave);
                     if (primeiraConsulta) { metricas.arquivosConsultados++; consultados.add(chave); }
-                    if (cache && (versao ? cache.versao === versao : agora() - cache.instante < 60000)) {
+                    if (cache && (versao ? cache.versao === versao : agora() - cache.instante < 300000)) {
                         if (primeiraConsulta) metricas.acertosCache++;
                         return cache.documento;
                     }

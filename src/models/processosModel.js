@@ -13,10 +13,6 @@ const BUCKET = process.env.BUCKET_DADOS_GOLD || "bucket-coretrace";
 const PREFIXO_LOTES = "client/lotes/";
 const PREFIXO_RESUMOS = "client/resumos/";
 
-// A listagem varre os prefixos no S3; como muda pouco, fica em cache por 5 min.
-const CACHE_SERVIDORES_TTL_MS = 5 * 60 * 1000;
-let cacheServidores = null;
-
 function normalizarMac(enderecoMac) {
     return String(enderecoMac || "").trim().toUpperCase();
 }
@@ -29,10 +25,6 @@ function normalizarMac(enderecoMac) {
  * resumo diário gerado ainda.
  */
 async function listarServidores() {
-    if (cacheServidores && Date.now() - cacheServidores.tempo < CACHE_SERVIDORES_TTL_MS) {
-        return cacheServidores.macs;
-    }
-
     const macs = new Set();
 
     for (const prefixo of [PREFIXO_LOTES, PREFIXO_RESUMOS]) {
@@ -58,9 +50,7 @@ async function listarServidores() {
         } while (token);
     }
 
-    const resultado = Array.from(macs).sort();
-    cacheServidores = { tempo: Date.now(), macs: resultado };
-    return resultado;
+    return Array.from(macs).sort();
 }
 
 /**

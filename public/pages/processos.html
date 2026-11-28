@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="../css/processo.css">
     <script src="../scripts/navbarDashboard.js" defer></script>
     <script src="../scripts/vendor/chart.umd.js" defer></script>
-    <script src="../scripts/processosAgregacao.js" defer></script>
     <script src="../scripts/processos.js" defer></script>
 </head>
 
@@ -163,7 +162,8 @@
                                             <option value="60">1 hora</option>
                                             <option value="360">6 horas</option>
                                             <option value="1440">24 horas</option>
-                                            <option value="10080" selected>7 dias</option>
+                                            <option value="10080">7 dias</option>
+                                            <option value="43200" selected>30 dias</option>
                                         </select>
                                     </div>
                                 </div>
@@ -180,19 +180,18 @@
                         </div>
                         <div class="graficos" id="graficos-consumo">
                             <figure class="grafico-card" id="grafico-cpu">
-                                <div class="grafico-rotulo">Distribuição da CPU</div>
+                                <div class="grafico-rotulo">CPU do processo</div>
                                 <div class="grafico-valor-atual" id="grafico-cpu-valor">--</div>
                                 <div class="grafico-area">
-                                    <canvas id="grafico-cpu-area" role="img" aria-label="Distribuição do tempo de CPU do processo por faixa de utilização"></canvas>
+                                    <canvas id="grafico-cpu-area" role="img" aria-label="CPU do processo"></canvas>
                                 </div>
                                 <figcaption class="grafico-caption" id="grafico-cpu-caption">--</figcaption>
-                                <span class="grafico-indicador" id="cpu-tempo-elevado">--</span>
                             </figure>
                             <figure class="grafico-card" id="grafico-memoria">
-                                <div class="grafico-rotulo">Evolução da RAM</div>
+                                <div class="grafico-rotulo">Memória RAM</div>
                                 <div class="grafico-valor-atual" id="grafico-memoria-valor">--</div>
                                 <div class="grafico-area">
-                                    <canvas id="grafico-memoria-area" role="img" aria-label="Evolução da memória RAM do processo por intervalo"></canvas>
+                                    <canvas id="grafico-memoria-area" role="img" aria-label="Memória RSS"></canvas>
                                 </div>
                                 <figcaption class="grafico-caption" id="grafico-memoria-caption">--</figcaption>
                             </figure>

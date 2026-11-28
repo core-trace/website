@@ -617,18 +617,6 @@ img, svg { display: block; max-width: 100%; }
   text-align: right;
 }
 
-/* Indicador complementar da CPU: discreto, fora da área do canvas. */
-.grafico-indicador {
-  align-self: flex-start;
-  padding: 3px 10px;
-  border-radius: var(--raio-pill);
-  background: var(--cor-coral-suave);
-  color: var(--cor-coral-texto);
-  font-family: var(--fonte-principal);
-  font-size: var(--fonte-rotulo);
-  font-weight: 600;
-}
-
 .tooltip {
   pointer-events: none;
 }

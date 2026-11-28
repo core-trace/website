@@ -1,6 +1,6 @@
 .dashboard-legivel {
     --dashboard-borda: #c9ced8;
-    background-color: #eef0f4;
+    background-color: #f7f7f2;
 }
 
 .principal {
@@ -227,8 +227,6 @@
 
 .visao-sistema small { font-size: 16px; }
 .visao-sistema-ponto { flex-shrink: 0; width: 16px; height: 16px; margin-top: 2px; border-radius: 50%; background: #4de0aa; }
-.visao-seta-conta { transform: rotate(-90deg); }
-.dashboard-usuario-toggle[aria-expanded="true"] .visao-seta-conta { transform: rotate(90deg); }
 
 .visao-sr-only {
     position: absolute;

@@ -90,7 +90,7 @@ function montarEstado() {
     }, resumoGoldService.agoraOuReferenciaDemo());
     const mes = MESES_ABREVIADOS[Number(campos.month) - 1];
     return {
-        titulo: `Estado às ${campos.hour}h${campos.minute}`,
+        titulo: `Última leitura: ${campos.hour}h${campos.minute}`,
         data: `${campos.day} ${mes} ${campos.year}`
     };
 }

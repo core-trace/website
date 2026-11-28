@@ -1,6 +1,6 @@
 // Dados mocados
 const geralMock = {
-    estado: { titulo: "Estado às 20h30", data: "27 nov 2026" },
+    estado: { titulo: "Última leitura: 20h30", data: "27 nov 2026" },
 
     cobertura: { avaliados: 9, esperados: 10 },
 

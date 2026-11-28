@@ -8,8 +8,11 @@ async function listarServidores(req, res) {
         return res.status(400).json({ erro: "idEmpresa e idUsuario são obrigatórios." });
     }
 
+    const fonte = req.query.fonte === "local" ? "local" : "s3";
+
     try {
-        const dados = await alertaService.obterAlertasServidores(idEmpresa, idUsuario);
+        const dados = await alertaService.obterAlertasServidores(idEmpresa, idUsuario, fonte);
+        res.set("X-Alertas-Fonte", fonte);
         return res.status(200).json(dados);
     } catch (erro) {
         console.error("Erro ao carregar alertas dos servidores:", erro);

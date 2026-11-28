@@ -17,6 +17,8 @@ async function obterServidoresEmAlerta() {
     }
 
     const params = new URLSearchParams({ idEmpresa: String(idEmpresa), idUsuario: String(idUsuario) });
+    const fonte = new URLSearchParams(window.location.search).get('fonte');
+    if (fonte === 'local') params.set('fonte', 'local');
     const resposta = await fetch(`/alertas/servidores?${params.toString()}`);
     if (!resposta.ok) throw new Error(`Erro HTTP ${resposta.status} ao buscar alertas.`);
 

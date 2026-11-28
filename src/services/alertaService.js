@@ -3,6 +3,7 @@ const { gerarEtiquetaJira } = jiraChamadosService;
 const { S3Client, ListObjectsV2Command, GetObjectCommand } = require("@aws-sdk/client-s3");
 const servidorModel = require("../models/servidorModel");
 const resumoGoldService = require("./resumoGoldService");
+const alertaFonteLocal = require("./alertaFonteLocalService");
 
 const s3 = new S3Client({
     region: process.env.AWS_REGION || "us-east-1"
@@ -283,7 +284,8 @@ function montarGradeTempo(agora) {
     return slots;
 }
 
-async function obterAlertasServidores(idEmpresa, idUsuario) {
+async function obterAlertasServidores(idEmpresa, idUsuario, fonte = "s3") {
+    const usarLocal = fonte === "local";
     const servidoresBanco = await servidorModel.listarServidoresPorEmpresa(idEmpresa, idUsuario);
     // O Jira nao depende das capturas: inicia a busca antes de processar os lotes.
     const chamadosPromise = jiraChamadosService.obterChamadosPorEmpresa(idEmpresa, servidoresBanco);
@@ -295,47 +297,70 @@ async function obterAlertasServidores(idEmpresa, idUsuario) {
     const servidoresProcessados = await Promise.all(servidoresBanco.map(async (srv) => {
         const mac = normalizarMac(srv.endereco_mac);
         const componentes = srv.componentes || [];
-        const chaveCache = `${mac}|${hoje}`;
-        const entradaCache = cachePontosMaquina.get(chaveCache);
-        const cacheValido = entradaCache && Date.now() < entradaCache.expiraEm;
+        let pontosBrutos;
+        let semResumoLocal = false;
 
-        let pontosBrutos = cacheValido ? entradaCache.pontosBrutos : [];
-
-        if (!cacheValido) {
+        if (usarLocal) {
+            // Le os resumos que a dashboard Docker ja mantem em data/docker.
+            // Sem cache para nao misturar pontos do S3 com pontos locais.
             try {
-                const chavesLotes = await listarLotesMaquina(mac, hoje);
-                const recentes = chavesLotes.slice(-6);
-                const comMetricas = await Promise.all(recentes.map(async (chave) => (
-                    await loteTemMetricas(chave) ? chave : null
-                )));
-                const conteudos = await Promise.all(
-                    comMetricas.filter(Boolean).map((chave) => lerJsonS3(chave).catch(() => null))
-                );
+                const pontos = await alertaFonteLocal.carregarPontos(mac, hoje);
+                pontosBrutos = pontos.map((ponto) => ({
+                    ...ponto,
+                    hora: horaFormatada(new Date(ponto.ts))
+                }));
+            } catch (erroLocal) {
+                console.warn(`[Alertas locais] Sem resumo disponível para ${mac}:`, erroLocal.message);
+                pontosBrutos = [];
+            }
+            // Servidor sem arquivo local nao entra na resposta: "sem dados" seria
+            // um estado falso, ja que a fonte local e que nao tem o registro.
+            if (!pontosBrutos.length) semResumoLocal = true;
+        } else {
+            const chaveCache = `${mac}|${hoje}`;
+            const entradaCache = cachePontosMaquina.get(chaveCache);
+            const cacheValido = entradaCache && Date.now() < entradaCache.expiraEm;
 
-                for (const doc of conteudos) {
-                    if (!doc || !Array.isArray(doc.metricas)) continue;
-                    for (const reg of doc.metricas) {
-                        const ts = Date.parse(reg.timestamp);
-                        if (Number.isNaN(ts)) continue;
-                        pontosBrutos.push({
-                            ts,
-                            hora: horaFormatada(new Date(ts)),
-                            leituras: extrairLeituras(reg)
-                        });
+            pontosBrutos = cacheValido ? entradaCache.pontosBrutos : [];
+
+            if (!cacheValido) {
+                try {
+                    const chavesLotes = await listarLotesMaquina(mac, hoje);
+                    const recentes = chavesLotes.slice(-6);
+                    const comMetricas = await Promise.all(recentes.map(async (chave) => (
+                        await loteTemMetricas(chave) ? chave : null
+                    )));
+                    const conteudos = await Promise.all(
+                        comMetricas.filter(Boolean).map((chave) => lerJsonS3(chave).catch(() => null))
+                    );
+
+                    for (const doc of conteudos) {
+                        if (!doc || !Array.isArray(doc.metricas)) continue;
+                        for (const reg of doc.metricas) {
+                            const ts = Date.parse(reg.timestamp);
+                            if (Number.isNaN(ts)) continue;
+                            pontosBrutos.push({
+                                ts,
+                                hora: horaFormatada(new Date(ts)),
+                                leituras: extrairLeituras(reg)
+                            });
+                        }
                     }
-                }
 
-                for (const chaveAntiga of cachePontosMaquina.keys()) {
-                    if (!chaveAntiga.endsWith(`|${hoje}`)) cachePontosMaquina.delete(chaveAntiga);
+                    for (const chaveAntiga of cachePontosMaquina.keys()) {
+                        if (!chaveAntiga.endsWith(`|${hoje}`)) cachePontosMaquina.delete(chaveAntiga);
+                    }
+                    cachePontosMaquina.set(chaveCache, {
+                        expiraEm: Date.now() + CACHE_LOTES_MS,
+                        pontosBrutos
+                    });
+                } catch (erroS3) {
+                    console.warn(`[Alertas S3] Sem lotes disponíveis para ${mac}:`, erroS3.message);
                 }
-                cachePontosMaquina.set(chaveCache, {
-                    expiraEm: Date.now() + CACHE_LOTES_MS,
-                    pontosBrutos
-                });
-            } catch (erroS3) {
-                console.warn(`[Alertas S3] Sem lotes disponíveis para ${mac}:`, erroS3.message);
             }
         }
+
+        if (semResumoLocal) return null;
 
         pontosBrutos.sort((a, b) => a.ts - b.ts);
         const ultimoPonto = pontosBrutos[pontosBrutos.length - 1] || null;

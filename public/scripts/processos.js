@@ -32,6 +32,7 @@
     // Valores dos gráficos
     const cpuValor = document.getElementById("grafico-cpu-valor");
     const cpuCaption = document.getElementById("grafico-cpu-caption");
+    const cpuTempoElevado = document.getElementById("cpu-tempo-elevado");
     const memoriaValor = document.getElementById("grafico-memoria-valor");
     const memoriaCaption = document.getElementById("grafico-memoria-caption");
 
@@ -57,8 +58,11 @@
     let momentoASelecionado = null;
     let momentoBSelecionado = null;
     // Em minutos. null = sem recorte (todos os pontos disponíveis).
-    let periodoAtual = 43200;
+    let periodoAtual = 10080;
     let processoEmFoco = null;
+
+    // A granularidade vem do módulo de agregação; aqui fica só o rótulo.
+    const ROTULOS_PASSO = { 1: "1 min", 5: "5 min", 15: "15 min", 60: "1 h" };
 
     // ------------------------------------------------------------------
     // Utilitários
@@ -68,6 +72,7 @@
         try {
             const d = new Date(dataIso);
             return d.toLocaleString("pt-BR", {
+                timeZone: "America/Sao_Paulo",
                 day: "2-digit",
                 month: "2-digit",
                 year: "numeric",
@@ -87,8 +92,8 @@
     }
 
     /**
-     * Recorte dos gráficos: últimos N minutos a partir da última captura do dia.
-     * Null significa dia inteiro. Os KPIs e a tabela não usam este limite.
+     * Recorte dos gráficos: últimos N minutos a partir da última captura carregada.
+     * Null significa período inteiro. Os KPIs e a tabela não usam este limite.
      */
     function limiteDoPeriodo() {
         if (periodoAtual == null) return null;
@@ -115,17 +120,29 @@
         return `${caminho}?${params.toString()}`;
     }
 
-    function extrairValorLeitura(leitura) {
-        if (leitura == null) return null;
-        if (typeof leitura === "number") return leitura;
-        if (typeof leitura === "object" && leitura.valor !== undefined) return leitura.valor;
-        return null;
-    }
-
     function formatarPercentual(valor) {
         const numero = Number(valor);
         if (!Number.isFinite(numero)) return "--";
         return `${numero.toFixed(1).replace(".", ",")}%`;
+    }
+
+    // Durações vêm da agregação em milissegundos; aqui ausência não é zero.
+    function formatarDuracao(milisegundos) {
+        const numero = Number(milisegundos);
+        if (!Number.isFinite(numero)) return "--";
+        const totalSegundos = Math.max(0, Math.round(numero / 1000));
+        if (totalSegundos === 0) return "0 min";
+
+        const dias = Math.floor(totalSegundos / 86400);
+        const horas = Math.floor((totalSegundos % 86400) / 3600);
+        const minutos = Math.floor((totalSegundos % 3600) / 60);
+        const segundos = totalSegundos % 60;
+        const partes = [];
+        if (dias) partes.push(`${dias} d`);
+        if (horas) partes.push(`${horas} h`);
+        if (minutos) partes.push(`${minutos} min`);
+        if (segundos) partes.push(`${segundos} s`);
+        return partes.join(" ");
     }
 
     function formatarBytes(valor) {
@@ -141,12 +158,12 @@
         return `${item.nome} (PID ${item.pid != null ? item.pid : "--"})`;
     }
 
-    // O pico da Gold é do dia inteiro; só faz sentido marcá-lo se for o processo aberto.
-    function picoDoProcesso(pico, nomeProcesso, pid) {
-        if (!pico || pico.pid == null) return null;
-        if (String(pico.pid) !== String(pid)) return null;
-        if (pico.nome && pico.nome !== nomeProcesso) return null;
-        return pico;
+    // Mesma chave usada no service: nome + PID e criação quando o lote a traz.
+    function chaveProcesso(item) {
+        const nome = item && item.nome ? item.nome : "desconhecido";
+        const pid = item && item.pid != null ? item.pid : "--";
+        const createTime = item && item.createTime ? item.createTime : "";
+        return `${nome}|${pid}|${createTime}`;
     }
 
     function definirTexto(elemento, texto) {
@@ -200,10 +217,17 @@
         processoEmFoco = null;
         definirTexto(cpuValor, "--");
         definirTexto(cpuCaption, "--");
+        definirTexto(cpuTempoElevado, "--");
         definirTexto(memoriaValor, "--");
         definirTexto(memoriaCaption, "--");
-        atualizarGrafico("grafico-cpu-area", [], "CPU", COR_GRAFICO.cpu);
-        atualizarGrafico("grafico-memoria-area", [], "RAM", COR_GRAFICO.memoria);
+        definirTexto(metaProcesso, "--");
+        definirTexto(metaUsuario, "--");
+        definirTexto(metaStatus, "--");
+        tbodyTop5Recursos.querySelectorAll("tr.linha-ativa").forEach(linha => {
+            linha.classList.remove("linha-ativa");
+        });
+        atualizarGraficoCpu([], "--");
+        atualizarGraficoMemoria([], [], "--", null);
     }
 
     // ------------------------------------------------------------------
@@ -211,7 +235,15 @@
     // ------------------------------------------------------------------
     const FONTE_GRAFICO = { family: "Poppins", size: 12 };
     const COR_TEXTO_GRAFICO = "#4b4350";
-    const COR_GRAFICO = { cpu: "#cc0301", memoria: "#477da7" };
+    const COR_GRAFICO = { memoria: "#477da7" };
+
+    // Ordem e chaves vêm da agregação; cores e rótulos são só apresentação.
+    const FAIXAS_CPU_VISUAL = {
+        ate25: { rotulo: "Até 25%", cor: "#c9d2dc" },
+        ate50: { rotulo: "25% a 50%", cor: "#e8a100" },
+        ate75: { rotulo: "50% a 75%", cor: "#a96808" },
+        acima75: { rotulo: "Acima de 75%", cor: "#cc0301" }
+    };
 
     function numeroGrafico(valor) {
         return Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
@@ -235,120 +267,6 @@
         });
     }
 
-    function pontosDoGrafico(pontos) {
-        return pontos
-            .map(p => ({ x: Date.parse(p.t), y: Number(p.v) }))
-            .filter(p => Number.isFinite(p.x) && Number.isFinite(p.y))
-            .sort((a, b) => a.x - b.x);
-    }
-
-    function configuracaoComum(serie, limiares = {}) {
-        const instantes = serie.map(p => p.x);
-        const inicio = instantes[0];
-        const fim = instantes[instantes.length - 1];
-        // Eixo linear precisa de limites distintos; uma leitura única ganha 30 s para cada lado.
-        const mesmoInstante = inicio != null && inicio === fim;
-        const maisDeUmDia = inicio != null && (fim - inicio) >= 86400000;
-
-        const pluginLimites = {
-            id: "limitesGrafico",
-            afterDraw: grafico => {
-                const ctx = grafico.ctx;
-                const yAxe = grafico.scales.y;
-                const xAxe = grafico.scales.x;
-                if (!yAxe || !xAxe) return;
-
-                ctx.save();
-                ctx.font = "600 11px Poppins, sans-serif";
-                ctx.textBaseline = "middle";
-                ctx.textAlign = "left";
-
-                const desenharLinhaLabel = (valor, texto, cor) => {
-                    if (valor == null) return;
-                    const yPixel = yAxe.getPixelForValue(valor);
-                    const xPixel = xAxe.getPixelForValue(xAxe.min) + 6;
-                    if (yPixel == null || xPixel == null) return;
-
-                    // Fundo branco para legibilidade
-                    const medida = ctx.measureText(texto);
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillRect(xPixel - 3, yPixel - 8, medida.width + 6, 16);
-
-                    // Texto
-                    ctx.fillStyle = cor;
-                    ctx.fillText(texto, xPixel, yPixel);
-                    ctx.restore();
-                };
-
-                if (limiares.critico != null) {
-                    ctx.save();
-                    desenharLinhaLabel(limiares.critico, "Uso Severo (Critico)", "#cc0301");
-                    ctx.restore();
-                }
-                if (limiares.atencao != null) {
-                    ctx.save();
-                    desenharLinhaLabel(limiares.atencao, "Uso medio-alto (Atencao)", "#e8a100");
-                    ctx.restore();
-                }
-
-                ctx.restore();
-            }
-        };
-
-        return {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            locale: "pt-BR",
-            interaction: { mode: "index", intersect: false },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    titleFont: { size: 13, family: "Poppins" },
-                    bodyFont: { size: 13, family: "Poppins" },
-                    padding: 10,
-                    callbacks: {
-                        title: itens => dataHoraGrafico(itens[0].parsed.x),
-                        label: contexto => `${contexto.dataset.label}: ${numeroGrafico(contexto.parsed.y)}%`
-                    }
-                },
-                ...(limiares && (limiares.atencao != null || limiares.critico != null)
-                    ? { limitesGrafico: pluginLimites }
-                    : {})
-            },
-            scales: {
-                x: {
-                    type: "linear",
-                    ...(inicio != null
-                        ? { min: mesmoInstante ? inicio - 30000 : inicio, max: mesmoInstante ? fim + 30000 : fim }
-                        : {}),
-                    grid: { display: false },
-                    border: { display: false },
-                    ticks: {
-                        maxTicksLimit: 4,
-                        maxRotation: 0,
-                        callback: valor => maisDeUmDia ? dataHoraGrafico(valor) : horarioGrafico(valor),
-                        color: COR_TEXTO_GRAFICO,
-                        font: FONTE_GRAFICO
-                    }
-                },
-                y: {
-                    min: 0,
-                    // CPU de processo pode ultrapassar 100% em servidor multinúcleo.
-                    suggestedMax: 100,
-                    border: { display: false },
-                    grid: { color: "#d6dbe3" },
-                    ticks: {
-                        maxTicksLimit: 4,
-                        callback: valor => `${numeroGrafico(valor)}%`,
-                        color: COR_TEXTO_GRAFICO,
-                        font: FONTE_GRAFICO
-                    }
-                }
-            }
-        };
-    }
-
     function destruirGraficos() {
         for (const grafico of [graficoCpu, graficoMemoria]) {
             if (grafico) grafico.destroy();
@@ -357,127 +275,346 @@
         graficoMemoria = null;
     }
 
-    function atualizarGrafico(id, pontos, rotuloY, cor, pico = null, limiares = null) {
+    /**
+     * Barras empilhadas da distribuição temporal de CPU. Cada segmento é a
+     * proporção do tempo observado em uma faixa; os dados vêm da Etapa 2.
+     */
+    function atualizarGraficoCpu(distribuicao, rotulo) {
         if (typeof Chart === "undefined") return;
 
-        const canvas = document.getElementById(id);
+        const canvas = document.getElementById("grafico-cpu-area");
         if (!canvas) return;
 
-        if (id === "grafico-cpu-area" && graficoCpu) {
+        if (graficoCpu) {
             graficoCpu.destroy();
             graficoCpu = null;
-        } else if (id === "grafico-memoria-area" && graficoMemoria) {
+        }
+
+        const buckets = Array.isArray(distribuicao) ? distribuicao : [];
+        const labels = buckets.map(bucket => bucket.inicio);
+        const ordemFaixas = ProcessosAgregacao.FAIXAS_CPU;
+
+        const datasets = ordemFaixas.map(chave => ({
+            label: FAIXAS_CPU_VISUAL[chave].rotulo,
+            faixa: chave,
+            data: buckets.map(bucket => bucket.proporcoes
+                ? Number(bucket.proporcoes[chave] || 0) * 100
+                : null),
+            backgroundColor: FAIXAS_CPU_VISUAL[chave].cor,
+            borderColor: "#ffffff",
+            borderWidth: 1,
+            borderSkipped: false,
+            barPercentage: 1,
+            categoryPercentage: 0.95
+        }));
+
+        graficoCpu = new Chart(canvas, {
+            type: "bar",
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                locale: "pt-BR",
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: "top",
+                        align: "start",
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: "rect",
+                            boxWidth: 10,
+                            boxHeight: 10,
+                            padding: 12,
+                            color: COR_TEXTO_GRAFICO,
+                            font: FONTE_GRAFICO
+                        }
+                    },
+                    tooltip: {
+                        titleFont: { size: 13, family: "Poppins" },
+                        bodyFont: { size: 12, family: "Poppins" },
+                        padding: 10,
+                        filter: item => item.parsed && item.parsed.y > 0,
+                        callbacks: {
+                            title: itens => {
+                                if (!itens || itens.length === 0) return "";
+                                const bucket = buckets[itens[0].dataIndex];
+                                if (!bucket) return "";
+                                return `${formatoBrasileiro(new Date(bucket.inicio).toISOString())} – ${horarioGrafico(bucket.fim)}`;
+                            },
+                            label: contexto => {
+                                const bucket = buckets[contexto.dataIndex];
+                                if (!bucket || !bucket.proporcoes) return "Sem dados no intervalo";
+
+                                const faixa = contexto.dataset.faixa;
+                                return [
+                                    `Faixa: ${FAIXAS_CPU_VISUAL[faixa].rotulo}`,
+                                    `Proporção: ${formatarPercentual(bucket.proporcoes[faixa] * 100)} do tempo observado`,
+                                    `Tempo na faixa: ${formatarDuracao(bucket.temposMs[faixa])}`,
+                                    `Total observado: ${formatarDuracao(bucket.observadoMs)}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            maxTicksLimit: 6,
+                            maxRotation: 0,
+                            autoSkip: true,
+                            callback: function (valor) {
+                                const bruto = typeof this.getLabelForValue === "function"
+                                    ? this.getLabelForValue(valor)
+                                    : valor;
+                                const instante = Number(bruto);
+                                return Number.isFinite(instante) ? horarioGrafico(instante) : "";
+                            },
+                            color: COR_TEXTO_GRAFICO,
+                            font: FONTE_GRAFICO
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        min: 0,
+                        max: 100,
+                        border: { display: false },
+                        grid: { color: "#d6dbe3" },
+                        ticks: {
+                            stepSize: 25,
+                            callback: valor => `${numeroGrafico(valor)}%`,
+                            color: COR_TEXTO_GRAFICO,
+                            font: FONTE_GRAFICO
+                        }
+                    }
+                }
+            }
+        });
+
+        // Referência da distribuição exibida, útil para inspeção e testes.
+        graficoCpu.configuracaoDistribuicao = { distribuicao, rotulo };
+        return graficoCpu;
+    }
+
+    /**
+     * Área de evolução da RAM. Pontos sem leitura entram como null para quebrar
+     * a linha: ausência de dado nunca é desenhada como consumo zero.
+     */
+    function atualizarGraficoMemoria(pontos, eventos, rotulo, passoMinutos) {
+        if (typeof Chart === "undefined") return;
+
+        const canvas = document.getElementById("grafico-memoria-area");
+        if (!canvas) return;
+
+        if (graficoMemoria) {
             graficoMemoria.destroy();
             graficoMemoria = null;
         }
 
-        const serie = pontosDoGrafico(pontos);
-        const primeiroX = serie.length > 0 ? serie[0].x : 0;
-        const ultimoX = serie.length > 0 ? serie[serie.length - 1].x : 0;
+        const serie = (Array.isArray(pontos) ? pontos : [])
+            .map(ponto => {
+                // Intervalo sem leitura não tem `t`: usa o início para manter a
+                // posição temporal e desenhar a lacuna como ponto null.
+                let instante = typeof ponto.t === "number" ? ponto.t : Date.parse(ponto.t);
+                if (!Number.isFinite(instante) && ponto.inicio != null) {
+                    instante = typeof ponto.inicio === "number"
+                        ? ponto.inicio
+                        : Date.parse(ponto.inicio);
+                }
+                const valor = ponto.v == null || !Number.isFinite(Number(ponto.v))
+                    ? null
+                    : Number(ponto.v);
+                const rss = ponto.rssBytes == null || !Number.isFinite(Number(ponto.rssBytes))
+                    ? null
+                    : Number(ponto.rssBytes);
+                return {
+                    x: instante,
+                    y: valor,
+                    t: ponto.t,
+                    rssBytes: rss
+                };
+            })
+            .filter(ponto => Number.isFinite(ponto.x))
+            .sort((a, b) => a.x - b.x);
 
-        const datasets = [];
+        const eventosValidos = (Array.isArray(eventos) ? eventos : [])
+            .map(evento => ({
+                tempo: typeof evento.tempo === "number" ? evento.tempo : Date.parse(evento.tempo),
+                rotulo: evento.rotulo
+            }))
+            .filter(evento => Number.isFinite(evento.tempo) && evento.rotulo)
+            .sort((a, b) => a.tempo - b.tempo);
 
-        // Limites de atenção e crítico
-        const atencao = limiares && limiares.atencao != null ? Number(limiares.atencao) : null;
-        const critico = limiares && limiares.critico != null ? Number(limiares.critico) : null;
+        const instantesComDado = serie.filter(ponto => ponto.y != null).map(ponto => ponto.x);
+        const inicio = instantesComDado[0];
+        const fim = instantesComDado[instantesComDado.length - 1];
+        const mesmoInstante = inicio != null && inicio === fim;
+        const maisDeUmDia = inicio != null && fim != null && (fim - inicio) >= 86400000;
+        const margemEixo = 1800000;
 
-        // Área sombreada acima do crítico: preenche entre o valor e o crítico apenas quando acima.
-        if (critico != null) {
-            const pontosSombra = serie.map(p => ({
-                x: p.x,
-                y: p.y > critico ? p.y : critico
-            }));
-            datasets.push({
-                label: "Área acima do crítico",
-                data: pontosSombra,
-                borderColor: "transparent",
-                backgroundColor: "rgba(204, 3, 1, 0.08)",
-                borderWidth: 0,
-                pointRadius: 0,
-                fill: "-1",
-                tension: 0,
-                spanGaps: false,
-                order: 0
-            });
+        // Mudanças são destacadas pela direção real entre leituras observadas,
+        // sem limite fixo inventado: crescimento em coral, redução em verde.
+        function estadoPonto(indice) {
+            const atual = serie[indice];
+            if (!atual || atual.y == null) return { cor: COR_GRAFICO.memoria, raio: 0 };
+            let anterior = null;
+            for (let i = indice - 1; i >= 0; i--) {
+                if (serie[i].y != null) {
+                    anterior = serie[i].y;
+                    break;
+                }
+            }
+            if (anterior == null) return { cor: COR_GRAFICO.memoria, raio: 2 };
+            if (atual.y > anterior) return { cor: "#cc0301", raio: 4 };
+            if (atual.y < anterior) return { cor: "#17885e", raio: 4 };
+            return { cor: COR_GRAFICO.memoria, raio: 2 };
         }
 
-        // Linha horizontal do crítico
-        if (critico != null) {
-            datasets.push({
-                label: "Uso Severo (Critico)",
-                data: [{ x: primeiroX, y: critico }, { x: ultimoX, y: critico }],
-                borderColor: "#cc0301",
-                backgroundColor: "#cc0301",
-                borderWidth: 2,
-                borderDash: [6, 4],
-                pointRadius: 0,
-                pointHoverRadius: 0,
-                fill: false,
-                tension: 0,
-                spanGaps: true,
-                order: 1
-            });
-        }
+        const pluginMarcadores = {
+            id: "marcadoresEventosRam",
+            afterDatasetsDraw: grafico => {
+                if (eventosValidos.length === 0) return;
+                const area = grafico.chartArea;
+                const eixoX = grafico.scales.x;
+                const ctx = grafico.ctx;
+                if (!area || !eixoX || !ctx) return;
 
-        // Linha horizontal de atenção
-        if (atencao != null) {
-            datasets.push({
-                label: "Uso medio-alto (Atencao)",
-                data: [{ x: primeiroX, y: atencao }, { x: ultimoX, y: atencao }],
-                borderColor: "#a96808",
-                backgroundColor: "#a96808",
-                borderWidth: 2,
-                borderDash: [6, 4],
-                pointRadius: 0,
-                pointHoverRadius: 0,
-                fill: false,
-                tension: 0,
-                spanGaps: true,
-                order: 2
-            });
-        }
+                ctx.save();
+                ctx.font = "600 10px Poppins, sans-serif";
+                ctx.textBaseline = "middle";
+                for (const evento of eventosValidos) {
+                    const pixel = eixoX.getPixelForValue(evento.tempo);
+                    if (pixel == null || pixel < area.left || pixel > area.right) continue;
 
-        // Série principal do processo
-        datasets.push({
-            label: rotuloY,
-            data: serie,
-            borderColor: cor,
-            backgroundColor: cor,
-            borderWidth: 3,
-            pointRadius: 0,
-            pointHoverRadius: 4,
-            tension: 0,
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = "rgba(204, 3, 1, 0.45)";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(pixel, area.top);
+                    ctx.lineTo(pixel, area.bottom);
+                    ctx.stroke();
+
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = "rgba(204, 3, 1, 0.85)";
+                    const aDireita = pixel > area.right - 52;
+                    ctx.textAlign = aDireita ? "right" : "left";
+                    ctx.fillText("reinício", pixel + (aDireita ? -4 : 4), area.top + 12);
+                }
+                ctx.restore();
+            }
+        };
+
+        const dataset = {
+            label: `Utilização de RAM (${rotulo})`,
+            data: serie.map(ponto => ({ x: ponto.x, y: ponto.y })),
+            borderColor: COR_GRAFICO.memoria,
+            backgroundColor: contexto => {
+                const area = contexto.chart.chartArea;
+                if (!area) return "rgba(71, 125, 167, 0.18)";
+                const gradiente = contexto.chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+                gradiente.addColorStop(0, "rgba(71, 125, 167, 0.32)");
+                gradiente.addColorStop(1, "rgba(71, 125, 167, 0.02)");
+                return gradiente;
+            },
+            borderWidth: 2,
+            tension: 0.25,
+            fill: "origin",
             spanGaps: false,
-            order: 3
-        });
+            pointRadius: contexto => estadoPonto(contexto.dataIndex).raio,
+            pointHoverRadius: 5,
+            pointBackgroundColor: contexto => estadoPonto(contexto.dataIndex).cor,
+            pointBorderColor: "#ffffff",
+            pointBorderWidth: 1
+        };
 
-        // Ponto destacado da Gold: só entra se o instante existir na série aberta.
-        const instantePico = pico ? Date.parse(pico.timestamp) : NaN;
-        const valorPico = pico ? Number(pico.valor) : NaN;
-        if (Number.isFinite(instantePico) && Number.isFinite(valorPico) &&
-            serie.some(p => p.x === instantePico)) {
-            datasets.push({
-                label: `Pico ${rotuloY} · ${identidadeProcesso(pico)}`,
-                data: [{ x: instantePico, y: valorPico }],
-                borderColor: cor,
-                backgroundColor: cor,
-                pointRadius: 6,
-                pointHoverRadius: 7,
-                pointBorderColor: "#ffffff",
-                pointBorderWidth: 2,
-                showLine: false,
-                order: -1
-            });
-        }
-
-        const grafico = new Chart(canvas, {
+        const configuracao = {
             type: "line",
-            data: { datasets },
-            options: configuracaoComum(serie, { atencao, critico })
-        });
+            data: { datasets: [dataset] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                locale: "pt-BR",
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        titleFont: { size: 13, family: "Poppins" },
+                        bodyFont: { size: 12, family: "Poppins" },
+                        padding: 10,
+                        filter: item => item.parsed && item.parsed.y != null,
+                        callbacks: {
+                            title: itens => {
+                                if (!itens || itens.length === 0) return "";
+                                const ponto = serie[itens[0].dataIndex];
+                                return ponto && ponto.t ? formatoBrasileiro(ponto.t) : "";
+                            },
+                            label: contexto => {
+                                const ponto = serie[contexto.dataIndex];
+                                if (!ponto || ponto.y == null) return [];
+                                const linhas = [`Utilização: ${formatarPercentual(ponto.y)}`];
+                                if (ponto.rssBytes != null) {
+                                    linhas.push(`Memória utilizada: ${formatarBytes(ponto.rssBytes)}`);
+                                }
+                                return linhas;
+                            },
+                            afterBody: itens => {
+                                if (!itens || itens.length === 0 || eventosValidos.length === 0) return [];
+                                const instante = Number(itens[0].parsed.x);
+                                const tolerancia = Math.max(1, Number(passoMinutos) || 1) * 60000;
+                                const evento = eventosValidos.find(
+                                    item => Math.abs(item.tempo - instante) <= tolerancia
+                                );
+                                return evento ? ["", `Evento: ${evento.rotulo}`] : [];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: "linear",
+                        ...(inicio != null
+                            ? {
+                                min: mesmoInstante ? inicio - margemEixo : inicio,
+                                max: mesmoInstante ? fim + margemEixo : fim
+                            }
+                            : {}),
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            maxTicksLimit: 6,
+                            maxRotation: 0,
+                            callback: valor => maisDeUmDia ? dataHoraGrafico(valor) : horarioGrafico(valor),
+                            color: COR_TEXTO_GRAFICO,
+                            font: FONTE_GRAFICO
+                        }
+                    },
+                    y: {
+                        min: 0,
+                        suggestedMax: 100,
+                        border: { display: false },
+                        grid: { color: "#d6dbe3" },
+                        ticks: {
+                            maxTicksLimit: 5,
+                            callback: valor => `${numeroGrafico(valor)}%`,
+                            color: COR_TEXTO_GRAFICO,
+                            font: FONTE_GRAFICO
+                        }
+                    }
+                }
+            },
+            plugins: [pluginMarcadores]
+        };
 
-        if (id === "grafico-cpu-area") graficoCpu = grafico;
-        else graficoMemoria = grafico;
+        graficoMemoria = new Chart(canvas, configuracao);
+        // Série e eventos usados pelos callbacks, disponíveis para inspeção.
+        graficoMemoria.configuracaoMemoria = { serie, eventos: eventosValidos, rotulo, passoMinutos };
+        return graficoMemoria;
     }
 
     function inicializarGraficos() {
@@ -486,8 +623,8 @@
             return;
         }
         destruirGraficos();
-        atualizarGrafico("grafico-cpu-area", [], "CPU", COR_GRAFICO.cpu);
-        atualizarGrafico("grafico-memoria-area", [], "RAM", COR_GRAFICO.memoria);
+        atualizarGraficoCpu([], "--");
+        atualizarGraficoMemoria([], [], "--", null);
     }
 
     // ------------------------------------------------------------------
@@ -559,7 +696,13 @@
 
         for (const item of lista) {
             const tr = document.createElement("tr");
-            tr.appendChild(novaCelula(`${item.nome || "desconhecido"} (PID ${item.pid != null ? item.pid : "--"})`));
+            // A identidade vem do dado do ranking, não da célula exibida: o PID
+            // dentro do texto termina com ")" e não pode ser reaproveitado.
+            tr.dataset.chave = chaveProcesso(item);
+            tr.dataset.nome = item.nome || "desconhecido";
+            tr.dataset.pid = item.pid != null ? String(item.pid) : "--";
+            if (item.createTime != null) tr.dataset.createTime = String(item.createTime);
+            tr.appendChild(novaCelula(identidadeProcesso(item)));
             tr.appendChild(novaCelula(item.cpuMax != null ? item.cpuMax.toFixed(1) : "--"));
             tr.appendChild(novaCelula(item.memoriaMax != null ? item.memoriaMax.toFixed(1) : "--"));
             tr.appendChild(novaCelula(formatoBrasileiro(item.ultimoPico)));
@@ -586,18 +729,11 @@
 
         // Plota automaticamente o processo com maior CPU máxima.
         if (top5Recursos.length > 0) {
-            carregarHistoricoProcesso(top5Recursos[0].nome, top5Recursos[0].pid);
+            const primeiro = top5Recursos[0];
+            carregarHistoricoProcesso(primeiro.nome, primeiro.pid, primeiro.createTime || null);
         } else {
             limparGraficos();
         }
-
-        // Meta chips do histórico usam o mesmo pico de memória do KPI.
-        const picoMemoria = kpis && kpis.picoMemoria;
-        definirTexto(metaProcesso, picoMemoria ? identidadeProcesso(picoMemoria) : "--");
-        definirTexto(metaUsuario, picoMemoria && picoMemoria.usuario ? picoMemoria.usuario : "--");
-        definirTexto(metaStatus, picoMemoria
-            ? (picoMemoria.valor >= 90 ? "crítico" : "estável")
-            : "--");
 
         // Comparativo de momentos: usa o cálculo do service, com fallback local.
         const comparacao = dados.comparacao;
@@ -661,15 +797,22 @@
     }
 
     /**
-     * Busca o dashboard na API em até 7 dias, do dia selecionado para trás.
-     * Capturas antigas continuam aparecendo quando o dia atual ainda não tem lote.
+     * Busca o dashboard nos últimos 7 dias, do dia selecionado para trás.
+     * Dia sem captura é ignorado; as amostras dos dias com dados são reunidas
+     * para que os gráficos possam usar passos de até 12 horas.
      */
-    async function buscarDashboardNoPeriodo() {
+    async function buscarDashboardsDoPeriodo(aoReceberDados = null) {
         const [ano, mes, dia] = dataSelecionada.split("-").map(Number);
         const referencia = Date.UTC(ano, mes - 1, dia);
+        const datas = [];
 
         for (let i = 0; i < 7; i++) {
-            const data = new Date(referencia - i * 86400000).toISOString().slice(0, 10);
+            datas.push(new Date(referencia - i * 86400000).toISOString().slice(0, 10));
+        }
+
+        // Busca os 7 dias em paralelo: o tempo total é o do dia mais lento,
+        // não a soma de sete requisições sequenciais.
+        const resultados = await Promise.allSettled(datas.map(async data => {
             const resposta = await fetch(urlComAcesso("/processos/dashboard", {
                 mac: servidorSelecionado,
                 data
@@ -681,10 +824,44 @@
             }
 
             const dados = await resposta.json();
-            if ((dados.total || 0) > 0) return dados;
+            // Permite renderizar o dia selecionado antes de os outros terminarem.
+            if (aoReceberDados) aoReceberDados(data, dados);
+            return dados;
+        }));
+
+        const dashboards = [];
+        let primeiroErro = null;
+
+        for (const resultado of resultados) {
+            if (resultado.status === "fulfilled") {
+                if ((resultado.value.total || 0) > 0) dashboards.push(resultado.value);
+            } else if (!primeiroErro) {
+                primeiroErro = resultado.reason;
+            }
         }
 
-        return null;
+        if (dashboards.length === 0) {
+            if (primeiroErro) throw primeiroErro;
+            return null;
+        }
+
+        // KPIs, Top 5 e comparativo continuam referentes ao dia mais recente.
+        const maisRecente = dashboards[0];
+        const processos = dashboards
+            .flatMap(dados => Array.isArray(dados.processos) ? dados.processos : [])
+            .sort((a, b) =>
+                new Date(a.timestamp || 0).getTime() -
+                new Date(b.timestamp || 0).getTime()
+            );
+
+        return {
+            ...maisRecente,
+            processos,
+            total: processos.length,
+            ultimaColeta: processos.length > 0
+                ? processos[processos.length - 1].timestamp
+                : null
+        };
     }
 
     async function carregarDados() {
@@ -692,7 +869,7 @@
 
         definirEstadoKpis("carregando");
         try {
-            const dados = await buscarDashboardNoPeriodo();
+            const dados = await buscarDashboardsDoPeriodo();
 
             if (!dados) {
                 renderizar({ processos: [], top5Recursos: [], kpis: null, comparacao: null });
@@ -710,9 +887,11 @@
         }
     }
 
-    function carregarHistoricoProcesso(nomeProcesso, pid) {
+    function carregarHistoricoProcesso(nomeProcesso, pid, createTime = null) {
         const filtrados = processosDoDia.filter(
-            p => (p.nome || "") === nomeProcesso && String(p.pid) === String(pid)
+            p => (p.nome || "") === nomeProcesso &&
+                String(p.pid) === String(pid) &&
+                (createTime == null || String(p.createTime || "") === String(createTime))
         );
 
         if (filtrados.length === 0) {
@@ -720,44 +899,83 @@
             return;
         }
 
-        processoEmFoco = { nome: nomeProcesso, pid };
+        processoEmFoco = { nome: nomeProcesso, pid, createTime };
+        const chaveSelecionada = chaveProcesso(processoEmFoco);
+        tbodyTop5Recursos.querySelectorAll("tr").forEach(linha => {
+            linha.classList.toggle("linha-ativa", linha.dataset.chave === chaveSelecionada);
+        });
+
+        // Indicadores do mesmo processo das séries: usuario e pico de memoria
+        // das proprias amostras, nao do pico global do KPI.
+        const usuario = filtrados
+            .map(p => p.usuario)
+            .find(u => u != null && String(u).trim() !== "") || "--";
+        const picoMemoria = filtrados.reduce((maior, p) => {
+            if (p.memoriaValida === false || p.memoria == null) return maior;
+            return maior == null || p.memoria > maior ? p.memoria : maior;
+        }, null);
+        definirTexto(metaProcesso, identidadeProcesso({ nome: nomeProcesso, pid }));
+        definirTexto(metaUsuario, usuario);
+        definirTexto(metaStatus, picoMemoria != null && picoMemoria >= 90 ? "crítico" : "estável");
+
+        // Uma única passagem prepara a distribuição de CPU e a série de RAM.
+        const historico = ProcessosAgregacao.prepararHistorico(filtrados, periodoAtual);
+        const rotulo = ROTULOS_PASSO[historico.passoMinutos] || `${historico.passoMinutos} min`;
+
+        // Agrega antes de recortar para não perder o intervalo de referência.
         const limite = limiteDoPeriodo();
-        const semLeitura = limite !== null ? "sem leitura no período" : "--";
-        const pontosCpu = [];
-        const pontosMem = [];
 
-        for (const p of filtrados) {
-            const instante = Date.parse(p.timestamp);
-            if (limite !== null && (!Number.isFinite(instante) || instante < limite)) continue;
+        const distribuicaoCpu = (historico.cpu.distribuicao || []).filter(
+            bucket => limite == null || bucket.inicio >= limite
+        );
+        const bucketsComDados = distribuicaoCpu.filter(bucket => bucket.observadoMs > 0);
+        const tempoObservado = bucketsComDados.reduce((soma, bucket) => soma + bucket.observadoMs, 0);
+        const tempoElevado = bucketsComDados.reduce(
+            (soma, bucket) => soma + Number(bucket.temposMs.acima75 || 0), 0
+        );
 
-            const cpu = extrairValorLeitura(p.cpu);
-            const mem = extrairValorLeitura(p.memoria);
+        const pontosMemoria = (historico.memoria.pontos || []).filter(
+            ponto => limite == null || (ponto.inicio != null && ponto.inicio >= limite)
+        );
+        const ultimaMemoria = [...pontosMemoria].reverse().find(ponto => ponto.v != null);
 
-            if (cpu != null && p.valido !== false) pontosCpu.push({ t: p.timestamp, v: cpu });
-            if (mem != null && p.memoriaValida !== false) pontosMem.push({ t: p.timestamp, v: mem });
-        }
+        // Eventos reais do serviço: reinícios detectados para o processo em foco.
+        const processosEmLoop =
+            (kpisDoDia && kpisDoDia.reiniciandoLoop && kpisDoDia.reiniciandoLoop.processos) || [];
+        const eventosMemoria = processosEmLoop
+            .filter(evento =>
+                (evento.nome || "") === nomeProcesso && String(evento.pid) === String(pid))
+            .map(evento => ({
+                // O serviço devolve ISO; aceitar número mantém compatibilidade
+                // com chamadas internas que já passam epoch.
+                tempo: typeof evento.ultimoReinicio === "number"
+                    ? evento.ultimoReinicio
+                    : Date.parse(evento.ultimoReinicio),
+                rotulo: evento.metodo === "create_time"
+                    ? "Reinício do processo (CREATE_TIME)"
+                    : "Reinício do processo (troca de PID)"
+            }))
+            .filter(evento =>
+                Number.isFinite(evento.tempo) &&
+                (limite == null || evento.tempo >= limite));
 
-        const ultimoCpu = pontosCpu[pontosCpu.length - 1];
-        const ultimoMem = pontosMem[pontosMem.length - 1];
+        definirTexto(cpuValor, bucketsComDados.length
+            ? `Tempo observado: ${formatarDuracao(tempoObservado)}`
+            : "sem dados no período");
+        definirTexto(cpuCaption, bucketsComDados.length
+            ? `Intervalos de ${rotulo} · ${bucketsComDados.length} com dados`
+            : "--");
+        definirTexto(cpuTempoElevado, bucketsComDados.length
+            ? `Acima de 75%: ${formatarDuracao(tempoElevado)}`
+            : "--");
 
-        definirTexto(cpuValor, ultimoCpu ? formatarPercentual(ultimoCpu.v) : "--");
-        definirTexto(cpuCaption, ultimoCpu
-            ? `Última leitura: ${formatoBrasileiro(ultimoCpu.t)}`
-            : semLeitura);
+        definirTexto(memoriaValor, ultimaMemoria ? formatarPercentual(ultimaMemoria.v) : "--");
+        definirTexto(memoriaCaption, ultimaMemoria
+            ? `Última leitura (${rotulo}): ${formatoBrasileiro(ultimaMemoria.t)}`
+            : "sem dados no período");
 
-        definirTexto(memoriaValor, ultimoMem ? formatarPercentual(ultimoMem.v) : "--");
-        definirTexto(memoriaCaption, ultimoMem
-            ? `Última leitura: ${formatoBrasileiro(ultimoMem.t)}`
-            : semLeitura);
-
-        const picoCpu = picoDoProcesso(kpisDoDia && kpisDoDia.picoCpu, nomeProcesso, pid);
-        const picoMemoria = picoDoProcesso(kpisDoDia && kpisDoDia.picoMemoria, nomeProcesso, pid);
-
-        const limiaresCpu = kpisDoDia && kpisDoDia.limiares ? kpisDoDia.limiares.cpu : null;
-        const limiaresMem = kpisDoDia && kpisDoDia.limiares ? kpisDoDia.limiares.rssGb : null;
-
-        atualizarGrafico("grafico-cpu-area", pontosCpu, "CPU", COR_GRAFICO.cpu, picoCpu, limiaresCpu);
-        atualizarGrafico("grafico-memoria-area", pontosMem, "RAM", COR_GRAFICO.memoria, picoMemoria, limiaresMem);
+        atualizarGraficoCpu(distribuicaoCpu, rotulo);
+        atualizarGraficoMemoria(pontosMemoria, eventosMemoria, rotulo, historico.passoMinutos);
     }
 
     // ------------------------------------------------------------------
@@ -776,24 +994,20 @@
             limparGraficos();
             return;
         }
-        carregarHistoricoProcesso(processoEmFoco.nome, processoEmFoco.pid);
+        carregarHistoricoProcesso(processoEmFoco.nome, processoEmFoco.pid, processoEmFoco.createTime);
     });
 
+    // Seleção de processo no ranking: usa a identidade gravada na linha, sem
+    // depender do texto exibido (que inclui o ")" do PID).
     tbodyTop5Recursos.addEventListener("click", function (evento) {
         const linha = evento.target.closest("tr");
-        if (!linha) return;
+        if (!linha || !linha.dataset.chave) return;
 
-        const celulaNome = linha.querySelector("td");
-        if (!celulaNome) return;
-
-        const textoNome = celulaNome.textContent.trim();
-        const pidMatch = textoNome.match(/PID\s+(\S+)/);
-        const nomeProcesso = textoNome.replace(/\s*\(PID.*/, "").trim();
-        const pid = pidMatch ? pidMatch[1] : null;
-
-        if (pid) {
-            carregarHistoricoProcesso(nomeProcesso, pid);
-        }
+        carregarHistoricoProcesso(
+            linha.dataset.nome,
+            linha.dataset.pid,
+            linha.dataset.createTime || null
+        );
     });
 
     // ------------------------------------------------------------------

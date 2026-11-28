@@ -3,6 +3,15 @@
    Estilos exclusivos da página de alertas.
    ========================================================= */
 
+/* Fundo fixo em todas as visões, inclusive durante o carregamento e ao rolar.
+   Sobrescreve qualquer valor vindo do CSS compartilhado sem afetar outras telas. */
+body.dashboard-page,
+body.dashboard-page .dashboard-menu,
+body.dashboard-page .dashboard-conteudo,
+body.dashboard-page .alertas-principal {
+    background-color: #f7f7f2;
+}
+
 .alertas-principal {
     --alertas-borda: #d9dee7;
     --alertas-cartao: #ffffff;
@@ -25,9 +34,15 @@
 }
 
 .alertas-cabecalho h1 {
-    font-size: clamp(30px, 2.4vw, 40px);
-    font-weight: 600;
+    font-size: clamp(32px, 2.6vw, 40px);
+    font-weight: 700;
     letter-spacing: -0.6px;
+}
+
+.alertas-cabecalho p {
+    margin-top: 4px;
+    color: var(--alertas-texto-suave);
+    font-size: 20px;
 }
 
 .alertas-selo-perfil {
@@ -39,7 +54,7 @@
     border-radius: 999px;
     background-color: rgba(204, 3, 1, 0.08);
     color: var(--alertas-critico);
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
 }
 
@@ -90,23 +105,27 @@
     min-height: 108px;
     padding: 18px 20px;
     border: 1px solid var(--alertas-borda);
+    border-top: 3px solid #e6e3e0;
     border-radius: 14px;
     background-color: var(--alertas-cartao);
 }
+
+.alertas-cartao:has(.alertas-cartao-valor.critico) { border-top-color: var(--cor-vermelho); }
+.alertas-cartao:has(.alertas-cartao-valor.atencao) { border-top-color: #ae7921; }
 
 .alertas-cartao-rotulo {
     display: flex;
     align-items: center;
     gap: 8px;
     color: var(--alertas-texto-suave);
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 600;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
 .alertas-cartao-valor {
-    font-size: 38px;
+    font-size: clamp(40px, 3.2vw, 50px);
     font-weight: 700;
     line-height: 1.1;
 }
@@ -129,7 +148,7 @@
 
 .alertas-cartao-legenda {
     color: var(--alertas-texto-suave);
-    font-size: 15px;
+    font-size: 18px;
 }
 
 /* ---------- Barra de chips ---------- */
@@ -156,7 +175,7 @@
 
 .alertas-chips-rotulo {
     color: var(--alertas-texto-suave);
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 500;
 }
 
@@ -170,7 +189,7 @@
     border-radius: 999px;
     background-color: #fff;
     color: var(--cor-texto);
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 500;
     transition: border-color 0.2s, background-color 0.2s, color 0.2s;
 }
@@ -192,7 +211,7 @@
     border-radius: 999px;
     background-color: #eef0f4;
     color: var(--alertas-texto-suave);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
 }
 
@@ -241,7 +260,7 @@
 }
 
 .alertas-painel-topo h2 {
-    font-size: 23px;
+    font-size: 25px;
     font-weight: 600;
 }
 
@@ -250,14 +269,14 @@
     border-radius: 999px;
     background-color: #eef0f4;
     color: var(--alertas-texto-suave);
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 600;
 }
 
 .alertas-subtitulo {
     flex-basis: 100%;
     color: var(--alertas-texto-suave);
-    font-size: 16px;
+    font-size: 18px;
 }
 
 /* ---------- Tabela de servidores ---------- */
@@ -273,13 +292,20 @@
 }
 
 .alertas-tabela th {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--alertas-borda);
+    padding: 12px;
+    background: var(--cor-fundo);
     color: var(--alertas-texto-suave);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 17px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.alertas-tabela th:first-child {
+    border-radius: 5px 0 0 5px;
+}
+
+.alertas-tabela th:last-child {
+    border-radius: 0 5px 5px 0;
 }
 
 .alertas-tabela td {
@@ -303,13 +329,13 @@
 }
 
 .alertas-servidor-nome {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
 }
 
 .alertas-servidor-perfil {
     color: var(--alertas-texto-suave);
-    font-size: 15px;
+    font-size: 17px;
 }
 
 .alertas-badge {
@@ -317,7 +343,7 @@
     align-items: center;
     padding: 4px 12px;
     border-radius: 999px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -346,7 +372,7 @@
 .alertas-descricao {
     margin-top: 6px;
     color: var(--alertas-texto-suave);
-    font-size: 15px;
+    font-size: 17px;
 }
 
 .alertas-metricas {
@@ -363,7 +389,7 @@
     border: 1px solid var(--alertas-borda);
     border-radius: 999px;
     background-color: #f8f9fb;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 500;
     white-space: nowrap;
 }
@@ -386,7 +412,7 @@
     border-radius: 999px;
     background-color: #fff;
     color: var(--cor-texto);
-    font-size: 17px;
+    font-size: 19px;
     text-decoration: none;
     white-space: nowrap;
     transition: border-color 0.2s, background-color 0.2s;
@@ -409,7 +435,7 @@
     border: 0;
     background: none;
     color: var(--alertas-critico);
-    font-size: 17px;
+    font-size: 19px;
     font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
@@ -450,7 +476,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .alertas-abas {
@@ -470,7 +496,7 @@
     border-radius: 999px;
     background-color: transparent;
     color: var(--alertas-texto-suave);
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -492,7 +518,7 @@
     gap: 14px;
     margin-bottom: 10px;
     color: var(--alertas-texto-suave);
-    font-size: 15px;
+    font-size: 17px;
 }
 
 .alertas-cor {
@@ -516,7 +542,7 @@
 .alertas-grafico-vazio {
     padding: 48px 16px;
     color: var(--alertas-texto-suave);
-    font-size: 16px;
+    font-size: 18px;
     text-align: center;
 }
 
@@ -527,7 +553,7 @@
     gap: 6px 18px;
     margin: 12px 0 0;
     color: #5b5f6b;
-    font-size: 15px;
+    font-size: 17px;
 }
 
 .alertas-grafico-aviso[hidden] {
@@ -554,7 +580,7 @@
 .alertas-lateral-dica {
     margin-bottom: 12px;
     color: var(--alertas-texto-suave);
-    font-size: 15px;
+    font-size: 17px;
 }
 
 .alertas-lateral-lista {
@@ -591,7 +617,7 @@
 }
 
 .alertas-lateral-nome {
-    font-size: 17px;
+    font-size: 19px;
     font-weight: 600;
 }
 
@@ -603,7 +629,7 @@
     border-radius: 999px;
     background-color: #fff;
     color: var(--alertas-texto-suave);
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -632,7 +658,7 @@
     border-radius: 999px;
     background-color: #fff;
     color: var(--alertas-texto-suave);
-    font-size: 16px;
+    font-size: 18px;
     white-space: nowrap;
 }
 
@@ -667,7 +693,7 @@
 .alertas-vazio {
     padding: 32px 16px;
     color: var(--alertas-texto-suave);
-    font-size: 16px;
+    font-size: 18px;
     text-align: center;
 }
 
@@ -728,7 +754,7 @@
 
     .alertas-botao-chamado,
     .alertas-link-perfil {
-        font-size: 16px;
+        font-size: 18px;
     }
 
     .alertas-icone-jira {

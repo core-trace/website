@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../css/fonts.css">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/navbarDashboard.css">
+    <link rel="stylesheet" href="../css/dashboardPadrao.css">
     <link rel="stylesheet" href="../css/alertas.css">
     <script src="../scripts/navbarDashboard.js" defer></script>
     <script src="../scripts/alertas.js" defer></script>
@@ -64,7 +65,7 @@
                 <div class="dashboard-conta">
                     <button class="dashboard-usuario-toggle" type="button" aria-label="Abrir menu da conta"
                         aria-controls="menu-conta" aria-expanded="false">
-                        <img class="visao-seta-conta" src="../assets/icons/seta-preta.svg" alt="" width="12" height="12">
+                        <span class="dashboard-usuario-seta" aria-hidden="true"></span>
                     </button>
                     <div class="dashboard-menu-conta" id="menu-conta" hidden>
                         <p class="dashboard-conta-email"></p>
@@ -75,8 +76,14 @@
         </header>
 
         <main class="principal alertas-principal" id="conteudo-principal" tabindex="-1">
+            <div class="ct-trilha">Monitoramento <span>/</span> Dashboards <span>/</span>
+                <strong>Alertas</strong>
+            </div>
             <header class="alertas-cabecalho">
-                <h1>Alertas de servidores</h1>
+                <div>
+                    <h1>Alertas de servidores</h1>
+                    <p>Ocorrências ativas por servidor e o elo com o Jira/Slack.</p>
+                </div>
             </header>
 
             <p class="alertas-vazio" id="alertas-estado" role="status" hidden></p>

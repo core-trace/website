@@ -133,12 +133,16 @@ async function buscarPaginas(loteEtiquetas, configuracao) {
 }
 
 async function buscarIssues(etiquetas, configuracao) {
-    const porChave = new Map();
+    const lotes = dividirEmLotes(etiquetas, TAMANHO_LOTE_ETIQUETAS);
+    const resultados = await Promise.all(lotes.map((lote) => buscarPaginas(lote, configuracao)));
 
-    for (const lote of dividirEmLotes(etiquetas, TAMANHO_LOTE_ETIQUETAS)) {
-        const issues = await buscarPaginas(lote, configuracao);
+    // Promise.all mantem a ordem dos lotes, entao o resultado final continua
+    // identico ao da busca sequencial (inclusive para quem pega o primeiro
+    // chamado aberto de um servidor).
+    const porChave = new Map();
+    resultados.forEach((issues) => {
         issues.forEach((issue) => porChave.set(issue.key, issue));
-    }
+    });
 
     return [...porChave.values()];
 }

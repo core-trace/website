@@ -17,6 +17,8 @@ async function obterServidoresEmAlerta() {
     }
 
     const params = new URLSearchParams({ idEmpresa: String(idEmpresa), idUsuario: String(idUsuario) });
+    const fonte = new URLSearchParams(window.location.search).get('fonte');
+    if (fonte === 'local') params.set('fonte', 'local');
     const resposta = await fetch(`/alertas/servidores?${params.toString()}`);
     if (!resposta.ok) throw new Error(`Erro HTTP ${resposta.status} ao buscar alertas.`);
 
@@ -62,17 +64,37 @@ function servidoresDoPerfil(perfil, servidores = estado.servidores) {
 }
 
 /* Métricas configuradas no perfil atual (vindas do MySQL componentes_perfil) */
+const PESO_NIVEL_METRICA = { critico: 0, atencao: 1 };
+
+function nivelAlertaDaMetrica(idMetrica, servidores) {
+    let pior = null;
+    servidores.forEach((srv) => {
+        (srv.metricasEmAlerta || []).forEach((alerta) => {
+            if (alerta.metrica !== idMetrica) return;
+            // Estar em metricasEmAlerta ja significa pelo menos atencao.
+            const nivel = alerta.nivel || 'atencao';
+            if (pior === null || PESO_NIVEL_METRICA[nivel] < PESO_NIVEL_METRICA[pior]) pior = nivel;
+        });
+    });
+    return pior;
+}
+
 function metricasDoPerfilAtual() {
     const escopo = servidoresDoPerfil(estado.perfilAtual);
     const mapa = new Map();
 
     escopo.forEach((srv) => {
         (srv.metricasDisponiveis || []).forEach((m) => {
-            if (!mapa.has(m.id)) mapa.set(m.id, m);
+            if (!mapa.has(m.id)) mapa.set(m.id, { ...m, ordemOriginal: mapa.size });
         });
     });
 
-    return [...mapa.values()];
+    // Criticas primeiro, depois atencao; as demais mantem a ordem original do perfil.
+    return [...mapa.values()].sort((a, b) => {
+        const pa = PESO_NIVEL_METRICA[nivelAlertaDaMetrica(a.id, escopo)] ?? 2;
+        const pb = PESO_NIVEL_METRICA[nivelAlertaDaMetrica(b.id, escopo)] ?? 2;
+        return pa !== pb ? pa - pb : a.ordemOriginal - b.ordemOriginal;
+    });
 }
 
 function garantirMetricaValida() {
@@ -449,7 +471,7 @@ function desenharGrafico() {
     }
 
     const largura = 940, altura = 420;
-    const margem = { topo: 26, direita: 150, baixo: 48, esquerda: 68 };
+    const margem = { topo: 26, direita: 190, baixo: 48, esquerda: 68 };
     const areaLargura = largura - margem.esquerda - margem.direita;
     const areaAltura = altura - margem.topo - margem.baixo;
 
@@ -704,6 +726,7 @@ function desenharGrafico() {
     };
 
     const rankNivel = { normal: 0, atencao: 1, critico: 2 };
+    const etiquetasFinais = [];
 
     series.forEach(({ servidor, pontos }) => {
         if (servidor.status === 'semdados') return;
@@ -803,41 +826,80 @@ function desenharGrafico() {
         });
 
         const ultimo = pontosValidos[pontosValidos.length - 1];
-        const nivelUltimo = classificar(ultimo.valor);
-        const textoUltimo = `${servidor.nome} · ${formatarValorComUnidade(Math.round(ultimo.valor * 10) / 10, unidade)}`;
-        const larguraEtiqueta = Math.max(76, textoUltimo.length * 7 + 20);
-        const alturaEtiqueta = 24;
-        let xEtiqueta = ultimo.x + 12;
-        if (xEtiqueta + larguraEtiqueta > largura - 4) xEtiqueta = ultimo.x - 12 - larguraEtiqueta;
-        xEtiqueta = Math.max(margem.esquerda, Math.min(xEtiqueta, largura - larguraEtiqueta - 4));
-        let yEtiqueta = ultimo.y - alturaEtiqueta / 2;
-        yEtiqueta = Math.max(margem.topo + 2, Math.min(yEtiqueta, margem.topo + areaAltura - alturaEtiqueta - 2));
-
         svg.append(criarSvg('circle', {
             cx: ultimo.x,
             cy: ultimo.y,
             r: 5,
-            fill: COR_SITUACAO[nivelUltimo],
+            fill: COR_SITUACAO[classificar(ultimo.valor)],
             stroke: '#ffffff',
             'stroke-width': 2
         }));
-        svg.append(criarSvg('rect', {
-            x: xEtiqueta,
-            y: yEtiqueta,
-            width: larguraEtiqueta,
-            height: alturaEtiqueta,
-            rx: 12,
-            fill: '#ffffff',
-            stroke: COR_SITUACAO[nivelUltimo],
-            'stroke-width': 1.5
-        }));
-        svg.append(criarSvgTexto(xEtiqueta + larguraEtiqueta / 2, yEtiqueta + 16, textoUltimo, {
-            'text-anchor': 'middle',
-            fill: COR_SITUACAO[nivelUltimo],
-            'font-size': 12,
-            'font-weight': 600
-        }));
+        etiquetasFinais.push({
+            x: ultimo.x,
+            y: ultimo.y,
+            nivel: classificar(ultimo.valor),
+            texto: `${servidor.nome} · ${formatarValorComUnidade(Math.round(ultimo.valor * 10) / 10, unidade)}`
+        });
     });
+
+    // Etiquetas na margem direita, fora da area de evolucao: com duas series
+    // parecidas elas nao se sobrepõem nem cobrem a linha de progressao.
+    const alturaEtiqueta = 24;
+    const espacoEtiqueta = 6;
+    const xEtiqueta = margem.esquerda + areaLargura + 10;
+    const yMinEtiqueta = margem.topo + 2;
+    const yMaxEtiqueta = margem.topo + areaAltura - alturaEtiqueta - 2;
+    const posicoesOcupadas = [];
+
+    etiquetasFinais
+        .sort((a, b) => a.y - b.y)
+        .forEach((etiqueta) => {
+            const larguraEtiqueta = Math.max(76, etiqueta.texto.length * 7 + 20);
+            let y = Math.max(yMinEtiqueta, Math.min(etiqueta.y - alturaEtiqueta / 2, yMaxEtiqueta));
+
+            posicoesOcupadas.forEach((ocupada) => {
+                if (y < ocupada + alturaEtiqueta + espacoEtiqueta && y + alturaEtiqueta + espacoEtiqueta > ocupada) {
+                    y = ocupada + alturaEtiqueta + espacoEtiqueta;
+                }
+            });
+            if (y > yMaxEtiqueta) {
+                y = yMaxEtiqueta;
+                for (let i = posicoesOcupadas.length - 1; i >= 0; i -= 1) {
+                    const ocupada = posicoesOcupadas[i];
+                    if (y < ocupada + alturaEtiqueta + espacoEtiqueta && y + alturaEtiqueta + espacoEtiqueta > ocupada) {
+                        y = ocupada - alturaEtiqueta - espacoEtiqueta;
+                    }
+                }
+                y = Math.max(yMinEtiqueta, y);
+            }
+            posicoesOcupadas.push(y);
+
+            svg.append(criarSvg('line', {
+                x1: etiqueta.x,
+                y1: etiqueta.y,
+                x2: xEtiqueta,
+                y2: y + alturaEtiqueta / 2,
+                stroke: '#c8cdd6',
+                'stroke-width': 1,
+                'stroke-dasharray': '2 3'
+            }));
+            svg.append(criarSvg('rect', {
+                x: xEtiqueta,
+                y,
+                width: larguraEtiqueta,
+                height: alturaEtiqueta,
+                rx: 12,
+                fill: '#ffffff',
+                stroke: COR_SITUACAO[etiqueta.nivel],
+                'stroke-width': 1.5
+            }));
+            svg.append(criarSvgTexto(xEtiqueta + larguraEtiqueta / 2, y + 16, etiqueta.texto, {
+                'text-anchor': 'middle',
+                fill: COR_SITUACAO[etiqueta.nivel],
+                'font-size': 12,
+                'font-weight': 600
+            }));
+        });
 
     // Rótulos dos limiares por cima das linhas de dados, para não serem cobertos.
     limites.forEach((limite) => {
